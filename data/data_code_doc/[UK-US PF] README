@@ -1,0 +1,110 @@
+The COVID-19 pandemic has emphasized the need for more robust disease surveillance infrastructure. However, the development of such infrastructure runs into a double-bind. It is difficult to understand and mitigate privacy concerns without actually-deployed systems. Likewise it is difficult to build realistic systems without access to data. To get around this problem, we created synthetic data that reflects a realistic disease outbreak. This data was used as a component in the US-UK Prize Challenge on Privacy-Enhancing Technologies
+
+
+This dataset consists of 4 components:
+
+    A synthetic population, representing a demographically realistic population
+    Synthetic activities for each individual within the synthetic population, denoting where and when they left the house
+    A contact network derived from these activities
+    A set of disease states, the result of simulating the effects of a COVID-like disease within this population
+
+There are two datasets available. One is a representation of the state of Virginia (~7.7 million individuals) and one is a representation of the United Kingdom (~62 million individuals). 
+This data was synthesized. We combined multiple sources of publicly available data to produce data that statistically resembles what the real data would be if it were available. No entry in this dataset corresponds to any real persons' data. For more details about how this data was produced, please see our technical report. 
+
+
+The datasets in this repository are divided into the following files:
+
+1. Virginia:
+ - va_synthetic_population_and_outbreak_ver_1_9.zip
+ - va_synthetic_population_and_outbreak_ver_1_9_instance_2.zip
+ 
+2. United Kingdom:
+ - gbr_synthetic_population_ver_0_9.zip
+ - gbr_synthetic_outbreak_ver_0_9.split.zip gbr_synthetic_outbreak_ver_0_9.split.z01
+ - gbr_synthetic_outbreak_ver_0_9_instance_2.zip 
+ - gbr_synthetic_outbreak_ver_0_9_instance_2.split.zip gbr_synthetic_outbreak_ver_0_9_instance_2.split.z01 
+
+Each of the datasets (Virginia/UK) contain the following files:
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Person 
+---------------------------------
+  hid                Household ID: An integer identifying a household as defined in the Household file                                                                           
+  pid                Person ID: A unique integer identifying a person                                                                                                            
+  person_number      The sequence identifier related to the indicated person’s position within the household. A household with 3 people would have person_numbers 1, 2, and 3.  
+  age                Age of person                                                                                                                                               
+  sex                Gender of person                                                                                                                                            
+
+Household 
+---------------------------------
+  hid                Household ID: A unique integer identifying a household                                                                                                      
+  rlid               Residence location ID                                                                                                                                       
+  admin1             For UK, this is the ADCW ID for the admin1 region; for Virginia, USA, this is the state FIPS code (51)                                                      
+  admin2             For UK, admin2 is the same as admin1 because ADCW does not provide admin2 level for the UK. For Virginia, USA, this is the county FIPS code                 
+  hh_size            Household Size: Number of persons in a household                                                                                                            
+
+Residence locations 
+---------------------------------
+  rlid               Residence Location ID: A unique integer identifying the residence location.                                                                                 
+  longitude          Longitude of the location                                                                                                                                   
+  latitude           Latitude of the location                                                                                                                                    
+  admin1             See household file description                                                                                                                              
+  admin2             See household file description  
+
+Activity locations
+---------------------------------
+  alid               Activity Location ID: Unique integer identifying the location where non-HOME activities can take place                                                      
+  longitude          Longitude of the location                                                                                                                                   
+  latitude           Latitude of the location                                                                                                                                    
+  admin1             See household file description                                                                                                                              
+  admin2             See household file description                                                                                                                              
+  work               Does the location support work activities? (Value is 0 or 1)                                                                                                
+  shopping           Does the location support shopping activities? (Value is 0 or 1)                                                                                            
+  school             Does the location support school activities? (Value is 0 or 1)                                                                                              
+  other              Does the location support other activities? (Value is 0 or 1)                                                                                               
+  college            Does the location support college activities? (Value is 0 or 1)                                                                                             
+  religion           Does the location support religion activities? (Value is 0 or 1)                                                                                            
+
+
+Activity locations assignment
+---------------------------------                                                                                                                                       
+  hid                Household ID of the person                                                                                                                                  
+  pid                Person ID of the person                                                                                                                                     
+  activity_number   Activity Number: Number of the activity in the activity sequence to which it belongs                                                                        
+  activity_type     Activity Type: Enumerations used for encoding activity types. 1: Home, 2: Work, 3: Shopping, 4: Other, 5: School, 6: College, 7: Religion                   
+  start_time        Start time of the activity in seconds since midnight Sunday/Monday                                                                                          
+  duration           Duration of the activity in seconds                                                                                                                         
+  lid                Location ID of the location where the activity takes place (rlid or alid)
+  
+Population (Contact) network
+---------------------------------
+  pid1               Person ID 1 of this edge                                                                                                                                    
+  pid2               Person ID 2 of this edge                                                                                                                                    
+  lid                Location ID of the location where the contact takes place (rlid or alid)                                                                                    
+  start_time        Start time of the contact between Person ID 1 and Person ID 2 measured in seconds since midnight of Sunday/Monday                                           
+  duration           Duration of the contact measured in seconds                                                                                                                 
+  activity1          Activity type of Person ID 1 at time of contact, see activity_type in activity location assignment file description                                        
+  activity2          Activity type of Person ID 2 at time of contact, see activity_type in activity location assignment file description                                        
+
+Disease outcomes (training data)
+---------------------------------                                                                                                                                        
+  day                Simulation day                                                                                                                                         
+  pid                Person ID of the person                                                                                                                                     
+  disease_state     Disease State: State (S, I or R) of the person on the simulation day                                                                                        
+
+          
+Disease outcomes (testing data)
+---------------------------------                                                                                                                                    
+  pid                Person ID of the person                                                                                                                                     
+  infected           Boolean field (0, 1) indicating whether an individual is infected during the forecast period                                                                
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+
+
+
+
+If you use this dataset in you work please cite:
+
+Harrison, G., Chen, J., Mortveit, H., Hoop, S., Porebski, P., Xie, D., Wilson, M., Bhattacharya, P., Vullikanti, A., Xiong, L., Marathe, M. (2023). Synthetic Data To Support US-UK Prize Challenge For Developing Privacy Enhancing Methods: Predicting Individual Infection Risk During A Pandemic  [Data set]. doi:10.18130/V3/ZOG1FF
+
+
