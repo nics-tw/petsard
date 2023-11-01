@@ -1,0 +1,90 @@
+Filepath: .\data\[Census] adult.data
+
+Execute time: 2023-11-01 13:13:48.905677+08:00
+
+Columns: 15
+dtypes dict as below:
+{'age': 'int8',
+ 'capital-gain': 'int32',
+ 'capital-loss': 'int16',
+ 'education': 'category',
+ 'education-num': 'int8',
+ 'fnlwgt': 'int32',
+ 'hours-per-week': 'int8',
+ 'income': 'category',
+ 'marital-status': 'category',
+ 'native-country': 'category',
+ 'occupation': 'category',
+ 'race': 'category',
+ 'relationship': 'category',
+ 'sex': 'category',
+ 'workclass': 'category'}
+
+
+
+Rows: 32561
+
+# Continue variable: 6
+
+                   age        fnlwgt  education-num  capital-gain  \
+nobs      32561.000000  3.256100e+04   3.256100e+04  32561.000000   
+mean         38.581647  1.897784e+05   1.008068e+01   1077.648844   
+std          13.640223  1.055484e+05   2.572681e+00   7385.178677   
+min          17.000000  1.228500e+04   1.000000e+00      0.000000   
+25%          28.000000  1.178270e+05   9.000000e+00      0.000000   
+50%          37.000000  1.783560e+05   1.000000e+01      0.000000   
+75%          48.000000  2.370510e+05   1.200000e+01      0.000000   
+max          90.000000  1.484705e+06   1.600000e+01  99999.000000   
+range        73.000000  1.472420e+06   1.500000e+01  99999.000000   
+mode         36.000000  1.230110e+05   9.000000e+00      0.000000   
+mode_cnt    898.000000  1.300000e+01   1.050100e+04  29849.000000   
+mode_per      0.027579  3.992506e-04   3.225024e-01      0.916710   
+skew          0.558718  1.446913e+00  -3.116615e-01     11.953297   
+kurtosis     -0.166286  6.217672e+00   6.231641e-01    154.775484   
+normal_p      0.000000  0.000000e+00  3.589720e-178      0.000000   
+
+          capital-loss  hours-per-week  
+nobs      32561.000000    32561.000000  
+mean         87.303830       40.437456  
+std         402.954031       12.347239  
+min           0.000000        1.000000  
+25%           0.000000       40.000000  
+50%           0.000000       40.000000  
+75%           0.000000       45.000000  
+max        4356.000000       99.000000  
+range      4356.000000       98.000000  
+mode          0.000000       40.000000  
+mode_cnt  31042.000000    15217.000000  
+mode_per      0.953349        0.467338  
+skew          4.594417        0.227632  
+kurtosis     20.373489        2.916055  
+normal_p      0.000000        0.000000  
+
+
+
+# Discrete variable: 9
+
+         workclass education       marital-status       occupation  \
+nobs         32561     32561                32561            32561   
+unique           9        16                    7               15   
+top        Private   HS-grad   Married-civ-spouse   Prof-specialty   
+top_freq     22696     10501                14976             4140   
+top_per    0.69703  0.322502             0.459937         0.127146   
+
+         relationship      race       sex  native-country   income  
+nobs            32561     32561     32561           32561    32561  
+unique              6         5         2              42        2  
+top           Husband     White      Male   United-States    <=50K  
+top_freq        13193     27816     21790           29170    24720  
+top_per      0.405178  0.854274  0.669205        0.895857  0.75919  
+
+
+
+There's no missing in Continue variable.
+
+
+
+There's no missing in Discrete variable.
+
+
+

@@ -1,0 +1,102 @@
+Filepath: .\data\[Retail] Online Retail.xlsx
+
+Execute time: 2023-11-01 13:13:49.194485+08:00
+
+Columns: 8
+dtypes dict as below:
+{'Country': 'category',
+ 'CustomerID': 'category',
+ 'Description': 'category',
+ 'InvoiceDate': 'category',
+ 'InvoiceNo': 'category',
+ 'Quantity': 'int32',
+ 'StockCode': 'category',
+ 'UnitPrice': 'float16'}
+
+
+
+Rows: 541909
+
+# Continue variable: 2
+
+               Quantity     UnitPrice
+nobs      541909.000000  5.419090e+05
+mean           9.552250  4.611069e+00
+std          218.080957           inf
+min       -80995.000000 -1.106400e+04
+25%            1.000000  1.250000e+00
+50%            3.000000  2.080078e+00
+75%           10.000000  4.128906e+00
+max        80995.000000  3.897600e+04
+range     161990.000000  5.004800e+04
+mode           1.000000  1.250000e+00
+mode_cnt  148227.000000  5.049600e+04
+mode_per       0.273527  9.318170e-02
+skew          -0.264076           NaN
+kurtosis  119768.054955           NaN
+normal_p       0.000000           NaN
+
+
+
+# Discrete variable: 6
+
+         InvoiceNo StockCode                         Description  \
+nobs        541909    541909                              541909   
+unique       25900      4070                                4224   
+top         573585    85123A  WHITE HANGING HEART T-LIGHT HOLDER   
+top_freq      1114      2313                                2369   
+top_per   0.002056  0.004268                            0.004372   
+
+                  InvoiceDate CustomerID         Country  
+nobs                   541909     541909          541909  
+unique                  23260       4373              38  
+top       2011-10-31 14:41:00             United Kingdom  
+top_freq                 1114     135080          495478  
+top_per              0.002056   0.249267         0.91432  
+
+
+
+There's no missing in Continue variable.
+
+
+
+There's no missing in Discrete variable.
+
+
+
+Correlation Matrix:
+             InvoiceNo  StockCode  Description  Quantity  InvoiceDate  \
+InvoiceNo     1.000000        NaN          NaN       NaN          NaN   
+StockCode     0.067007   1.000000          NaN       NaN          NaN   
+Description   0.029012  -0.023784     1.000000       NaN          NaN   
+Quantity     -0.005524  -0.001379    -0.000587  1.000000          NaN   
+InvoiceDate   0.961989   0.062833     0.030031  0.000287     1.000000   
+UnitPrice     0.011918   0.037312    -0.010841 -0.001235    -0.004309   
+CustomerID    0.058747   0.001405     0.008072  0.010369     0.055005   
+Country      -0.010606   0.005962    -0.013772 -0.012056    -0.003802   
+
+             UnitPrice  CustomerID  Country  
+InvoiceNo          NaN         NaN      NaN  
+StockCode          NaN         NaN      NaN  
+Description        NaN         NaN      NaN  
+Quantity           NaN         NaN      NaN  
+InvoiceDate        NaN         NaN      NaN  
+UnitPrice     1.000000         NaN      NaN  
+CustomerID   -0.015651    1.000000      NaN  
+Country      -0.001491    0.192972      1.0  
+
+
+
+Collinearity - VIF:
+                   VIF
+InvoiceNo    13.487613
+StockCode     1.006574
+Description   1.001928
+Quantity      1.000795
+InvoiceDate  13.469715
+UnitPrice     1.005198
+CustomerID    1.043382
+Country       1.040384
+
+
+
