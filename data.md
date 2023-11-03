@@ -38,3 +38,5 @@
     - Kaggle
         > https://www.kaggle.com/datasets/wenruliu/adult-income-dataset
     - 20231025 I-Ting 指示加入，也是工研院常用的資料集
+    - 看起來很像 US Census
+

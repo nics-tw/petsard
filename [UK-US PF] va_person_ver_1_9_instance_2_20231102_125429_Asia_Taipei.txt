@@ -1,0 +1,76 @@
+Filepath: .\data\[UK-US PF] va_person_ver_1_9_instance_2.csv
+
+Execute time: 2023-11-02 12:54:29.935804+08:00
+
+Columns: 5
+dtypes dict as below:
+{'age': 'int8',
+ 'hid': 'category',
+ 'person_number': 'category',
+ 'pid': 'category',
+ 'sex': 'category'}
+
+
+
+Rows: 7688059
+
+# Continue variable: 1
+
+                   age
+25%       1.900000e+01
+50%       3.900000e+01
+75%       5.700000e+01
+kurtosis -9.550742e-01
+max       9.400000e+01
+mean      3.902584e+01
+min       0.000000e+00
+mode      5.200000e+01
+mode_cnt  1.192090e+05
+mode_per  1.550573e-02
+nobs      7.688059e+06
+normal_p  0.000000e+00
+range     9.400000e+01
+skew      9.078858e-02
+std       2.282839e+01
+
+
+
+# Discrete variable: 4
+
+               hid      pid person_number       sex
+nobs       7688059  7688059       7688059   7688059
+unique     3094493  7688059            20         2
+top         990169   999999             1         2
+top_freq        20        1       3094493   4001878
+top_per   0.000003      0.0      0.402506  0.520532
+
+
+
+There's no missing in Continue variable.
+
+
+
+There's no missing in Discrete variable.
+
+
+
+Correlation Matrix:
+                    hid       pid  person_number       age  sex
+hid            1.000000       NaN            NaN       NaN  NaN
+pid           -0.021265  1.000000            NaN       NaN  NaN
+person_number  0.007466 -0.027871       1.000000       NaN  NaN
+age           -0.004095 -0.010650      -0.521519  1.000000  NaN
+sex           -0.001157  0.009293       0.022053  0.040745  1.0
+
+
+
+Collinearity - VIF:
+                    VIF
+hid            1.000502
+pid            1.002234
+person_number  1.379363
+age            1.380024
+sex            1.004394
+
+
+
