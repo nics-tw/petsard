@@ -1,0 +1,76 @@
+Filepath: .\data\[UK-US PF] va_household_ver_1_9_instance_2.csv
+
+Execute time: 2023-11-02 12:53:51.433456+08:00
+
+Columns: 5
+dtypes dict as below:
+{'admin1': 'category',
+ 'admin2': 'category',
+ 'hh_size': 'int8',
+ 'hid': 'category',
+ 'rlid': 'category'}
+
+
+
+Rows: 3094493
+
+# Continue variable: 1
+
+               hh_size
+25%       1.000000e+00
+50%       2.000000e+00
+75%       3.000000e+00
+kurtosis  2.349318e+00
+max       2.000000e+01
+mean      2.484433e+00
+min       1.000000e+00
+mode      2.000000e+00
+mode_cnt  1.059959e+06
+mode_per  3.425307e-01
+nobs      3.094493e+06
+normal_p  0.000000e+00
+range     1.900000e+01
+skew      1.196009e+00
+std       1.397755e+00
+
+
+
+# Discrete variable: 4
+
+              hid        rlid   admin1    admin2
+nobs      3094493     3094493  3094493   3094493
+unique    3094493     2260071        1       133
+top        999999  1000182982       51       059
+top_freq        1        1748  3094493    392091
+top_per       0.0    0.000565      1.0  0.126706
+
+
+
+There's no missing in Continue variable.
+
+
+
+There's no missing in Discrete variable.
+
+
+
+Correlation Matrix:
+              hid      rlid  admin1    admin2  hh_size
+hid      1.000000       NaN     NaN       NaN      NaN
+rlid    -0.016702  1.000000     NaN       NaN      NaN
+admin1        NaN       NaN     NaN       NaN      NaN
+admin2  -0.060521 -0.014430     NaN  1.000000      NaN
+hh_size  0.014275 -0.000651     NaN -0.032414      1.0
+
+
+
+Collinearity - VIF:
+              VIF
+hid      1.004140
+rlid     1.000519
+admin1        NaN
+admin2   1.004921
+hh_size  1.001205
+
+
+

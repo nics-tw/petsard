@@ -1,68 +1,81 @@
 class load_data():
 
     def __init__(self ,filepath ,params={}):
+        # [TODO] verify filepath exist, readable
+        # [TODO] condition for non-csv and/or too large <-dask, stream algorithm
+
+        self.filepath = filepath
+ 
         from datetime import datetime
         import pytz
         self.exectime = datetime.now().astimezone(pytz.timezone('Asia/Taipei'))
 
-        __params_init = {'read_method'     : 'pandas_csv'
-                        ,'read_params'     : {}
-                        ,'describe'        : 'N'
-                        ,'describe_params' : {'dist_fitting'  : 'N'
-                                             ,'correlation'   : 'N'
-                                             ,'collinearity'  : 'N'
-                                             ,'missing_level' : {'data': {}
-                                                                ,'col' : {}
-                                                                }
-                                             }
-                        ,'report'          : 'N'
-                        ,'report_params'   : {'print_report'  : 'Y'
-                                             ,'save_report'   : 'N'
-                                             ,'save_filename' : ''
-                                             }
-                        }
-        __params_init.update(params)
-        if   __params_init['read_method'] in ['pandas_csv','pandas_xlsx']:
-            if 'str_col' not in __params_init['read_params']:
-                __params_init['read_params']['str_col'] = []
+        ####### ####### #######
+        # init - params       #
+        ####### ####### #######
+        self.params = {'read_method'     : 'pandas_csv'
+                      ,'read_params'     : {}
+                      ,'describe'        : 'N'
+                      ,'describe_params' : {'dist_fitting'  : 'N'
+                                           ,'correlation'   : 'N'
+                                           ,'collinearity'  : 'N'
+                                           ,'missing_level' : {'data': {}
+                                                              ,'col' : {}
+                                                              }
+                                           }
+                      ,'report'          : 'N'
+                      ,'report_params'   : {'print_report'  : 'Y'
+                                           ,'save_report'   : 'N'
+                                           ,'save_filename' : ''
+                                           }
+                      }
+        self.params.update(params)
+        if   self.params['read_method'] in ['pandas_csv','pandas_xlsx']:
+            if 'str_col' not in self.params['read_params']:
+                self.params['read_params']['str_col'] = []
 
+            if   self.params['read_method'] == 'pandas_csv':
+                if 'header_exist' not in self.params['read_params']:
+                    self.params['read_params']['header_exist'] = 'Y'
+                if 'header'       not in self.params['read_params']:
+                    self.params['read_params']['header'      ] = []
+
+            elif self.params['read_method'] == 'pandas_xlsx':
+                if 'sheet_name' not in self.params['read_params']:
+                    self.params['read_params']['sheet_name'] = ''
+
+        ####### ####### #######
+        # init - read         #
+        ####### ####### #######
+        if   self.params['read_method'] == 'pandas_csv':
+            self.read_csv(**self.params['read_params'])
+        elif self.params['read_method'] == 'pandas_xlsx':
+            self.read_xlsx(**self.params['read_params'])
         else:
             import warnings
             raise Exception("Read method is NOT support (e.g. pandas_csv, pandas_xlsx).")
 
-        self.filepath = filepath
+        ####### ####### #######
+        # init - describe     #
+        ####### ####### #######
+        if self.params['describe'] == 'Y':
+            self.describe(**self.params['describe_params'])
 
-        if   __params_init['read_method'] == 'pandas_csv':
-            if 'header_exist' not in __params_init['read_params']:
-                __params_init['read_params']['header_exist'] = 'Y'
-            if 'header'       not in __params_init['read_params']:
-                __params_init['read_params']['header'      ] = []
-
-            self.read_csv(**__params_init['read_params'])
-        elif __params_init['read_method'] == 'pandas_xlsx':
-            if 'sheet_name' not in __params_init['read_params']:
-                __params_init['read_params']['sheet_name'] = ''
-
-            self.read_xlsx(**__params_init['read_params'])
-        
-        if __params_init['describe'] == 'Y':
-            self.describe(**__params_init['describe_params'])
-
-        if __params_init['report'] == 'Y':
-            if __params_init['describe'] == 'Y':
-                self.report(**__params_init['report_params'])
+        ####### ####### #######
+        # init - report       #
+        ####### ####### #######
+        if self.params['report'] == 'Y':
+            if self.params['describe'] == 'Y':
+                self.report(**self.params['report_params'])
             else:
                 import warnings
                 raise Exception("Report should follow describe, please set your describe to 'Y'.")
-
-    # [TODO] verify filepath exist, readable
-    # [TODO] condition for non-csv and/or too large <-dask, stream algorithm
 
 
 
     ####### ####### ####### ####### ####### #######
     # Load data                                   #
-    ####### ####### ####### ####### ####### #######
+    ####### ####### ####### ####### ####### ######
 
     def read_csv(self
                 ,header_exist = 'Y'
@@ -72,7 +85,7 @@ class load_data():
         import pandas as pd
 
         if len(str_col) >= 1:
-            __dict_str_col = dict.fromkeys(str_col, 'str')
+            __dict_str_col = dict.fromkeys(str_col, str)
         else:
             __dict_str_col = {}
 
@@ -103,7 +116,7 @@ class load_data():
         import pandas as pd
 
         if len(str_col) >= 1:
-            __dict_str_col = dict.fromkeys(str_col, 'str')
+            __dict_str_col = dict.fromkeys(str_col, str)
         else:
             __dict_str_col = {}
 
@@ -111,11 +124,11 @@ class load_data():
             self.data     = pd.read_excel(self.filepath ,dtype=__dict_str_col)
         else:
             try:
-                self.data = pd.read_excel(self.filepath  ,dtype=__dict_str_col
+                self.data = pd.read_excel(self.filepath ,dtype=__dict_str_col
                                          ,sheet_name=sheet_name)
             except ValueError as e:
                 if "Worksheet named" in str(e) and "not found" in str(e):
-                    print(f"Sheet name {xlsx_sheet_name} does NOT exist.")
+                    print(f"Sheet name {sheet_name} does NOT exist.")
                 else:
                     print("An unknown ValueError occurred:", e)
 
@@ -173,9 +186,9 @@ class load_data():
 
         self.describe = __describe
         self.missing  = __missing
-
+        
+        self.label_encoding()
         if correlation == 'Y' or collinearity == 'Y':
-            self.label_encoding()
             if correlation == 'Y':
                 self.correlation  = self.__correlation(  self.data_label_encoding)
             if collinearity == 'Y':
@@ -346,7 +359,7 @@ class load_data():
         __exectime = ''
         if hasattr(self, 'exectime'):
             __report += f'Execute time: {self.exectime}\n\n'
-            __exectime = f"{self.exectime.strftime('%Y-%m-%d_%H-%M-%S')}_{self.exectime.tzinfo.zone.replace('/' ,'_')}"
+            __exectime = f"{self.exectime.strftime('%Y%m%d_%H%M%S')}_{self.exectime.tzinfo.zone.replace('/' ,'_')}"
 
         ####### ####### #######
         # Report - dtype      #
