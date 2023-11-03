@@ -14,7 +14,7 @@ class load_data():
         # init - params       #
         ####### ####### #######
         self.params = {'read_method'     : 'pandas_csv'
-                      ,'read_params'     : {}
+                      ,'read_params'     : {'label_encoding' : 'N'}
                       ,'describe'        : 'N'
                       ,'describe_params' : {'dist_fitting'  : 'N'
                                            ,'correlation'   : 'N'
@@ -78,9 +78,10 @@ class load_data():
     ####### ####### ####### ####### ####### ######
 
     def read_csv(self
-                ,header_exist = 'Y'
-                ,header       = []
-                ,str_col      = []
+                ,header_exist   = 'Y'
+                ,header         = []
+                ,str_col        = []
+                ,label_encoding = 'N'
                 ):
         import pandas as pd
 
@@ -105,6 +106,8 @@ class load_data():
                                 ,self.data.dtypes.tolist()
                                 )
                             )
+        if label_encoding == 'Y':
+            self.label_encoding()
 
 
 
@@ -187,7 +190,6 @@ class load_data():
         self.describe = __describe
         self.missing  = __missing
         
-        self.label_encoding()
         if correlation == 'Y' or collinearity == 'Y':
             if correlation == 'Y':
                 self.correlation  = self.__correlation(  self.data_label_encoding)
