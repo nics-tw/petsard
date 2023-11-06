@@ -14,7 +14,9 @@ class load_data():
         # init - params       #
         ####### ####### #######
         self.params = {'read_method'     : 'pandas_csv'
-                      ,'read_params'     : {}
+                      ,'read_params'     : {'downcast'       : 'Y'
+                                           ,'label_encoding' : 'N'
+                                           }
                       ,'describe'        : 'N'
                       ,'describe_params' : {'dist_fitting'  : 'N'
                                            ,'correlation'   : 'N'
@@ -78,9 +80,11 @@ class load_data():
     ####### ####### ####### ####### ####### ######
 
     def read_csv(self
-                ,header_exist = 'Y'
-                ,header       = []
-                ,str_col      = []
+                ,header_exist   = 'Y'
+                ,header         = []
+                ,str_col        = []
+                ,downcast       = 'Y'
+                ,label_encoding = 'N'
                 ):
         import pandas as pd
 
@@ -98,13 +102,17 @@ class load_data():
             import warnings
             raise Exception("'csv_header_exist' should be either 'Y' or 'N'.")
 
-        self.data    = self.df_downcast(self.data)
+        if downcast == 'Y':
+            self.data_oricast = self.data.copy()
+            self.data         = self.df_downcast(self.data)
         self.columns = self.data.columns.tolist()
         self.dtypes  = dict(map(lambda k ,v : (k ,str(v))
                                 ,self.columns
                                 ,self.data.dtypes.tolist()
                                 )
                             )
+        if label_encoding == 'Y':
+            self.label_encoding()
 
 
 
@@ -112,6 +120,8 @@ class load_data():
     def read_xlsx(self
                  ,sheet_name = ''
                  ,str_col    = []
+                 ,downcast       = 'Y'
+                 ,label_encoding = 'N'
                  ):
         import pandas as pd
 
@@ -132,13 +142,17 @@ class load_data():
                 else:
                     print("An unknown ValueError occurred:", e)
 
-        self.data    = self.df_downcast(self.data)
+        if downcast == 'Y':
+            self.data_oricast = self.data.copy()
+            self.data         = self.df_downcast(self.data)
         self.columns = self.data.columns.tolist()
         self.dtypes  = dict(map(lambda k ,v : (k ,str(v))
                                 ,self.columns
                                 ,self.data.dtypes.tolist()
                                 )
                             )
+        if label_encoding == 'Y':
+            self.label_encoding()
 
 
 
@@ -187,7 +201,6 @@ class load_data():
         self.describe = __describe
         self.missing  = __missing
         
-        self.label_encoding()
         if correlation == 'Y' or collinearity == 'Y':
             if correlation == 'Y':
                 self.correlation  = self.__correlation(  self.data_label_encoding)
@@ -503,9 +516,10 @@ class load_data():
                     else:
                         df[col_name] = df[col_name].astype(np.int64)
                 elif 'float' in col_dtype:
-                    if   col_min > np.finfo(np.float16).min and col_max < np.finfo(np.float16).max:
-                        df[col_name] = df[col_name].astype(np.float16)
-                    elif col_min > np.finfo(np.float32).min and col_max < np.finfo(np.float32).max:
+                    # 20231103, Justyn: pandas didn't suppot float16 engine, and some of library will try to handle your column as index (e.g. SDV, Gaussian Coupula)
+                    #                   then it will cause Error: "NotImplementedError: float16 indexes are not supported"
+                    #                   I decide to set a min of float as float32
+                    if   col_min > np.finfo(np.float32).min and col_max < np.finfo(np.float32).max:
                         df[col_name] = df[col_name].astype(np.float32)
                     else:
                         df[col_name] = df[col_name].astype(np.float64)
