@@ -11,5 +11,7 @@ data/\[UK-US PF]\ va_population_network_ver_1_9_instance_2.csv
 
 data/data_nonpii/\[TW\ Crime\].csv
 
-data_dpsd/
+data_dpsd/*
+!data_dpsd/*_10000.csv
 model_dpsd/
+.sample.csv.temp
