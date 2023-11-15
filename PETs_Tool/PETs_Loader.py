@@ -1,6 +1,6 @@
 # read xlsx require openpyxl
 # [TODO] condition for non-csv and/or too large <-dask, stream algorithm
-from .PETs_util import df_downcast ,update_nested
+from .PETs_util import df_downcast ,update_append_nested
 
 class PETs_Loader():
 
@@ -34,7 +34,7 @@ class PETs_Loader():
                                        ,'sheet_name'     : ''
                                        }
                       }
-        self.params = update_nested(self.params ,params)
+        self.params = update_append_nested(self.params ,params)
 
         ####### ####### #######
         # init - read         #

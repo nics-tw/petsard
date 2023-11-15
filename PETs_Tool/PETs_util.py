@@ -38,13 +38,15 @@ def df_downcast(df):
 ####### ####### ####### ####### ####### ######
 # Update Nested dict                         #
 ####### ####### ####### ####### ####### ######
-def update_nested(default ,update):
+def update_append_nested(default ,update):
     for key ,value in update.items():
         if key in default:
             if isinstance(value ,dict) and isinstance(default[key] ,dict):
-                update_nested(default[key] ,value)
+                update_append_nested(default[key] ,value)
             else:
                 default[key] = value
+        else:
+            default[key] = value
     return default
 
 

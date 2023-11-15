@@ -1,24 +1,32 @@
 from .PETs_Describer import PETs_Describer
-from .PETs_util      import update_nested
-
+from .PETs_util      import update_append_nested
 
 class PETs_Desc_Reporter(PETs_Describer):
-    def __init__(self ,describer=None ,params={} ,**kwargs):
-        if describer:
-            super().__init__(filepath=describer.filepath)
 
+    def __init__(self ,describer=None ,params={} ,filename='' ,**kwargs):
+        if describer:
             ####### ####### #######
             # init - params       #
             ####### ####### #######
             # input > loader > default
-            params = update_nested(describer.params ,params)
-            self.params = {'report'          : 'N'
-                          ,'report_params'   : {'print_report'  : 'Y'
-                                               ,'save_report'   : 'N'
-                                               ,'save_filename' : ''
-                                               }
-                          }
-            self.params = update_nested(self.params ,params)
+            # inherit here
+            params = update_append_nested(describer.params ,params)
+            # default here
+            default_params = {'report'        : 'N'
+                             ,'report_params' : {'print_report'  : 'Y'
+                                                ,'save_report'   : 'N'
+                                                ,'save_filename' : ''
+                                                }
+                             }
+            params = update_append_nested(default_params ,params)
+            super().__init__(loader=describer ,params=params
+                            ,filepath=describer.filepath)
+            ####### ####### #######
+            # init - filename     #
+            ####### ####### #######
+            import os
+            self.filename = os.path.splitext(os.path.basename(self.filepath))[0]\
+                            if filename == '' else filename
 
             ####### ####### #######
             # init - report       #
@@ -26,8 +34,8 @@ class PETs_Desc_Reporter(PETs_Describer):
             if self.params['report'] == 'Y':
                 if self.params['describe'] == 'Y':
                     self.save_filename = f"{self.filename}_{self.exectime}_{self.desctime}.txt"\
-                                         if self.params.report_params.save_filename == ''\
-                                       else f"{self.params.report_params.save_filename}_{self.desctime}.txt"
+                                         if self.params['report_params']['save_filename'] == ''\
+                                       else f"{self.params['report_params']['save_filename']}_{self.desctime}.txt"
                     self.report(**self.params['report_params'])
                 else:
                     import warnings
