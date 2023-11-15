@@ -40,6 +40,21 @@ def df_downcast(df):
 
 
 
+
+####### ####### ####### ####### ####### ######
+# label_encoding                             #
+####### ####### ####### ####### ####### ######
+def label_encoding(__data):
+    from pandas import factorize
+    for col in __data.select_dtypes(['category' ,'object']).columns:
+        if   __data[col].dtype == 'category':
+            __data[col] = __data[col].cat.codes
+        elif __data[col].dtype == 'object':
+            __data[col], _ = factorize(__data[col])
+    return __data
+
+
+
 ####### ####### ####### ####### ####### ######
 # Update Nested dict                         #
 ####### ####### ####### ####### ####### ######

@@ -3,7 +3,7 @@ from .PETs_util      import update_append_nested
 
 class PETs_Desc_Reporter(PETs_Describer):
 
-    def __init__(self ,describer=None ,params={} ,filename='' ,**kwargs):
+    def __init__(self ,describer=None ,params={} ,**kwargs):
         if describer:
             ####### ####### #######
             # init - params       #
@@ -12,30 +12,31 @@ class PETs_Desc_Reporter(PETs_Describer):
             # inherit here
             params = update_append_nested(describer.params ,params)
             # default here
-            default_params = {'report'        : 'N'
+            default_params = {'report'        : 'Y'
                              ,'report_params' : {'print_report'  : 'Y'
                                                 ,'save_report'   : 'N'
                                                 ,'save_filename' : ''
+                                                ,'save_folder'   : '.\\data_desc\\'
                                                 }
                              }
             params = update_append_nested(default_params ,params)
+            ####### ####### #######
+            # init - inherit      #
+            ####### ####### #######
             super().__init__(loader=describer ,params=params
                             ,filepath=describer.filepath)
-            ####### ####### #######
-            # init - filename     #
-            ####### ####### #######
-            import os
-            self.filename = os.path.splitext(os.path.basename(self.filepath))[0]\
-                            if filename == '' else filename
 
             ####### ####### #######
             # init - report       #
             ####### ####### #######
             if self.params['report'] == 'Y':
                 if self.params['describe'] == 'Y':
-                    self.save_filename = f"{self.filename}_{self.exectime}_{self.desctime}.txt"\
-                                         if self.params['report_params']['save_filename'] == ''\
-                                       else f"{self.params['report_params']['save_filename']}_{self.desctime}.txt"
+                    __save_filename = self.params['report_params']['save_filename']
+                    __exectime = f"{self.exectime.strftime('%Y%m%d_%H%M%S')}_{self.exectime.tzinfo.zone.replace('/' ,'_')}"
+                    __desctime = f"{self.desctime.strftime('%Y%m%d_%H%M%S')}_{self.desctime.tzinfo.zone.replace('/' ,'_')}"
+                    self.params['report_params']['save_filename'] = f"{self.params['filename']}_{__exectime}_{__desctime}.txt"\
+                                                                 if    __save_filename == ''\
+                                                               else f"{__save_filename}_{__desctime}.txt"
                     self.report(**self.params['report_params'])
                 else:
                     import warnings
@@ -50,7 +51,7 @@ class PETs_Desc_Reporter(PETs_Describer):
     ####### ####### ####### ####### ####### #######
     # Report                                      #
     ####### ####### ####### ####### ####### #######
-    def report(self ,print_report='Y' ,save_report='N' ,save_filename=''):
+    def report(self ,print_report='Y' ,save_report='N' ,save_folder='' ,save_filename=''):
         from pprint import pformat
         __report = ''
 
@@ -87,12 +88,12 @@ class PETs_Desc_Reporter(PETs_Describer):
             if __row_num == 0:
                 __report += f"There\'s no records in dataset.\n\n\n\n"
             elif __row_num >= 1:
-                __report += self.__report_describe(self.__transform_nested_dict({k: v for k ,v in self.describe.items()
+                __report += self.__report_describe(self.__flatten_nested_dict({k: v for k ,v in self.describe.items()
                                                                                  if k in [col for col ,dtype in self.dtypes.items() if dtype != 'category']})
                                                   ,'Continue'
                                                   )
 
-                __report += self.__report_describe(self.__transform_nested_dict({k: v for k ,v in self.describe.items()
+                __report += self.__report_describe(self.__flatten_nested_dict({k: v for k ,v in self.describe.items()
                                                                                  if k in [col for col ,dtype in self.dtypes.items() if dtype == 'category']})
                                                   ,'Discrete'
                                                   )
@@ -143,7 +144,7 @@ class PETs_Desc_Reporter(PETs_Describer):
         # Report - save       #
         ####### ####### #######
         if save_report == 'Y':
-            with open(self.save_filename ,'w') as f:
+            with open(f"{save_folder}{save_filename}" ,'w') as f:
                 f.write(__report)
 
 
@@ -180,15 +181,15 @@ class PETs_Desc_Reporter(PETs_Describer):
 
 
     @staticmethod
-    def __transform_nested_dict(dict_input):
-        def __transform_dict(dict_sub ,parent_key=''):
+    def __flatten_nested_dict(dict_input):
+        def __flatten_dict(dict_sub ,parent_key=''):
             dict_item = {}
             for k ,v in dict_sub.items():
                 new_key = f'{parent_key}_{k}' if parent_key else k
                 if isinstance(v ,dict):
-                    dict_item.update(__transform_dict(v ,new_key))
+                    dict_item.update(__flatten_dict(v ,new_key))
                 else:
                     dict_item[new_key] = v
             return dict_item
-        return {k: __transform_dict(v) for k ,v in dict_input.items()}
+        return {k: __flatten_dict(v) for k ,v in dict_input.items()}
 
