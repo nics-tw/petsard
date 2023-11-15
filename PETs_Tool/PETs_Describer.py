@@ -1,31 +1,35 @@
 from .PETs_Loader import PETs_Loader
-from .PETs_util   import update_nested
-
+from .PETs_util   import update_append_nested
+# 20231115, Justyn: scipy at least 1.11, 1.10 will report error in mode module
 
 class PETs_Describer(PETs_Loader):
+
     def __init__(self ,loader=None ,params={} ,**kwargs):
         if loader:
-            super().__init__(filepath=loader.filepath)
-
-            from datetime import datetime
-            import pytz
-            self.descctime = datetime.now().astimezone(pytz.timezone('Asia/Taipei'))
-
             ####### ####### #######
             # init - params       #
             ####### ####### #######
             # input > loader > default
-            params = update_nested(loader.params ,params)
-            self.params = {'describe'        : 'Y'
-                          ,'describe_params' : {'dist_fitting'  : 'N'
-                                              ,'correlation'   : 'N'
-                                              ,'collinearity'  : 'N'
-                                              ,'missing_level' : {'data': {}
-                                                                  ,'col' : {}
-                                                                  }
-                                              }
-                          }
-            self.params = update_nested(self.params ,params)
+            # inherit here
+            params = update_append_nested(loader.params ,params)
+            # default here
+            default_params = {'describe'        : 'Y'
+                             ,'describe_params' : {'dist_fitting'  : 'N'
+                                                  ,'correlation'   : 'N'
+                                                  ,'collinearity'  : 'N'
+                                                  ,'missing_level' : {'data': {}
+                                                                     ,'col' : {}
+                                                                     }
+                                                 }
+                             }
+            params = update_append_nested(default_params ,params)
+            super().__init__(params=params
+                            ,filepath=loader.filepath)
+
+            from datetime import datetime
+            import pytz
+            self.desctime = datetime.now().astimezone(pytz.timezone('Asia/Taipei'))
+
 
             ####### ####### #######
             # init - describe     #
@@ -64,7 +68,7 @@ class PETs_Describer(PETs_Loader):
                 __col_missing = {}
 
                 # [UNDO] datetime?
-                if __col_dtype == 'category':
+                if __col_dtype in ('category' ,'object'):
                     __col_describe = self.__describe_category(__col_describe ,__col_value)
                     __col_missing  = self.__missing_category(                 __col_value ,__col_describe['nobs'] ,__col ,self.missing_level)
                 else:
@@ -90,11 +94,15 @@ class PETs_Describer(PETs_Loader):
     ####### ####### #######
     @staticmethod
     def __describe_category(__col_describe ,__col_value):
-        __col_describe['unique'] = len(__col_value.unique())
-        __col_value_cnt = __col_value.value_counts(dropna=False)
+        import numpy as np
+        __unique ,__counts = np.unique(__col_value, return_counts=True)
+        __value_counts = dict(zip(__unique ,__counts))
+        __top_freq = max(__counts)
+
+        __col_describe['unique'] = len(__unique)
         __col_describe['top'   ] = {k: {'freq': v
                                     ,'per' : v/__col_describe['nobs'] 
-                                    } for k ,v in __col_value_cnt[__col_value_cnt == __col_value_cnt.max()].to_dict().items()}
+                                    } for k ,v in __value_counts.items() if v == __top_freq}
         return __col_describe
 
 
