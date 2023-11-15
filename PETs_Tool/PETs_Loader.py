@@ -1,6 +1,6 @@
 # read xlsx require openpyxl
 # [TODO] condition for non-csv and/or too large <-dask, stream algorithm
-from .PETs_util import df_downcast ,update_append_nested
+from .PETs_util import df_downcast ,label_encoding ,update_append_nested
 
 class PETs_Loader():
 
@@ -23,7 +23,8 @@ class PETs_Loader():
         ####### ####### #######
         # init - params       #
         ####### ####### #######
-        self.params = {'read_method' : 'pandas_csv'
+        self.params = {'filename'    : ''
+                      ,'read_method' : 'pandas_csv'
                       ,'read_params' : {'downcast'       : 'Y'
                                        ,'label_encoding' : 'N'
                                        ,'str_col'        : []
@@ -35,6 +36,8 @@ class PETs_Loader():
                                        }
                       }
         self.params = update_append_nested(self.params ,params)
+        self.params['filename'] = os.path.splitext(os.path.basename(self.filepath))[0]\
+                                  if self.params['filename'] == '' else self.params['filename']
 
         ####### ####### #######
         # init - read         #
@@ -47,6 +50,10 @@ class PETs_Loader():
             import warnings
             raise Exception("Read method is NOT support (e.g. pandas_csv, pandas_xlsx).")
 
+        if self.params['read_params']['label_encoding'] == 'Y':
+            self.data_label_encoding = label_encoding(self.data)
+
+
 
 
     ####### ####### ####### ####### ####### ######
@@ -57,7 +64,6 @@ class PETs_Loader():
                 ,header         = []
                 ,str_col        = []
                 ,downcast       = 'Y'
-                ,label_encoding = 'N'
                 ,**kwargs
                 ):
         import pandas as pd
@@ -85,8 +91,6 @@ class PETs_Loader():
                                ,self.data.dtypes.tolist()
                                )
                            )
-        if label_encoding == 'Y':
-            self.label_encoding()
 
 
 
@@ -98,7 +102,6 @@ class PETs_Loader():
                  ,sheet_name = ''
                  ,str_col    = []
                  ,downcast       = 'Y'
-                 ,label_encoding = 'N'
                 ,**kwargs
                  ):
         import pandas as pd
@@ -129,15 +132,4 @@ class PETs_Loader():
                                 ,self.data.dtypes.tolist()
                                 )
                             )
-        if label_encoding == 'Y':
-            self.label_encoding()
 
-
-
-    ####### ####### ####### ####### ####### ######
-    # label_encoding                             #
-    ####### ####### ####### ####### ####### ######
-    def label_encoding(self):
-        self.data_label_encoding = self.data.copy()
-        for col in self.data.select_dtypes(['category']).columns:
-            self.data_label_encoding[col] = self.data_label_encoding[col].cat.codes

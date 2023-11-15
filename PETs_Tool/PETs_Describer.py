@@ -1,6 +1,6 @@
-from .PETs_Loader import PETs_Loader
-from .PETs_util   import update_append_nested
 # 20231115, Justyn: scipy at least 1.11, 1.10 will report error in mode module
+from .PETs_Loader import PETs_Loader
+from .PETs_util   import label_encoding ,update_append_nested
 
 class PETs_Describer(PETs_Loader):
 
@@ -23,13 +23,15 @@ class PETs_Describer(PETs_Loader):
                                                  }
                              }
             params = update_append_nested(default_params ,params)
+            ####### ####### #######
+            # init - inherit      #
+            ####### ####### #######
             super().__init__(params=params
                             ,filepath=loader.filepath)
 
             from datetime import datetime
             import pytz
             self.desctime = datetime.now().astimezone(pytz.timezone('Asia/Taipei'))
-
 
             ####### ####### #######
             # init - describe     #
@@ -82,6 +84,9 @@ class PETs_Describer(PETs_Loader):
         self.missing  = __missing
         
         if correlation == 'Y' or collinearity == 'Y':
+            if not hasattr(self, 'data_label_encoding'):
+                self.data_label_encoding = label_encoding(self.data)
+
             if correlation == 'Y':
                 self.correlation  = self.__correlation(  self.data_label_encoding)
             if collinearity == 'Y':
@@ -97,12 +102,12 @@ class PETs_Describer(PETs_Loader):
         import numpy as np
         __unique ,__counts = np.unique(__col_value, return_counts=True)
         __value_counts = dict(zip(__unique ,__counts))
-        __top_freq = max(__counts)
+        __top_indexes = np.where(__counts == max(__counts))[0]
 
-        __col_describe['unique'] = len(__unique)
-        __col_describe['top'   ] = {k: {'freq': v
-                                    ,'per' : v/__col_describe['nobs'] 
-                                    } for k ,v in __value_counts.items() if v == __top_freq}
+        __col_describe['unique'  ] = len(__unique)
+        __col_describe['top'     ] = [__unique[index] for index in __top_indexes]
+        __col_describe['top_freq'] = [__counts[index] for index in __top_indexes]
+        __col_describe['top_per' ] = [count / __col_describe['nobs'] for count in __col_describe['top_freq']]
         return __col_describe
 
 
@@ -137,11 +142,12 @@ class PETs_Describer(PETs_Loader):
         __col_describe['max'  ] = np.nanmax(     __col_value      )
         __col_describe['range'] = __col_describe['max'] - __col_describe['min']
 
-        __col_mode = stats.mode(__col_value ,nan_policy='omit')
-        __col_describe['mode'] = {__col_mode[0]: {'cnt': __col_mode[1]
-                                                 ,'per': __col_mode[1]/__col_describe['nobs'] 
-                                                 }
-                                 }
+        __col_mode   = stats.mode(__col_value ,nan_policy='omit')
+        __col_modes  = __col_mode.mode
+        __col_counts = __col_mode.count
+        __col_describe['mode'    ] = list(__col_modes ) if isinstance(__col_modes  ,np.ndarray) else [__col_modes ]
+        __col_describe['mode_cnt'] = list(__col_counts) if isinstance(__col_counts ,np.ndarray) else [__col_counts]
+        __col_describe['mode_per'] = [cnt / __col_describe['nobs'] for cnt in __col_describe['mode_cnt']]
 
         __col_describe['skew'    ] = stats.skew(    __col_value ,nan_policy='omit')
         __col_describe['kurtosis'] = stats.kurtosis(__col_value ,nan_policy='omit')
