@@ -1,3 +1,8 @@
+####### ####### ####### ####### ####### ######
+# Downcast in pandas df                      #
+####### ####### ####### ####### ####### ######
+# [TODO] add determine of date
+# [TODO] avoid already have a category as ''
 def df_downcast(df):
     import numpy  as np
     import pandas as pd
