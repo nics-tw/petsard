@@ -14,4 +14,6 @@ data/data_nonpii/\[TW\ Crime\].csv
 data_dpsd/*
 !data_dpsd/*_10000.csv
 model_dpsd/
+data_dpsd_expt/
+
 .sample.csv.temp
