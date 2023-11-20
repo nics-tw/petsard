@@ -135,11 +135,12 @@ class PETs_SD_SDV(PETs_Loader):
         __model          = self.params.get('sd_params'   ,{}).get('model'          ,'' )
 
         __map_data = {# GaussianCoupula: use downcast data, if didn't create it, downcast it.
-                      ('GaussianCoupula' ,'Y'): self.data
-                     ,('GaussianCoupula' ,'N'): df_downcast(self.data)
+                      # 20231117, Justyn: test for all label encoding
+                      ('GaussianCoupula' ,'Y'): getattr(self ,'data_label_encoding' ,label_encoding(self.data)) # self.data
+                     ,('GaussianCoupula' ,'N'): label_encoding(self.data) # df_downcast(self.data)
                       # CTGAN: use original data, if oricast didn't exist, trust self.data.
-                     ,('CTGAN' ,'Y'): getattr(self ,'data_oricast' ,self.data)
-                     ,('CTGAN' ,'N'): self.data
+                     ,('CTGAN' ,'Y'): getattr(self ,'data_label_encoding' ,label_encoding(self.data)) # getattr(self ,'data_oricast' ,self.data)
+                     ,('CTGAN' ,'N'): label_encoding(self.data) # self.data
                       # TVAE/CoupulaGAN, use label encoding, if label encoding didn't exist, calculate one.
                      ,('TVAE' ,'Y'): getattr(self ,'data_label_encoding' ,label_encoding(self.data))
                      ,('TVAE' ,'N'): label_encoding(self.data)
