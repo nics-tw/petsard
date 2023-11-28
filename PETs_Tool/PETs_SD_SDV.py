@@ -3,7 +3,7 @@
 # https://github.com/sdv-dev/SDV
 # https://docs.sdv.dev/sdv/
 from .PETs_Loader import PETs_Loader
-from .PETs_util   import df_downcast ,label_encoding ,update_append_nested
+from .PETs_util   import label_encoding ,update_append_nested # df_downcast
 # 231103, Justyn: if you failed when you run on VSCode, check if you can "import torch"
 #                 if not, you should install Microsoft Visual C++ Redistributable
 #                 and you can download it on Microsoft official website
