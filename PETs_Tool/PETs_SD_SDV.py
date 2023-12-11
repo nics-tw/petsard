@@ -8,6 +8,7 @@ from .PETs_util   import label_encoding ,update_append_nested # df_downcast
 #                 if not, you should install Microsoft Visual C++ Redistributable
 #                 and you can download it on Microsoft official website
 # [TODO] Conditional Sampling
+# [TODO] 檢查一下 We are execute {metadata} - {model} 這句，似乎執行的不如預期
 
 class PETs_SD_SDV(PETs_Loader):
 
