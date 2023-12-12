@@ -1,4 +1,5 @@
-__pycache__/
+**/__pycache__/
+
 data/\[Adt\ Income]\ adult.csv
 data/\[Card Fraud\]\ creditcard.csv
 data/\[Census\]\ adult.data

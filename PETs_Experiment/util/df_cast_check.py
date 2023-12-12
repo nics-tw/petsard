@@ -92,12 +92,12 @@ def df_cast_check(df_data    # : pd.DataFrame
     for _col_name, _col_data in df_data.items():
         _col_data.dropna(inplace=True)
         if _col_name in dict_dtype:
-            print(f"{_col_name} as {str(dict_dtype[_col_name])}")
+            # print(f"{_col_name} as {str(dict_dtype[_col_name])}")
             ####### ####### ####### ####### ####### ######
             ####### Change float16 to float32
             if dict_dtype[_col_name].lower() == 'float16':
                 dict_dtype[_col_name] = 'float32'
-                print(f"Notice: The dtype for '{_col_name}' has been changed from 'float16' to 'float32' due to compatibility issues.")
+                print(f"df_cast_check: The dtype for '{_col_name}' has been changed from 'float16' to 'float32' due to compatibility issues.")
 
             _force_type = dict_dtype[_col_name].lower()
 
@@ -112,7 +112,7 @@ def df_cast_check(df_data    # : pd.DataFrame
             elif _force_type.startswith('int') or _force_type.startswith('float'):
                 dict_dtype[_col_name] = _force_type
             else:
-                raise ValueError('\n'.join([f"Unsupported force dtype, now is {_force_type}."
+                raise ValueError('\n'.join([f"df_cast_check: Unsupported force dtype, now is {_force_type}."
                                            ,f"We only support category/date/datetime/int-/float-."
                                            ]))
         else:
