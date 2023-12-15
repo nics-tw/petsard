@@ -43,7 +43,7 @@ def df_cast_check(df_data    # : pd.DataFrame
 
 
     def __col_cast_check_numeric(col_data  # : pd.Series
-                                ,force_type  : str = None
+                                ,force_type  : str = ''
                                 ) -> str:
         from pandas.api.types import is_integer_dtype ,is_float_dtype
         import numpy as np

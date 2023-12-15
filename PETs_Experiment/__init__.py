@@ -44,5 +44,7 @@ __all__ =   ['Loader'
             ,'Preprocessor'
             ,'Synthesizer'
             ,'Postprocessor'
+        
             ,'Executor'
+            ,'Splitter'
             ]
