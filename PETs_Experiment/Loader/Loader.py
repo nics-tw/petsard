@@ -67,11 +67,11 @@ class Loader:
         
         ####### ####### ####### ####### ####### ######
         ####### Check filepath exist
-        _para_Loader = self.__check_filepath_exist(_para_Loader ,filepath)
+        _para_Loader = self._check_filepath_exist(_para_Loader ,filepath)
 
         ####### ####### ####### ####### ####### ######
         ####### Specified Data Types
-        _para_Loader = self.__specifying_dtype(_para_Loader ,colnames_discrete ,colnames_datetime)
+        _para_Loader = self._specifying_dtype(_para_Loader ,colnames_discrete ,colnames_datetime)
 
         ####### ####### ####### ####### ####### ######
         ####### General Setting                      #
@@ -106,21 +106,19 @@ class Loader:
 
 
 
-
-
-    def __check_filepath_exist(self ,para_Loader ,filepath):
+    def _check_filepath_exist(self ,para_Loader ,filepath):
         import os
         if os.path.exists(filepath):
             para_Loader.update({'filepath' : filepath
                                ,'file_ext' : os.path.splitext(filepath)[1].lstrip('.').lower()
                                })
         else:
-            raise FileNotFoundError(f"The file is not exist: {filepath}")
+            raise FileNotFoundError(f"Loader - _check_filepath_exist: The file is not exist: {filepath}")
         return para_Loader
 
 
 
-    def __specifying_dtype(self ,para_Loader ,colnames_discrete ,colnames_datetime):
+    def _specifying_dtype(self ,para_Loader ,colnames_discrete ,colnames_datetime):
         colnames_discrete = [] if colnames_discrete is None else colnames_discrete
         colnames_datetime = [] if colnames_datetime is None else colnames_datetime
         __dict_colnames_string = dict.fromkeys([*colnames_discrete
