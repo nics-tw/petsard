@@ -8,4 +8,4 @@ class Encoder:
 
     def handle(self, **kwargs):
         raise NotImplementedError(
-            "This method should be implemented by subclasses.")
+            "Preprocessor - Encoder: This method should be implemented by subclasses.")
