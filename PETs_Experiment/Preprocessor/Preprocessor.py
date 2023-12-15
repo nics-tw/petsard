@@ -21,18 +21,21 @@ class Preprocessor:
         data (pandas.DataFrame):
             The pandas DataFrame format of data.
 
-        missing (bool):
-            Should missing be handle or NOT. Default is True.
-        missing_method (str ,optional):
-            Which method will use to handle missing.
-            Default is drop, it means drop every rows if any of columns is missing.
-        missing_columns (dict ,optional):
-            Specifies the action ('missing'/'ignore') for specific columns.
+            
+        # every sub-module follows same args format:
+        #     sub-module, sub-module_method, and sub-module_columns.
+        #     There're 4 sub-module as {'missing','outlier','encoding','scaling'}.
+
+        sub-module (bool):
+            Should sub-module be handle or NOT. Default is True.
+        sub-module_method (str ,optional):
+            Which method will use to handle sub-module.
+        sub-module_columns (dict ,optional):
+            Specifies the action ('focus'/'ignore') for specific columns.
                 Format is {'action': [colnames]}.
                 Default is None, meaning all columns will be checked.
-                - 'missing' : Columns to be included in missing value check.
-                - 'ignore'  : Columns to be excluded from missing value check.
-
+                - 'focus'  : Columns to be included in sub-module action.
+                - 'ignore' : Columns to be excluded from sub-module action.
     """
 
     def __init__(self, data
@@ -54,8 +57,6 @@ class Preprocessor:
         }
 
         if _para_Preprocessor['missing']:
-            ####### ####### ####### ####### ####### ######
-            # Missing data handle (Factory Design)
             _para_Preprocessor['missing_setting'] = {
                 'missing_method': missing_method ,'missing_columns': missing_columns, 'missing_columns_action': self._handle_cols_action('missing', data.columns, missing_columns)
             }
@@ -64,8 +65,6 @@ class Preprocessor:
                 .handle()
 
         if _para_Preprocessor['outlier']:
-            ####### ####### ####### ####### ####### ######
-            # Outlier data handle (Factory Design)
             _para_Preprocessor['outlier_setting'] = {
                 'outlier_method': outlier_method ,'outlier_columns': outlier_columns, 'outlier_columns_action': self._handle_cols_action('outlier', data.columns, outlier_columns)
             }
@@ -74,28 +73,32 @@ class Preprocessor:
                 .handle()
 
         if _para_Preprocessor['encoding']:
-            ####### ####### ####### ####### ####### ######
-            # Encoding data (Factory Design)
             _para_Preprocessor['encoding_setting'] = {
                 'encoding_method': encoding_method ,'encoding_columns': encoding_columns, 'encoding_columns_action': self._handle_cols_action('encoding', data.columns, encoding_columns)
             }
             from .EncoderFactory import EncoderFactory
             data ,encoder = EncoderFactory(df_data=data, **_para_Preprocessor['encoding_setting'])\
                 .handle()
+        else:
+            encoder = None
 
         if _para_Preprocessor['scaling']:
-            ####### ####### ####### ####### ####### ######
-            # Scaling data (Factory Design)
             _para_Preprocessor['scaling_setting'] = {
                 'scaling_method': scaling_method ,'scaling_columns': scaling_columns, 'scaling_columns_action': self._handle_cols_action('scaling', data.columns, scaling_columns)
             }
             from .ScalerFactory import ScalerFactory
             data ,scaler = ScalerFactory(df_data=data, **_para_Preprocessor['scaling_setting'])\
                 .handle()
+        else:
+            scaler = None
 
-        self.data    = data
-        self.encoder = encoder
-        self.scaler  = scaler
+        self.data = data
+        if encoder:
+            self.encoder = encoder
+        if scaler:
+            self.scaler  = scaler
+        self.para = {}
+        self.para['Preprocessor'] = _para_Preprocessor
 
 
     def _handle_cols_action(self ,submodule: str, cols: list, dict_action: dict) -> list:
@@ -128,7 +131,7 @@ class Preprocessor:
             else:
                 _action = _action_key.pop()
 
-            _cols_action = _cols_action if _action == 'ignore' else {}
+            _cols_action = _cols_action if _action == 'ignore' else set()
 
             _cols_for_action = [dict_action[_action]] if isinstance(dict_action[_action], str)\
                 else dict_action[_action]
@@ -141,6 +144,6 @@ class Preprocessor:
                 if _action == 'ignore':
                     _cols_action -= _col_for_action
                 elif _action == 'focus':
-                    _cols_action += _col_for_action
+                    _cols_action.update(_col_for_action)
 
         return list(_cols_action)
