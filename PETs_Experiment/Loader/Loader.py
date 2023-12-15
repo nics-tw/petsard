@@ -86,23 +86,23 @@ class Loader:
         ####### Delegate and Load Data (Factory Design)
         from .LoaderFactory import LoaderFactory
         self.data = LoaderFactory(_para_Loader).load()
-        # ####### ####### ####### ####### ####### ######
-        # ####### Optimized dtype
-        # if not dtype:
-        #     dtype = {}
-        # ####### ####### ####### ####### ####### ###### ######
-        # ####### [TODO] 我還在思考這裡要怎麼直接接收 pd.dateframe 的 dtype
-        # from ..util import df_cast_check        ###### ######
-        # dtype.update(df_cast_check(self.data ,dtype))  ######
-        # self.dtype = dtype                      ###### ######
-        # ####### ####### ####### ####### ####### ###### ######
-        # from ..util import df_casting
-        # self.data = df_casting(self.data ,dtype)
+        ####### ####### ####### ####### ####### ######
+        ####### Optimized dtype
+        if not dtype:
+            dtype = {}
+        ####### ####### ####### ####### ####### ###### ######
+        ####### [TODO] 我還在思考這裡要怎麼直接接收 pd.dateframe 的 dtype
+        from ..util import df_cast_check        ###### ######
+        dtype.update(df_cast_check(self.data ,dtype))  ######
+        self.dtype = dtype                      ###### ######
+        ####### ####### ####### ####### ####### ###### ######
+        from ..util import df_casting
+        self.data = df_casting(self.data ,dtype)
 
-        # ####### ####### ####### ####### ####### ######
-        # ####### Recode parameter
-        # self.para = {}
-        # self.para['Loader'] = _para_Loader
+        ####### ####### ####### ####### ####### ######
+        ####### Recode parameter
+        self.para = {}
+        self.para['Loader'] = _para_Loader
 
 
 

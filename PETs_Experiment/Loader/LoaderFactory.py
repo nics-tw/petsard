@@ -11,7 +11,7 @@ class LoaderFactory:
         elif _file_ext in ['xls' ,'xlsx' ,'xlsm' ,'xlsb'
                           ,'odf' ,'ods'  ,'odt']:
             ####### ####### ####### ####### ####### ######
-            # Setting for Excel                         #
+            # Setting for Excel                          #
             from .Loader_excel_pandas import Loader_excel_pandas
             self.Loader = Loader_excel_pandas()
         else:
