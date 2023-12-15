@@ -27,14 +27,16 @@ pip install PETs-Experiment
 ## Getting Started 入門指南
 
 ```python
-from PETs-Experiment import Loader Describer
+from PETs_Experiment import Loader Describer
 
-# Loader: Loading data and casting it.
-loader = Loader('data/[Adt Income] adult.csv'
-               ,{'filename'   : '[Adt Income]'
-                ,'read_params': {'downcast' : 'Y'}
-                }
-               )
+# Loader: Loading data and Auto-casting it.
+Loader = PETs_Experiment.Loader(filepath = 'data/[Adt Income] adult.csv'
+                               ,na_values = {k : '?' for k in ['workclass'
+                                                              ,'occupation'
+                                                              ,'native-country'
+                                                              ]
+                                            }
+                               )
 
 # returns 'geese'
 describer = Describer(loader
