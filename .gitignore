@@ -6,5 +6,7 @@
 .vscode/settings.json
 .DS_Store
 .env
-Issue24.code-workspace
+*.code-workspace
 *.csv
+demo/PETsARD*Executor.txt
+demo/PETsARD*Trial*.csv
