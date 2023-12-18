@@ -1,8 +1,5 @@
 class Scaler:
-    def __init__(self
-                 ,df_data
-                 ,**kwargs
-                 ):
+    def __init__(self, df_data, **kwargs):
         self.df_data = df_data
         self.scaling_columns_action = kwargs.get('scaling_columns_action', None)
 
