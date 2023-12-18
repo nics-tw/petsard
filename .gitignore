@@ -3,3 +3,8 @@
 \[sunset\]/*
 
 .sample.csv.temp
+.vscode/settings.json
+.DS_Store
+.env
+Issue24.code-workspace
+*.csv
