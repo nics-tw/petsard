@@ -3,6 +3,10 @@
 \[sunset\]/*
 
 .sample.csv.temp
-
+.vscode/settings.json
+.DS_Store
+.env
+*.code-workspace
+*.csv
 demo/PETsARD*Executor.txt
 demo/PETsARD*Trial*.csv
