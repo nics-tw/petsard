@@ -1,5 +1,9 @@
 from .Missingist import Missingist
 
+"""
+TODO - Consider special cases of dropping data, which is regardless of columns when dropping.
+May need to reconsider the whole implementation.
+"""
 
 class Missingist_Drop(Missingist):
     def __init__(self, df_data, **kwargs):
@@ -27,15 +31,17 @@ class Missingist_Drop(Missingist):
                 Specifies the columns for check missing value.
         """
 
-        _row_before = self.df_data.shape[0]
-        self.df_data = self.df_data.dropna(subset=self.missing_columns_action)\
-                                   .reset_index(drop=True)
-        _row_drop = _row_before - self.df_data.shape[0]
+        # _row_before = self.df_data.shape[0]
+        # self.df_data = self.df_data.dropna(subset=self.missing_columns_action)\
+        #                            .reset_index(drop=True)
+        # _row_drop = _row_before - self.df_data.shape[0]
 
-        if _row_drop == 0:
-            print(f'Preprocessor - Missingist (Drop): No rows have been dropped.')
-        else:
-            print(
-                f'Preprocessor - Missingist (Drop): Dropped {_row_drop} rows.')
+        # if _row_drop == 0:
+        #     print(f'Preprocessor - Missingist (Drop): No rows have been dropped.')
+        # else:
+        #     print(
+        #         f'Preprocessor - Missingist (Drop): Dropped {_row_drop} rows.')
+
+        # return self.df_data
 
         return self.df_data
