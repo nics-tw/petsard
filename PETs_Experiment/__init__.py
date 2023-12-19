@@ -36,8 +36,7 @@ from .Synthesizer   import *
 from .Postprocessor import *
 from .util          import *
 
-# comment the line below for testing
-# from .Executor import Executor
+from .Executor import Executor
 
 
 
