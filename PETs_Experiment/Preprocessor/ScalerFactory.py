@@ -1,5 +1,6 @@
 from .Scaler_Standard import Scaler_Standard
 from .Scaler_MinMax import Scaler_MinMax
+from .Scaler_ZeroCenter import Scaler_ZeroCenter
 
 
 class ScalerFactory:
@@ -12,7 +13,7 @@ class ScalerFactory:
             _Scaler = Scaler_MinMax(df_data=df_data, scaling_columns_action=kwargs.get(
                 'scaling_columns_action', None))
         elif scaling_method == 'zerocenter':
-            _Scaler = Scaler_MinMax(df_data=df_data, scaling_columns_action=kwargs.get(
+            _Scaler = Scaler_ZeroCenter(df_data=df_data, scaling_columns_action=kwargs.get(
                 'scaling_columns_action', None))
         else:
             raise ValueError(
