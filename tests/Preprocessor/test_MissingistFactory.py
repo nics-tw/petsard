@@ -15,9 +15,12 @@ class TestMissingistFactory:
         result = obj.handle()
 
         # Assert the result
-        assert result.shape[0] == 1
-        assert 'A' in result.columns
-        assert 'B' in result.columns
+        assert isinstance(result, tuple)
+        assert isinstance(result[0], pd.DataFrame)
+        assert isinstance(result[1], dict)
+        assert result[0].shape[0] == 1
+        assert 'A' in result[0].columns
+        assert 'B' in result[0].columns
 
     def test_missing_method_mean(self):
         # Prepare test data
@@ -32,10 +35,14 @@ class TestMissingistFactory:
         result = obj.handle()
 
         # Assert the result
-        assert result.shape[0] == 3
-        assert result.equals(df_expected)
-        assert 'A' in result.columns
-        assert 'B' in result.columns
+        assert isinstance(result, tuple)
+        assert isinstance(result[0], pd.DataFrame)
+        assert isinstance(result[1], dict)
+        assert result[0].equals(df_expected)
+        assert result[0].shape[0] == 3
+        assert result[0].equals(df_expected)
+        assert 'A' in result[0].columns
+        assert 'B' in result[0].columns
 
     def test_missing_method_simple(self):
         # Prepare test data
@@ -50,10 +57,14 @@ class TestMissingistFactory:
         result = obj.handle()
         
         # Assert the result
-        assert result.shape[0] == 3
-        assert result.equals(df_expected)
-        assert 'A' in result.columns
-        assert 'B' in result.columns
+        assert isinstance(result, tuple)
+        assert isinstance(result[0], pd.DataFrame)
+        assert isinstance(result[1], dict)
+        assert result[0].equals(df_expected)
+        assert result[0].shape[0] == 3
+        assert result[0].equals(df_expected)
+        assert 'A' in result[0].columns
+        assert 'B' in result[0].columns
 
     def test_missing_method_not_supported(self):
         # Prepare test data

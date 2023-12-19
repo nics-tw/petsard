@@ -61,7 +61,7 @@ class Preprocessor:
                 'missing_method': missing_method ,'missing_columns': missing_columns, 'missing_columns_action': self._handle_cols_action('missing', data.columns, missing_columns)
             }
             from .MissingistFactory import MissingistFactory
-            data = MissingistFactory(df_data=data, **_para_Preprocessor['missing_setting'])\
+            data, missingist = MissingistFactory(df_data=data, **_para_Preprocessor['missing_setting'])\
                 .handle()
 
         if _para_Preprocessor['outlier']:
@@ -97,6 +97,8 @@ class Preprocessor:
             self.encoder = encoder
         if scaler:
             self.scaler  = scaler
+        if missingist:
+            self.missingist = missingist
         self.para = {}
         self.para['Preprocessor'] = _para_Preprocessor
 
