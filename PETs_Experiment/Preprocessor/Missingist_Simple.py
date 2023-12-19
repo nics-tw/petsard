@@ -28,11 +28,9 @@ class Missingist_Simple(Missingist):
                 Specifies the columns for check missing value.
         """
 
-        _row_before = self.df_data.isna().any(axis=1).sum()
-        processed = self.df_data.loc[:, self.missing_columns_action].fillna(value=self.value).reset_index(drop=True)
-        _row_filled = _row_before - self.df_data.isna().any(axis=1).sum()
-
-        self.df_data.loc[:, self.missing_columns_action] = processed
+        _row_before = self.df_data.isna().sum()
+        processed = self.df_data.fillna(value=self.value).reset_index(drop=True)
+        _row_filled = _row_before - processed.isna().sum()
 
         if _row_filled == 0:
             print(f'Preprocessor - Missingist (Simple): No rows have been filled.')
@@ -40,4 +38,4 @@ class Missingist_Simple(Missingist):
             print(
                 f'Preprocessor - Missingist (Simple): Filled {_row_filled} rows.')
 
-        return self.df_data
+        return processed
