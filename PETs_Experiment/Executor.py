@@ -98,7 +98,10 @@ class Executor:
 
     def run(self):
         import time
+        import os
         _time_start = time.time()
+
+        _max_workers = os.cpu_count()-1
 
         self.loader = {}
         self.splitter = {}
@@ -125,7 +128,7 @@ class Executor:
                                                      ,_load_para).result()
                 self.loader[_load_trial_name] = _load_result
 
-                with ProcessPoolExecutor() as _split_executor:
+                with ProcessPoolExecutor(max_workers=_max_workers) as _split_executor:
                     for _split_trial ,(_split_trial_name ,_split_para) in enumerate(self.para['Splitter_setting'].items()):
                         _trials['split'] = {'trial'            : _split_trial+1
                                             ,'trial_name'      : _split_trial_name
@@ -140,7 +143,7 @@ class Executor:
                         _trials['split']['trial_data_key'] = self._save_in_submodule('Splitter' ,_split_result.data ,_trials)
                         self.splitter[(_load_trial_name ,_split_trial_name)] = _split_result
 
-                        with ProcessPoolExecutor() as _preproc_executor:
+                        with ProcessPoolExecutor(max_workers=_max_workers) as _preproc_executor:
                             for _split_data_key ,_split_data in _split_result.data.items():
                                 _trials['split']['data_key'] = _split_data_key
                                 for _preproc_trial ,(_preproc_trial_name ,_preproc_para) in enumerate(self.para['Preprocessor_setting'].items()):
@@ -154,7 +157,7 @@ class Executor:
                                     _trials['preproc']['trial_data_key'] = self._save_in_submodule('Preprocessor' ,_preproc_result.data ,_trials)
                                     self.preprocessor[(_load_trial_name ,_split_trial_name ,_preproc_trial_name)] = _preproc_result
 
-                                    with ProcessPoolExecutor() as _syn_executor:
+                                    with ProcessPoolExecutor(max_workers=_max_workers) as _syn_executor:
                                         for _syn_trial ,(_syn_trial_name ,_syn_para) in enumerate(self.para['Synthesizer_setting'].items()):
                                             _trials['syn'] = {'trial'         : _syn_trial+1
                                                                 ,'trial_name' : _syn_trial_name
@@ -163,8 +166,8 @@ class Executor:
                                                                                 ,_preproc_result.data
                                                                                 ,_trials['syn']
                                                                                 ,_syn_para).result()
-                                    self._save_in_submodule('Synthesizer' ,_syn_result.data_syn ,_trials)
-                                    self.synthesizer[(_load_trial_name ,_split_trial_name ,_preproc_trial_name ,_syn_trial_name)] = _syn_result
+                                            self._save_in_submodule('Synthesizer' ,_syn_result.data_syn ,_trials)
+                                            self.synthesizer[(_load_trial_name ,_split_trial_name ,_preproc_trial_name ,_syn_trial_name)] = _syn_result
 
         print(f"====== ====== ====== ====== ====== ======")
         print(f"Executor: Total execution time: {round(time.time()-_time_start ,4)} sec.")
