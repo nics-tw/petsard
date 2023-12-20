@@ -69,7 +69,7 @@ class UniformEncoder:
         
         return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]) # type: ignore
     
-    def reverse_transform(self, data):
+    def inverse_transform(self, data):
         """
         Reverse the transformed data to the categorical data.
 
@@ -87,9 +87,9 @@ class UniformEncoder:
         if data.max() > 1 or data.min() < 0:
             raise ValueError("The range of the data is out of range. Please check the data again.")
         
-        bins_val = np.append(self.lower_values, 1.0) # type: ignore
+        bins_val = np.append(self.lower_values, 1.0)
         
-        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, labels=self.labels, ordered=False) # type: ignore
+        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, labels=self.labels, ordered=False)
         
 
 
