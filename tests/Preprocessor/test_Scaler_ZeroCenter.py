@@ -7,7 +7,7 @@ class TestScalerZeroCenter:
     # Test case for handle method
     def test_handle(self):
         # Create a sample dataframe
-        df_data = pd.DataFrame({'col1': [1, 2, 3], 'col2': [4, 5, 6]})
+        df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0], 'col2': [4.0, 5.0, 6.0]})
         df_data_setting = {'scaling_method': 'zerocenter' ,'scaling_columns': ['col1', 'col2'], 'scaling_columns_action': ['col1', 'col2']}
         df_expected = pd.DataFrame({'col1': [-1.0, 0.0, 1.0], 'col2': [-1.0, 0.0, 1.0]})
         
