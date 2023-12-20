@@ -5,7 +5,7 @@ from PETs_Experiment.Preprocessor.Missingist_Simple import Missingist_Simple
 class TestMissingistSimple:
     def test_simple_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
         df_data_setting = {'missing_method': 'simple' , 'missing_columns_action': 'A'}
         
         # Create an instance of the class
@@ -19,7 +19,7 @@ class TestMissingistSimple:
     
     def test_simple_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 3]})
+        df_data = pd.DataFrame({'A': [1.0, None, 3.0]})
         df_data_setting = {'missing_method': 3, 'missing_columns_action': 'A'}
         df_expected = pd.Series(data=[1.0, 3.0, 3.0], name='A')
 

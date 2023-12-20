@@ -5,7 +5,7 @@ import pandas as pd
 class TestMissingistFactory:
     def test_missing_method_drop(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 3], 'B': [4, 6, None]})
+        df_data = pd.DataFrame({'A': [1.0, None, 3.0], 'B': [4.0, 6.0, None]})
         df_data_setting = {'missing_method': 'drop', 'missing_columns': ['A', 'B'], 'missing_columns_action': ['A', 'B']}
 
         # Create an instance of the class
@@ -24,9 +24,9 @@ class TestMissingistFactory:
 
     def test_missing_method_mean(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 3], 'B': [4, 6, None], 'C': [3, 5, 7]})
+        df_data = pd.DataFrame({'A': [1.0, None, 3.0], 'B': [4.0, 6.0, None], 'C': [3.0, 5.0, 7.0]})
         df_data_setting = {'missing_method': 'mean' ,'missing_columns': ['A', 'B', 'C'], 'missing_columns_action': ['A', 'B', 'C']}
-        df_expected = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 6.0, 5.0], 'C': [3, 5, 7]})
+        df_expected = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 6.0, 5.0], 'C': [3.0, 5.0, 7.0]})
 
         # Create an instance of the class
         obj = MissingistFactory(df_data, **df_data_setting)
@@ -46,9 +46,9 @@ class TestMissingistFactory:
 
     def test_missing_method_simple(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 4], 'B': [4, 6, None], 'C': [3, 5, 7]})
+        df_data = pd.DataFrame({'A': [1.0, None, 4.0], 'B': [4.0, 6.0, None], 'C': [3.0, 5.0, 7.0]})
         df_data_setting = {'missing_method': 3 ,'missing_columns': ['A', 'B', 'C'], 'missing_columns_action': ['A', 'B', 'C']}
-        df_expected = pd.DataFrame({'A': [1.0, 3.0, 4.0], 'B': [4.0, 6.0, 3.0], 'C': [3, 5, 7]})
+        df_expected = pd.DataFrame({'A': [1.0, 3.0, 4.0], 'B': [4.0, 6.0, 3.0], 'C': [3.0, 5.0, 7.0]})
         
         # Create an instance of the class
         obj = MissingistFactory(df_data, **df_data_setting)
