@@ -5,7 +5,7 @@ from PETs_Experiment.Preprocessor.Missingist_Drop import Missingist_Drop
 class TestMissingistDrop:
     def test_drop_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
         df_data_setting = {'missing_method': 'drop', 'missing_columns_action': 'A'}
         
         # Create an instance of the class
@@ -19,7 +19,7 @@ class TestMissingistDrop:
     
     def test_drop_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 3]})
+        df_data = pd.DataFrame({'A': [1.0, None, 3.0]})
         df_data_setting = {'missing_method': 'drop', 'missing_columns_action': 'A'}
         
         # Create an instance of the class

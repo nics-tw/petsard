@@ -22,7 +22,7 @@ class Postprocessor:
                 _col_data = data[_col].values
             else:
                 raise ValueError(
-                    "Postprocessor - _decoding: Only Encoder/Scaler is allowed to decoding.")
+                    "Postprocessor - _decoding: Only Encoder, Scaler, and Missingist is allowed to decoding.")
             _df_result[_col] = _Preprocessor.inverse_transform(
                 _col_data).ravel()
             print(
