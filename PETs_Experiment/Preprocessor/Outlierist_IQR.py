@@ -1,7 +1,7 @@
 from .Outlierist import Outlierist
 from pandas import to_datetime
 from pandas.api.types import is_dtype_equal
-
+from pandas.api.types import is_numeric_dtype, is_datetime64_any_dtype
 
 class Outlierist_IQR(Outlierist):
     def __init__(self, df_data, **kwargs):
@@ -28,7 +28,6 @@ class Outlierist_IQR(Outlierist):
             outlier_columns_action (list ,optional):
                 Specifies the columns for check outlier value.
         """
-        from pandas.api.types import is_numeric_dtype, is_datetime64_any_dtype
 
         _row_ori = self.df_data.shape[0]
         _digits_row_ori = len(str(_row_ori))
