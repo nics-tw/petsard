@@ -51,6 +51,8 @@ class Preprocessor:
             from .MissingistFactory import MissingistFactory
             data, missingist = MissingistFactory(df_data=data, **_para_Preprocessor['missing_setting'])\
                 .handle()
+        else:
+            missingist = None
 
         if _para_Preprocessor['outlier']:
             _para_Preprocessor['outlier_setting'] = {

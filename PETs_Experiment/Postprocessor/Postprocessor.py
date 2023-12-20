@@ -17,7 +17,7 @@ class Postprocessor:
             if action == 'Encoder':
                 _col_data = data[_col].values
             elif action == 'Scaler':
-                _col_data = data[_col].values.reshape(1, -1)
+                _col_data = data[_col].values.reshape(-1, 1)
             elif action == 'Missingist':
                 _col_data = data[_col].values
             else:
