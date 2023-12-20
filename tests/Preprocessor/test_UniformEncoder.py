@@ -22,15 +22,15 @@ class TestUniformEncoder:
             ue.transform(df_data)
 
         with pytest.raises(UnfittedError):
-            ue.reverse_transform(df_data)
+            ue.inverse_transform(df_data)
 
         # Call the method to be tested
         ue.fit(df_data['col1'])
         
-        assert set(ue.labels) == set(['A', 'B', 'C', 'D'])
-        assert len(ue.lower_values) == 4
-        assert len(ue.upper_values) == 4
-        assert ue.lower_values[2] == ue.upper_values[1]
+        assert set(ue.labels) == set(['A', 'B', 'C', 'D']) # type: ignore
+        assert len(ue.lower_values) == 4 # type: ignore
+        assert len(ue.upper_values) == 4 # type: ignore
+        assert ue.lower_values[2] == ue.upper_values[1] # type: ignore
 
         with pytest.raises(ValueError):
             ue.transform(df_data_error['col1'])
@@ -49,9 +49,9 @@ class TestUniformEncoder:
         transformed_error[0] = 2.9
 
         with pytest.raises(ValueError):
-            ue.reverse_transform(transformed_error)
+            ue.inverse_transform(transformed_error)
 
-        rtransformed = ue.reverse_transform(transformed)
+        rtransformed = ue.inverse_transform(transformed)
 
         assert list(rtransformed.values) == list(df_data['col1'].values)
 
