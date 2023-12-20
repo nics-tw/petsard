@@ -18,7 +18,7 @@ class Missingist:
             "This method should be implemented by subclasses.")
     
     def inverse_transform(self, col_data):
-        _na_mask = self.rng.random(self.df_data.shape[0])
+        _na_mask = self.rng.random(len(col_data))
         _na_mask = _na_mask < self.na_percentage
         _col_data = col_data.copy()
         _col_data[_na_mask] = np.nan
