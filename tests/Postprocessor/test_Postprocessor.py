@@ -1,7 +1,7 @@
 import pytest
 from PETs_Experiment.Postprocessor import Postprocessor
 from PETs_Experiment.Preprocessor.Preprocessor import Preprocessor
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 import pandas as pd
 import numpy as np
 
@@ -28,7 +28,7 @@ class TestPostprocessor:
 
         postprocessor = Postprocessor(preproc.data, encoder=getattr(preproc, 'encoder', None), scaler=getattr(preproc, 'scaler', None), missingist=getattr(preproc, 'missingist', None))
 
-        # reset df_data
+        # Reset df_data
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0], 'col2': [4.0, 5.0, 6.0]})
 
         assert df_data.equals(postprocessor.data)
@@ -51,7 +51,7 @@ class TestPostprocessor:
 
         postprocessor = Postprocessor(preproc.data, encoder=getattr(preproc, 'encoder', None), scaler=getattr(preproc, 'scaler', None), missingist=getattr(preproc, 'missingist', None))
 
-        # reset df_data
+        # Reset df_data
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0], 'col2': [4.0, 5.0, 6.0]})
 
         assert df_data.equals(postprocessor.data)
@@ -74,7 +74,7 @@ class TestPostprocessor:
 
         postprocessor = Postprocessor(preproc.data, encoder=getattr(preproc, 'encoder', None), scaler=getattr(preproc, 'scaler', None), missingist=getattr(preproc, 'missingist', None))
 
-        # reset df_data
+        # Reset df_data
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0], 'col2': [4.0, 5.0, 6.0]})
 
         assert df_data.equals(postprocessor.data)
@@ -167,3 +167,55 @@ class TestPostprocessor:
         print(postprocessor.data)
         
         assert postprocessor.data.isna().any().any()
+
+    def test_decoding_EncoderFactory_Label(self):
+
+        ######## First part from test_Encoder_*.py ##############
+
+        # Create a sample dataframe
+        df_data1 = ['A'] * 7 + ['B'] * 3 + ['C'] * 5 + ['D'] * 5
+        df_data2 = [0] * 20
+        df_data = pd.DataFrame({'col1': pd.Categorical(df_data1), 'col2': df_data2})
+        df_expected = pd.DataFrame({'col1': LabelEncoder().fit_transform(df_data1), 'col2': df_data2})
+        
+        # Create an instance of Preprocessor
+        preproc = Preprocessor(df_data, missing=False, outlier=False, encoding=True, encoding_method='label', scaling=False)
+        
+        # Assert that the dataframe is correct
+        assert df_expected.equals(preproc.data)
+
+        ######## Test Postprocessor ##############
+
+        postprocessor = Postprocessor(preproc.data, encoder=getattr(preproc, 'encoder', None), scaler=getattr(preproc, 'scaler', None), missingist=getattr(preproc, 'missingist', None))
+
+        # Reset df_data
+        df_data = pd.DataFrame({'col1': df_data1, 'col2': df_data2})
+
+        assert df_data.equals(postprocessor.data)
+
+    def test_decoding_EncoderFactory_Uniform(self):
+
+        ######## First part from test_Encoder_*.py ##############
+
+        # Create a sample dataframe
+        df_data1 = ['A'] * 7 + ['B'] * 3 + ['C'] * 5 + ['D'] * 5
+        df_data2 = [0] * 20
+        df_data = pd.DataFrame({'col1': pd.Categorical(df_data1), 'col2': df_data2})
+        
+        # Create an instance of Preprocessor
+        preproc = Preprocessor(df_data, missing=False, outlier=False, encoding=True, encoding_method='uniform', scaling=False)
+        
+        # Assert that the dataframe is correct
+        assert preproc.data['col1'].dtype == np.float64
+
+        ######## Test Postprocessor ##############
+
+        postprocessor = Postprocessor(preproc.data, encoder=getattr(preproc, 'encoder', None), scaler=getattr(preproc, 'scaler', None), missingist=getattr(preproc, 'missingist', None))
+
+        # Reset df_data
+        df_data = pd.DataFrame({'col1': pd.Categorical(df_data1), 'col2': df_data2})
+
+        print(postprocessor.data.dtypes)
+        print(df_data.dtypes)
+
+        assert df_data.equals(postprocessor.data)
