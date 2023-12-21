@@ -5,34 +5,32 @@ from PETs_Experiment.Preprocessor.Missingist_Mean import Missingist_Mean
 class TestMissingistMean:
     def test_mean_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
-        df_data_setting = {'missing_method': 'mean' ,'missing_columns': ['A', 'B'], 'missing_columns_action': ['A', 'B']}
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
+        df_data_setting = {'missing_method': 'mean' , 'missing_columns_action': 'A'}
         
         # Create an instance of the class
-        obj = Missingist_Mean(df_data, **df_data_setting)
+        obj = Missingist_Mean(df_data['A'], **df_data_setting)
         
         # Call the method to be tested
         result = obj.handle()
         
         # Assert the result
-        assert result.shape[0] == 3
-        assert 'A' in result.columns
-        assert 'B' in result.columns
+        assert result.shape == (3,)
     
     def test_mean_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, None, 3], 'B': [4, 6, None], 'C': [3, 5, 7]})
-        df_data_setting = {'missing_method': 'mean' ,'missing_columns': ['A', 'B', 'C'], 'missing_columns_action': ['A', 'B', 'C']}
-        df_expected = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 6.0, 5.0], 'C': [3, 5, 7]})
+        df_data = pd.DataFrame({'A': [1.0, None, 3.0]})
+        df_data_setting = {'missing_method': 'mean', 'missing_columns_action': 'A'}
+        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='A')
         
         # Create an instance of the class
-        obj = Missingist_Mean(df_data, **df_data_setting)
+        obj = Missingist_Mean(df_data['A'], **df_data_setting)
         
         # Call the method to be tested
         result = obj.handle()
+
+        print(type(result))
         
         # Assert the result
-        assert result.shape[0] == 3
+        assert result.shape == (3,)
         assert result.equals(df_expected)
-        assert 'A' in result.columns
-        assert 'B' in result.columns
