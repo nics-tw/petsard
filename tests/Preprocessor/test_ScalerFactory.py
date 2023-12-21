@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 class TestScalerFactory:
     def test_standard_scaling(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 5.0, 6.0]})
         kwargs = {'scaling_method': 'standard', 'scaling_columns_action': ['A', 'B']}
         df_expected = pd.DataFrame(StandardScaler().fit_transform(df_data), columns=['A', 'B'])
 
@@ -26,7 +26,7 @@ class TestScalerFactory:
 
     def test_minmax_scaling(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 5.0, 6.0]})
         kwargs = {'scaling_method': 'minmax', 'scaling_columns_action': ['A', 'B']}
         df_expected = pd.DataFrame({'A': [0.0, 0.5, 1.0], 'B': [0.0, 0.5, 1.0]})
 
@@ -46,7 +46,7 @@ class TestScalerFactory:
 
     def test_zerocenter_scaling(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 5.0, 6.0]})
         kwargs = {'scaling_method': 'zerocenter', 'scaling_columns_action': ['A', 'B']}
         df_expected = pd.DataFrame({'A': [-1.0, 0.0, 1.0], 'B': [-1.0, 0.0, 1.0]})
 
@@ -66,7 +66,7 @@ class TestScalerFactory:
 
     def test_invalid_scaling_method(self):
         # Prepare test data
-        df_data = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        df_data = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': [4.0, 5.0, 6.0]})
         kwargs = {'scaling_method': 'invalid', 'scaling_columns_action': ['A', 'B']}
 
         # Assert that a ValueError is raised when creating an instance of the class

@@ -21,7 +21,7 @@ class Preprocessor:
         data (pandas.DataFrame):
             The pandas DataFrame format of data.
 
-            
+
         # every sub-module follows same args format:
         #     sub-module, sub-module_method, and sub-module_columns.
         #     There're 4 sub-module as {'missing','outlier','encoding','scaling'}.
@@ -38,19 +38,7 @@ class Preprocessor:
                 - 'ignore' : Columns to be excluded from sub-module action.
     """
 
-    def __init__(self, data
-                ,missing: bool = True
-                    ,missing_method: str = 'drop'
-                    ,missing_columns: dict = None
-                ,outlier: bool = True
-                    ,outlier_method: str   = 'iqr'
-                    ,outlier_columns: dict = None
-                ,encoding: bool = True
-                    ,encoding_method: str = 'label'
-                    ,encoding_columns: dict = None
-                ,scaling: bool = False
-                    ,scaling_method:  str = 'standard'
-                    ,scaling_columns: dict = None
+    def __init__(self, data, missing: bool = True, missing_method: str = 'drop', missing_columns: dict = None, outlier: bool = True, outlier_method: str = 'iqr', outlier_columns: dict = None, encoding: bool = True, encoding_method: str = 'label', encoding_columns: dict = None, scaling: bool = False, scaling_method:  str = 'standard', scaling_columns: dict = None
                  ):
         _para_Preprocessor = {
             'missing': missing, 'outlier': outlier, 'encoding': encoding, 'scaling': scaling
@@ -58,15 +46,17 @@ class Preprocessor:
 
         if _para_Preprocessor['missing']:
             _para_Preprocessor['missing_setting'] = {
-                'missing_method': missing_method ,'missing_columns': missing_columns, 'missing_columns_action': self._handle_cols_action('missing', data.columns, missing_columns)
+                'missing_method': missing_method, 'missing_columns': missing_columns, 'missing_columns_action': self._handle_cols_action('missing', data.columns, missing_columns)
             }
             from .MissingistFactory import MissingistFactory
-            data = MissingistFactory(df_data=data, **_para_Preprocessor['missing_setting'])\
+            data, missingist = MissingistFactory(df_data=data, **_para_Preprocessor['missing_setting'])\
                 .handle()
+        else:
+            missingist = None
 
         if _para_Preprocessor['outlier']:
             _para_Preprocessor['outlier_setting'] = {
-                'outlier_method': outlier_method ,'outlier_columns': outlier_columns, 'outlier_columns_action': self._handle_cols_action('outlier', data.columns, outlier_columns)
+                'outlier_method': outlier_method, 'outlier_columns': outlier_columns, 'outlier_columns_action': self._handle_cols_action('outlier', data.columns, outlier_columns)
             }
             from .OutlieristFactory import OutlieristFactory
             data = OutlieristFactory(df_data=data, **_para_Preprocessor['outlier_setting'])\
@@ -74,20 +64,20 @@ class Preprocessor:
 
         if _para_Preprocessor['encoding']:
             _para_Preprocessor['encoding_setting'] = {
-                'encoding_method': encoding_method ,'encoding_columns': encoding_columns, 'encoding_columns_action': self._handle_cols_action('encoding', data.columns, encoding_columns)
+                'encoding_method': encoding_method, 'encoding_columns': encoding_columns, 'encoding_columns_action': self._handle_cols_action('encoding', data.columns, encoding_columns)
             }
             from .EncoderFactory import EncoderFactory
-            data ,encoder = EncoderFactory(df_data=data, **_para_Preprocessor['encoding_setting'])\
+            data, encoder = EncoderFactory(df_data=data, **_para_Preprocessor['encoding_setting'])\
                 .handle()
         else:
             encoder = None
 
         if _para_Preprocessor['scaling']:
             _para_Preprocessor['scaling_setting'] = {
-                'scaling_method': scaling_method ,'scaling_columns': scaling_columns, 'scaling_columns_action': self._handle_cols_action('scaling', data.columns, scaling_columns)
+                'scaling_method': scaling_method, 'scaling_columns': scaling_columns, 'scaling_columns_action': self._handle_cols_action('scaling', data.columns, scaling_columns)
             }
             from .ScalerFactory import ScalerFactory
-            data ,scaler = ScalerFactory(df_data=data, **_para_Preprocessor['scaling_setting'])\
+            data, scaler = ScalerFactory(df_data=data, **_para_Preprocessor['scaling_setting'])\
                 .handle()
         else:
             scaler = None
@@ -96,12 +86,13 @@ class Preprocessor:
         if encoder:
             self.encoder = encoder
         if scaler:
-            self.scaler  = scaler
+            self.scaler = scaler
+        if missingist:
+            self.missingist = missingist
         self.para = {}
         self.para['Preprocessor'] = _para_Preprocessor
 
-
-    def _handle_cols_action(self ,submodule: str, cols: list, dict_action: dict) -> list:
+    def _handle_cols_action(self, submodule: str, cols: list, dict_action: dict) -> list:
         """
         Determines the columns to be focus or ignore/excluded in the sub-function action.
 
