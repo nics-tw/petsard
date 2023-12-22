@@ -54,12 +54,22 @@ class Processor_Manager:
     def _check_config_valid():
         pass
 
+    # generate config based on the metadata
+    def _generate_config():
+        pass
+
     def get_config():
         pass
 
+    # edit whole config
     def set_config():
         pass
 
+    # edit certain config
+    def update_config():
+        pass
+
+    # should be able to select certain processor(s) to execute
     def fit():
         pass
 
