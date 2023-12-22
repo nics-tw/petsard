@@ -42,6 +42,6 @@ class Scaler_MinMax(Scaler):
                     _col_data.values.reshape(-1, 1))
 
                 print(
-                    f'Preprocessor - Scaler (MinMax): Column {_col_name:<{_digits_longest_colname}} been standardized.')
+                    f'Preprocessor - Scaler (Standard): Column {_col_name:<{_digits_longest_colname}} been standardized.')
 
         return self.df_data, self.dict_scaler
