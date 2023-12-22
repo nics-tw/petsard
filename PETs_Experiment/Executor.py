@@ -117,7 +117,8 @@ class Executor:
         self.synthesizer = {}
         _trials = {}
         for _load_trial, (_load_trial_name, _load_para) in enumerate(self.para['Loader_setting'].items()):
-            _trials['load'] = {'trial': _load_trial+1, 'trial_name': _load_trial_name, 'trial_max': _load_trial_max}
+            _trials['load'] = {
+                'trial': _load_trial+1, 'trial_name': _load_trial_name, 'trial_max': _load_trial_max}
             _load_result = self._run_single_loader(_trials['load'], _load_para)
             self.loader[_load_trial_name] = _load_result
 
@@ -200,20 +201,24 @@ class Executor:
         self.preprocessor = {}
         self.synthesizer = {}
 
+        _trials = {}
         with tqdm(total=_load_trial_max         ,desc='Loading: '      ) as _load_pbar\
             ,tqdm(total=_load_trial_max\
                        *_split_trial_max        ,desc='Splitting: '    ) as _split_pbar\
             ,tqdm(total=_load_trial_max\
                        *_split_trial_split_sum\
-                       *_preproc_trial_max      ,desc='Preprocessing: ') as _preproc_pbar:
+                       *_preproc_trial_max      ,desc='Preprocessing: ') as _preproc_pbar\
+            ,tqdm(total=_load_trial_max
+                       *_split_trial_split_sum\
+                       *_preproc_trial_max\
+                       *_syn_trial_max          ,desc='Synthesizing: ' ) as _syn_pbar:
             with ProcessPoolExecutor(max_workers=_max_workers) as _poolexecutor:
 
-                _trials = {}
                 _preproc_futures = {}
                 for _load_trial, (_load_trial_name, _load_para) in enumerate(self.para['Loader_setting'].items()):
-                    _trials['load'] = {'trial'       : _load_trial+1
-                                       ,'trial_name' : _load_trial_name
-                                       ,'trial_max'  : _load_trial_max}
+                    _trials['load'] = {
+                        'trial': _load_trial+1, 'trial_name': _load_trial_name, 'trial_max': _load_trial_max}
+
                     _load_result = _poolexecutor.submit(
                         self._run_single_loader, _trials['load'], _load_para).result()
                     self.loader[_load_trial_name] = _load_result
@@ -229,86 +234,71 @@ class Executor:
                             self._run_single_splitter, _load_result.data, _trials['split'], _split_para).result()
                         _trials['split']['trial_split'] = len(_split_result.data)
                         _trials['split']['trial_data_key'] = _poolexecutor.submit(self._save_in_submodule
-                                                                                                  ,'Splitter'
-                                                                                                  ,_split_result.data
-                                                                                                  ,_trials).result()
+                                                                                  ,'Splitter'
+                                                                                  ,_split_result.data
+                                                                                  ,_trials).result()
                         self.splitter[(_load_trial_name
-                                       ,_split_trial_name)] = _split_result
+                                        ,_split_trial_name)] = _split_result
                         _split_pbar.update(1)
 
-                        _trials['split']['data_key'] = {}
                         for _split_data_key ,_split_data in _split_result.data.items():
                             _trials['split']['data_key'] = _split_data_key
 
                             for _preproc_trial ,(_preproc_trial_name ,_preproc_para) in enumerate(self.para['Preprocessor_setting'].items()):
-                                _trials['preproc'] = {'trial'       : _preproc_trial+1
-                                                      ,'trial_name' : _preproc_trial_name
-                                                      ,'trial_max'  : _preproc_trial_max}
+                                _trials['preproc'] = {'trial'      : _preproc_trial+1
+                                                     ,'trial_name' : _preproc_trial_name
+                                                     ,'trial_max'  : _preproc_trial_max}
                                 _preproc_future = _poolexecutor.submit(self._run_single_preprocessor
                                                                        ,_split_data['train']
                                                                        ,_trials['preproc']
                                                                        ,_preproc_para)
-                                _preproc_futures[_preproc_future] = {'name' : (_load_trial_name
-                                                                              ,_split_trial_name
-                                                                              ,_split_data_key
-                                                                              ,_preproc_trial_name)
-                                                                    ,'trials' : _trials 
-                                }
+                                _preproc_futures[_preproc_future] = (_load_trial_name
+                                                                    ,_split_trial_name
+                                                                    ,_split_data_key
+                                                                    ,_preproc_trial_name)
 
                 # Should wait all preprocessing done due to SDV share same temp file '.sample.csv.temp' in synthesizing, will cause Permission Error
                 # PermissionError: [WinError 32] 程序無法存取檔案，因為檔案正由另一個程序使用。: '.sample.csv.temp'
-                _trials_till_preproc = {}
                 for _preproc_future in as_completed(_preproc_futures):
                     _preproc_result = _preproc_future.result()
-                    _preproc_name = _preproc_futures[_preproc_future]['name']
-
-                    self.preprocessor[_preproc_name] = _preproc_result
-                    _trials_preproc = _preproc_futures[_preproc_future]['trials']
-
-                    _trials_preproc['preproc']['trial_data_key'] = _poolexecutor.submit(self._save_in_submodule
-                                                                                       ,'Preprocessor'
-                                                                                       ,_preproc_result.data
-                                                                                       ,_trials_preproc).result()
-                    _trials_till_preproc[_preproc_name] = _trials_preproc
+                    self.preprocessor[_preproc_futures[_preproc_future]] = _preproc_result
+                    _trials['preproc']['trial_data_key'] = _poolexecutor.submit(self._save_in_submodule
+                                                                                ,'Preprocessor'
+                                                                                ,_preproc_result.data
+                                                                                ,_trials).result()
                     _preproc_pbar.update(1)
 
-
-        with tqdm(total=_load_trial_max
-                       *_split_trial_split_sum\
-                       *_preproc_trial_max\
-                       *_syn_trial_max          ,desc='Synthesizing: ' ) as _syn_pbar:
-            with ThreadPoolExecutor(max_workers=_max_workers) as _threadexecutor:
-                _syn_futures = {}
-                for _trials_name ,_trials_preproc in _trials_till_preproc.items():
+                with ThreadPoolExecutor(max_workers=_max_workers) as _threadexecutor:
+                    _syn_futures = {}
                     for _syn_trial ,(_syn_trial_name ,_syn_para) in enumerate(self.para['Synthesizer_setting'].items()):
-                        _trials_preproc['syn'] = {'trial'       : _syn_trial+1
-                                                  ,'trial_name' : _syn_trial_name
-                                                  ,'trial_max'  : _syn_trial_max}
-                        _syn_fullname = _trials_name + (_syn_trial_name,)
+                        _trials['syn'] = {'trial'         : _syn_trial+1
+                                          ,'trial_name' : _syn_trial_name
+                                          ,'trial_max'  : _syn_trial_max}
                         _syn_future = _threadexecutor.submit(self._run_single_synthesizer
-                                                            ,_preproc_result.data
-                                                            ,_trials_preproc['syn']
-                                                            ,_syn_para
-                                                            ,trial_fullname = _syn_fullname)
-                        _syn_futures[_syn_future] = {'name': _syn_fullname
-                                                    ,'trials' : _trials_preproc}
-                
-                for _syn_future in as_completed(_syn_futures):
-                    _syn_result = _syn_future.result()
-                    _syn_trial_name = _syn_futures[_syn_future]['name']
-                    _trials_syn = _syn_futures[_syn_future]['trials']
-                    _threadexecutor.submit(self._save_in_submodule
-                                            ,'Synthesizer'
-                                            ,_syn_result.data_syn
-                                            ,_trials_syn).result()
-                    self.synthesizer[_syn_trial_name] = _syn_result
-                    _syn_pbar.update(1)
+                                                             ,_preproc_result.data
+                                                             ,_trials['syn']
+                                                             ,_syn_para)
+                        _syn_futures[_syn_future] = _syn_trial_name
+                    
+                    for _syn_future in as_completed(_syn_futures):
+                        _syn_result = _syn_future.result()
+                        _threadexecutor.submit(self._save_in_submodule
+                                                ,'Synthesizer'
+                                                ,_syn_result.data_syn
+                                                ,_trials).result()
+                        self.synthesizer[(_load_trial_name
+                                            ,_split_trial_name
+                                            ,_split_data_key
+                                            ,_preproc_trial_name
+                                            ,_syn_trial_name)] = _syn_result
+                        _syn_pbar.update(1)
 
         self.monitor_cpu_usage = False
         _monitor_thread.join()
 
         print(f"====== ====== ====== ====== ====== ======")
-        print(f"Executor: Total execution time: {round(time.time()-_time_start ,4)} sec.")
+        print(
+            f"Executor: Total execution time: {round(time.time()-_time_start ,4)} sec.")
         print(f"====== ====== ====== ====== ====== ======")
 
     def _run_single_loader(self, trial, para, **kwargs):
@@ -343,16 +333,9 @@ class Executor:
         _time_start = time.time()
         from .Synthesizer import Synthesizer
         synthesizer = Synthesizer(data=data, **para)
-        _trial_fullname = kwargs.get('trial_fullname' ,None)
-        if _trial_fullname:
-            import os
-            _trial_tempfile = f".sample.csv.temp.{'-'.join(str(item) for item in _trial_fullname)}"
-            synthesizer.fit_sample(output_file_path=_trial_tempfile)
-            if os.path.exists(_trial_tempfile):
-                os.remove(_trial_tempfile)
-        else:
-            synthesizer.fit_sample()
-        print(f"Executor - Synthesizer: {trial['trial_name']} synthesizing time: {round(time.time()-_time_start ,4)} sec.")
+        synthesizer.fit_sample()
+        print(
+            f"Executor - Synthesizer: {trial['trial_name']} synthesizing time: {round(time.time()-_time_start ,4)} sec.")
         return synthesizer
 
     def _save_in_submodule(self, module, data=None, trials=None):
