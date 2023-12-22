@@ -32,14 +32,14 @@ class Synthesizer:
         self.para = {}
         self.para['Synthesizer'] = _para_Synthesizer
 
-    def fit(self):
-        self.Synthesizer.fit()
+    def fit(self ,**kwargs):
+        self.Synthesizer.fit(**kwargs)
 
-    def sample(self):
-        self.data_syn = self.Synthesizer.sample()
+    def sample(self ,**kwargs):
+        self.data_syn = self.Synthesizer.sample(**kwargs)
 
-    def fit_sample(self):
-        self.data_syn = self.Synthesizer.fit_sample()
+    def fit_sample(self ,**kwargs):
+        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
 
 
