@@ -32,8 +32,7 @@ class SDV_SingleTable(SDV):
             raise ValueError(
                 f"Synthesizer (SDV - SingleTable): .fit() while _Synthesizer didn't ready.")
 
-    def sample(self, sample_num_rows: int = None, reset_sampling: bool = False
-               ,output_file_path: str = None):
+    def sample(self, sample_num_rows: int = None, reset_sampling: bool = False):
         if self._Synthesizer:
             try:
                 import time
@@ -48,7 +47,7 @@ class SDV_SingleTable(SDV):
                     self._Synthesizer.reset_sampling()
 
                 data_syn = self._Synthesizer.sample(num_rows=self.sample_num_rows, batch_size=self.sample_batch_size
-                                                    ,output_file_path=output_file_path)
+                                                    )
 
                 _str_sample_num_rows_as_raw = ' (same as raw)' if self.sample_num_rows_as_raw else ''
                 print(
@@ -61,6 +60,6 @@ class SDV_SingleTable(SDV):
             raise NotImplementedError(
                 f"Synthesizer (SDV - SingleTable): .sample() while _Synthesizer didn't ready.")
 
-    def fit_sample(self, sample_num_rows: int = None, reset_sampling: bool = False ,output_file_path: str = None):
+    def fit_sample(self, sample_num_rows: int = None, reset_sampling: bool = False):
         self.fit()
-        return self.sample(sample_num_rows, reset_sampling ,output_file_path)
+        return self.sample(sample_num_rows, reset_sampling)
