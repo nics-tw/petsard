@@ -38,7 +38,7 @@ from .util          import *
 
 from .Executor import Executor
 
-
+from .Processor_Manager import Processor_Manager
 
 __all__ =   ['Loader'
             ,'Preprocessor'
@@ -46,5 +46,6 @@ __all__ =   ['Loader'
             ,'Postprocessor'
         
             ,'Executor'
-            ,'Splitter'
+            ,'Splitter',
+            'Processor_Manager'
             ]
