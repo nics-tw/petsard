@@ -78,13 +78,13 @@ class Encoder_Uniform(Encoder):
             data (pd.Series): The categorical data needed to be transformed.
 
         Output:
-            (pd.Series): The transformed data.
+            (np.ndarray): The transformed data.
         """
         
         if isinstance(data.dtype, pd.api.types.CategoricalDtype):
             data_obj = data.astype(object)
         
-        return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0])
+        return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]).values
     
     def _inverse_transform(self, data):
         """
@@ -109,6 +109,7 @@ class Encoder_Uniform(Encoder):
 class Encoder_Label(Encoder):
     def __init__(self):
         super().__init__()
+        self.model = LabelEncoder()
 
     def _fit(self, data):
         """
@@ -120,29 +121,25 @@ class Encoder_Label(Encoder):
         Output:
             None
         """
-        le = LabelEncoder()
-        le.fit(data)
-        
-        # Get keys (original labels)
-        self.labels = list(le.classes_)
+        self.model.fit(data)
 
-        self.cat_to_val = dict(zip(self.labels, list(zip(self.lower_values, self.upper_values))))
+        # Get keys (original labels)
+        self.labels = list(self.model.classes_)
+
+        self.cat_to_val = dict(zip(self.labels, list(self.model.transform(self.model.classes_))))
 
     def _transform(self, data):
         """
-        Transform categorical data to a uniform distribution. For example, a column with two categories (e.g., 'Male', 'Female') can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
+        Transform categorical data to a series of integer labels.
 
         Input:
             data (pd.Series): The categorical data needed to be transformed.
 
         Output:
-            (pd.Series): The transformed data.
+            (np.ndarray): The transformed data.
         """
         
-        if isinstance(data.dtype, pd.api.types.CategoricalDtype):
-            data_obj = data.astype(object)
-        
-        return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0])
+        return self.model.transform(data)
     
     def _inverse_transform(self, data):
         """
@@ -152,15 +149,9 @@ class Encoder_Label(Encoder):
             data (pd.Series): The categorical data needed to be transformed inversely.
 
         Output:
-            (pd.Series): The inverse transformed data.
+            (np.ndarray): The inverse transformed data.
         """
         
-        # Check the range of the data is valid
-        if data.max() > 1 or data.min() < 0:
-            raise ValueError("The range of the data is out of range. Please check the data again.")
-        
-        bins_val = np.append(self.lower_values, 1.0)
-        
-        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, labels=self.labels, ordered=False)
+        return self.model.inverse_transform(data)
         
         

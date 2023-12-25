@@ -192,6 +192,8 @@ class Processor_Manager:
                 self._config[col][processor] = obj
 
     # should be able to select certain processor(s) to execute
+    # TODO - need more step to drop outlierist selected from IQR and ZScore
+    # TODO - need Outlierist manager and Missingist manager to collect all the output from the instances and decide what records should be dropped
     def fit(self):
         pass
 
