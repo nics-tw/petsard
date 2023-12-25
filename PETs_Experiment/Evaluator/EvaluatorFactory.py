@@ -4,8 +4,7 @@ class EvaluatorFactory:
 
         if evaluating_method.startswith('anonymeter'):
             from .Anonymeter.AnonymeterFactory import AnonymeterFactory
-            _Evaluator = AnonymeterFactory(
-                evaluating_method=evaluating_method, **kwargs).create_evaluator()
+            _Evaluator = AnonymeterFactory(**kwargs).create_evaluator()
         else:
             raise ValueError(
                 f"Evaluator - EvaluatorFactory: evaluating_method {evaluating_method} didn't support.")
