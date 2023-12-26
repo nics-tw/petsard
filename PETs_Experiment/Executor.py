@@ -99,7 +99,7 @@ class Executor:
 
         return _trial_name
 
-    def run_single_process(self):
+    def run(self):
         import time
         _time_start = time.time()
 
@@ -193,7 +193,7 @@ class Executor:
                                                  ,_syn_trial_name
                                                  ,_eval_trial_name
                                                  ,_eval_trial_key+1)
-                                    
+
                                     from . import __version__
                                     _eval_fullname = (__version__
                                                      ,self.exectime
@@ -219,7 +219,7 @@ class Executor:
                                     self.evaluator[_eval_name] = _eval_result
 
         print(f"====== ====== ====== ====== ====== ======")
-        print(f"Executor (run_single_process): Total execution time: {round(time.time()-_time_start ,4)} sec.")
+        print(f"Executor (run - single process): Total execution time: {round(time.time()-_time_start ,4)} sec.")
         print(f"====== ====== ====== ====== ====== ======")
 
 
@@ -233,7 +233,7 @@ class Executor:
     #         time.sleep(interval)
 
 
-    def run(self):
+    def run_parallel(self):
         import time
         import os
         # import threading
@@ -410,6 +410,8 @@ class Executor:
                                                                 ,_eval_para).result()
                             _eval_name = _postproc_name + (_eval_trial_name,_eval_trial_key+1)
                             from . import __version__
+                            # TODO 需更改 due to 自訂
+                            # print(_preproc_trial_name)
                             _eval_fullname = (__version__
                                              ,self.exectime
                                              ,_load_trial_name
@@ -440,7 +442,7 @@ class Executor:
         # _monitor_thread.join()
 
         print(f"====== ====== ====== ====== ====== ======")
-        print(f"Executor (run): Total execution time: {round(time.time()-_time_start ,4)} sec.")
+        print(f"Executor (run - parallel): Total execution time: {round(time.time()-_time_start ,4)} sec.")
         print(f"====== ====== ====== ====== ====== ======")
 
     def _run_single_loader(self, trial, para, **kwargs):
@@ -457,8 +459,7 @@ class Executor:
         _time_start = time.time()
         from .Loader import Splitter
         splitter = Splitter(data=data, **para)
-        print(
-            f"Executor - Splitter: {trial['trial_name']} splitting time: {round(time.time()-_time_start ,4)} sec.")
+        print(f"Executor - Splitter: {trial['trial_name']} splitting time: {round(time.time()-_time_start ,4)} sec.")
         return splitter
 
     def _run_single_preprocessor(self, data, trial, para):
@@ -466,8 +467,7 @@ class Executor:
         _time_start = time.time()
         from .Preprocessor import Preprocessor
         preprocessor = Preprocessor(data=data, **para)
-        print(
-            f"Executor - Preprocessor: {trial['trial_name']} preprocessing time: {round(time.time()-_time_start ,4)} sec.")
+        print(f"Executor - Preprocessor: {trial['trial_name']} preprocessing time: {round(time.time()-_time_start ,4)} sec.")
         return preprocessor
 
     def _run_single_synthesizer(self, data, trial, para, **kwargs):
@@ -499,7 +499,7 @@ class Executor:
         import time
         _time_start = time.time()
         from .Evaluator import Evaluator
-        if trial['trial_name'].endswith('inference'):
+        if trial['trial_name'].lower().startswith('anonymeter-inference'):
             _columns = data['syn'].columns
             evaluator = {}
             for _column in _columns:
@@ -662,7 +662,8 @@ class Executor:
                                     ])
             _data_infor = data[0][:2]+(_str_trial_key,)+data[0][2:]
             _rpt_line = ','.join([str(item) for item in _data_infor])
-            if _eval_trial_name.startswith('anonymeter'):
+            # TODO　也依賴了自動輸入
+            if _eval_trial_name.lower().startswith('anonymeter'):
                 _eval_module = 'Anonymeter'
                 _rpt_columns += ','+','.join(['secret'
                                              ,'Risk'
@@ -675,10 +676,10 @@ class Executor:
                                              ,'Control_Rate'
                                              ,'Control_Rate_err'
                                              ])
-
-                if _eval_trial_name.endswith('inference'):
+                if _eval_trial_name.lower().startswith('anonymeter-inference'):
+                    _rpt_line_inference = []
                     for _data_secret ,_data_Evaluator in data[1].items():
-                        _data_score  = _data_Evaluator.Evaluator.evaluation
+                        _data_score = _data_Evaluator.Evaluator.evaluation
                         _data_score = ','.join([f"{item:.16f}" for item in 
                                                         [_data_score['Risk'             ]
                                                         ,_data_score['Risk_CI_btm'      ]
@@ -691,10 +692,11 @@ class Executor:
                                                         ,_data_score['Control_Rate_err' ]
                                                         ]
                                             ])
-                        _rpt_line += f",{_data_secret},{_data_score}"
+                        _rpt_line_inference.append(_rpt_line + f",{_data_secret},{_data_score}")
+                    _rpt_line = "\n".join(_rpt_line_inference)
                 else:
                     _data_secret = ''
-                    _data_score  = data[1].Evaluator.evaluation
+                    _data_score = data[1].Evaluator.evaluation
                     _data_score = ','.join([f"{item:.16f}" for item in 
                                                     [_data_score['Risk'             ]
                                                     ,_data_score['Risk_CI_btm'      ]
