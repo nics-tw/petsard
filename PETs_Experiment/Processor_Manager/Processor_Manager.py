@@ -210,3 +210,11 @@ class Processor_Manager:
     # determine whether the processors are not default settings
     def get_changes(self):
         pass
+
+
+class Outlierist_Manager:
+    """
+    Gather all columns needed to process
+    Transform all at once
+    Inverse all at once
+    """
