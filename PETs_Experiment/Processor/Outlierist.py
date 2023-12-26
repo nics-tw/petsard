@@ -50,12 +50,12 @@ class Outlierist_ZScore(Outlierist):
             data (np.ndarray): The data needed to be transformed.
 
         Output:
-            (np.ndarray): The transformed data.
+            (np.ndarray): The filter marking the outliers.
         """
         
         ss_data = self.model.transform(data)
 
-        return np.where(np.abs(ss_data) > 3, -1.0, 1.0)
+        return np.abs(ss_data) > 3
 
 class Outlierist_IQR(Outlierist):
     def __init__(self):
@@ -90,7 +90,7 @@ class Outlierist_IQR(Outlierist):
             data (np.ndarray): The data needed to be transformed.
 
         Output:
-            (np.ndarray): The transformed data.
+            (np.ndarray): The filter marking the outliers.
         """
 
-        return np.where(np.logical_or(data > self.upper, data < self.lower), -1.0, 1.0)
+        return np.logical_or(data > self.upper, data < self.lower)
