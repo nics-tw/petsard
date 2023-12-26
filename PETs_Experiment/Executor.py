@@ -193,6 +193,7 @@ class Executor:
                                                  ,_syn_trial_name
                                                  ,_eval_trial_name
                                                  ,_eval_trial_key+1)
+
                                     from . import __version__
                                     _eval_fullname = (__version__
                                                      ,self.exectime
@@ -675,7 +676,6 @@ class Executor:
                                              ,'Control_Rate'
                                              ,'Control_Rate_err'
                                              ])
-
                 if _eval_trial_name.lower().startswith('anonymeter-inference'):
                     _rpt_line_inference = []
                     for _data_secret ,_data_Evaluator in data[1].items():
