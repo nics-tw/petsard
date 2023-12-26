@@ -21,7 +21,7 @@ class Test_Outlierist_ZScore:
         transformed1 = outlierist1.transform(df_data['col1'])
         
         # Assert the result
-        assert (transformed1 == np.array([1.0, 1.0, 1.0])).all()
+        assert (transformed1 == np.array([False, False, False])).all()
 
         # Create an instance of the class
         outlierist2 = Outlierist_ZScore()
@@ -35,13 +35,13 @@ class Test_Outlierist_ZScore:
         transformed2 = outlierist2.transform(df_data['col2'])
         
         # Assert the result
-        assert (transformed2 == np.array([1.0, 1.0, 1.0])).all()
+        assert (transformed2 == np.array([False, False, False])).all()
 
     def test_Zscore_with_outliers(self):
         # Prepare test data
         df_data = pd.DataFrame({'col1': [0.0] * 10000 + [10000.0], 'col2': pd.to_datetime(['2222-12-12']).append(pd.to_datetime(['2022-12-13']*10000))})
-        df_expected1 = np.array([1.0] * 10000 + [-1.0])
-        df_expected2 = np.array([-1.0] + [1.0] * 10000)
+        df_expected1 = np.array([False] * 10000 + [True])
+        df_expected2 = np.array([True] + [False] * 10000)
         
         # Create an instance of the class
         outlierist1 = Outlierist_ZScore()
@@ -88,7 +88,7 @@ class Test_Outlierist_IQR:
         transformed1 = outlierist1.transform(df_data['col1'])
         
         # Assert the result
-        assert (transformed1 == np.array([1.0, 1.0, 1.0])).all()
+        assert (transformed1 == np.array([False, False, False])).all()
 
         # Create an instance of the class
         outlierist2 = Outlierist_IQR()
@@ -102,13 +102,13 @@ class Test_Outlierist_IQR:
         transformed2 = outlierist2.transform(df_data['col2'])
         
         # Assert the result
-        assert (transformed2 == np.array([1.0, 1.0, 1.0])).all()
+        assert (transformed2 == np.array([False, False, False])).all()
 
     def test_Zscore_with_outliers(self):
         # Prepare test data
         df_data = pd.DataFrame({'col1': [0.0] * 10000 + [10000.0], 'col2': pd.to_datetime(['2222-12-12']).append(pd.to_datetime(['2022-12-13']*10000))})
-        df_expected1 = np.array([1.0] * 10000 + [-1.0])
-        df_expected2 = np.array([-1.0] + [1.0] * 10000)
+        df_expected1 = np.array([False] * 10000 + [True])
+        df_expected2 = np.array([True] + [False] * 10000)
         
         # Create an instance of the class
         outlierist1 = Outlierist_IQR()

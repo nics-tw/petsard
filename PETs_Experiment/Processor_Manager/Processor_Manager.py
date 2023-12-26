@@ -82,28 +82,48 @@ class Processor_Manager:
         """
         config_to_check = self._config if config is None else config
 
-        # check the validity of column names
-        if not set(config_to_check.keys()).issubset(set(self._metadata['metadata_col'].keys())):
-            raise ValueError('Some columns in the input config are not in the metadata. Please check the config or metadata again.')
+        ################################################################
 
-        invalid_processors_col = []
+        # check the validity of processor types
+        if not set(config_to_check.keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
+            raise ValueError(f'Invalid config processor type in the input dict, please check the dict keys of processor types.')
 
-        for col in config_to_check.keys():
-            for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
-                
-                # check the validity of processor types (keys)
-                if not set(config_to_check[col].keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
-                    raise ValueError(f'Invalid config processor type in the column {col}, please check the dict keys of processor types in the config')
-                
+        for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
+            
+            # check the validity of column names (keys)
+            if not set(config_to_check[processor].keys()).issubset(set(self._metadata['metadata_col'].keys())):
+                raise ValueError(f'Some columns in the input config {processor} are not in the metadata. Please check the config or metadata again.')
+
+            for col in config_to_check[processor].keys():
                 # check the validity of processor objects (values)
-                if not(isinstance(config_to_check[col].get(processor, None), processor_class) or config_to_check[col].get(processor, None) is None):
-                    if col in invalid_processors_col:
-                        break
-                    else:
-                        invalid_processors_col.append(col)
+                if not(isinstance(config_to_check[processor].get(col, None), processor_class) or config_to_check[processor].get(col, None) is None):
+                    raise ValueError(f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
+            
+        
+        ################################################################
 
-        if invalid_processors_col:
-            raise ValueError(f'{invalid_processors_col} contain(s) invalid processor(s), please check them again.')
+        # # check the validity of column names
+        # if not set(config_to_check.keys()).issubset(set(self._metadata['metadata_col'].keys())):
+        #     raise ValueError('Some columns in the input config are not in the metadata. Please check the config or metadata again.')
+
+        # invalid_processors_col = []
+
+        # for col in config_to_check.keys():
+        #     for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
+                
+        #         # check the validity of processor types (keys)
+        #         if not set(config_to_check[col].keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
+        #             raise ValueError(f'Invalid config processor type in the column {col}, please check the dict keys of processor types in the config')
+                
+        #         # check the validity of processor objects (values)
+        #         if not(isinstance(config_to_check[col].get(processor, None), processor_class) or config_to_check[col].get(processor, None) is None):
+        #             if col in invalid_processors_col:
+        #                 break
+        #             else:
+        #                 invalid_processors_col.append(col)
+
+        # if invalid_processors_col:
+        #     raise ValueError(f'{invalid_processors_col} contain(s) invalid processor(s), please check them again.')
                     
 
     # FIXME - should pass the object here, however, due to the current design,
@@ -113,13 +133,19 @@ class Processor_Manager:
         """
         Generate config based on the metadata.
 
+        Config structure: {processor_type: {col_name: processor_obj}}
+
         Input:
             None: The metadata is stored in the instance itself.
 
         Output:
             None: The config will be stored in the instance itself.
         """
-        self._config.clear() # initialise the dict
+        self._config = None # initialise the dict
+        self._config = {'missingist': {},
+                        'outlierist': {},
+                        'encoder': {},
+                        'scaler': {}}
 
         for col, val in self._metadata['metadata_col'].items():
 
@@ -128,7 +154,8 @@ class Processor_Manager:
                             'encoder': self._DEFAULT_ENCODER[val['type']],
                             'scaler': self._DEFAULT_SCALER[val['type']]}
             
-            self._config[col] = processor_dict
+            for processor, obj in processor_dict.items():
+                self._config[processor][col] = obj
 
 
     def get_config(self, col=[], print_config=False):
@@ -136,26 +163,36 @@ class Processor_Manager:
         Get the config from the instance.
 
         Input:
-            col (list): The columns the user want to get the config from. If the list is empty, all columns will be selected.
+            col (list): The columns the user want to get the config from. If the list is empty, all columns from the metadata will be selected.
             print_config (bool, default=False): Whether the result should be printed.
 
         Output:
             (dict): The config with selected columns.
         """
         get_col_list = []
+        result_dict = {'missingist': {},
+                       'outlierist': {},
+                       'encoder': {},
+                       'scaler': {}}
 
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._config.keys())
+            get_col_list = list(self._metadata['metadata_col'].keys())
 
         if print_config:
-            for colname in get_col_list:
-                print(colname)
-                for pre, cls in self._config[colname].items():
-                    print(f'    {pre:>10}: {cls}')
+            for processor in self._config.keys():
+                print(processor)
+                for colname in get_col_list:
+                    print(f'    {colname}: {self._config[processor][colname]}')
+                    result_dict[processor][colname] = self._config[processor][colname]
+        else:
+            for processor in self._config.keys():
+                for colname in get_col_list:
+                    result_dict[processor][colname] = self._config[processor][colname]
 
-        return {key: self._config.get(key) for key in get_col_list}
+
+        return result_dict
 
     def set_config(self, config):
         """
@@ -169,11 +206,11 @@ class Processor_Manager:
         """
         self._check_config_valid(config=config)
 
-        for col, val in self._config.items():
-            if col not in config.keys():
-                config[col] = {}
-            for processor in val.keys():
-                self._config[col][processor] = config[col].get(processor, None)
+        for processor, val in self._config.items():
+            if processor not in config.keys():
+                config[processor] = {}
+            for col in val.keys():
+                self._config[processor][col] = config[processor].get(col, None)
 
     def update_config(self, config):
         """
@@ -187,9 +224,9 @@ class Processor_Manager:
         """
         self._check_config_valid(config=config)
 
-        for col, val in config.items():
-            for processor, obj in val.items():
-                self._config[col][processor] = obj
+        for processor, val in config.items():
+            for col, obj in val.items():
+                self._config[processor][col] = obj
 
     # should be able to select certain processor(s) to execute
     # TODO - need more step to drop outlierist selected from IQR and ZScore
@@ -211,10 +248,3 @@ class Processor_Manager:
     def get_changes(self):
         pass
 
-
-class Outlierist_Manager:
-    """
-    Gather all columns needed to process
-    Transform all at once
-    Inverse all at once
-    """

@@ -135,3 +135,30 @@ class Missingist_Simple(Missingist):
     
     def _inverse_transform(self, data):
         pass # Redundant
+
+# TODO - The output of Missingist_Drop is different from others, should be used with Mediator
+
+class Missingist_Drop(Missingist):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data_backup = None # for restoring data
+
+    def _fit(self, data):
+        pass # Redundant
+
+    def _transform(self, data):
+        """
+        Mark the NA cells and store the original data.
+
+        Input:
+            data (pd.Series): The data needed to be transformed.
+
+        Output:
+            (np.ndarray): The filter marking the NA cells.
+        """
+        self.data_backup = data
+
+        return data.isna().values.ravel()
+    
+    def _inverse_transform(self, data):
+        pass # Redundant
