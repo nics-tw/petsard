@@ -21,8 +21,7 @@ class SDV_SingleTable(SDV):
             import time
             __time_start = time.time()
 
-            self._syn_method = self._syn_method if hasattr(
-                self, '_syn_method') else 'Unknown'
+            self._syn_method = self._syn_method if hasattr(self, '_syn_method') else 'Unknown'
             print(
                 f"Synthesizer (SDV - SingleTable): Fitting  {self._syn_method}.")
             self._Synthesizer.fit(self.data)
