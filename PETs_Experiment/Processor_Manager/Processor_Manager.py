@@ -17,6 +17,8 @@ from PETs_Experiment.Preprocessor.Scaler_MinMax import Scaler_MinMax
 from PETs_Experiment.Preprocessor.Scaler_Standard import Scaler_Standard
 from PETs_Experiment.Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 
+# TODO - edit type in metadata to meet the standard of pandas
+
 class Processor_Manager:
 
     # object datatype indicates the unusual data,
