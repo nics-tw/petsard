@@ -36,6 +36,7 @@ from .Synthesizer   import *
 from .Postprocessor import *
 from .Evaluator     import *
 from .util          import *
+from .Processor import *
 
 from .Executor import Executor
 
@@ -45,9 +46,11 @@ __all__ =   ['Loader'
                 ,'Splitter'
             ,'Preprocessor'
             ,'Synthesizer'
+
             ,'Postprocessor'
             ,'Evaluator'
-        
+            ,'Postprocessor',
+             'Processor'   
             ,'Executor'
             ,'Splitter',
             'Processor_Manager'
