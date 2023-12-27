@@ -1,21 +1,21 @@
-from PETs_Experiment.Preprocessor import Missingist, Outlierist, Encoder, Scaler
+from ..Preprocessor import Missingist, Outlierist, Encoder, Scaler
 
-from PETs_Experiment.Preprocessor.Missingist_Drop import Missingist_Drop
-from PETs_Experiment.Preprocessor.Missingist_Mean import Missingist_Mean
-from PETs_Experiment.Preprocessor.Missingist_Median import Missingist_Median
-from PETs_Experiment.Preprocessor.Missingist_Simple import Missingist_Simple
+from ..Preprocessor.Missingist_Drop import Missingist_Drop
+from ..Preprocessor.Missingist_Mean import Missingist_Mean
+from ..Preprocessor.Missingist_Median import Missingist_Median
+from ..Preprocessor.Missingist_Simple import Missingist_Simple
 
-from PETs_Experiment.Preprocessor.Outlierist_IQR import Outlierist_IQR
-from PETs_Experiment.Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
-from PETs_Experiment.Preprocessor.Outlierist_LOF import Outlierist_LOF
-from PETs_Experiment.Preprocessor.Outlierist_Zscore import Outlierist_Zscore
+from ..Preprocessor.Outlierist_IQR import Outlierist_IQR
+from ..Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
+from ..Preprocessor.Outlierist_LOF import Outlierist_LOF
+from ..Preprocessor.Outlierist_Zscore import Outlierist_Zscore
 
-from PETs_Experiment.Preprocessor.Encoder_Label import Encoder_Label
-from PETs_Experiment.Preprocessor.Encoder_Uniform import Encoder_Uniform
+from ..Preprocessor.Encoder_Label import Encoder_Label
+from ..Preprocessor.Encoder_Uniform import Encoder_Uniform
 
-from PETs_Experiment.Preprocessor.Scaler_MinMax import Scaler_MinMax
-from PETs_Experiment.Preprocessor.Scaler_Standard import Scaler_Standard
-from PETs_Experiment.Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
+from ..Preprocessor.Scaler_MinMax import Scaler_MinMax
+from ..Preprocessor.Scaler_Standard import Scaler_Standard
+from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 
 # TODO - edit type in metadata to meet the standard of pandas
 

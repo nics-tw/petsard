@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Outlierist_Zscore import Outlierist_Zscore
+from PETsARD.Preprocessor.Outlierist_Zscore import Outlierist_Zscore
 
 class TestOutlierZscore:
     def test_Zscore_no_outliers(self):

@@ -2,9 +2,6 @@
 [UNDO]
 __init__.py
         replace email from Justyn's personal to team's
-requirement.txt
-        build one of it
-        read xlsx require openpyxl
 Loader.py
         condition for non-csv and/or too large <-dask ?
         considering stream algorithm
@@ -52,6 +49,7 @@ __all__ =   ['Loader'
             ,'Postprocessor',
              'Processor'   
             ,'Executor'
-            ,'Splitter',
-            'Processor_Manager'
+            ,'Splitter'
+            
+                ,'Processor_Manager'
             ]

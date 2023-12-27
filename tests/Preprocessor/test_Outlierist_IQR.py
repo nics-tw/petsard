@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Outlierist_IQR import Outlierist_IQR
+from PETsARD.Preprocessor.Outlierist_IQR import Outlierist_IQR
 
 class TestOutlieristIQR:
     def test_IQR_no_outliers(self):

@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import pytest
-from PETs_Experiment.Preprocessor.UniformEncoder import UniformEncoder
-from PETs_Experiment.Preprocessor.Encoder_Uniform import Encoder_Uniform
+from PETsARD.Preprocessor.UniformEncoder import UniformEncoder
+from PETsARD.Preprocessor.Encoder_Uniform import Encoder_Uniform
 
 class TestEncoderUniform:
     # Test case for handle method

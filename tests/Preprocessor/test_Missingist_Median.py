@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Missingist_Median import Missingist_Median
+from PETsARD.Preprocessor.Missingist_Median import Missingist_Median
 
 class TestMissingistMedian:
     def test_median_no_missing_values(self):

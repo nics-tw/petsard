@@ -1,9 +1,9 @@
 import pytest
 import pandas as pd
 import numpy as np
-from PETs_Experiment.Processor.Scaler import Scaler_Standard, Scaler_ZeroCenter, Scaler_MinMax
+from PETsARD.Processor.Scaler import Scaler_Standard, Scaler_ZeroCenter, Scaler_MinMax
 from sklearn.preprocessing import StandardScaler
-from PETs_Experiment.Error import UnfittedError
+from PETsARD.Error import UnfittedError
 
 class Test_Scaler_Standard:
     # Test case for handle method
