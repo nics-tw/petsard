@@ -18,6 +18,7 @@ from ..Preprocessor.Scaler_Standard import Scaler_Standard
 from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 
 # TODO - edit type in metadata to meet the standard of pandas
+# TODO - add input and output types to all functions
 
 class Processor_Manager:
 
@@ -233,6 +234,7 @@ class Processor_Manager:
     # should be able to select certain processor(s) to execute
     # TODO - need more step to drop outlierist selected from IQR and ZScore
     # TODO - need Outlierist manager and Missingist manager to collect all the output from the instances and decide what records should be dropped
+    # TODO - check the object of outlierist before start fitting (e.g., if one of them is global transformation then suppress other transformation)
     def fit(self):
         pass
 
