@@ -42,7 +42,7 @@ class Mediator:
             return self._transform(data)
 
 
-class Missingist_Mediator(Mediator):
+class Mediator_Missingist(Mediator):
     def __init__(self, config):
         super().__init__()
         self._config = config['missingist']
@@ -92,7 +92,7 @@ class Missingist_Mediator(Mediator):
 
             return transformed
 
-class Outlierist_Mediator(Mediator):
+class Mediator_Outlierist(Mediator):
     def __init__(self, config):
         super().__init__()
         self._config = config['outlierist']
