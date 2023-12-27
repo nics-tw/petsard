@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Scaler_Standard import Scaler_Standard
+from PETsARD.Preprocessor.Scaler_Standard import Scaler_Standard
 from sklearn.preprocessing import StandardScaler
 
 class TestScalerStandard:

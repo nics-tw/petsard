@@ -1,4 +1,3 @@
-from PETs_Experiment.Preprocessor import Outlierist_IsolationForest
 from .Outlierist_IQR import Outlierist_IQR
 from .Outlierist_Zscore import Outlierist_Zscore
 from .Outlierist_IsolationForest import Outlierist_IsolationForest

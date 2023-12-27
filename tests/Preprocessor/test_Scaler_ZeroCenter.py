@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
+from PETsARD.Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 from sklearn.preprocessing import StandardScaler
 
 class TestScalerZeroCenter:

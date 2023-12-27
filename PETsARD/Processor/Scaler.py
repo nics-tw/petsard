@@ -1,5 +1,5 @@
 import pandas as pd
-from PETs_Experiment.Error import UnfittedError
+from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
