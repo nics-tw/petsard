@@ -1,4 +1,3 @@
-from multiprocessing import Value
 from ..Processor.Encoder import *
 from ..Processor.Missingist import *
 from ..Processor.Outlierist import *
@@ -43,8 +42,15 @@ class HyperProcessor:
     def __init__(self, metadata, config=None) -> None:
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
+
+        # processing sequence
         self._sequence = None
+        self._fitting_sequence = None
         self._is_fitted = False
+
+        # deal with global transformation of missingist and outlierist
+        self.mediator_missingist = None
+        self.mediator_outlierist = None
 
         self._config = dict()
 
@@ -66,7 +72,7 @@ class HyperProcessor:
         if not ('metadata_col' in metadata and 'metadata_global' in metadata):
             raise ValueError("'metadata_col' and 'metadata_global' should be in the metadata.")
 
-    def _check_config_valid(self, config=None):
+    def _check_config_valid(self, config_to_check=None):
         """
         Check whether the config contains valid preprocessors. It checks the validity of column names, the validity of processor types (i.e., dict keys), and the validity of processor objects (i.e., dict values).
 
@@ -76,7 +82,8 @@ class HyperProcessor:
         Output:
             None
         """
-        config_to_check = self._config if config is None else config
+        if config_to_check is None:
+            raise ValueError('A config should be passed.')
 
         # check the structure of config
         if type(config_to_check) != dict:
@@ -87,6 +94,9 @@ class HyperProcessor:
             raise ValueError(f'Invalid config processor type in the input dict, please check the dict keys of processor types.')
 
         for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
+
+            if config_to_check.get(processor, None) is None:
+                continue
             
             if type(config_to_check[processor]) != dict:
                 raise TypeError('The config in each processor should be a dict.')
@@ -181,7 +191,7 @@ class HyperProcessor:
         Output:
             None
         """
-        self._check_config_valid(config=config)
+        self._check_config_valid(config_to_check=config)
 
         for processor, val in self._config.items():
             if processor not in config.keys():
@@ -199,15 +209,13 @@ class HyperProcessor:
         Output:
             None
         """
-        self._check_config_valid(config=config)
+        self._check_config_valid(config_to_check=config)
 
         for processor, val in config.items():
             for col, obj in val.items():
                 self._config[processor][col] = obj
 
-    # should be able to select certain processor(s) to execute
-    # TODO - check the object of outlierist before start fitting (e.g., if one of them is global transformation then suppress other transformation)
-    def fit(self, sequence=None):
+    def fit(self, data, sequence=None):
 
         if sequence is None:
             self._sequence = self._DEFAULT_SEQUENCE
@@ -215,9 +223,34 @@ class HyperProcessor:
             self._check_sequence_valid(sequence)
             self._sequence = sequence
 
+        self._fitting_sequence = self._sequence.copy()
 
+        if 'missingist' in self._sequence:
+            # if missingist is in the procedure, Mediator_Missingist should be in the queue right after the missingist
+            self.mediator_missingist = Mediator_Missingist(self._config)
+            self._fitting_sequence.insert(self._fitting_sequence.index('missingist')+1, self.mediator_missingist)
+            print('Mediator_Missingist is created.')
+
+        if 'outlierist' in self._sequence:
+            # if outlierist is in the procedure, Mediator_Outlierist should be in the queue right after the outlierist
+            self.mediator_outlierist = Mediator_Outlierist(self._config)
+            self._fitting_sequence.insert(self._fitting_sequence.index('outlierist')+1, self.mediator_outlierist)
+            print('Mediator_Outlierist is created.')
+
+        self._detect_edit_global_transformation()
+
+        for processor in self._fitting_sequence:
+            if type(processor) == str:
+                for col, obj in self._config[processor].items():
+                    if obj is None:
+                        continue
+                    
+                    obj.fit(data[col])
+            else:
+                # if the processor is not a string,
+                # it should be a mediator, which could be fitted directly.
+                processor.fit(data)
         
-
 
         self._is_fitted = True
 
@@ -237,6 +270,29 @@ class HyperProcessor:
         for processor in sequence:
             if processor not in ['missingist', 'outlierist', 'encoder', 'scaler']:
                 raise ValueError(f'{processor} is invalid, please check it again.')
+            
+    def _detect_edit_global_transformation(self):
+        """
+        Detect whether a processor in the config conducts global transformation.
+        If it does, suppress other processors in the config.
+        Only works with Outlierist currently.
+        """
+        is_global_transformation = False
+        replaced_class = None
+
+        for obj in self._config['outlierist'].values():
+            if obj is None:
+                continue
+            if obj.IS_GLOBAL_TRANSFORMATION:
+                is_global_transformation = True
+                replaced_class = obj.__class__
+                print(f'Global transformation detected. All processors will be replaced to {replaced_class}.')
+                break
+
+        if is_global_transformation:
+            for col, obj in self._config['outlierist'].items():
+                self._config['outlierist'][col] = replaced_class()
+
     
     def transform(self):
         if not self._is_fitted:
