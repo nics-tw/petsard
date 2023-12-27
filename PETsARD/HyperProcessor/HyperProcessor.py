@@ -20,7 +20,7 @@ from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 # TODO - edit type in metadata to meet the standard of pandas
 # TODO - add input and output types to all functions
 
-class Processor_Manager:
+class HyperProcessor:
 
     # object datatype indicates the unusual data,
     # passive actions will be taken in processing procedure
