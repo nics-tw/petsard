@@ -4,10 +4,6 @@ from .Missingist_Median import Missingist_Median
 from .Missingist_Simple import Missingist_Simple
 import pandas as pd
 
-"""
-TODO - Tidy the code below.
-"""
-
 class MissingistFactory:
     def __init__(self, df_data, **kwargs):
 

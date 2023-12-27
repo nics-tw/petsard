@@ -3,10 +3,6 @@ from pandas import to_datetime
 from pandas.api.types import is_datetime64_any_dtype
 from sklearn.neighbors import LocalOutlierFactor
 
-"""
-TODO - Because LOF detects outliers from the WHOLE dataset, any transformation (e.g., transfrom timestamp to numerical data) should be done before the preprocessing.
-"""
-
 class Outlierist_LOF(Outlierist):
     def __init__(self, df_data, **kwargs):
         super().__init__(df_data, **kwargs)

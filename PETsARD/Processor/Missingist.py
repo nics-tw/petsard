@@ -136,8 +136,6 @@ class Missingist_Simple(Missingist):
     def _inverse_transform(self, data):
         pass # Redundant
 
-# TODO - The output of Missingist_Drop is different from others, should be used with Mediator
-
 class Missingist_Drop(Missingist):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
