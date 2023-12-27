@@ -4,10 +4,16 @@ from ..Error import UnfittedError
 
 
 class Missingist:
-    def __init__(self, na_percentage):
+    def __init__(self):
         self._is_fitted = False
-        self.na_percentage = na_percentage
+        self.na_percentage = None
         self.rng = np.random.default_rng()
+
+    def set_na_percentage(self, na_percentage: float = 0.0):
+        if na_percentage > 1.0 or na_percentage < 0.0:
+            raise ValueError('Invalid NA percentage. It should be between 0.0 and 1.0.')
+        
+        self.na_percentage = na_percentage
 
     def fit(self, data):
         self._fit(data)

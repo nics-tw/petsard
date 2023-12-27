@@ -1,21 +1,10 @@
-from ..Preprocessor import Missingist, Outlierist, Encoder, Scaler
-
-from ..Preprocessor.Missingist_Drop import Missingist_Drop
-from ..Preprocessor.Missingist_Mean import Missingist_Mean
-from ..Preprocessor.Missingist_Median import Missingist_Median
-from ..Preprocessor.Missingist_Simple import Missingist_Simple
-
-from ..Preprocessor.Outlierist_IQR import Outlierist_IQR
-from ..Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
-from ..Preprocessor.Outlierist_LOF import Outlierist_LOF
-from ..Preprocessor.Outlierist_Zscore import Outlierist_Zscore
-
-from ..Preprocessor.Encoder_Label import Encoder_Label
-from ..Preprocessor.Encoder_Uniform import Encoder_Uniform
-
-from ..Preprocessor.Scaler_MinMax import Scaler_MinMax
-from ..Preprocessor.Scaler_Standard import Scaler_Standard
-from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
+from multiprocessing import Value
+from ..Processor.Encoder import *
+from ..Processor.Missingist import *
+from ..Processor.Outlierist import *
+from ..Processor.Scaler import *
+from .Mediator import *
+from ..Error import *
 
 # TODO - edit type in metadata to meet the standard of pandas
 # TODO - add input and output types to all functions
@@ -47,11 +36,15 @@ class HyperProcessor:
                        'datetime': Scaler_Standard,
                        'object': None}
     
+    _DEFAULT_SEQUENCE = ['missingist', 'outlierist', 'encoder', 'scaler']
+    
 
 
     def __init__(self, metadata, config=None) -> None:
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
+        self._sequence = None
+        self._is_fitted = False
 
         self._config = dict()
 
@@ -85,11 +78,18 @@ class HyperProcessor:
         """
         config_to_check = self._config if config is None else config
 
+        # check the structure of config
+        if type(config_to_check) != dict:
+            raise TypeError('Config should be a dict.')
+
         # check the validity of processor types
         if not set(config_to_check.keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
             raise ValueError(f'Invalid config processor type in the input dict, please check the dict keys of processor types.')
 
         for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
+            
+            if type(config_to_check[processor]) != dict:
+                raise TypeError('The config in each processor should be a dict.')
             
             # check the validity of column names (keys)
             if not set(config_to_check[processor].keys()).issubset(set(self._metadata['metadata_col'].keys())):
@@ -97,13 +97,11 @@ class HyperProcessor:
 
             for col in config_to_check[processor].keys():
                 # check the validity of processor objects (values)
-                if not(isinstance(config_to_check[processor].get(col, None), processor_class) or config_to_check[processor].get(col, None) is None):
+                obj = config_to_check[processor].get(col, None)
+
+                if not(isinstance(obj, processor_class) or obj is None):
                     raise ValueError(f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
                     
-
-    # FIXME - should pass the object here, however, due to the current design,
-    # users need to pass the data when initialise the object, which causes an error
-    # when generating config
     def _generate_config(self):
         """
         Generate config based on the metadata.
@@ -124,10 +122,14 @@ class HyperProcessor:
 
         for col, val in self._metadata['metadata_col'].items():
 
-            processor_dict = {'missingist': self._DEFAULT_MISSINGIST[val['type']],
-                            'outlierist': self._DEFAULT_OUTLIERIST[val['type']],
-                            'encoder': self._DEFAULT_ENCODER[val['type']],
-                            'scaler': self._DEFAULT_SCALER[val['type']]}
+            processor_dict = {'missingist': self._DEFAULT_MISSINGIST[val['type']]()\
+                               if self._DEFAULT_MISSINGIST[val['type']] is not None else None,
+                            'outlierist': self._DEFAULT_OUTLIERIST[val['type']]()\
+                               if self._DEFAULT_OUTLIERIST[val['type']] is not None else None,
+                            'encoder': self._DEFAULT_ENCODER[val['type']]()\
+                               if self._DEFAULT_ENCODER[val['type']] is not None else None,
+                            'scaler': self._DEFAULT_SCALER[val['type']]()\
+                               if self._DEFAULT_SCALER[val['type']] is not None else None}
             
             for processor, obj in processor_dict.items():
                 self._config[processor][col] = obj
@@ -159,7 +161,7 @@ class HyperProcessor:
             for processor in self._config.keys():
                 print(processor)
                 for colname in get_col_list:
-                    print(f'    {colname}: {self._config[processor][colname]}')
+                    print(f'    {colname}: {self._config[processor][colname].__class__}')
                     result_dict[processor][colname] = self._config[processor][colname]
         else:
             for processor in self._config.keys():
@@ -205,14 +207,44 @@ class HyperProcessor:
 
     # should be able to select certain processor(s) to execute
     # TODO - check the object of outlierist before start fitting (e.g., if one of them is global transformation then suppress other transformation)
-    def fit(self):
-        pass
+    def fit(self, sequence=None):
 
+        if sequence is None:
+            self._sequence = self._DEFAULT_SEQUENCE
+        else:
+            self._check_sequence_valid(sequence)
+            self._sequence = sequence
+
+
+        
+
+
+        self._is_fitted = True
+
+    def _check_sequence_valid(self, sequence):
+        if type(sequence) != list:
+            raise TypeError('Sequence should be a list.')
+        
+        if len(sequence) == 0:
+            raise ValueError('There should be at least one procedure in the sequence.')
+        
+        if len(sequence) > 4:
+            raise ValueError('Too many procedures!')
+        
+        if len(list(set(sequence))) != len(sequence):
+            raise ValueError('There are duplicated procedures in the sequence, please remove them.')
+        
+        for processor in sequence:
+            if processor not in ['missingist', 'outlierist', 'encoder', 'scaler']:
+                raise ValueError(f'{processor} is invalid, please check it again.')
+    
     def transform(self):
-        pass
+        if not self._is_fitted:
+            raise UnfittedError('The object is not fitted. Use .fit() first.')
 
     def inverse_transform(self):
-        pass
+        if not self._is_fitted:
+            raise UnfittedError('The object is not fitted. Use .fit() first.')
 
     def get_processor(self):
         pass
