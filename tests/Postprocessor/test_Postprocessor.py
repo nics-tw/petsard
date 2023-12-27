@@ -5,10 +5,6 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 import pandas as pd
 import numpy as np
 
-"""
-BUG - For Scaler, it changes the original data!!!!!
-"""
-
 class TestPostprocessor:
     def test_decoding_ScalerFactory_ZeroCenter(self):
 
