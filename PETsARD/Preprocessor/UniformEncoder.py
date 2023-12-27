@@ -2,10 +2,6 @@ import numpy as np
 import pandas as pd
 from ..Error import UnfittedError
 
-"""
-TODO - Categorical types are not accepted. Should correct this.
-"""
-
 class UniformEncoder:
     def __init__(self):
         # Mapping dict

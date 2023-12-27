@@ -18,6 +18,7 @@ from ..Preprocessor.Scaler_Standard import Scaler_Standard
 from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 
 # TODO - edit type in metadata to meet the standard of pandas
+# TODO - add input and output types to all functions
 
 class Processor_Manager:
 
@@ -84,8 +85,6 @@ class Processor_Manager:
         """
         config_to_check = self._config if config is None else config
 
-        ################################################################
-
         # check the validity of processor types
         if not set(config_to_check.keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
             raise ValueError(f'Invalid config processor type in the input dict, please check the dict keys of processor types.')
@@ -100,32 +99,6 @@ class Processor_Manager:
                 # check the validity of processor objects (values)
                 if not(isinstance(config_to_check[processor].get(col, None), processor_class) or config_to_check[processor].get(col, None) is None):
                     raise ValueError(f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
-            
-        
-        ################################################################
-
-        # # check the validity of column names
-        # if not set(config_to_check.keys()).issubset(set(self._metadata['metadata_col'].keys())):
-        #     raise ValueError('Some columns in the input config are not in the metadata. Please check the config or metadata again.')
-
-        # invalid_processors_col = []
-
-        # for col in config_to_check.keys():
-        #     for processor, processor_class in {'missingist': Missingist, 'outlierist': Outlierist, 'encoder': Encoder, 'scaler': Scaler}.items():
-                
-        #         # check the validity of processor types (keys)
-        #         if not set(config_to_check[col].keys()).issubset({'missingist', 'outlierist', 'encoder', 'scaler'}):
-        #             raise ValueError(f'Invalid config processor type in the column {col}, please check the dict keys of processor types in the config')
-                
-        #         # check the validity of processor objects (values)
-        #         if not(isinstance(config_to_check[col].get(processor, None), processor_class) or config_to_check[col].get(processor, None) is None):
-        #             if col in invalid_processors_col:
-        #                 break
-        #             else:
-        #                 invalid_processors_col.append(col)
-
-        # if invalid_processors_col:
-        #     raise ValueError(f'{invalid_processors_col} contain(s) invalid processor(s), please check them again.')
                     
 
     # FIXME - should pass the object here, however, due to the current design,
@@ -231,8 +204,7 @@ class Processor_Manager:
                 self._config[processor][col] = obj
 
     # should be able to select certain processor(s) to execute
-    # TODO - need more step to drop outlierist selected from IQR and ZScore
-    # TODO - need Outlierist manager and Missingist manager to collect all the output from the instances and decide what records should be dropped
+    # TODO - check the object of outlierist before start fitting (e.g., if one of them is global transformation then suppress other transformation)
     def fit(self):
         pass
 

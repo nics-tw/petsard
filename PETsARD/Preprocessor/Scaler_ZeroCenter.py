@@ -2,10 +2,6 @@ from .Scaler import Scaler
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 
-"""
-TODO - Should be merged with Scaler_Standard
-"""
-
 
 class Scaler_ZeroCenter(Scaler):
     def __init__(self, df_data, **kwargs):

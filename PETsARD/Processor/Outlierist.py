@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 class Outlierist:
     def __init__(self):
         self._is_fitted = False
+        self.data_backup = None # for restoring data
 
     def fit(self, data):
         if type(data) == pd.Series:
@@ -40,6 +41,8 @@ class Outlierist_ZScore(Outlierist):
         Output:
             None
         """
+        self.data_backup = data
+
         self.model.fit(data)
 
     def _transform(self, data):
@@ -82,6 +85,8 @@ class Outlierist_IQR(Outlierist):
         self.lower = self.Q1 - 1.5 * self.IQR
         self.upper = self.Q3 + 1.5 * self.IQR
 
+        self.data_backup = data
+
     def _transform(self, data):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
@@ -94,3 +99,31 @@ class Outlierist_IQR(Outlierist):
         """
 
         return np.logical_or(data > self.upper, data < self.lower)
+    
+class Outlierist_IsolationForest(Outlierist):
+    """
+    Dummy class, doing nothing related to the method. 
+    It's implemented in the mediator because it's global transformation.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def _fit(self, data):
+        pass
+
+    def _transform(self, data):
+        pass
+
+class Outlierist_LOF(Outlierist):
+    """
+    Dummy class, doing nothing related to the method. 
+    It's implemented in the mediator because it's global transformation.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def _fit(self, data):
+        pass
+
+    def _transform(self, data):
+        pass
