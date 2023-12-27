@@ -1,21 +1,5 @@
-from ..Preprocessor import Missingist, Outlierist, Encoder, Scaler
-
-from ..Preprocessor.Missingist_Drop import Missingist_Drop
-from ..Preprocessor.Missingist_Mean import Missingist_Mean
-from ..Preprocessor.Missingist_Median import Missingist_Median
-from ..Preprocessor.Missingist_Simple import Missingist_Simple
-
-from ..Preprocessor.Outlierist_IQR import Outlierist_IQR
-from ..Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
-from ..Preprocessor.Outlierist_LOF import Outlierist_LOF
-from ..Preprocessor.Outlierist_Zscore import Outlierist_Zscore
-
-from ..Preprocessor.Encoder_Label import Encoder_Label
-from ..Preprocessor.Encoder_Uniform import Encoder_Uniform
-
-from ..Preprocessor.Scaler_MinMax import Scaler_MinMax
-from ..Preprocessor.Scaler_Standard import Scaler_Standard
-from ..Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
+from ..Processor.Missingist import Missingist_Drop
+from ..Processor.Outlierist import *
 
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
@@ -29,13 +13,19 @@ class Mediator:
     """
     def __init__(self):
         self._process_col = []
+        self._is_fitted = False
 
     def fit(self, data=None):
         # in most cases, mediator doesn't need data to fit
         # just to keep the interface unified
         self._fit(data)
 
+        self._is_fitted = True
+
     def transform(self, data):
+        if not self._is_fitted:
+            raise UnfittedError('The object is not fitted. Use .fit() first.')
+        
         if len(self._process_col) == 0:
             return data
         else:
@@ -132,7 +122,7 @@ class Mediator_Outlierist(Mediator):
             self.model.fit(data)
         else:
             for col, obj in self._config.items():
-                if type(obj) in [Outlierist_IQR, Outlierist_Zscore]:
+                if type(obj) in [Outlierist_IQR, Outlierist_ZScore]:
                     self._process_col.append(col)
 
     def _transform(self, data):

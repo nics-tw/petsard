@@ -37,7 +37,7 @@ from .Processor import *
 
 from .Executor import Executor
 
-from .HyperProcessor import Processor_Manager
+from .HyperProcessor import HyperProcessor
 
 __all__ =   ['Loader'
                 ,'Splitter'
