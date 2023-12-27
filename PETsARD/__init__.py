@@ -37,7 +37,7 @@ from .Processor import *
 
 from .Executor import Executor
 
-from .Processor_Manager import Processor_Manager
+from .HyperProcessor import Processor_Manager
 
 __all__ =   ['Loader'
                 ,'Splitter'
@@ -51,5 +51,5 @@ __all__ =   ['Loader'
             ,'Executor'
             ,'Splitter'
             
-                ,'Processor_Manager'
+                ,'HyperProcessor'
             ]
