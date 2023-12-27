@@ -34,17 +34,24 @@ from .Loader        import *
 from .Preprocessor  import *
 from .Synthesizer   import *
 from .Postprocessor import *
+from .Evaluator     import *
 from .util          import *
+from .Processor import *
 
 from .Executor import Executor
 
-
+from .Processor_Manager import Processor_Manager
 
 __all__ =   ['Loader'
+                ,'Splitter'
             ,'Preprocessor'
             ,'Synthesizer'
+
             ,'Postprocessor'
-        
+            ,'Evaluator'
+            ,'Postprocessor',
+             'Processor'   
             ,'Executor'
-            ,'Splitter'
+            ,'Splitter',
+            'Processor_Manager'
             ]

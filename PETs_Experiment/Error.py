@@ -1,0 +1,2 @@
+class UnfittedError(Exception):
+    pass

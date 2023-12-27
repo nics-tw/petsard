@@ -1,0 +1,3 @@
+sdv<=1.7
+anonymeter
+numexpr>=2.8
