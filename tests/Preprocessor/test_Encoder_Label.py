@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Encoder_Label import Encoder_Label
+from PETsARD.Preprocessor.Encoder_Label import Encoder_Label
 from sklearn.preprocessing import LabelEncoder
 
 class TestEncoderLabel:

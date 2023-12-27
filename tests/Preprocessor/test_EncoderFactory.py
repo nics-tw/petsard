@@ -1,6 +1,6 @@
 import pytest
-from PETs_Experiment.Preprocessor.EncoderFactory import EncoderFactory
-from PETs_Experiment.Preprocessor.UniformEncoder import UniformEncoder
+from PETsARD.Preprocessor.EncoderFactory import EncoderFactory
+from PETsARD.Preprocessor.UniformEncoder import UniformEncoder
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder

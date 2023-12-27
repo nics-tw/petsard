@@ -1,8 +1,8 @@
-# PETs-Experiment
+# PETsARD
 
-PETs-Experiment is a Python library for facilitates data generation algorithm evaluation processes.
+PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitates data generation algorithm evaluation processes.
 
-PETs-Experiment 是一套為了增進資料生成演算法的評估過程而設計的 Python 程式庫。
+PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法的評估過程而設計的 Python 程式庫。
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
@@ -15,9 +15,9 @@ Currently in development, only available for download from GitHub and install de
 目前為開發階段，僅限 GitHub 下載並自行安裝相依套件。
 
 <!--
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install PETs-Experiment.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install PETsARD.
 
-使用套件管理系統 [pip](https://pip.pypa.io/en/stable/) 即可安裝 PETs-Experiment。
+使用套件管理系統 [pip](https://pip.pypa.io/en/stable/) 即可安裝 PETsARD。
 
 ```bash
 pip install PETs-Experiment
@@ -27,27 +27,7 @@ pip install PETs-Experiment
 ## Getting Started 入門指南
 
 ```python
-from PETs_Experiment import Loader Describer
-
-# Loader: Loading data and Auto-casting it.
-Loader = PETs_Experiment.Loader(filepath = 'data/[Adt Income] adult.csv'
-                               ,na_values = {k : '?' for k in ['workclass'
-                                                              ,'occupation'
-                                                              ,'native-country'
-                                                              ]
-                                            }
-                               )
-
-# returns 'geese'
-describer = Describer(loader
-                     ,{'describe_params' : {'dist_fitting' : 'Y'
-                                           ,'correlation'  : 'Y'
-                                           ,'collinearity' : 'Y'
-                                           ,'missing_level':{'data': {'?'}}
-                                           }
-                      }
-                     )
-
+待更新
 ```
 
 
