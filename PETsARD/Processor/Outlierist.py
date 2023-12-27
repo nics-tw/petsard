@@ -27,6 +27,9 @@ class Outlierist:
         return self._transform(data)
 
 class Outlierist_ZScore(Outlierist):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = False
+
     def __init__(self):
         super().__init__()
         self.model = StandardScaler()
@@ -61,6 +64,9 @@ class Outlierist_ZScore(Outlierist):
         return np.abs(ss_data) > 3
 
 class Outlierist_IQR(Outlierist):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = False
+
     def __init__(self):
         super().__init__()
         self.Q1 = None
@@ -105,6 +111,9 @@ class Outlierist_IsolationForest(Outlierist):
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
     """
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = True
+
     def __init__(self):
         super().__init__()
 
@@ -119,6 +128,9 @@ class Outlierist_LOF(Outlierist):
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
     """
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = True
+
     def __init__(self):
         super().__init__()
 
