@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Missingist_Simple import Missingist_Simple
+from PETsARD.Preprocessor.Missingist_Simple import Missingist_Simple
 
 class TestMissingistSimple:
     def test_simple_no_missing_values(self):

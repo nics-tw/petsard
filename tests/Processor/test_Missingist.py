@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from PETs_Experiment.Processor.Missingist import Missingist_Mean, Missingist_Median, Missingist_Simple, Missingist_Drop
-from PETs_Experiment.Error import UnfittedError
+from PETsARD.Processor.Missingist import Missingist_Mean, Missingist_Median, Missingist_Simple, Missingist_Drop
+from PETsARD.Error import UnfittedError
 
 class Test_Missingist_Mean:
     def test_mean_no_missing_values(self):

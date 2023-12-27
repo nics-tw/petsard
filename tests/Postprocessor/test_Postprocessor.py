@@ -1,6 +1,6 @@
 import pytest
-from PETs_Experiment.Postprocessor import Postprocessor
-from PETs_Experiment.Preprocessor.Preprocessor import Preprocessor
+from PETsARD.Postprocessor import Postprocessor
+from PETsARD.Preprocessor.Preprocessor import Preprocessor
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import pandas as pd
 import numpy as np

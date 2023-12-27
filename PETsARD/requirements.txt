@@ -1,0 +1,26 @@
+# https://github.com/sdv-dev/SDV
+# 1.7 update: 2023/11/16
+# Latest 1.8 update: 2023/12/05
+sdv<=1.7
+
+# https://github.com/statice/anonymeter
+# Latest 0.0.2 update: 2023/07/15
+anonymeter
+# anonymeter>=0.0.2
+# ERROR: Ignored the following versions that require a different python version: 0.0.1 Requires-Python <3.11,>3.7; 0.0.2 Requires-Python <3.11,>3.7
+# ERROR: Could not find a version that satisfies the requirement anonymeter>=0.0.2 (from versions: none)
+# ERROR: No matching distribution found for anonymeter>=0.0.2
+
+# pandas>=2.0 will conflict to anonymeter,
+# anonymeter requirement in pyproject.toml:
+#    dependencies = [
+#        "scikit-learn~=1.2",
+#        "numpy >=1.11,<1.24",
+#        "pandas~=1.4",
+#        "joblib~=1.2",
+#        "numba~=0.56",
+#    ]
+# so at least I upgrade numexpr to 2.8 at least
+numexpr>=2.8
+# read xlsx require openpyxl, version unknown...
+# openpyxl

@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Outlierist_LOF import Outlierist_LOF
+from PETsARD.Preprocessor.Outlierist_LOF import Outlierist_LOF
 
 class TestOutlierLOF:
     def test_LOF_no_outliers(self):
