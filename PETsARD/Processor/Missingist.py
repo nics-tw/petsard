@@ -115,8 +115,6 @@ class Missingist_Median(Missingist):
     
     def _inverse_transform(self, data):
         pass # Redundant
-
-# TODO - provide interface for accepting customised value
     
 class Missingist_Simple(Missingist):
     def __init__(self, value=0, *args, **kwargs):
