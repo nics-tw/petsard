@@ -1,4 +1,10 @@
 class Splitter:
+    """
+    Splitter is an independent module for Executor use. Incl.:
+    a.) split input data via assigned ratio (train_split_ratio)
+    b.) resampling assigned times (num_samples)
+    c.) output their train/validation indexes (self.index_samples) and pd.DataFrame data (self.data)
+    """
     def __init__(self, data, num_samples=1, train_split_ratio=0.8, random_state=None):
         self.index_samples = self._index_bootstrapping(index=data.index.tolist(
         ), num_samples=num_samples, train_split_ratio=train_split_ratio, random_state=random_state)
@@ -6,7 +12,6 @@ class Splitter:
 
     def _index_bootstrapping(self, index, num_samples, train_split_ratio, random_state):
         import random
-        from collections import Counter
 
         if random_state is not None:
             random.seed(random_state)
@@ -25,8 +30,8 @@ class Splitter:
                     _attempts += 1
                 else:
                     _samples_seen.add(_sampled_indices)
-                    results[_n] = {'train': list(_sampled_indices), 'validation': list(set(index) - set(_sampled_indices))
-                                   }
+                    results[_n+1] = {'train': list(_sampled_indices), 'validation': list(set(index) - set(_sampled_indices))
+                                     }
                     break
                 if _attempts == _max_attempts:
                     raise ValueError(
@@ -41,12 +46,3 @@ class Splitter:
             results[key] = {'train': data.iloc[indices['train']].reset_index(
                 drop=True), 'validation': data.iloc[indices['validation']].reset_index(drop=True)}
         return results
-
-    def _sample(df_data, sample_ratio=0.8, random_state=None):
-        __idx_train = df_data.sample(
-            frac=sample_ratio, random_state=random_state).index
-        __idx_validation = df_data.drop(__idx_train).index
-
-        __df_train = df_data.loc[__idx_train].reset_index(drop=True)
-        __df_validation = df_data.loc[__idx_validation].reset_index(drop=True)
-        return __df_train, __df_validation, __idx_train, __idx_validation

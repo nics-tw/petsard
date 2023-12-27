@@ -1,8 +1,11 @@
 from .Scaler import Scaler
+from pandas.api.types import is_numeric_dtype
+from sklearn.preprocessing import StandardScaler
+
 
 class Scaler_Standard(Scaler):
-    def __init__(self ,df_data ,**kwargs):
-        super().__init__(df_data ,**kwargs) 
+    def __init__(self, df_data, **kwargs):
+        super().__init__(df_data, **kwargs)
 
     def handle(self):
         """
@@ -27,17 +30,18 @@ class Scaler_Standard(Scaler):
             encoder_columns_action (list ,optional):
                 Specifies the columns for convert by encoder.
         """
-        from pandas.api.types      import is_numeric_dtype
-        from sklearn.preprocessing import StandardScaler
 
         self.dict_scaler = {}
-        _digits_longest_colname = len(max(self.scaling_columns_action, key=len))
+        _digits_longest_colname = len(
+            max(self.scaling_columns_action, key=len))
         for _col_name in self.scaling_columns_action:
             _col_data = self.df_data[_col_name]
             if is_numeric_dtype(_col_data):
                 self.dict_scaler[_col_name] = StandardScaler()
-                self.df_data[_col_name] = self.dict_scaler[_col_name].fit_transform(_col_data.values.reshape(1, -1))[0]
+                self.df_data[_col_name] = self.dict_scaler[_col_name].fit_transform(
+                    _col_data.values.reshape(-1, 1))
 
-                print(f'Preprocessor - Scaler (Standard): Column {_col_name:<{_digits_longest_colname}} been standardized.')
+                print(
+                    f'Preprocessor - Scaler (Standard): Column {_col_name:<{_digits_longest_colname}} been standardized.')
 
-        return self.df_data ,self.dict_scaler
+        return self.df_data, self.dict_scaler
