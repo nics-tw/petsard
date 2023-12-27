@@ -1,10 +1,5 @@
 import numpy as np
 
-"""
-TODO - Consider special cases of dropping data, which is regardless of columns when dropping.
-May need to reconsider the whole implementation.
-"""
-
 class Missingist:
     def __init__(self, df_data, **kwargs):
         self.df_data = df_data

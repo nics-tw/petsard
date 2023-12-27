@@ -3,10 +3,6 @@ from pandas import to_datetime
 from pandas.api.types import is_datetime64_any_dtype
 from sklearn.ensemble import IsolationForest
 
-"""
-TODO - Because Isolation Forest detects outliers from the WHOLE dataset, any transformation (e.g., transfrom timestamp to numerical data) should be done before the preprocessing.
-"""
-
 class Outlierist_IsolationForest(Outlierist):
     def __init__(self, df_data, **kwargs):
         super().__init__(df_data, **kwargs)
