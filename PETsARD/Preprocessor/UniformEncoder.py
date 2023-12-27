@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from PETs_Experiment.Error import UnfittedError
+from ..Error import UnfittedError
 
 """
 TODO - Categorical types are not accepted. Should correct this.

@@ -1,5 +1,5 @@
 import pytest
-from PETs_Experiment.Preprocessor.OutlieristFactory import OutlieristFactory
+from PETsARD.Preprocessor.OutlieristFactory import OutlieristFactory
 import pandas as pd
 
 class TestOutlieristFactory:
