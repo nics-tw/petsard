@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
+from PETsARD.Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
 
 class TestOutlierIsolationForest:
     def test_IsolationForest_no_outliers(self):

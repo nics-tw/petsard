@@ -1,5 +1,5 @@
 import pytest
-from PETs_Experiment.Preprocessor.ScalerFactory import ScalerFactory
+from PETsARD.Preprocessor.ScalerFactory import ScalerFactory
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 

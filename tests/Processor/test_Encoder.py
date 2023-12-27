@@ -1,8 +1,8 @@
 import pytest
 import pandas as pd
 import numpy as np
-from PETs_Experiment.Processor.Encoder import Encoder_Uniform, Encoder_Label
-from PETs_Experiment.Error import UnfittedError
+from PETsARD.Processor.Encoder import Encoder_Uniform, Encoder_Label
+from PETsARD.Error import UnfittedError
 
 class Test_Encoder_Uniform:
     def test_Encoder_Uniform(self):

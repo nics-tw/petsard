@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from PETs_Experiment.Preprocessor.Scaler_MinMax import Scaler_MinMax
+from PETsARD.Preprocessor.Scaler_MinMax import Scaler_MinMax
 from sklearn.preprocessing import MinMaxScaler
 
 class TestScalerMinMax:

@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from PETs_Experiment.Processor.Outlierist import Outlierist_ZScore, Outlierist_IQR
-from PETs_Experiment.Error import UnfittedError
+from PETsARD.Processor.Outlierist import Outlierist_ZScore, Outlierist_IQR
+from PETsARD.Error import UnfittedError
 
 class Test_Outlierist_ZScore:
     def test_ZScore_no_outliers(self):
