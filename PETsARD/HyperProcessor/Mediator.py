@@ -17,6 +17,15 @@ class Mediator:
         self._is_fitted = False
 
     def fit(self, data=None):
+        """
+        Gather information for the columns needing global transformation.
+
+        Input:
+            None, the config is read during initialisation.
+
+        Output:
+            None
+        """
         # in most cases, mediator doesn't need data to fit
         # just to keep the interface unified
         self._fit(data)
@@ -24,6 +33,15 @@ class Mediator:
         self._is_fitted = True
 
     def transform(self, data):
+        """
+        Conduct global transformation.
+
+        Input:
+            data (pd.DataFrame): The in-processing data.
+
+        Output:
+            (pd.DataFrame): The finished data.
+        """
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
