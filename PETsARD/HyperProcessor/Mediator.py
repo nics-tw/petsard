@@ -12,16 +12,17 @@ class Mediator:
         1. Gather all columns needed to process
         2. Coordinate and perform global behaviours
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self._process_col = []
         self._is_fitted = False
 
-    def fit(self, data=None):
+    def fit(self, data: None) -> None:
         """
-        Gather information for the columns needing global transformation.
+        Base method of `fit`.
 
         Input:
             None, the config is read during initialisation.
+            data: Redundant input.
 
         Output:
             None
@@ -32,9 +33,9 @@ class Mediator:
 
         self._is_fitted = True
 
-    def transform(self, data):
+    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Conduct global transformation.
+        Base method of `transform`.
 
         Input:
             data (pd.DataFrame): The in-processing data.
@@ -52,16 +53,17 @@ class Mediator:
 
 
 class Mediator_Missingist(Mediator):
-    def __init__(self, config):
+    def __init__(self, config: dict) -> None:
         super().__init__()
         self._config = config['missingist']
 
-    def _fit(self, data):
+    def _fit(self, data: None) -> None:
         """
         Gather information for the columns needing global transformation.
 
         Input:
             None, the config is read during initialisation.
+            data: Redundant input.
 
         Output:
             None
@@ -70,7 +72,7 @@ class Mediator_Missingist(Mediator):
             if type(obj) == Missingist_Drop:
                 self._process_col.append(col)
 
-    def _transform(self, data):
+    def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Conduct global transformation.
 
@@ -102,7 +104,7 @@ class Mediator_Missingist(Mediator):
             return transformed
 
 class Mediator_Outlierist(Mediator):
-    def __init__(self, config):
+    def __init__(self, config: dict) -> None:
         super().__init__()
         self._config = config['outlierist']
         self.model = None
@@ -125,12 +127,13 @@ class Mediator_Outlierist(Mediator):
                 pass
 
 
-    def _fit(self, data):
+    def _fit(self, data: None) -> None:
         """
         Gather information for the columns needing global transformation.
 
         Input:
             None, the config is read during initialisation.
+            data: Redundant input.
 
         Output:
             None
@@ -146,7 +149,7 @@ class Mediator_Outlierist(Mediator):
                 if type(obj) in [Outlierist_IQR, Outlierist_ZScore]:
                     self._process_col.append(col)
 
-    def _transform(self, data):
+    def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Conduct global transformation.
 
