@@ -65,20 +65,20 @@ class Mediator_Missingist(Mediator):
             col_name = self._process_col[0]
             process_filter = data[col_name].values
 
-            transformed = data.loc[process_filter, :].reset_index(drop=True)
+            transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             # restore the original data from the boolean data
-            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[process_filter]
+            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[~process_filter]
 
             return transformed
         else:
             process_filter = data[self._process_col].any(axis=1).values
 
-            transformed = data.loc[process_filter, :].reset_index(drop=True)
+            transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed.loc[:, col] = self._config.get(col, None).data_backup[process_filter]
+                transformed.loc[:, col] = self._config.get(col, None).data_backup[~process_filter]
 
             return transformed
 
@@ -139,26 +139,26 @@ class Mediator_Outlierist(Mediator):
             predict_result = self.model.predict(data)
             process_filter = predict_result == -1.0
 
-            transformed = data.loc[process_filter, :].reset_index(drop=True)
+            transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             return transformed
         elif len(self._process_col) == 1:
             col_name = self._process_col[0]
             process_filter = data[col_name].values
 
-            transformed = data.loc[process_filter, :].reset_index(drop=True)
+            transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             # restore the original data from the boolean data
-            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[process_filter]
+            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[~process_filter]
 
             return transformed
         else:
             process_filter = data[self._process_col].any(axis=1).values
 
-            transformed = data.loc[process_filter, :].reset_index(drop=True)
+            transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed.loc[:, col] = self._config.get(col, None).data_backup[process_filter]
+                transformed.loc[:, col] = self._config.get(col, None).data_backup[~process_filter]
 
             return transformed

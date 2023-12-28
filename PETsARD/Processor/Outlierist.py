@@ -61,7 +61,7 @@ class Outlierist_ZScore(Outlierist):
         
         ss_data = self.model.transform(data)
 
-        return np.abs(ss_data) > 3
+        return (np.abs(ss_data) > 3).ravel()
 
 class Outlierist_IQR(Outlierist):
     # indicator of whether the fit and transform process involved other columns
@@ -104,7 +104,7 @@ class Outlierist_IQR(Outlierist):
             (np.ndarray): The filter marking the outliers.
         """
 
-        return np.logical_or(data > self.upper, data < self.lower)
+        return (np.logical_or(data > self.upper, data < self.lower)).ravel()
     
 class Outlierist_IsolationForest(Outlierist):
     """

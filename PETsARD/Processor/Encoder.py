@@ -83,6 +83,8 @@ class Encoder_Uniform(Encoder):
         
         if isinstance(data.dtype, pd.api.types.CategoricalDtype):
             data_obj = data.astype(object)
+        else:
+            data_obj = data.copy()
         
         return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]).values
     

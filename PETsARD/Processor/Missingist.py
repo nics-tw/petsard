@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from ..Error import UnfittedError
 
+from copy import deepcopy
+
 
 class Missingist:
     def __init__(self):
@@ -43,7 +45,7 @@ class Missingist:
         
         _na_mask = self.rng.random(data.shape[0])
         _na_mask = _na_mask < self.na_percentage
-        _col_data = data.copy()
+        _col_data = deepcopy(data)
         _col_data[_na_mask] = np.nan
 
         return _col_data

@@ -1,0 +1,104 @@
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a067910> from gen start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066c50> from age start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a067c10> from race start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066620> from edu start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066200> from mar start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a065ea0> from bmi start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a0673a0> from dep start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a0673d0> from pir start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066110> from gh start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066740> from mets start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066020> from qm start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066c80> from dia start processing.
+[D 20231228 11:31:03] mediator: <PETsARD.HyperProcessor.Mediator.Mediator_Missingist object at 0x14a368eb0> start processing.
+[D 20231228 11:31:03] outlierist: None from gen start processing.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x14a066b00> from age start processing.
+[D 20231228 11:31:03] outlierist: None from race start processing.
+[D 20231228 11:31:03] outlierist: None from edu start processing.
+[D 20231228 11:31:03] outlierist: None from mar start processing.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x14a066350> from bmi start processing.
+[D 20231228 11:31:03] outlierist: None from dep start processing.
+[D 20231228 11:31:03] outlierist: None from pir start processing.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x1121476d0> from gh start processing.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x1448e6bc0> from mets start processing.
+[D 20231228 11:31:03] outlierist: None from qm start processing.
+[D 20231228 11:31:03] outlierist: None from dia start processing.
+[D 20231228 11:31:03] mediator: <PETsARD.HyperProcessor.Mediator.Mediator_Outlierist object at 0x14a368e80> start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a065f60> from gen start processing.
+[D 20231228 11:31:03] encoder: None from age start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a067100> from race start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a0660e0> from edu start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a066a40> from mar start processing.
+[D 20231228 11:31:03] encoder: None from bmi start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a067ee0> from dep start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a066e00> from pir start processing.
+[D 20231228 11:31:03] encoder: None from gh start processing.
+[D 20231228 11:31:03] encoder: None from mets start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x144e90760> from qm start processing.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a368070> from dia start processing.
+[D 20231228 11:31:03] scaler: None from gen start processing.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x14a065d80> from age start processing.
+[D 20231228 11:31:03] scaler: None from race start processing.
+[D 20231228 11:31:03] scaler: None from edu start processing.
+[D 20231228 11:31:03] scaler: None from mar start processing.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x14a066320> from bmi start processing.
+[D 20231228 11:31:03] scaler: None from dep start processing.
+[D 20231228 11:31:03] scaler: None from pir start processing.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x1121e34c0> from gh start processing.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x144e908e0> from mets start processing.
+[D 20231228 11:31:03] scaler: None from qm start processing.
+[D 20231228 11:31:03] scaler: None from dia start processing.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a067910> from gen start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066c50> from age start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a067c10> from race start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066620> from edu start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066200> from mar start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a065ea0> from bmi start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a0673a0> from dep start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a0673d0> from pir start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066110> from gh start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Mean object at 0x14a066740> from mets start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066020> from qm start transforming.
+[D 20231228 11:31:03] missingist: <PETsARD.Processor.Missingist.Missingist_Drop object at 0x14a066c80> from dia start transforming.
+[D 20231228 11:31:03] mediator: <PETsARD.HyperProcessor.Mediator.Mediator_Missingist object at 0x14a368eb0> start transforming.
+[D 20231228 11:31:03] before transformation: data shape: (4190, 12)
+[D 20231228 11:31:03] after transformation: data shape: (4190, 12)
+[D 20231228 11:31:03] outlierist: None from gen start transforming.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x14a066b00> from age start transforming.
+[D 20231228 11:31:03] outlierist: None from race start transforming.
+[D 20231228 11:31:03] outlierist: None from edu start transforming.
+[D 20231228 11:31:03] outlierist: None from mar start transforming.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x14a066350> from bmi start transforming.
+[D 20231228 11:31:03] outlierist: None from dep start transforming.
+[D 20231228 11:31:03] outlierist: None from pir start transforming.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x1121476d0> from gh start transforming.
+[D 20231228 11:31:03] outlierist: <PETsARD.Processor.Outlierist.Outlierist_IQR object at 0x1448e6bc0> from mets start transforming.
+[D 20231228 11:31:03] outlierist: None from qm start transforming.
+[D 20231228 11:31:03] outlierist: None from dia start transforming.
+[D 20231228 11:31:03] mediator: <PETsARD.HyperProcessor.Mediator.Mediator_Outlierist object at 0x14a368e80> start transforming.
+[D 20231228 11:31:03] before transformation: data shape: (4190, 12)
+[D 20231228 11:31:03] after transformation: data shape: (4066, 12)
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a065f60> from gen start transforming.
+[D 20231228 11:31:03] encoder: None from age start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a067100> from race start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a0660e0> from edu start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a066a40> from mar start transforming.
+[D 20231228 11:31:03] encoder: None from bmi start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a067ee0> from dep start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a066e00> from pir start transforming.
+[D 20231228 11:31:03] encoder: None from gh start transforming.
+[D 20231228 11:31:03] encoder: None from mets start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x144e90760> from qm start transforming.
+[D 20231228 11:31:03] encoder: <PETsARD.Processor.Encoder.Encoder_Uniform object at 0x14a368070> from dia start transforming.
+[D 20231228 11:31:03] scaler: None from gen start transforming.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x14a065d80> from age start transforming.
+[D 20231228 11:31:03] scaler: None from race start transforming.
+[D 20231228 11:31:03] scaler: None from edu start transforming.
+[D 20231228 11:31:03] scaler: None from mar start transforming.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x14a066320> from bmi start transforming.
+[D 20231228 11:31:03] scaler: None from dep start transforming.
+[D 20231228 11:31:03] scaler: None from pir start transforming.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x1121e34c0> from gh start transforming.
+[D 20231228 11:31:03] scaler: <PETsARD.Processor.Scaler.Scaler_Standard object at 0x144e908e0> from mets start transforming.
+[D 20231228 11:31:03] scaler: None from qm start transforming.
+[D 20231228 11:31:03] scaler: None from dia start transforming.
