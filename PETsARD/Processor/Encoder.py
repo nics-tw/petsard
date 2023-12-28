@@ -4,7 +4,7 @@ from ..Error import UnfittedError
 from sklearn.preprocessing import LabelEncoder
 
 class Encoder:
-    def __init__(self):
+    def __init__(self) -> None:
         # Mapping dict
         self.cat_to_val = None
 
@@ -13,12 +13,30 @@ class Encoder:
 
         self._is_fitted = False
 
-    def fit(self, data):
+    def fit(self, data: pd.Series) -> None:
+        """
+        Base method of `fit`.
+
+        Input:
+            data (pd.Series): The data to be fitted.
+
+        Output:
+            None
+        """
         self._fit(data)
 
         self._is_fitted = True
 
-    def transform(self, data):
+    def transform(self, data: pd.Series) -> np.ndarray:
+        """
+        Base method of `transform`.
+
+        Input:
+            data (pd.Series): The data to be transformed.
+
+        Output:
+            (np.ndarray): The transformed data.
+        """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
@@ -29,7 +47,16 @@ class Encoder:
         
         return self._transform(data)
 
-    def inverse_transform(self, data):
+    def inverse_transform(self, data: pd.Series) -> pd.Series | np.ndarray:
+        """
+        Base method of `inverse_transform`.
+
+        Input:
+            data (pd.Series): The data to be inverse transformed.
+
+        Output:
+            (pd.Series | np.ndarray): The inverse transformed data.
+        """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
@@ -38,7 +65,7 @@ class Encoder:
     
 
 class Encoder_Uniform(Encoder):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         
         # Lower and upper values
@@ -48,7 +75,7 @@ class Encoder_Uniform(Encoder):
         # Initiate a random generator
         self._rgenerator = np.random.default_rng()
 
-    def _fit(self, data):
+    def _fit(self, data: pd.Series) -> None:
         """
         Gather information for transformation and reverse transformation.
 
@@ -70,7 +97,7 @@ class Encoder_Uniform(Encoder):
 
         self.cat_to_val = dict(zip(self.labels, list(zip(self.lower_values, self.upper_values))))
 
-    def _transform(self, data):
+    def _transform(self, data: pd.Series) -> np.ndarray:
         """
         Transform categorical data to a uniform distribution. For example, a column with two categories (e.g., 'Male', 'Female') can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
 
@@ -88,7 +115,7 @@ class Encoder_Uniform(Encoder):
         
         return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]).values
     
-    def _inverse_transform(self, data):
+    def _inverse_transform(self, data: pd.Series) -> pd.Series:
         """
         Inverse the transformed data to the categorical data.
 
@@ -109,11 +136,11 @@ class Encoder_Uniform(Encoder):
         
 
 class Encoder_Label(Encoder):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.model = LabelEncoder()
 
-    def _fit(self, data):
+    def _fit(self, data: pd.Series) -> None:
         """
         Gather information for transformation and reverse transformation.
 
@@ -130,7 +157,7 @@ class Encoder_Label(Encoder):
 
         self.cat_to_val = dict(zip(self.labels, list(self.model.transform(self.model.classes_))))
 
-    def _transform(self, data):
+    def _transform(self, data: pd.Series) -> np.ndarray:
         """
         Transform categorical data to a series of integer labels.
 
@@ -143,7 +170,7 @@ class Encoder_Label(Encoder):
         
         return self.model.transform(data)
     
-    def _inverse_transform(self, data):
+    def _inverse_transform(self, data: pd.Series) -> np.ndarray:
         """
         Inverse the transformed data to the categorical data.
 
