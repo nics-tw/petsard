@@ -8,12 +8,13 @@ from ..Error import *
 from copy import deepcopy
 import logging
 
-logging.basicConfig(level = logging.INFO, filename = 'log.txt', filemode = 'w',
+logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     format = '[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt = '%Y%m%d %H:%M:%S')
 
 # TODO - edit type in metadata to meet the standard of pandas
 # TODO - add input and output types to all functions
+# TODO - add global NA percentage
 
 class HyperProcessor:
 
@@ -24,8 +25,6 @@ class HyperProcessor:
                            'categorical': Missingist_Drop,
                            'datetime': Missingist_Drop,
                            'object': Missingist_Drop}
-    
-    # TODO - add LOF and Isolation Forest as global config to outlierist
     
     _DEFAULT_OUTLIERIST = {'numerical': Outlierist_IQR,
                            'categorical': None,
@@ -53,6 +52,7 @@ class HyperProcessor:
         # processing sequence
         self._sequence = None
         self._fitting_sequence = None
+        self._inverse_sequence = None
         self._is_fitted = False
 
         # deal with global transformation of missingist and outlierist
@@ -236,13 +236,13 @@ class HyperProcessor:
             # if missingist is in the procedure, Mediator_Missingist should be in the queue right after the missingist
             self.mediator_missingist = Mediator_Missingist(self._config)
             self._fitting_sequence.insert(self._fitting_sequence.index('missingist')+1, self.mediator_missingist)
-            print('Mediator_Missingist is created.')
+            logging.info('Mediator_Missingist is created.')
 
         if 'outlierist' in self._sequence:
             # if outlierist is in the procedure, Mediator_Outlierist should be in the queue right after the outlierist
             self.mediator_outlierist = Mediator_Outlierist(self._config)
             self._fitting_sequence.insert(self._fitting_sequence.index('outlierist')+1, self.mediator_outlierist)
-            print('Mediator_Outlierist is created.')
+            logging.info('Mediator_Outlierist is created.')
 
         self._detect_edit_global_transformation()
 
@@ -301,7 +301,7 @@ class HyperProcessor:
             if obj.IS_GLOBAL_TRANSFORMATION:
                 is_global_transformation = True
                 replaced_class = obj.__class__
-                print(f'Global transformation detected. All processors will be replaced to {replaced_class}.')
+                logging.info(f'Global transformation detected. All processors will be replaced to {replaced_class}.')
                 break
 
         if is_global_transformation:
@@ -339,8 +339,6 @@ class HyperProcessor:
 
         return transformed
 
-    # XXX - because of the inprecision of the float numbers, values after inverse_transform could be
-    # a little bit different from original values
     def inverse_transform(self, data):
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
@@ -349,10 +347,15 @@ class HyperProcessor:
         for col, obj in self._config['missingist'].items():
             obj.set_na_percentage(self._metadata['metadata_col'][col].get('na_percentage', 0.0))
         
+        # there is no method for restoring outliers
+        self._inverse_sequence = self._sequence.copy()
+        if 'outlierist' in self._inverse_sequence:
+            self._inverse_sequence.remove('outlierist')
+        
         transformed = deepcopy(data)
         
         # mediators are not involved in the inverse_transform process.
-        for processor in self._sequence:
+        for processor in self._inverse_sequence:
             for col, obj in self._config[processor].items():
 
                 logging.debug(f'{processor}: {obj} from {col} start inverse transforming.')

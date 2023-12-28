@@ -1,3 +1,4 @@
+from torch import Value
 from ..Processor.Missingist import Missingist_Drop
 from ..Processor.Outlierist import *
 
@@ -68,7 +69,7 @@ class Mediator_Missingist(Mediator):
             transformed = data.loc[~process_filter, :].reset_index(drop=True)
 
             # restore the original data from the boolean data
-            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[~process_filter]
+            transformed.loc[:, col_name] = self._config.get(col_name, None).data_backup[~process_filter].values
 
             return transformed
         else:
@@ -78,7 +79,7 @@ class Mediator_Missingist(Mediator):
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed.loc[:, col] = self._config.get(col, None).data_backup[~process_filter]
+                transformed.loc[:, col] = self._config.get(col, None).data_backup[~process_filter].values
 
             return transformed
 
@@ -97,12 +98,10 @@ class Mediator_Outlierist(Mediator):
             if type(obj) == Outlierist_IsolationForest:
                 self.model = IsolationForest()
                 self._global_model_indicator = True
-                self._process_col.append(col)
                 break
             elif type(obj) == Outlierist_LOF:
                 self.model = LocalOutlierFactor()
                 self._global_model_indicator = True
-                self._process_col.append(col)
                 break
             else:
                 pass
@@ -119,7 +118,11 @@ class Mediator_Outlierist(Mediator):
             None
         """
         if self._global_model_indicator:
-            self.model.fit(data)
+            # global transformation from sklearn only accepts numeric type data
+            self._process_col = list(data.columns[data.apply(pd.api.types.is_numeric_dtype, axis=0)])
+
+            if len(self._process_col) < 1:
+                raise ValueError('There should be at least one numerical column to fit the model.')
         else:
             for col, obj in self._config.items():
                 if type(obj) in [Outlierist_IQR, Outlierist_ZScore]:
@@ -136,7 +139,10 @@ class Mediator_Outlierist(Mediator):
             (pd.DataFrame): The finished data.
         """
         if self._global_model_indicator:
-            predict_result = self.model.predict(data)
+            # the model may classify most data as outliers after transformation by other processors
+            # so fit_predict will be used in _transform
+            predict_result = self.model.fit_predict(data[self._process_col])
+            self.result = predict_result
             process_filter = predict_result == -1.0
 
             transformed = data.loc[~process_filter, :].reset_index(drop=True)
