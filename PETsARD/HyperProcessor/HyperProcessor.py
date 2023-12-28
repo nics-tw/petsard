@@ -8,7 +8,7 @@ from ..Error import *
 from copy import deepcopy
 import logging
 
-logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
+logging.basicConfig(level = logging.INFO, filename = 'log.txt', filemode = 'w',
                     format = '[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt = '%Y%m%d %H:%M:%S')
 
@@ -256,12 +256,15 @@ class HyperProcessor:
                         continue
                     
                     obj.fit(data[col])
+
+                logging.info(f'{processor} fitting done.')
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
 
                 logging.debug(f'mediator: {processor} start processing.')
                 processor.fit(data)
+                logging.info(f'{processor} fitting done.')
         
 
         self._is_fitted = True
@@ -322,6 +325,8 @@ class HyperProcessor:
                         continue
                     
                     transformed[col] = obj.transform(transformed[col])
+
+                logging.info(f'{processor} transformation done.')
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
@@ -330,14 +335,19 @@ class HyperProcessor:
                 logging.debug(f'before transformation: data shape: {transformed.shape}')
                 transformed = processor.transform(transformed)
                 logging.debug(f'after transformation: data shape: {transformed.shape}')
+                logging.info(f'{processor} transformation done.')
 
         return transformed
 
+    # XXX - because of the inprecision of the float numbers, values after inverse_transform could be
+    # a little bit different from original values
     def inverse_transform(self, data):
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
-        # TODO - set NA percentage in Missingist
+        # set NA percentage in Missingist
+        for col, obj in self._config['missingist'].items():
+            obj.set_na_percentage(self._metadata['metadata_col'][col].get('na_percentage', 0.0))
         
         transformed = deepcopy(data)
         
@@ -350,7 +360,9 @@ class HyperProcessor:
                 if obj is None:
                     continue
                 
-                transformed[col] = obj.transform(transformed[col])
+                transformed[col] = obj.inverse_transform(transformed[col])
+
+            logging.info(f'{processor} inverse transformation done.')
 
         return transformed
 
