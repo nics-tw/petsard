@@ -1,13 +1,7 @@
-from .Missingist        import Missingist
+from .Missingist import *
+from .Outlierist import *
+from .Encoder import *
+from .Scaler import *
 
-from .Outlierist        import Outlierist
-
-from .Encoder        import Encoder
-
-from .Scaler          import Scaler
-
-__all__ = ['Missingist'
-          ,'Outlierist'
-          ,'Encoder'
-          ,'Scaler'
-          ]
+__all__ = ['Missingist', 'Outlierist', 'Encoder', 'Scaler'
+           ]

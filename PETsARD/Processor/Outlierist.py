@@ -4,11 +4,20 @@ from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 
 class Outlierist:
-    def __init__(self):
+    def __init__(self) -> None:
         self._is_fitted = False
         self.data_backup = None # for restoring data
 
-    def fit(self, data):
+    def fit(self, data: pd.Series) -> None:
+        """
+        Base method of `fit`.
+
+        Input:
+            data (pd.Series): The data needed to be fitted.
+
+        Output:
+            None
+        """
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
@@ -16,7 +25,16 @@ class Outlierist:
 
         self._is_fitted = True
 
-    def transform(self, data):
+    def transform(self, data: pd.Series) -> np.ndarray:
+        """
+        Base method of `transform`.
+
+        Input:
+            data (pd.Series): The data needed to be transformed.
+
+        Output:
+            (np.ndarray): The filter marking the outliers.
+        """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
@@ -27,11 +45,14 @@ class Outlierist:
         return self._transform(data)
 
 class Outlierist_ZScore(Outlierist):
-    def __init__(self):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = False
+
+    def __init__(self) -> None:
         super().__init__()
         self.model = StandardScaler()
 
-    def _fit(self, data):
+    def _fit(self, data: np.ndarray) -> None:
         """
         Gather information for transformation and reverse transformation.
 
@@ -45,7 +66,7 @@ class Outlierist_ZScore(Outlierist):
 
         self.model.fit(data)
 
-    def _transform(self, data):
+    def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
@@ -58,10 +79,13 @@ class Outlierist_ZScore(Outlierist):
         
         ss_data = self.model.transform(data)
 
-        return np.abs(ss_data) > 3
+        return (np.abs(ss_data) > 3).ravel()
 
 class Outlierist_IQR(Outlierist):
-    def __init__(self):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = False
+
+    def __init__(self) -> None:
         super().__init__()
         self.Q1 = None
         self.Q3 = None
@@ -69,7 +93,7 @@ class Outlierist_IQR(Outlierist):
         self.lower = None
         self.upper = None
 
-    def _fit(self, data):
+    def _fit(self, data: np.ndarray) -> None:
         """
         Gather information for transformation and reverse transformation.
 
@@ -87,7 +111,7 @@ class Outlierist_IQR(Outlierist):
 
         self.data_backup = data
 
-    def _transform(self, data):
+    def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
@@ -98,32 +122,38 @@ class Outlierist_IQR(Outlierist):
             (np.ndarray): The filter marking the outliers.
         """
 
-        return np.logical_or(data > self.upper, data < self.lower)
+        return (np.logical_or(data > self.upper, data < self.lower)).ravel()
     
 class Outlierist_IsolationForest(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
     """
-    def __init__(self):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = True
+
+    def __init__(self) -> None:
         super().__init__()
 
-    def _fit(self, data):
+    def _fit(self, data: None) -> None:
         pass
 
-    def _transform(self, data):
-        pass
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        return data
 
 class Outlierist_LOF(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
     """
-    def __init__(self):
+    # indicator of whether the fit and transform process involved other columns
+    IS_GLOBAL_TRANSFORMATION = True
+
+    def __init__(self) -> None:
         super().__init__()
 
-    def _fit(self, data):
+    def _fit(self, data: None) -> None:
         pass
 
-    def _transform(self, data):
-        pass
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        return data

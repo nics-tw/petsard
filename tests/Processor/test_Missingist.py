@@ -10,7 +10,14 @@ class Test_Missingist_Mean:
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
         
         # Create an instance of the class
-        missingist = Missingist_Mean(na_percentage = 0.8)
+        missingist = Missingist_Mean()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -35,7 +42,14 @@ class Test_Missingist_Mean:
         df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
         
         # Create an instance of the class
-        missingist = Missingist_Mean(na_percentage = 0.8)
+        missingist = Missingist_Mean()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -61,7 +75,14 @@ class Test_Missingist_Median:
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
         
         # Create an instance of the class
-        missingist = Missingist_Median(na_percentage = 0.8)
+        missingist = Missingist_Median()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -86,7 +107,14 @@ class Test_Missingist_Median:
         df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
         
         # Create an instance of the class
-        missingist = Missingist_Median(na_percentage = 0.8)
+        missingist = Missingist_Median()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -112,7 +140,14 @@ class Test_Missingist_Simple:
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
         
         # Create an instance of the class
-        missingist = Missingist_Simple(na_percentage = 0.8, value=1.0)
+        missingist = Missingist_Simple(value=1.0)
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -137,7 +172,14 @@ class Test_Missingist_Simple:
         df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
         
         # Create an instance of the class
-        missingist = Missingist_Simple(na_percentage = 0.8, value=2.0)
+        missingist = Missingist_Simple(value=2.0)
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -163,7 +205,14 @@ class Test_Missingist_Drop:
         df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
         
         # Create an instance of the class
-        missingist = Missingist_Drop(na_percentage = 0.8)
+        missingist = Missingist_Drop()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
@@ -187,7 +236,14 @@ class Test_Missingist_Drop:
         df_data = pd.DataFrame({'col1': [1.0, None, 3.0]})
         
         # Create an instance of the class
-        missingist = Missingist_Drop(na_percentage = 0.8)
+        missingist = Missingist_Drop()
+        missingist.set_na_percentage(0.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(1.8)
+
+        with pytest.raises(ValueError):
+            missingist.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
             missingist.transform(df_data['col1'])
