@@ -5,6 +5,13 @@ from ..Processor.Scaler import *
 from .Mediator import *
 from ..Error import *
 
+from copy import deepcopy
+import logging
+
+logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
+                    format = '[%(levelname).1s %(asctime)s] %(message)s',
+                    datefmt = '%Y%m%d %H:%M:%S')
+
 # TODO - edit type in metadata to meet the standard of pandas
 # TODO - add input and output types to all functions
 
@@ -242,6 +249,9 @@ class HyperProcessor:
         for processor in self._fitting_sequence:
             if type(processor) == str:
                 for col, obj in self._config[processor].items():
+
+                    logging.debug(f'{processor}: {obj} from {col} start processing.')
+
                     if obj is None:
                         continue
                     
@@ -249,6 +259,8 @@ class HyperProcessor:
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
+
+                logging.debug(f'mediator: {processor} start processing.')
                 processor.fit(data)
         
 
@@ -294,16 +306,53 @@ class HyperProcessor:
                 self._config['outlierist'][col] = replaced_class()
 
     
-    def transform(self):
+    def transform(self, data):
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
+        
+        transformed = deepcopy(data)
+        
+        for processor in self._fitting_sequence:
+            if type(processor) == str:
+                for col, obj in self._config[processor].items():
 
-    def inverse_transform(self):
+                    logging.debug(f'{processor}: {obj} from {col} start transforming.')
+
+                    if obj is None:
+                        continue
+                    
+                    transformed[col] = obj.transform(transformed[col])
+            else:
+                # if the processor is not a string,
+                # it should be a mediator, which transforms the data directly.
+
+                logging.debug(f'mediator: {processor} start transforming.')
+                logging.debug(f'before transformation: data shape: {transformed.shape}')
+                transformed = processor.transform(transformed)
+                logging.debug(f'after transformation: data shape: {transformed.shape}')
+
+        return transformed
+
+    def inverse_transform(self, data):
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
+        
+        # TODO - set NA percentage in Missingist
+        
+        transformed = deepcopy(data)
+        
+        # mediators are not involved in the inverse_transform process.
+        for processor in self._sequence:
+            for col, obj in self._config[processor].items():
 
-    def get_processor(self):
-        pass
+                logging.debug(f'{processor}: {obj} from {col} start inverse transforming.')
+
+                if obj is None:
+                    continue
+                
+                transformed[col] = obj.transform(transformed[col])
+
+        return transformed
 
     
     # determine whether the processors are not default settings
