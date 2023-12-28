@@ -121,7 +121,7 @@ class Outlierist_IsolationForest(Outlierist):
         pass
 
     def _transform(self, data):
-        pass
+        return data
 
 class Outlierist_LOF(Outlierist):
     """
@@ -138,4 +138,4 @@ class Outlierist_LOF(Outlierist):
         pass
 
     def _transform(self, data):
-        pass
+        return data
