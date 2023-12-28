@@ -45,7 +45,7 @@ class HyperProcessor:
     
 
 
-    def __init__(self, metadata, config=None) -> None:
+    def __init__(self, metadata: dict, config: dict=None) -> None:
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
 
@@ -66,7 +66,7 @@ class HyperProcessor:
         else:
             self.set_config(config=config)
 
-    def _check_metadata_valid(self, metadata):
+    def _check_metadata_valid(self, metadata: dict) -> None:
         """
         Check whether the metadata contains the proper keys (metadata_col and metadata_global) for generating config.
 
@@ -79,7 +79,7 @@ class HyperProcessor:
         if not ('metadata_col' in metadata and 'metadata_global' in metadata):
             raise ValueError("'metadata_col' and 'metadata_global' should be in the metadata.")
 
-    def _check_config_valid(self, config_to_check=None):
+    def _check_config_valid(self, config_to_check: dict=None) -> None:
         """
         Check whether the config contains valid preprocessors. It checks the validity of column names, the validity of processor types (i.e., dict keys), and the validity of processor objects (i.e., dict values).
 
@@ -119,7 +119,7 @@ class HyperProcessor:
                 if not(isinstance(obj, processor_class) or obj is None):
                     raise ValueError(f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
                     
-    def _generate_config(self):
+    def _generate_config(self) -> None:
         """
         Generate config based on the metadata.
 
@@ -152,7 +152,7 @@ class HyperProcessor:
                 self._config[processor][col] = obj
 
 
-    def get_config(self, col=[], print_config=False):
+    def get_config(self, col: list=None, print_config: bool=False) -> dict:
         """
         Get the config from the instance.
 
@@ -188,7 +188,7 @@ class HyperProcessor:
 
         return result_dict
 
-    def set_config(self, config):
+    def set_config(self, config: dict) -> None:
         """
         Edit the whole config. To keep the structure of the config, it fills the unspecified preprocessors with None. To prevent from this, use update_config() instead.
 
@@ -206,7 +206,7 @@ class HyperProcessor:
             for col in val.keys():
                 self._config[processor][col] = config[processor].get(col, None)
 
-    def update_config(self, config):
+    def update_config(self, config: dict) -> None:
         """
         Update part of the config.
 
@@ -222,7 +222,19 @@ class HyperProcessor:
             for col, obj in val.items():
                 self._config[processor][col] = obj
 
-    def fit(self, data, sequence=None):
+    def fit(self, data: pd.DataFrame, sequence: list=None) -> None:
+        """
+        Fit the data.
+
+        Input:
+            data (pd.DataFrame): The data to be fitted.
+            sequence (list): The processing sequence. 
+                Avaliable procedures: 'missingist', 'outlierist', 'encoder', 'scaler'.
+                This is the default sequence.
+
+        Output:
+            None
+        """
 
         if sequence is None:
             self._sequence = self._DEFAULT_SEQUENCE
@@ -269,7 +281,16 @@ class HyperProcessor:
 
         self._is_fitted = True
 
-    def _check_sequence_valid(self, sequence):
+    def _check_sequence_valid(self, sequence: list) -> None:
+        """
+        Check whether the sequence is valid.
+
+        Input:
+            sequence (list): The processing sequence.
+
+        Output:
+            None
+        """
         if type(sequence) != list:
             raise TypeError('Sequence should be a list.')
         
@@ -286,11 +307,17 @@ class HyperProcessor:
             if processor not in ['missingist', 'outlierist', 'encoder', 'scaler']:
                 raise ValueError(f'{processor} is invalid, please check it again.')
             
-    def _detect_edit_global_transformation(self):
+    def _detect_edit_global_transformation(self) -> None:
         """
         Detect whether a processor in the config conducts global transformation.
-        If it does, suppress other processors in the config.
+        If it does, suppress other processors in the config by replacing them to the global one.
         Only works with Outlierist currently.
+
+        Input:
+            None
+
+        Output:
+            None
         """
         is_global_transformation = False
         replaced_class = None
@@ -309,7 +336,16 @@ class HyperProcessor:
                 self._config['outlierist'][col] = replaced_class()
 
     
-    def transform(self, data):
+    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform the data through a series of procedures.
+
+        Input:
+            data (pd.DataFrame): The data to be transformed.
+
+        Output:
+            transformed (pd.DataFrame): The transformed data.
+        """
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
@@ -339,7 +375,16 @@ class HyperProcessor:
 
         return transformed
 
-    def inverse_transform(self, data):
+    def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Inverse transform the data through a series of procedures.
+
+        Input:
+            data (pd.DataFrame): The data to be inverse transformed.
+
+        Output:
+            transformed (pd.DataFrame): The inverse transformed data.
+        """
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
