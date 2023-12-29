@@ -389,6 +389,8 @@ class HyperProcessor:
         
         # set NA percentage in Missingist
         for col, obj in self._config['missingist'].items():
+            if obj is None:
+                continue
             obj.set_na_percentage(self._metadata['metadata_col'][col].get('na_percentage', 0.0))
         
         # there is no method for restoring outliers
