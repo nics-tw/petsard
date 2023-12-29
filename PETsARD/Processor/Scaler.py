@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from torch import Value
 from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
@@ -115,3 +116,48 @@ class Scaler_MinMax(Scaler_Standard):
     def __init__(self) -> None:
         super().__init__()
         self.model = MinMaxScaler()
+
+class Scaler_Log(Scaler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def _fit(self, data: np.ndarray) -> None:
+        """
+        Check whether the log transformation can be performed.
+
+        Input:
+            data (np.ndarray): The data needed to be transformed.
+
+        Output:
+            None
+        """
+        if (data <= 0).any():
+            raise ValueError('Log transformation does not support non-positive values.')
+
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Conduct log transformation.
+
+        Input:
+            data (np.ndarray): The data needed to be transformed.
+
+        Output:
+            (np.ndarray): The transformed data.
+        """
+        if (data <= 0).any():
+            raise ValueError('Log transformation does not support non-positive values.')
+        else:
+            return np.log(data)
+    
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Inverse the transformed data to the data in the original scale.
+
+        Input:
+            data (np.ndarray): The data needed to be transformed inversely.
+
+        Output:
+            (np.ndarray): The inverse transformed data.
+        """
+        
+        return np.exp(data)

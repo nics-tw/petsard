@@ -103,10 +103,10 @@ class Missingist_Mean(Missingist):
             data (pd.Series): The data needed to be transformed.
 
         Output:
-            (pd.Series): The transformed data.
+            (np.ndarray): The transformed data.
         """
 
-        return data.fillna(self.data_mean)
+        return data.fillna(self.data_mean).values.ravel()
     
     def _inverse_transform(self, data: None) -> None:
         pass # Redundant
@@ -137,10 +137,10 @@ class Missingist_Median(Missingist):
             data (pd.Series): The data needed to be transformed.
 
         Output:
-            (pd.Series): The transformed data.
+            (np.ndarray): The transformed data.
         """
 
-        return data.fillna(self.data_median)
+        return data.fillna(self.data_median).values.ravel()
     
     def _inverse_transform(self, data: None) -> None:
         pass # Redundant
@@ -161,10 +161,10 @@ class Missingist_Simple(Missingist):
             data (pd.Series): The data needed to be transformed.
 
         Output:
-            (pd.Series): The transformed data.
+            (np.ndarray): The transformed data.
         """
 
-        return data.fillna(self.data_value)
+        return data.fillna(self.data_value).values.ravel()
     
     def _inverse_transform(self, data: None) -> None:
         pass # Redundant
