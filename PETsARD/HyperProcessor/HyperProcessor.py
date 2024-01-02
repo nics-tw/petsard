@@ -13,7 +13,6 @@ logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     datefmt = '%Y%m%d %H:%M:%S')
 
 # TODO - edit type in metadata to meet the standard of pandas
-# TODO - add global NA percentage
 
 class HyperProcessor:
 
@@ -57,6 +56,10 @@ class HyperProcessor:
         # deal with global transformation of missingist and outlierist
         self.mediator_missingist = None
         self.mediator_outlierist = None
+
+        # global NA values imputation
+        self._na_percentage_global = metadata['metadata_global'].get('na_percentage', 0.0)
+        self.rng = np.random.default_rng()
 
         self._config = dict()
 
@@ -388,10 +391,24 @@ class HyperProcessor:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
         # set NA percentage in Missingist
+        index_list = list(self.rng.choice(data.index, 
+                                     size=int(data.shape[0]*self._na_percentage_global), 
+                                     replace=False).ravel())
+
         for col, obj in self._config['missingist'].items():
             if obj is None:
                 continue
-            obj.set_na_percentage(self._metadata['metadata_col'][col].get('na_percentage', 0.0))
+            obj.set_imputation_index(index_list)
+
+            try:
+                # the NA percentage taking global NA percentage into consideration
+                adjusted_na_percentage = self._metadata['metadata_col'][col].get('na_percentage', 0.0)\
+                    /self._na_percentage_global
+            # if there is no NA in the original data
+            except ZeroDivisionError:
+                adjusted_na_percentage = 0.0
+            
+            obj.set_na_percentage(adjusted_na_percentage)
         
         # there is no method for restoring outliers
         self._inverse_sequence = self._sequence.copy()

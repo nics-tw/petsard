@@ -9,6 +9,8 @@ class Missingist:
     def __init__(self) -> None:
         self._is_fitted = False
         self.na_percentage = None
+        self._imputation_index = None
+        self._imputation_index_len = 0
         self.rng = np.random.default_rng()
 
     def set_na_percentage(self, na_percentage: float=0.0) -> None:
@@ -25,6 +27,22 @@ class Missingist:
             raise ValueError('Invalid NA percentage. It should be between 0.0 and 1.0.')
         
         self.na_percentage = na_percentage
+
+    def set_imputation_index(self, index_list: list=[]) -> None:
+        """
+        Determine which indices can be imputed as NA globally.
+
+        Input:
+            index_list (float, default=0.0): NA percentage from the metadata.
+
+        Output:
+            None
+        """
+        if type(index_list) != list:
+            raise ValueError('Invalid index_list. It should be a list.')
+        
+        self._imputation_index = index_list
+        self._imputation_index_len = len(index_list)
 
     def fit(self, data: pd.Series) -> None:
         """
@@ -70,12 +88,16 @@ class Missingist:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
-        _na_mask = self.rng.random(data.shape[0])
-        _na_mask = _na_mask < self.na_percentage
-        _col_data = deepcopy(data)
-        _col_data[_na_mask] = np.nan
+        if self.na_percentage == 0.0 or self._imputation_index_len == 0:
+            return data
+        else:
+            _na_mask = self.rng.choice(self._imputation_index, 
+                                       size=int(self.na_percentage*self._imputation_index_len),
+                                       replace=False)
+            _col_data = deepcopy(data)
+            _col_data.iloc[_na_mask] = np.nan
 
-        return _col_data
+            return _col_data
 
 class Missingist_Mean(Missingist):
     def __init__(self, *args, **kwargs) -> None:
