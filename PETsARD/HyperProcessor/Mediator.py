@@ -1,4 +1,3 @@
-from torch import Value
 from ..Processor.Missingist import Missingist_Drop
 from ..Processor.Outlierist import *
 
@@ -80,7 +79,7 @@ class Mediator_Missingist(Mediator):
             data (pd.DataFrame): The in-processing data.
 
         Output:
-            (pd.DataFrame): The finished data.
+            transformed (pd.DataFrame): The finished data.
         """
         if len(self._process_col) == 1:
             col_name = self._process_col[0]
@@ -157,7 +156,7 @@ class Mediator_Outlierist(Mediator):
             data (pd.DataFrame): The in-processing data.
 
         Output:
-            (pd.DataFrame): The finished data.
+            transformed (pd.DataFrame): The finished data.
         """
         if self._global_model_indicator:
             # the model may classify most data as outliers after transformation by other processors
