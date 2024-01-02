@@ -13,7 +13,6 @@ logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     datefmt = '%Y%m%d %H:%M:%S')
 
 # TODO - edit type in metadata to meet the standard of pandas
-# TODO - add global NA percentage
 
 class HyperProcessor:
 
