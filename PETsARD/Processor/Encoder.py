@@ -23,6 +23,7 @@ class Encoder:
         Output:
             None
         """
+        self._check_dtype_valid(data)
         self._fit(data)
 
         self._is_fitted = True
@@ -40,6 +41,8 @@ class Encoder:
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
+        
+        self._check_dtype_valid(data)
         
         # Check whether the categories of the column are included in the fitted instance
         if not set(data.unique()).issubset(set(self.labels)):
@@ -61,7 +64,35 @@ class Encoder:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
+        self._check_dtype_valid_inverse(data)
+        
         return self._inverse_transform(data)
+    
+    def _check_dtype_valid(self, data: pd.Series) -> None:
+        """
+        Check whether the data type is valid.
+
+        Input:
+            data (pd.Series): The data to be processed.
+
+        Output:
+            None
+        """
+        if not (pd.api.types.is_object_dtype(data) or isinstance(data.dtypes, pd.CategoricalDtype)):
+            raise ValueError(f'The column {data.name} should be in object or categorical format to use an encoder.')
+        
+    def _check_dtype_valid_inverse(self, data: pd.Series) -> None:
+        """
+        Check whether the data type is valid for `inverse_transform`.
+
+        Input:
+            data (pd.Series): The data to be processed.
+
+        Output:
+            None
+        """
+        if not pd.api.types.is_numeric_dtype(data):
+            raise ValueError(f'The column {data.name} should be in numerical format to use inverse_transform method from an encoder.')
     
 
 class Encoder_Uniform(Encoder):
