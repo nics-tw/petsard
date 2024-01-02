@@ -98,6 +98,20 @@ class Missingist:
             _col_data.iloc[_na_mask] = np.nan
 
             return _col_data
+        
+    def _check_dtype_valid(self, data: pd.Series) -> None:
+        """
+        Check whether the data type is numerical type. Only called by Missingist_Mean and Missingist_Median.
+
+        Input:
+            data (pd.Series): The data to be processed.
+
+        Output:
+            None
+        """
+        if not pd.api.types.is_numeric_dtype(data):
+            raise ValueError(f'The column {data.name} should be in numerical format to use the current missingist.')
+    
 
 class Missingist_Mean(Missingist):
     def __init__(self, *args, **kwargs) -> None:
@@ -114,6 +128,7 @@ class Missingist_Mean(Missingist):
         Output:
             None
         """
+        self._check_dtype_valid(data)
 
         self.data_mean = data.mean()
 
@@ -127,6 +142,7 @@ class Missingist_Mean(Missingist):
         Output:
             (np.ndarray): The transformed data.
         """
+        self._check_dtype_valid(data)
 
         return data.fillna(self.data_mean).values.ravel()
     
@@ -148,6 +164,7 @@ class Missingist_Median(Missingist):
         Output:
             None
         """
+        self._check_dtype_valid(data)
 
         self.data_median = data.median()
 
@@ -161,6 +178,7 @@ class Missingist_Median(Missingist):
         Output:
             (np.ndarray): The transformed data.
         """
+        self._check_dtype_valid(data)
 
         return data.fillna(self.data_median).values.ravel()
     
@@ -177,7 +195,7 @@ class Missingist_Simple(Missingist):
 
     def _transform(self, data: pd.Series) -> pd.Series:
         """
-        Fill NA with median.
+        Fill NA with the predefined value.
 
         Input:
             data (pd.Series): The data needed to be transformed.
