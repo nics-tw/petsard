@@ -12,7 +12,7 @@ logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     format = '[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt = '%Y%m%d %H:%M:%S')
 
-# TODO - finish get_changes
+# TODO - metadata class
 
 class HyperProcessor:
 
@@ -46,6 +46,7 @@ class HyperProcessor:
     def __init__(self, metadata: dict, config: dict=None) -> None:
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
+        logging.debug(f'Metadata loaded.')
         self._infer_metadata_dtype(metadata=metadata)
 
         # processing sequence
@@ -68,6 +69,8 @@ class HyperProcessor:
             self._generate_config()
         else:
             self.set_config(config=config)
+
+        logging.debug(f'Config loaded.')
 
     def _check_metadata_valid(self, metadata: dict) -> None:
         """
@@ -303,6 +306,8 @@ class HyperProcessor:
 
         self._detect_edit_global_transformation()
 
+        logging.debug(f'Fitting sequence generation completed.')
+
         for processor in self._fitting_sequence:
             if type(processor) == str:
                 for col, obj in self._config[processor].items():
@@ -457,6 +462,8 @@ class HyperProcessor:
         self._inverse_sequence = self._sequence.copy()
         if 'outlierist' in self._inverse_sequence:
             self._inverse_sequence.remove('outlierist')
+
+        logging.debug(f'Inverse sequence generation completed.')
         
         transformed = deepcopy(data)
         
@@ -477,6 +484,31 @@ class HyperProcessor:
 
     
     # determine whether the processors are not default settings
-    def get_changes(self):
-        pass
+    def get_changes(self) -> dict:
+        """
+        Compare the differences between the current config and the default config.
+
+        Input:
+            None
+
+        Output:
+            (pd.DataFrame): A dataframe recording the differences bewteen the current config and the default config.
+        """
+        changes_dict = {'processor': [], 'col': [], 'current': [], 'default': []}
+
+        for processor, default_class in {'missingist': self._DEFAULT_MISSINGIST, 'outlierist': self._DEFAULT_OUTLIERIST, 'encoder': self._DEFAULT_ENCODER, 'scaler': self._DEFAULT_SCALER}.items():
+            for col, obj in self._config[processor].items():
+                if default_class[self._metadata['metadata_col'][col]['infer_dtype']] is None:
+                    if obj is not None:
+                        changes_dict['processor'].append(processor)
+                        changes_dict['col'].append(col)
+                        changes_dict['current'].append(type(obj).__name__)
+                        changes_dict['default'].append('NoneType')
+                elif not isinstance(obj, default_class[self._metadata['metadata_col'][col]['infer_dtype']]):
+                    changes_dict['processor'].append(processor)
+                    changes_dict['col'].append(col)
+                    changes_dict['current'].append(type(obj).__name__)
+                    changes_dict['default'].append(default_class[self._metadata['metadata_col'][col]['infer_dtype']].__name__)
+
+        return pd.DataFrame(changes_dict)
 
