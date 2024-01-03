@@ -13,8 +13,6 @@ logging.basicConfig(level=logging.DEBUG, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
-# TODO - metadata class
-
 
 class HyperProcessor:
 
