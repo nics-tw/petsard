@@ -12,7 +12,6 @@ logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     format = '[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt = '%Y%m%d %H:%M:%S')
 
-# TODO - edit type in metadata to meet the standard of pandas (add a function in _generate_config)
 # TODO - finish get_changes
 
 class HyperProcessor:
@@ -47,6 +46,7 @@ class HyperProcessor:
     def __init__(self, metadata: dict, config: dict=None) -> None:
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
+        self._infer_metadata_dtype(metadata=metadata)
 
         # processing sequence
         self._sequence = None
@@ -79,8 +79,22 @@ class HyperProcessor:
         Output:
             None
         """
+        # check the structure of metadata
+        if type(metadata) != dict:
+            raise TypeError('Metadata should be a dict.')
+        
         if not ('metadata_col' in metadata and 'metadata_global' in metadata):
             raise ValueError("'metadata_col' and 'metadata_global' should be in the metadata.")
+        
+        if type(metadata['metadata_col']) != dict:
+            raise TypeError('metadata_col should be a dict.')
+        
+        if type(metadata['metadata_global']) != dict:
+            raise TypeError('metadata_global should be a dict.')
+        
+        for v in metadata['metadata_col'].values():
+            if type(v) != dict:
+                raise TypeError('The elements in metadata_col should be a dict.')
 
     def _check_config_valid(self, config_to_check: dict=None) -> None:
         """
@@ -121,6 +135,34 @@ class HyperProcessor:
 
                 if not(isinstance(obj, processor_class) or obj is None):
                     raise ValueError(f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
+                
+    def _infer_metadata_dtype(self, metadata: dict) -> str:
+        """
+        Infer data types from the metadata. Used for generating config.
+
+        The infer data types can be one of the following: 'numerical', 'categorical', 'datetime', and 'object'.
+
+        Input:
+            metadata (dict): The metadata to be inferred.
+
+        Output:
+            None
+        """
+        for col, val in metadata['metadata_col'].items():
+            dtype = val.get('dtype', None)
+            if dtype is None:
+                raise ValueError(f'{col} should have a valid type.')
+            
+            if pd.api.types.is_numeric_dtype(dtype):
+                self._metadata['metadata_col'][col]['infer_dtype'] = 'numerical'
+            elif isinstance(dtype, pd.CategoricalDtype):
+                self._metadata['metadata_col'][col]['infer_dtype'] = 'categorical'
+            elif pd.api.types.is_datetime64_any_dtype(dtype):
+                self._metadata['metadata_col'][col]['infer_dtype'] = 'datetime'
+            elif pd.api.types.is_object_dtype(dtype):
+                self._metadata['metadata_col'][col]['infer_dtype'] = 'object'
+            else:
+                raise ValueError(f'Invalid data type for {col}')
                     
     def _generate_config(self) -> None:
         """
@@ -142,14 +184,14 @@ class HyperProcessor:
 
         for col, val in self._metadata['metadata_col'].items():
 
-            processor_dict = {'missingist': self._DEFAULT_MISSINGIST[val['type']]()\
-                               if self._DEFAULT_MISSINGIST[val['type']] is not None else None,
-                            'outlierist': self._DEFAULT_OUTLIERIST[val['type']]()\
-                               if self._DEFAULT_OUTLIERIST[val['type']] is not None else None,
-                            'encoder': self._DEFAULT_ENCODER[val['type']]()\
-                               if self._DEFAULT_ENCODER[val['type']] is not None else None,
-                            'scaler': self._DEFAULT_SCALER[val['type']]()\
-                               if self._DEFAULT_SCALER[val['type']] is not None else None}
+            processor_dict = {'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()\
+                               if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None else None,
+                            'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()\
+                               if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None else None,
+                            'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()\
+                               if self._DEFAULT_ENCODER[val['infer_dtype']] is not None else None,
+                            'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()\
+                               if self._DEFAULT_SCALER[val['infer_dtype']] is not None else None}
             
             for processor, obj in processor_dict.items():
                 self._config[processor][col] = obj
