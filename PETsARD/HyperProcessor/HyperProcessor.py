@@ -12,7 +12,6 @@ logging.basicConfig(level = logging.DEBUG, filename = 'log.txt', filemode = 'w',
                     format = '[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt = '%Y%m%d %H:%M:%S')
 
-# TODO - edit type in metadata to meet the standard of pandas (add a function in _generate_config)
 # TODO - finish get_changes
 
 class HyperProcessor:
