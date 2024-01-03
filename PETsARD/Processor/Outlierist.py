@@ -3,24 +3,25 @@ import pandas as pd
 from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 
+
 class Outlierist:
     def __init__(self) -> None:
         self._is_fitted = False
-        self.data_backup = None # for restoring data
+        self.data_backup = None  # for restoring data
 
     def fit(self, data: pd.Series) -> None:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
 
-        Output:
+        Return:
             None
         """
         if not self.IS_GLOBAL_TRANSFORMATION:
             self._check_dtype_valid(data)
-            
+
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
@@ -32,10 +33,10 @@ class Outlierist:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
         if not self.IS_GLOBAL_TRANSFORMATION:
@@ -49,19 +50,21 @@ class Outlierist:
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
-    
+
     def _check_dtype_valid(self, data: pd.Series) -> None:
         """
         Check whether the data type is valid. Only called by the outlierists conducting local transformation, e.g., Outlierist_ZScore and Outlierist_IQR. The methods for global outlierists are conducted in Mediators.
 
-        Input:
+        Args:
             data (pd.Series): The data to be processed.
 
-        Output:
+        Return:
             None
         """
         if not pd.api.types.is_numeric_dtype(data):
-            raise ValueError(f'The column {data.name} should be in numerical format to use an outlierist.')
+            raise ValueError(
+                f'The column {data.name} should be in numerical format to use an outlierist.')
+
 
 class Outlierist_ZScore(Outlierist):
     # indicator of whether the fit and transform process involved other columns
@@ -75,10 +78,10 @@ class Outlierist_ZScore(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             None
         """
         self.model.fit(data)
@@ -87,17 +90,18 @@ class Outlierist_ZScore(Outlierist):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
         self.data_backup = data
-        
+
         ss_data = self.model.transform(data)
 
         return (np.abs(ss_data) > 3).ravel()
+
 
 class Outlierist_IQR(Outlierist):
     # indicator of whether the fit and transform process involved other columns
@@ -115,10 +119,10 @@ class Outlierist_IQR(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             None
         """
         self.Q1 = np.quantile(data, 0.25)
@@ -131,16 +135,17 @@ class Outlierist_IQR(Outlierist):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
         self.data_backup = data
 
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
-    
+
+
 class Outlierist_IsolationForest(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
@@ -157,6 +162,7 @@ class Outlierist_IsolationForest(Outlierist):
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         return data.ravel()
+
 
 class Outlierist_LOF(Outlierist):
     """
