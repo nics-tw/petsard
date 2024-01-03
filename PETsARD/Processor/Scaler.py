@@ -5,6 +5,7 @@ from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
+
 class Scaler:
     def __init__(self) -> None:
         self._is_fitted = False
@@ -13,10 +14,10 @@ class Scaler:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
 
-        Output:
+        Return:
             None
         """
         self._check_dtype_valid(data)
@@ -32,16 +33,16 @@ class Scaler:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
-        
+
         self._check_dtype_valid(data)
 
         if type(data) == pd.Series:
@@ -53,36 +54,37 @@ class Scaler:
         """
         Base method of `inverse_transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
-        
+
         self._check_dtype_valid(data)
 
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
-    
+
     def _check_dtype_valid(self, data: pd.Series) -> None:
         """
         Check whether the data type is valid.
 
-        Input:
+        Args:
             data (pd.Series): The data to be processed.
 
-        Output:
+        Return:
             None
         """
         if not pd.api.types.is_numeric_dtype(data):
-            raise ValueError(f'The column {data.name} should be in numerical format to use a scaler.')
-    
+            raise ValueError(
+                f'The column {data.name} should be in numerical format to use a scaler.')
+
 
 class Scaler_Standard(Scaler):
     def __init__(self) -> None:
@@ -93,10 +95,10 @@ class Scaler_Standard(Scaler):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             None
         """
         self.model.fit(data)
@@ -105,37 +107,40 @@ class Scaler_Standard(Scaler):
         """
         Conduct standardisation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
-        
+
         return self.model.transform(data)
-    
+
     def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
         """
         Inverse the transformed data to the data in the original scale.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
-        
+
         return self.model.inverse_transform(data)
+
 
 class Scaler_ZeroCenter(Scaler_Standard):
     def __init__(self) -> None:
         super().__init__()
         self.model = StandardScaler(with_std=False)
 
+
 class Scaler_MinMax(Scaler_Standard):
     def __init__(self) -> None:
         super().__init__()
         self.model = MinMaxScaler()
+
 
 class Scaler_Log(Scaler):
     def __init__(self) -> None:
@@ -145,39 +150,41 @@ class Scaler_Log(Scaler):
         """
         Check whether the log transformation can be performed.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             None
         """
         if (data <= 0).any():
-            raise ValueError('Log transformation does not support non-positive values.')
+            raise ValueError(
+                'Log transformation does not support non-positive values.')
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct log transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
         if (data <= 0).any():
-            raise ValueError('Log transformation does not support non-positive values.')
+            raise ValueError(
+                'Log transformation does not support non-positive values.')
         else:
             return np.log(data)
-    
+
     def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
         """
         Inverse the transformed data to the data in the original scale.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
-        
+
         return np.exp(data)
