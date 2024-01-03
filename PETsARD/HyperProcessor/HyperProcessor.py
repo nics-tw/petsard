@@ -4,6 +4,7 @@ from ..Processor.Outlierist import *
 from ..Processor.Scaler import *
 from .Mediator import *
 from ..Error import *
+from ..Metadata import Metadata
 
 from copy import deepcopy
 import logging
@@ -42,11 +43,11 @@ class HyperProcessor:
 
     _DEFAULT_SEQUENCE = ['missingist', 'outlierist', 'encoder', 'scaler']
 
-    def __init__(self, metadata: dict, config: dict = None) -> None:
+    def __init__(self, metadata: Metadata, config: dict = None) -> None:
+        metadata = metadata.metadata
         self._check_metadata_valid(metadata=metadata)
         self._metadata = metadata
         logging.debug(f'Metadata loaded.')
-        self._infer_metadata_dtype(metadata=metadata)
 
         # processing sequence
         self._sequence = None
@@ -144,34 +145,6 @@ class HyperProcessor:
                 if not (isinstance(obj, processor_class) or obj is None):
                     raise ValueError(
                         f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
-
-    def _infer_metadata_dtype(self, metadata: dict) -> str:
-        """
-        Infer data types from the metadata. Used for generating config.
-
-        The infer data types can be one of the following: 'numerical', 'categorical', 'datetime', and 'object'.
-
-        Args:
-            metadata (dict): The metadata to be inferred.
-
-        Return:
-            None
-        """
-        for col, val in metadata['metadata_col'].items():
-            dtype = val.get('dtype', None)
-            if dtype is None:
-                raise ValueError(f'{col} should have a valid type.')
-
-            if pd.api.types.is_numeric_dtype(dtype):
-                self._metadata['metadata_col'][col]['infer_dtype'] = 'numerical'
-            elif isinstance(dtype, pd.CategoricalDtype):
-                self._metadata['metadata_col'][col]['infer_dtype'] = 'categorical'
-            elif pd.api.types.is_datetime64_any_dtype(dtype):
-                self._metadata['metadata_col'][col]['infer_dtype'] = 'datetime'
-            elif pd.api.types.is_object_dtype(dtype):
-                self._metadata['metadata_col'][col]['infer_dtype'] = 'object'
-            else:
-                raise ValueError(f'Invalid data type for {col}')
 
     def _generate_config(self) -> None:
         """
