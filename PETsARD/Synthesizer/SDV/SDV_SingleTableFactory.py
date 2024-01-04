@@ -20,7 +20,7 @@ class SDV_SingleTableFactory:
         Return:
             None
         """
-        synthesizing_method = kwargs.get('synthesizing_method', None)
+        synthesizing_method: str = kwargs.get('synthesizing_method', None)
         # _para = {
         #     'sample_num_rows': kwargs.get('sample_num_rows', None)
         #    ,'sample_batch_size': kwargs.get('sample_batch_size', None)

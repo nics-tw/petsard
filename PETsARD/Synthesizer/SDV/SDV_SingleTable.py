@@ -18,6 +18,7 @@ class SDV_SingleTable(SDV):
     Return:
         None
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         super().__init__(data, **kwargs)
 
@@ -53,8 +54,8 @@ class SDV_SingleTable(SDV):
         if self._Synthesizer:
             __time_start = time.time()
 
-            self._syn_method = self._syn_method if hasattr(
-                self, '_syn_method') else 'Unknown'
+            self._syn_method = self._syn_method if hasattr(self,
+                                                           '_syn_method') else 'Unknown'
             print(
                 f"Synthesizer (SDV - SingleTable): Fitting  {self._syn_method}.")
             self._Synthesizer.fit(self.data)
@@ -89,8 +90,9 @@ class SDV_SingleTable(SDV):
                 if reset_sampling:
                     self._Synthesizer.reset_sampling()
 
-                data_syn = self._Synthesizer.sample(
-                    num_rows=self.sample_num_rows, batch_size=self.sample_batch_size, output_file_path=output_file_path)
+                data_syn = self._Synthesizer.sample(num_rows=self.sample_num_rows,
+                                                    batch_size=self.sample_batch_size,
+                                                    output_file_path=output_file_path)
 
                 _str_sample_num_rows_as_raw = ' (same as raw)' if self.sample_num_rows_as_raw else ''
                 print(
