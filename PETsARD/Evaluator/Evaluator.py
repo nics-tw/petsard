@@ -24,19 +24,17 @@ class Evaluator:
                  evaluating_method: str,
                  **kwargs):
 
-        _para_Evaluator = {
+        self.para: dict = {}
+        self.para['Evaluator'] = {
             'evaluating_method': evaluating_method.lower(),
             **{k: v for k, v in kwargs.items() if k.startswith('anonymeter_')}
         }
 
-        self.data = data
+        self.data: dict = data
         self.Evaluator = EvaluatorFactory(
             data=data,
-            **_para_Evaluator
+            **self.para['Evaluator']
         ).create_evaluator()
 
-        self.para = {}
-        self.para['Evaluator'] = _para_Evaluator
-
-    def eval(self):
+    def eval(self) -> None:
         self.Evaluator.eval()

@@ -97,8 +97,9 @@ class Anonymeter():
                     f"while _Evaluator didn't ready."
                 )
 
-    def _extract_result(self):
-        # TODO 用其他的方法取出結果，並考慮合併到 reporter
+    def _extract_result(self) -> dict:
+        # TODO Use other method to extract results.
+        #      also consider to migrated to Reporter.
         dict_result = {}
         para_to_handle = [
             ('Risk',              ['risk()',    'value']),
@@ -141,7 +142,7 @@ class Anonymeter():
                             break
                     else:
                         eval_instance = getattr(eval_instance, eval_command)
-                dict_result[key] =eval_instance
+                dict_result[key] = eval_instance
             except Exception as ex:
                 pass
         return dict_result

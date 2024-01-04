@@ -8,7 +8,7 @@ from .Anonymeter import Anonymeter
 class Anonymeter_SinglingOut_Univariate(Anonymeter):
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self.eval_method = 'SinglingOut - Univariate'
+        self.eval_method: str = 'SinglingOut - Univariate'
 
         _time_start = time.time()
         print(
