@@ -20,17 +20,17 @@ class Synthesizer:
 
     def __init__(self, data: pd.DataFrame, synthesizing_method: str, **kwargs) -> None:
 
-        _para_Synthesizer = {
+        _para_Synthesizer: dict = {
             'synthesizing_method': synthesizing_method.lower()
         }
 
         Synthesizer = SynthesizerFactory(
             data=data, **_para_Synthesizer).create_synthesizer()
 
-        self.data_ori = data
+        self.data_ori: pd.DataFrame = data
         self.Synthesizer = Synthesizer
-        self.para = {}
-        self.para['Synthesizer'] = _para_Synthesizer
+        self.para: dict = {}
+        self.para['Synthesizer']: dict = _para_Synthesizer
 
     def fit(self, **kwargs) -> None:
         """
@@ -54,7 +54,7 @@ class Synthesizer:
         Return:
             None
         """
-        self.data_syn = self.Synthesizer.sample(**kwargs)
+        self.data_syn: pd.DataFrame = self.Synthesizer.sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """
@@ -66,7 +66,7 @@ class Synthesizer:
         Return:
             None
         """
-        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
+        self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
 
         # _para_Synthesizer['SDV'] = {
         #     'SingleTable_sample_num_rows': kwargs.get('SDV_SingleTable_sample_num_rows', None)
