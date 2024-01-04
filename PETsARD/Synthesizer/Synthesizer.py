@@ -1,9 +1,15 @@
+import pandas as pd
+
+from .SynthesizerFactory import SynthesizerFactory
+
+
 class Synthesizer:
     """
     Base class for all "Synthesizer".
 
     The "Synthesizer" class defines the common API
-    that all the "Synthesizer" need to implement, as well as common functionality.
+    that all the "Synthesizer" need to implement,
+    as well as common functionality.
 
     ...
     Methods:
@@ -16,21 +22,25 @@ class Synthesizer:
 
     """
 
-    def __init__(self, data, synthesizing_method: str, **kwargs):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        synthesizing_method: str,
+        **kwargs
+    ) -> None:
 
-        _para_Synthesizer = {
+        self.para: dict = {}
+        self.para['Synthesizer']: dict = {
             'synthesizing_method': synthesizing_method.lower()
         }
 
         from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
-            data=data, **_para_Synthesizer).create_synthesizer()
-        # data = Synthesizer.train_sample()
+            data=data, **self.para['Synthesizer']
+        ).create_synthesizer()
 
         self.data_ori = data
         self.Synthesizer = Synthesizer
-        self.para = {}
-        self.para['Synthesizer'] = _para_Synthesizer
 
     def fit(self ,**kwargs):
         self.Synthesizer.fit(**kwargs)
@@ -42,8 +52,15 @@ class Synthesizer:
         self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
 
+    def fit_sample(self, **kwargs) -> None:
+        """
+        Fit and sample from the synthesizer.
+        The combination of the methods `fit()` and `sample()`.
 
-        # _para_Synthesizer['SDV'] = {
-        #     'SingleTable_sample_num_rows': kwargs.get('SDV_SingleTable_sample_num_rows', None)
-        #    ,'SingleTable_sample_batch_size': kwargs.get('SDV_SingleTable_sample_batch_size', None)
-        # }
+        Args:
+            **kwargs: The fitting/sampling parameters.
+
+        Return:
+            None
+        """
+        self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
