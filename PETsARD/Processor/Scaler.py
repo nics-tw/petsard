@@ -1,14 +1,22 @@
 import numpy as np
 import pandas as pd
-from torch import Value
 from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
 
 class Scaler:
+    """
+    Base class for all Scaler classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
-        self._is_fitted = False
+        self._is_fitted: bool = False
 
     def fit(self, data: pd.Series) -> None:
         """
@@ -87,9 +95,18 @@ class Scaler:
 
 
 class Scaler_Standard(Scaler):
+    """
+    Apply StandardScaler.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
         super().__init__()
-        self.model = StandardScaler()
+        self.model: StandardScaler = StandardScaler()
 
     def _fit(self, data: np.ndarray) -> None:
         """
@@ -131,18 +148,45 @@ class Scaler_Standard(Scaler):
 
 
 class Scaler_ZeroCenter(Scaler_Standard):
+    """
+    Apply StandardScaler without std scaling.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
         super().__init__()
-        self.model = StandardScaler(with_std=False)
+        self.model: StandardScaler = StandardScaler(with_std=False)
 
 
 class Scaler_MinMax(Scaler_Standard):
+    """
+    Apply MinMaxScaler.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
         super().__init__()
-        self.model = MinMaxScaler()
+        self.model: MinMaxScaler = MinMaxScaler()
 
 
 class Scaler_Log(Scaler):
+    """
+    Scale the data by log transformation.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
         super().__init__()
 
