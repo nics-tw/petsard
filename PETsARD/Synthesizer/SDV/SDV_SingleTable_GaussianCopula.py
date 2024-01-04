@@ -1,12 +1,12 @@
 import pandas as pd
-from sdv.single_table import TVAESynthesizer
+from sdv.single_table import GaussianCopulaSynthesizer
 
 from .SDV_SingleTable import SDV_SingleTable
 
 
-class SDV_SingleTable_TVAE(SDV_SingleTable):
+class SDV_SingleTable_GaussianCopula(SDV_SingleTable):
     """
-    Implement TVAE synthesize method.
+    Implement Gaussian Copula synthesize method.
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
@@ -18,6 +18,6 @@ class SDV_SingleTable_TVAE(SDV_SingleTable):
 
     def __init__(self, data: pd.DataFrame, **kwargs):
         super().__init__(data, **kwargs)
-        self.syn_method: str = 'TVAE'
+        self.syn_method: str = 'GaussianCopula'
 
-        self._Synthesizer = TVAESynthesizer(self.metadata)
+        self._Synthesizer = GaussianCopulaSynthesizer(self.metadata)
