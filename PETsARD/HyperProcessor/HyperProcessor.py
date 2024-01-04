@@ -15,54 +15,64 @@ logging.basicConfig(level=logging.DEBUG, filename='log.txt', filemode='w',
 
 
 class HyperProcessor:
+    """
+    Manage the processors. It arrange the execution queue and allocate the tasks to the right processors based on the metadata and the parameters.
+
+    Args:
+        metadata (Metadata): The metadata class to provide the metadata of the data.
+        config (dict): The user-defined config.
+
+    Return:
+        None
+    """
 
     # object datatype indicates the unusual data,
     # passive actions will be taken in processing procedure
 
-    _DEFAULT_MISSINGIST = {'numerical': Missingist_Mean,
-                           'categorical': Missingist_Drop,
-                           'datetime': Missingist_Drop,
-                           'object': Missingist_Drop}
+    _DEFAULT_MISSINGIST: dict = {'numerical': Missingist_Mean,
+                                 'categorical': Missingist_Drop,
+                                 'datetime': Missingist_Drop,
+                                 'object': Missingist_Drop}
 
-    _DEFAULT_OUTLIERIST = {'numerical': Outlierist_IQR,
-                           'categorical': None,
-                           'datatime': Outlierist_IQR,
-                           'object': None}
+    _DEFAULT_OUTLIERIST: dict = {'numerical': Outlierist_IQR,
+                                 'categorical': None,
+                                 'datatime': Outlierist_IQR,
+                                 'object': None}
 
-    _DEFAULT_ENCODER = {'numerical': None,
-                        'categorical': Encoder_Uniform,
-                        'datetime': None,
-                        'object': Encoder_Uniform}
+    _DEFAULT_ENCODER: dict = {'numerical': None,
+                              'categorical': Encoder_Uniform,
+                              'datetime': None,
+                              'object': Encoder_Uniform}
 
-    _DEFAULT_SCALER = {'numerical': Scaler_Standard,
-                       'categorical': None,
-                       'datetime': Scaler_Standard,
-                       'object': None}
+    _DEFAULT_SCALER: dict = {'numerical': Scaler_Standard,
+                             'categorical': None,
+                             'datetime': Scaler_Standard,
+                             'object': None}
 
-    _DEFAULT_SEQUENCE = ['missingist', 'outlierist', 'encoder', 'scaler']
+    _DEFAULT_SEQUENCE: list = ['missingist', 'outlierist', 'encoder', 'scaler']
 
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
-        metadata = metadata.metadata
+        metadata: dict = metadata.metadata
         self._check_metadata_valid(metadata=metadata)
-        self._metadata = metadata
+        self._metadata: dict = metadata
         logging.debug(f'Metadata loaded.')
 
         # processing sequence
-        self._sequence = None
-        self._fitting_sequence = None
-        self._inverse_sequence = None
-        self._is_fitted = False
+        self._sequence: list = None
+        self._fitting_sequence: list = None
+        self._inverse_sequence: list = None
+        self._is_fitted: bool = False
 
         # deal with global transformation of missingist and outlierist
-        self.mediator_missingist = None
-        self.mediator_outlierist = None
+        self.mediator_missingist: Mediator_Missingist | None = None
+        self.mediator_outlierist: Mediator_Outlierist | None = None
 
         # global NA values imputation
-        self._na_percentage_global = metadata['metadata_global'].get('na_percentage',
-                                                                     0.0)
+        self._na_percentage_global: float = metadata['metadata_global'].get('na_percentage',
+                                                                            0.0)
         self.rng = np.random.default_rng()
 
-        self._config = dict()
+        self._config: dict = dict()
 
         if config is None:
             self._generate_config()
@@ -156,7 +166,7 @@ class HyperProcessor:
         Return:
             None: The config will be stored in the instance itself.
         """
-        self._config = None  # initialise the dict
+        self._config: dict = None  # initialise the dict
         self._config = {'missingist': {},
                         'outlierist': {},
                         'encoder': {},
@@ -164,14 +174,14 @@ class HyperProcessor:
 
         for col, val in self._metadata['metadata_col'].items():
 
-            processor_dict = {'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
-                              if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None else None,
-                              'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()
-                              if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None else None,
-                              'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()
-                              if self._DEFAULT_ENCODER[val['infer_dtype']] is not None else None,
-                              'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()
-                              if self._DEFAULT_SCALER[val['infer_dtype']] is not None else None}
+            processor_dict: dict = {'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
+                                    if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None else None,
+                                    'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()
+                                    if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None else None,
+                                    'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()
+                                    if self._DEFAULT_ENCODER[val['infer_dtype']] is not None else None,
+                                    'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()
+                                    if self._DEFAULT_SCALER[val['infer_dtype']] is not None else None}
 
             for processor, obj in processor_dict.items():
                 self._config[processor][col] = obj
@@ -187,11 +197,11 @@ class HyperProcessor:
         Return:
             (dict): The config with selected columns.
         """
-        get_col_list = []
-        result_dict = {'missingist': {},
-                       'outlierist': {},
-                       'encoder': {},
-                       'scaler': {}}
+        get_col_list: list = []
+        result_dict: dict = {'missingist': {},
+                             'outlierist': {},
+                             'encoder': {},
+                             'scaler': {}}
 
         if col:
             get_col_list = col
@@ -203,7 +213,7 @@ class HyperProcessor:
                 print(processor)
                 for colname in get_col_list:
                     print(
-                        f'    {colname}: {self._config[processor][colname].__class__}')
+                        f'    {colname}: {type(self._config[processor][colname]).__name__}')
                     result_dict[processor][colname] = self._config[processor][colname]
         else:
             for processor in self._config.keys():
@@ -350,8 +360,8 @@ class HyperProcessor:
         Return:
             None
         """
-        is_global_transformation = False
-        replaced_class = None
+        is_global_transformation: bool = False
+        replaced_class: object = None
 
         for obj in self._config['outlierist'].values():
             if obj is None:
@@ -380,7 +390,7 @@ class HyperProcessor:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        transformed = deepcopy(data)
+        transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._fitting_sequence:
             if type(processor) == str:
@@ -423,10 +433,10 @@ class HyperProcessor:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         # set NA percentage in Missingist
-        index_list = list(self.rng.choice(data.index,
-                                          size=int(
-                                              data.shape[0]*self._na_percentage_global),
-                                          replace=False).ravel())
+        index_list: list = list(self.rng.choice(data.index,
+                                                size=int(
+                                                    data.shape[0]*self._na_percentage_global),
+                                                replace=False).ravel())
 
         for col, obj in self._config['missingist'].items():
             if obj is None:
@@ -435,11 +445,11 @@ class HyperProcessor:
 
             try:
                 # the NA percentage taking global NA percentage into consideration
-                adjusted_na_percentage = self._metadata['metadata_col'][col].get('na_percentage', 0.0)\
+                adjusted_na_percentage: float = self._metadata['metadata_col'][col].get('na_percentage', 0.0)\
                     / self._na_percentage_global
             # if there is no NA in the original data
             except ZeroDivisionError:
-                adjusted_na_percentage = 0.0
+                adjusted_na_percentage: float = 0.0
 
             obj.set_na_percentage(adjusted_na_percentage)
 
@@ -450,7 +460,7 @@ class HyperProcessor:
 
         logging.debug(f'Inverse sequence generation completed.')
 
-        transformed = deepcopy(data)
+        transformed: pd.DataFrame = deepcopy(data)
 
         # mediators are not involved in the inverse_transform process.
         for processor in self._inverse_sequence:
@@ -480,8 +490,8 @@ class HyperProcessor:
         Return:
             (pd.DataFrame): A dataframe recording the differences bewteen the current config and the default config.
         """
-        changes_dict = {'processor': [], 'col': [],
-                        'current': [], 'default': []}
+        changes_dict: dict = {'processor': [], 'col': [],
+                              'current': [], 'default': []}
 
         for processor, default_class in {'missingist': self._DEFAULT_MISSINGIST, 'outlierist': self._DEFAULT_OUTLIERIST, 'encoder': self._DEFAULT_ENCODER, 'scaler': self._DEFAULT_SCALER}.items():
             for col, obj in self._config[processor].items():
