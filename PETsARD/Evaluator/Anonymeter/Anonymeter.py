@@ -98,6 +98,7 @@ class Anonymeter():
                 )
 
     def _extract_result(self):
+        # TODO 用其他的方法取出結果，並考慮合併到 reporter
         dict_result = {}
         para_to_handle = [
             ('Risk',              ['risk()',    'value']),
