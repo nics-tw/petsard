@@ -1,10 +1,13 @@
-from .SDV.SDVFactory import SDVFactory
 import pandas as pd
+
+from .SDV.SDVFactory import SDVFactory
 
 
 class SynthesizerFactory:
     """
-    Manage the synthesizers. It allocates the task to the right synthesizer factory based on the parameters.
+    Manage the synthesizers.
+    It allocates the task to the right synthesizer factory
+    based on the parameters.
 
     Args:
         data (pd.DataFrame): The data to be synthesized from.
@@ -12,17 +15,25 @@ class SynthesizerFactory:
 
     Return:
         None
+
+    TODO As AnonymeterMethodMap, use class define mapping of string and int,
+         don't use string condition.
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         synthesizing_method: str = kwargs.get('synthesizing_method', None)
 
         if synthesizing_method.startswith('sdv'):
-            _Synthesizer = SDVFactory(data=data,
-                                      synthesizing_method=synthesizing_method).create_synthesizer()
+            _Synthesizer = SDVFactory(
+                data=data,
+                synthesizing_method=synthesizing_method
+            ).create_synthesizer()
         else:
             raise ValueError(
-                f"Synthesizer - SynthesizerFactory: synthesizing_method {synthesizing_method} didn't support.")
+                f"Synthesizer - SynthesizerFactory: "
+                f"synthesizing_method {synthesizing_method} "
+                f"didn't support."
+            )
 
         self.Synthesizer = _Synthesizer
 
