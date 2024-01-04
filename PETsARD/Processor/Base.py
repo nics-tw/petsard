@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     datefmt='%Y%m%d %H:%M:%S')
 
 
-class HyperProcessor:
+class Processor:
     """
     Manage the processors. It arrange the execution queue and allocate the tasks to the right processors based on the metadata and the parameters.
 
