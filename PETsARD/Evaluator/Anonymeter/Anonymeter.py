@@ -61,7 +61,7 @@ class Anonymeter():
             warnings.simplefilter("ignore", category=UserWarning)
 
             if self._Evaluator:
-                _time_start = time.time()
+                time_start = time.time()
 
                 print(
                     f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
@@ -89,7 +89,7 @@ class Anonymeter():
                     print(
                         f"Evaluator (Anonymeter): "
                         f"Evaluating {self.eval_method} spent "
-                        f"{round(time.time()-_time_start ,4)} sec."
+                        f"{round(time.time()-time_start ,4)} sec."
                     )
                 self.evaluation = self._extract_result()
             else:
