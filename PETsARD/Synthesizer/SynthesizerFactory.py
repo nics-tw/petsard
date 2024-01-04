@@ -3,8 +3,19 @@ import pandas as pd
 
 
 class SynthesizerFactory:
+    """
+    Manage the synthesizers. It allocates the task to the right synthesizer factory based on the parameters.
+
+    Args:
+        data (pd.DataFrame): The data to be synthesized from.
+        **kwargs: The other parameters.
+
+    Return:
+        None
+    """
+
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        synthesizing_method = kwargs.get('synthesizing_method', None)
+        synthesizing_method: str = kwargs.get('synthesizing_method', None)
 
         if synthesizing_method.startswith('sdv'):
             _Synthesizer = SDVFactory(data=data,

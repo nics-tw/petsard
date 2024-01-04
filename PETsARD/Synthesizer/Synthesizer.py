@@ -1,4 +1,5 @@
 from .SynthesizerFactory import SynthesizerFactory
+import pandas as pd
 
 
 class Synthesizer:
@@ -8,18 +9,16 @@ class Synthesizer:
     The "Synthesizer" class defines the common API
     that all the "Synthesizer" need to implement, as well as common functionality.
 
-    ...
-    Methods:
-        Synthesizer(DataFrame): Synthesizing specified DataFrame.
-        Returns:
-            DataFrame: A pandas DataFrame that input data after synthesizing
-    ...
-
     Args:
+        data (pd.DataFrame): The data to be synthesized.
+        synthesizing_method (str): The synthesizing method to be implemented.
+        **kwargs: The other parameters.
 
+    Return:
+        None
     """
 
-    def __init__(self, data, synthesizing_method: str, **kwargs) -> None:
+    def __init__(self, data: pd.DataFrame, synthesizing_method: str, **kwargs) -> None:
 
         _para_Synthesizer = {
             'synthesizing_method': synthesizing_method.lower()
