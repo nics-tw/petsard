@@ -10,7 +10,7 @@ from ..Metadata import Metadata
 from copy import deepcopy
 import logging
 
-logging.basicConfig(level=logging.DEBUG, filename='log.txt', filemode='w',
+logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
