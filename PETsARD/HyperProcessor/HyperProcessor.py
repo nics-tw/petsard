@@ -1,3 +1,4 @@
+import warnings
 from ..Processor.Encoder import *
 from ..Processor.Missingist import *
 from ..Processor.Outlierist import *
@@ -444,9 +445,12 @@ class HyperProcessor:
             obj.set_imputation_index(index_list)
 
             try:
-                # the NA percentage taking global NA percentage into consideration
-                adjusted_na_percentage: float = self._metadata['metadata_col'][col].get('na_percentage', 0.0)\
-                    / self._na_percentage_global
+                with warnings.catch_warnings():
+                    # ignore the known warning about RuntimeWarning: invalid value encountered in scalar divide
+                    warnings.simplefilter('ignore')
+                    # the NA percentage taking global NA percentage into consideration
+                    adjusted_na_percentage: float = self._metadata['metadata_col'][col].get('na_percentage', 0.0)\
+                        / self._na_percentage_global
             # if there is no NA in the original data
             except ZeroDivisionError:
                 adjusted_na_percentage: float = 0.0
