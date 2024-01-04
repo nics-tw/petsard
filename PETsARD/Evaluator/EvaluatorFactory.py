@@ -1,8 +1,9 @@
 from .Anonymeter.AnonymeterFactory import AnonymeterFactory
-# TODO As AnonymeterMethodMap, use class define mapping of string and int,
-#      don't use string condition.
+
 
 class EvaluatorFactory:
+    # TODO As AnonymeterMethodMap, use class define mapping of string and int,
+    #      don't use string condition.
     def __init__(self, **kwargs):
         evaluating_method = kwargs.get('evaluating_method', None)
 

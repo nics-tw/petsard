@@ -1,10 +1,11 @@
 from .Anonymeter_SinglingOut_Univariate import Anonymeter_SinglingOut_Univariate
 from .Anonymeter_Linkability import Anonymeter_Linkability
 from .Anonymeter_Inference import Anonymeter_Inference
-# TODO As AnonymeterMethodMap, use class define mapping of string and int,
-#      don't use string condition.
+
 
 class AnonymeterFactory:
+    # TODO As AnonymeterMethodMap, use class define mapping of string and int,
+    #      don't use string condition.
     def __init__(self, **kwargs):
         evaluating_method: str = kwargs.get('evaluating_method', None)
 
