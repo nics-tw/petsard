@@ -1,5 +1,5 @@
-from ..Processor.Missingist import Missingist_Drop
-from ..Processor.Outlierist import *
+from .Missingist import Missingist_Drop
+from .Outlierist import *
 
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
