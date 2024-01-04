@@ -18,22 +18,34 @@ class Anonymeter():
                                                         List[str]]] = None,
                  **kwargs
                  ):
-        dataattr = {
+        # FIXME mileschangmoda:
+        # autopep8沒有把空白縮排刪掉嗎?
+        # 我的理解應該是不會用空白對齊，我自己會刻意讓變數名稱長度相等
+        data_attr = {
             'data_ori':     ('ori',     None),
             'data_syn':     ('syn',     None),
             'data_control': ('control', None)
         }
-        for attr, (key, default) in dataattr.items():
+        # FIXME mileschangmoda:
+        # 不要加底線，data只在這個function有用。加強型態
+        for attr, (key, default) in data_attr.items():
             value = data.get(key, default)
             setattr(self, attr, value)
 
-        self.n_attacks = anonymeter_n_attacks
-        self.n_jobs = anonymeter_n_jobs
-        self.n_neighbors = anonymeter_n_neighbors
-        self.aux_cols = anonymeter_aux_cols
-        self.secret = anonymeter_secret
+        # FIXME mileschangmoda:
+        # 我其實不太確定你為什麼要用kwargs.get，有什麼好處嗎？
+        # 如果參數固定是不是直接寫在def __init__(self, anonymeter_n_attacks, ...)?這樣可以寫強形態。
+        # FIXME mileschangmoda:
+        # 這邊也是，用dict[key]跟_data.get(key)的差異?
+        self.n_attacks:   int = anonymeter_n_attacks
+        self.n_jobs:      int = anonymeter_n_jobs
+        self.n_neighbors: int = anonymeter_n_neighbors
+        self.aux_cols:    Optional[List[List[str]]] = anonymeter_aux_cols
+        self.secret:      Optional[Union[str, List[str]]] = anonymeter_secret
 
         self.eval_method = 'Unknown'
+        # FIXME mileschangmoda:
+        # 這個pass是什麼?
 
     def eval(self):
         """
@@ -61,12 +73,21 @@ class Anonymeter():
             warnings.simplefilter("ignore", category=UserWarning)
 
             if self._Evaluator:
+                # FIXME mileschangmoda:
+                # 同前
                 time_start = time.time()
 
                 print(
                     f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
                 )
 
+                # FIXME mileschangmoda:
+                # 在__init__裡直接設Unknown就好?
+                # 建議可以再設一個
+                # FIXME mileschangmoda:
+                # 太多後面我就不一一標了
+                # FIXME mileschangmoda:
+                # 這些可以用class處理會比字串檢查好很多
                 _eval_method_num = AnonymeterMethodMap.map(self.eval_method)
                 if _eval_method_num in [0, 1]:
                     _mode = (
@@ -101,6 +122,8 @@ class Anonymeter():
     def _extract_result(self) -> dict:
         # TODO Use other method to extract results.
         #      also consider to migrated to Reporter.
+        # FIXME mileschangmoda:
+        # "不用現在處理"蠻多字串處理的，我知道python字串處理很方便，但用在程式邏輯上會增加偵錯難度不建議。
         dict_result = {}
         para_to_handle = [
             ('Risk',              ['risk()',    'value']),
@@ -115,12 +138,19 @@ class Anonymeter():
         ]
 
         for key, evals in para_to_handle:
+            # FIXME mileschangmoda:
+            # 應該是default設成np.nan，不要在except中指定值
             dict_result[key] = np.nan
             try:
+                # FIXME mileschangmoda:
+                # 前面寫_Evaluator = self._Evaluator，這邊再指一次是不是有點多餘?_Evaluator後面就沒用到了
                 eval_instance = self._Evaluator
                 for eval_command in evals:
                     if '()' in eval_command:
                         method_name = eval_command.split('(')[0]
+                        # FIXME mileschangmoda:
+                        # 這裡就體現短變數名稱的意義_attr_value其實算是沒有意義的命名方式
+                        # if hasattr(evaluator, name) and isinstance(evaluator[name]), (list, dict, tuple)):
                         if hasattr(eval_instance, method_name):
                             method = getattr(eval_instance, method_name)
                             if callable(method):
@@ -149,6 +179,9 @@ class Anonymeter():
         return dict_result
 
 
+# FIXME mileschangmoda:
+# 在__init__裡直接設Unknown就好?
+# 建議可以再設一個
 class AnonymeterMethodMap():
     method_map = {
         'singlingout - univariate':   0,
