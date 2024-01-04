@@ -1,9 +1,10 @@
-from .SDV_SingleTable import SDV_SingleTable
-from sdv.single_table import CopulaGANSynthesizer
 import pandas as pd
+from sdv.single_table import CopulaGANSynthesizer
+
+from .SDV_SingleTable import SDV_SingleTable
 
 
-class SDV_SingleTable_CoupulaGAN(SDV_SingleTable):
+class SDV_SingleTable_CopulaGAN(SDV_SingleTable):
     """
     Implement CopulaGAN synthesize method.
 
@@ -14,9 +15,9 @@ class SDV_SingleTable_CoupulaGAN(SDV_SingleTable):
     Return:
         None
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         super().__init__(data, **kwargs)
-        self._syn_method: str = 'CoupulaGAN'
+        self.syn_method: str = 'CopulaGAN'
 
-        # metadata already create in SDV_SingleTable
         self._Synthesizer = CopulaGANSynthesizer(self.metadata)
