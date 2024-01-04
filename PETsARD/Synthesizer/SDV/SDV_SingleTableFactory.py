@@ -7,6 +7,19 @@ import pandas as pd
 
 class SDV_SingleTableFactory:
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
+        """
+        Base class for all "SDV".
+
+        The "SDV" class defines the common API
+        that all the "SDV" need to implement, as well as common functionality.
+
+        Args:
+            data (pd.DataFrame): The data to be synthesized.
+            **kwargs: The other parameters.
+
+        Return:
+            None
+        """
         synthesizing_method = kwargs.get('synthesizing_method', None)
         # _para = {
         #     'sample_num_rows': kwargs.get('sample_num_rows', None)
@@ -33,4 +46,13 @@ class SDV_SingleTableFactory:
         self.Synthesizer = _Synthesizer
 
     def create_synthesizer(self):
+        """
+        Create synthesizer instance.
+
+        Args:
+            None
+
+        Return:
+            self.Synthesizer (synthesizer): The synthesizer instance.
+        """
         return self.Synthesizer

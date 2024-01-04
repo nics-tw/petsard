@@ -8,6 +8,16 @@ import pandas as pd
 # TODO - Nice to have - Simplify the code (Factory part)
 
 class SDV_SingleTable(SDV):
+    """
+    Base class for all SDV SingleTable classes.
+
+    Args:
+        data (pd.DataFrame): The data to be synthesized.
+        **kwargs: The other parameters.
+
+    Return:
+        None
+    """
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         super().__init__(data, **kwargs)
 
