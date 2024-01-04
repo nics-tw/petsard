@@ -8,7 +8,7 @@ from .Anonymeter import Anonymeter
 class Anonymeter_Linkability(Anonymeter):
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self._eval_method = 'Linkability'
+        self.eval_method = 'Linkability'
 
         _time_start = time.time()
         print(

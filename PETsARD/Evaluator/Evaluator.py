@@ -26,11 +26,7 @@ class Evaluator:
 
         _para_Evaluator = {
             'evaluating_method': evaluating_method.lower(),
-            'anonymeter_n_attacks':   kwargs.get('anonymeter_n_attacks', 2000),
-            'anonymeter_n_jobs':      kwargs.get('anonymeter_n_jobs', -2),
-            'anonymeter_n_neighbors': kwargs.get('anonymeter_n_neighbors', 10),
-            'anonymeter_aux_cols':    kwargs.get('anonymeter_aux_cols', None),
-            'anonymeter_secret':      kwargs.get('anonymeter_secret', None)
+            **{k: v for k, v in kwargs.items() if k.startswith('anonymeter_')}
         }
 
         self.data = data

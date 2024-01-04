@@ -8,7 +8,7 @@ from .Anonymeter import Anonymeter
 class Anonymeter_Inference(Anonymeter):
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self._eval_method = 'Inference'
+        self.eval_method = 'Inference'
 
         _time_start = time.time()
         print('Evaluator (Anonymeter - Inference): Now is Inference Evaluator')

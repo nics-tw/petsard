@@ -1,27 +1,38 @@
 import numpy as np
+import pandas as pd
 import time
+from typing import Dict, List, Optional, Union
 import warnings
 
 
 class Anonymeter():
 
-    def __init__(self, **kwargs):
-        class_attributes = {
-            'data_ori':     ('ori',                    None),
-            'data_syn':     ('syn',                    None),
-            'data_control': ('control',                None),
-            'n_attacks':    ('anonymeter_n_attacks',   2000),
-            'n_jobs':       ('anonymeter_n_jobs',      -2),
-            'n_neighbors':  ('anonymeter_n_neighbors', 10),
-            'aux_cols':     ('anonymeter_aux_cols',    None),
-            'secret':       ('anonymeter_secret',      None)
+    def __init__(self,
+                 data: Dict[str, pd.DataFrame],
+                 anonymeter_n_attacks:   int = 2000,
+                 anonymeter_n_jobs:      int = -2,
+                 anonymeter_n_neighbors: int = 10,
+                 anonymeter_aux_cols:    Optional[List[List[str]]] = None,
+                 anonymeter_secret:      Optional[Union[str,
+                                                        List[str]]] = None,
+                 **kwargs
+                 ):
+        dataattr = {
+            'data_ori':     ('ori',     None),
+            'data_syn':     ('syn',     None),
+            'data_control': ('control', None)
         }
-
-        _data = kwargs.get('data', None)
-        for attr, (key, default) in class_attributes.items():
-            value = _data.get(key, kwargs.get(key, default))
+        for attr, (key, default) in dataattr.items():
+            value = data.get(key, default)
             setattr(self, attr, value)
-        pass
+
+        self.n_attacks = anonymeter_n_attacks
+        self.n_jobs = anonymeter_n_jobs
+        self.n_neighbors = anonymeter_n_neighbors
+        self.aux_cols = anonymeter_aux_cols
+        self.secret = anonymeter_secret
+
+        self.eval_method = 'Unknown'
 
     def eval(self):
         """
@@ -51,19 +62,15 @@ class Anonymeter():
             if self._Evaluator:
                 _time_start = time.time()
 
-                self._eval_method = (
-                    self._eval_method if hasattr(self, '_eval_method')
-                    else 'Unknown'
-                )
                 print(
-                    f"Evaluator (Anonymeter): Evaluating  {self._eval_method}."
+                    f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
                 )
 
-                if self._eval_method.startswith('SinglingOut'):
+                _eval_method_num = AnonymeterMethodMap.map(self.eval_method)
+                if _eval_method_num in [0, 1]:
                     _mode = (
-                        'univariate' if self._eval_method.endswith('Univariate')
-                        else 'multivariate' if self._eval_method.endswith('Multivariate')
-                        else 'Unknown'
+                        'univariate' if _eval_method_num == 0
+                        else 'multivariate'
                     )
                     try:
                         self._Evaluator.evaluate(mode=_mode)
@@ -73,14 +80,14 @@ class Anonymeter():
                             f"evaluation failed with {ex}."
                             f"\n                        "
                             f"Please re-run this cell. "
-                            f"For more stable results increase `n_attacks`. "
+                            f"For more stable results increase `n_attacks`."
                             f"Note that this will make the evaluation slower."
                         )
                 else:
                     self._Evaluator.evaluate(n_jobs=self.n_jobs)
                     print(
-                        f"Evaluator (Anonymeter): Evaluating  "
-                        f"{self._eval_method} spent "
+                        f"Evaluator (Anonymeter): "
+                        f"Evaluating {self.eval_method} spent "
                         f"{round(time.time()-_time_start ,4)} sec."
                     )
                 self.evaluation = self._extract_result()
@@ -91,9 +98,8 @@ class Anonymeter():
                 )
 
     def _extract_result(self):
-        _Evaluator = self._Evaluator
-        _dict_result = {}
-        _para_to_handle = [
+        dict_result = {}
+        para_to_handle = [
             ('Risk',              ['risk()',    'value']),
             ('Risk_CI_btm',       ['risk()',    'ci[0]']),
             ('Risk_CI_top',       ['risk()',    'ci[1]']),
@@ -105,39 +111,56 @@ class Anonymeter():
             ('Control_Rate_err',  ['results()', 'control_rate',  'error'])
         ]
 
-        for _key, _attrs in _para_to_handle:
+        for key, evals in para_to_handle:
+            dict_result[key] = np.nan
             try:
-                _attr_value = _Evaluator
-                for _attr in _attrs:
-                    if '()' in _attr:
-                        _method_name = _attr.split('(')[0]
-                        if hasattr(_attr_value, _method_name):
-                            _method = getattr(_attr_value, _method_name)
-                            if callable(_method):
-                                _attr_value = _method()
+                eval_instance = self._Evaluator
+                for eval_command in evals:
+                    if '()' in eval_command:
+                        method_name = eval_command.split('(')[0]
+                        if hasattr(eval_instance, method_name):
+                            method = getattr(eval_instance, method_name)
+                            if callable(method):
+                                eval_instance = method()
                             else:
-                                _dict_result[_key] = np.nan
                                 break
                         else:
-                            _dict_result[_key] = np.nan
                             break
-                    elif '[' in _attr:
-                        _attr_name = _attr.split('[')[0]
-                        _index = int(_attr.split('[')[1].rstrip(']'))
-                        if hasattr(_attr_value, _attr_name)\
-                                and isinstance(getattr(_attr_value, _attr_name), (list, dict, tuple)):
-                            try:
-                                _attr_value = getattr(
-                                    _attr_value, _attr_name)[_index]
-                            except (IndexError, KeyError):
-                                _dict_result[_key] = np.nan
-                                break
+                    elif '[' in eval_command:
+                        attr_name = eval_command.split('[')[0]
+                        index = int(eval_command.split('[')[1].rstrip(']'))
+                        if hasattr(eval_instance, attr_name):
+                            attr = getattr(eval_instance, attr_name)
+                            if isinstance(attr, (list, dict, tuple)):
+                                try:
+                                    eval_instance = attr[index]
+                                except (IndexError, KeyError):
+                                    break
                         else:
-                            _dict_result[_key] = np.nan
                             break
                     else:
-                        _attr_value = getattr(_attr_value, _attr)
-                _dict_result[_key] = _attr_value
-            except Exception as e:
-                _dict_result[_key] = np.nan
-        return _dict_result
+                        eval_instance = getattr(eval_instance, eval_command)
+                dict_result[key] =eval_instance
+            except Exception as ex:
+                pass
+        return dict_result
+
+
+class AnonymeterMethodMap():
+    method_map = {
+        'singlingout - univariate':   0,
+        'singlingout - multivariate': 1,
+        'linkability':                2,
+        'inference':                  3
+    }
+
+    @classmethod
+    def map(cls, method_name: str) -> int:
+        try:
+            return cls.method_map[method_name.lower()]
+        except KeyError as ex:
+            print(
+                f"Evaluator (Anonymeter): Method "
+                f"{method_name} not recognized.\n"
+                f"{ex}"
+            )
