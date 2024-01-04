@@ -61,7 +61,7 @@ class Synthesizer:
         Return:
             None
         """
-        self.data_syn = self.Synthesizer.sample(**kwargs)
+        self.data_syn: pd.DataFrame = self.Synthesizer.sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """
