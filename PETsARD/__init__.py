@@ -38,6 +38,7 @@ from .Processor import *
 from .Executor import Executor
 
 from .HyperProcessor import HyperProcessor
+from .Metadata import Metadata
 
 __all__ =   ['Loader'
                 ,'Splitter'
@@ -51,5 +52,6 @@ __all__ =   ['Loader'
             ,'Executor'
             ,'Splitter'
             
-                ,'HyperProcessor'
+                ,'HyperProcessor',
+                'Metadata'
             ]
