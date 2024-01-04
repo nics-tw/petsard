@@ -1,3 +1,6 @@
+from .SynthesizerFactory import SynthesizerFactory
+
+
 class Synthesizer:
     """
     Base class for all "Synthesizer".
@@ -16,32 +19,55 @@ class Synthesizer:
 
     """
 
-    def __init__(self, data, synthesizing_method: str, **kwargs):
+    def __init__(self, data, synthesizing_method: str, **kwargs) -> None:
 
         _para_Synthesizer = {
             'synthesizing_method': synthesizing_method.lower()
         }
 
-        from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
             data=data, **_para_Synthesizer).create_synthesizer()
-        # data = Synthesizer.train_sample()
 
         self.data_ori = data
         self.Synthesizer = Synthesizer
         self.para = {}
         self.para['Synthesizer'] = _para_Synthesizer
 
-    def fit(self ,**kwargs):
+    def fit(self, **kwargs) -> None:
+        """
+        Fit the synthesizer.
+
+        Args:
+            **kwargs: The fitting parameters.
+
+        Return:
+            None
+        """
         self.Synthesizer.fit(**kwargs)
 
-    def sample(self ,**kwargs):
+    def sample(self, **kwargs) -> None:
+        """
+        Sample from the fitted synthesizer.
+
+        Args:
+            **kwargs: The sampling parameters.
+
+        Return:
+            None
+        """
         self.data_syn = self.Synthesizer.sample(**kwargs)
 
-    def fit_sample(self ,**kwargs):
+    def fit_sample(self, **kwargs) -> None:
+        """
+        Fit and sample from the synthesizer. The combination of the methods `fit()` and `sample()`.
+
+        Args:
+            **kwargs: The fitting/sampling parameters.
+
+        Return:
+            None
+        """
         self.data_syn = self.Synthesizer.fit_sample(**kwargs)
-
-
 
         # _para_Synthesizer['SDV'] = {
         #     'SingleTable_sample_num_rows': kwargs.get('SDV_SingleTable_sample_num_rows', None)
