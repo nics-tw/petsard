@@ -1,8 +1,8 @@
 import warnings
-from ..Processor.Encoder import *
-from ..Processor.Missingist import *
-from ..Processor.Outlierist import *
-from ..Processor.Scaler import *
+from .Encoder import *
+from .Missingist import *
+from .Outlierist import *
+from .Scaler import *
 from .Mediator import *
 from ..Error import *
 from ..Metadata import Metadata
