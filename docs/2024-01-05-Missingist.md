@@ -42,8 +42,8 @@ from PETsARD.Processor.Missingist import Missingist_Simple
 missingist = Missingist_Simple(value=0.0)
 ```
 
-#### Parameters
+### Parameters
 `value` (`float`): The value to be imputed.
 
-#### Outputs
+### Outputs
 None.
