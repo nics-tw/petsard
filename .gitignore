@@ -42,3 +42,4 @@
 # VSCode
 **/.vscode
 **/.code-workspace
+*.code-workspace
