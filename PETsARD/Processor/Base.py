@@ -52,6 +52,21 @@ class Processor:
 
     _DEFAULT_SEQUENCE: list = ['missingist', 'outlierist', 'encoder', 'scaler']
 
+    _PROCESSOR_MAP: dict = {'encoder_uniform': Encoder_Uniform,
+                            'encoder_label': Encoder_Label,
+                            'missingist_mean': Missingist_Mean,
+                            'missingist_median': Missingist_Median,
+                            'missingist_simple': Missingist_Simple,
+                            'missingist_drop': Missingist_Drop,
+                            'outlierist_zscore': Outlierist_ZScore,
+                            'outlierist_iqr': Outlierist_IQR,
+                            'outlierist_isolationforest': Outlierist_IsolationForest,
+                            'outlierist_lof': Outlierist_LOF,
+                            'scaler_standard': Scaler_Standard,
+                            'scaler_zerocenter': Scaler_ZeroCenter,
+                            'scaler_minmax': Scaler_MinMax,
+                            'scaler_log': Scaler_Log}
+
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         metadata: dict = metadata.metadata
         self._check_metadata_valid(metadata=metadata)
@@ -151,7 +166,7 @@ class Processor:
                 # check the validity of processor objects (values)
                 obj = config_to_check[processor].get(col, None)
 
-                if not (isinstance(obj, processor_class) or obj is None):
+                if not (isinstance(obj, processor_class) or isinstance(obj, str) or obj is None):
                     raise ValueError(
                         f'{col} from {processor} contain(s) invalid processor object(s), please check them again.')
 
@@ -239,7 +254,17 @@ class Processor:
             if processor not in config.keys():
                 config[processor] = {}
             for col in val.keys():
-                self._config[processor][col] = config[processor].get(col, None)
+                obj = config[processor].get(col, None)
+                
+                # accept string of processor
+                if type(obj) == str:
+                    obj_convert = self._PROCESSOR_MAP.get(obj, None)
+                    if obj_convert is None:
+                        raise ValueError(f'Invalid processor name {obj}.')
+                    else:
+                        self._config[processor][col] = obj_convert()
+                else:
+                    self._config[processor][col] = obj
 
     def update_config(self, config: dict) -> None:
         """
@@ -255,7 +280,15 @@ class Processor:
 
         for processor, val in config.items():
             for col, obj in val.items():
-                self._config[processor][col] = obj
+                # accept string of processor
+                if type(obj) == str:
+                    obj_convert = self._PROCESSOR_MAP.get(obj, None)
+                    if obj_convert is None:
+                        raise ValueError(f'Invalid processor name {obj}.')
+                    else:
+                        self._config[processor][col] = obj_convert()
+                else:
+                    self._config[processor][col] = obj
 
     def fit(self, data: pd.DataFrame, sequence: list = None) -> None:
         """
