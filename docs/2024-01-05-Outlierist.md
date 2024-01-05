@@ -24,7 +24,7 @@ outlierist = Outlierist_IQR()
 
 ## `Outlierist_IsolationForest`: Identify outliers by Isolation Forest
 
-Identify the outliers using isolation forest from sklearn. It is a global transformation. That is, if any of the column uses isolation forest as an outlierist, it will overwrite the whole config and edit all outlierists to isolation forest.
+Identify the outliers using `IsolationForest` from sklearn. It is a global transformation. That is, if any of the column uses isolation forest as an outlierist, it will overwrite the whole config and edit all outlierists to isolation forest.
 
 ```python
 from PETsARD.Processor.Outlierist import Outlierist_IsolationForest
@@ -34,7 +34,7 @@ outlierist = Outlierist_IsolationForest()
 
 ## `Outlierist_LOF`: Identify outliers by Local Outlier Factor
 
-Identify the outliers using local outlier factor from sklearn. It is a global transformation. That is, if any of the column uses local outlier factor as an outlierist, it will overwrite the whole config and edit all outlierists to local outlier factor.
+Identify the outliers using `LocalOutlierFactor` from sklearn. It is a global transformation. That is, if any of the column uses local outlier factor as an outlierist, it will overwrite the whole config and edit all outlierists to local outlier factor.
 
 ```python
 from PETsARD.Processor.Outlierist import Outlierist_LOF
