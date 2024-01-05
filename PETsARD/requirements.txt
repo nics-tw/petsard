@@ -3,6 +3,11 @@
 # Latest 1.8 update: 2023/12/05
 sdv<=1.7
 
+# https://github.com/sdv-dev/SDMetrics
+# 0.13.0 update: 2023/12/04
+# Latest 0.13.0
+sdmetrics==0.13
+
 # https://github.com/statice/anonymeter
 # Latest 0.0.2 update: 2023/07/15
 anonymeter
