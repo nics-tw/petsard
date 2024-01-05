@@ -59,9 +59,6 @@ processor.get_config(
 #### Parameters
 `parameter_name` (`expected type (if any)`): Description.
 
-#### Outputs
-None.
-
 ### `API in the class 3 (with outputs only)`
 
 Description.
@@ -70,9 +67,6 @@ Description.
 # Detailed structure of the function
 processor.get_config()
 ```
-
-#### Parameters
-None.
 
 #### Outputs
 (`expected type (if any)`): Description.
