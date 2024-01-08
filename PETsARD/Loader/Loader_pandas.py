@@ -1,11 +1,13 @@
 import pandas as pd
 
+from .Loader import Loader
 
-class Loader_csv_pandas:
+
+class Loader_csv_pandas(Loader):
     def __init__(self):
-        pass
+        super().__init__()
 
-    def load(self, para_Loader):
+    def load(self, para_Loader: dict) -> pd.DataFrame:
         dict_setting = {}
         dict_setting['filepath_or_buffer'] = para_Loader['filepath']
 
@@ -23,11 +25,11 @@ class Loader_csv_pandas:
         return pd.read_csv(**dict_setting)
 
 
-class Loader_excel_pandas:
+class Loader_excel_pandas(Loader):
     def __init__(self):
-        pass
+        super().__init__()
 
-    def load(self, para_Loader):
+    def load(self, para_Loader: dict) -> pd.DataFrame:
         dict_setting = {}
         dict_setting['io'] = para_Loader['filepath']
 
