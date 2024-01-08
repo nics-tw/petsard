@@ -2,7 +2,7 @@
 
 The `Processor` module is responsible for managing preprocessing and postprocessing procedures during experiments. This component facilitates easy data handling, including tasks such as encoding categorical data, handling missing data, excluding outliers, and scaling data. This guide will walk you through the creation and manipulation of a processor instance from the `Processor` class.
 
-`Processor` 模組負責在實驗期間管理資料前處理和後處理（還原）的過程。此元件可進行多種數據處理，包括為類別資料進行編碼、處理缺失值、排除異常值以及標準化資料等任務。本指南將引導您建立和操作 `Processor` 類的物件。
+`Processor` 模組負責在實驗期間管理資料前處理和後處理（還原）的過程。此元件可進行多種資料處理，包括為類別資料進行編碼、處理缺失值、排除異常值以及標準化資料等任務。本指南將引導您建立和操作 `Processor` 類的物件。
 
 ```python
 from PETsARD.Processor.Base import Processor
@@ -205,3 +205,63 @@ inverse_transformed = processor.inverse_transform(data)
 
 ---
 (`pandas.DataFrame`): 轉換完成的資料。
+
+## `config` Format
+
+The `config` allows for easy customization of processes during experiments, enabling the adjustment of specific operations or the exploration of different procedures. Represented as a nested dictionary, the `config` defines how a `Processor` operates, where the detailed format is outlined below.
+
+`config` 結構讓使用者可以實驗中輕鬆自定義流程、調整特定操作或探索不同的資料處理方式。`config` 以巢狀字典的資料型態表示，定義了 `Processor` 的操作方式，其詳細格式如下。
+
+```python
+config = {Processor_Type: {Column_Name: Processor_Object}}
+```
+
+Two valid examples of `config` are provided for clarity:
+
+以下提供兩個範例：
+
+```python
+config_1 = {
+    'missingist': {'gen': Missingist_Drop(), 
+                    'age': Missingist_Simple(5)},
+    'outlierist': {'gen': None, 
+                    'age': Outlierist_ZScore()},
+    'encoder': {'gen': Encoder_Label()},
+    'scaler': {'age': Scaler_Log()}
+    }
+```
+
+```python
+config_2 = {
+    'missingist': {'gen': None, 
+                    'age': 'missingist_simple'},
+    'outlierist': {'gen': None, 
+                    'age': 'outlierist_lof'},
+    'encoder': {'gen': 'encoder_uniform'},
+    'scaler': {'age': 'scaler_minmax'}
+    }
+```
+
+### Customisation Options
+
+#### Suppressing Default Procedures
+To suppress a default procedure in a particular column, set the corresponding value as `None`. For example, in `config_1`, the `outlierist` processor in the `gen` column is removed.
+
+#### 抑制預設流程
+要抑制特定欄位中的預設流程，可將相應的值設置為 `None`。例如，在 `config_1` 中，`gen` 中的 `outlierist` 處理器被移除。
+
+#### User-Defined Values
+Certain data preprocessing procedures accept user-defined values. Replace the default value with a customised object to tailor the operation. In `config_1`, the `missingist` processor in the `age` column is set to impute 5 instead of the default 0 for missing cells.
+
+#### 使用者自定義的數值
+某些資料前處理過程接受使用者自定義的數值，可將預設值替換為自定義物件，以調整操作。在 `config_1` 中，`age` 中的 `missingist` 處理器被設置為對缺失值填入5，而非預設的0。
+
+#### Using Procedure Names
+Procedure names are acceptable, as demonstrated in `config_2`. However, when using names, customisation of the procedure (e.g., setting a specific imputing value) is not possible. It is a convenient option when default settings suffice.
+
+#### 使用資料處理器名稱
+將資料處理器的名稱傳入 `config` 是被允許的，正如在 `config_2` 中所示。然而，使用名稱時，無法客製化資料處理器（例如，設置特定的填充值）。當預設處理器的參數滿足使用需求時，這是一個方便的選項。
+
+Feel free to modify the `config` according to your experiment's requirements, customising parameters for a tailored approach to data processing.
+
+歡迎隨意調整 `config` 以滿足實驗需求，結合資料處理器並自定義參數，為資料處理提供量身訂製的方法。
