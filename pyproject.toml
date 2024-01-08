@@ -1,0 +1,75 @@
+# """
+# pyproject.toml
+#
+#   The pyproject.toml is a package configuration file introduced
+#       by [PEP 518](https://peps.python.org/pep-0518/). Our library utilizes
+#       [Poetry](https://python-poetry.org/) for packaging and managing package
+#        dependencies, and uses Poetry to export requirements.txt.
+#   pyproject.toml 為 [PEP 518](https://peps.python.org/pep-0518/) 引入的
+#       套件配置文件。本函式庫使用 [Poetry](https://python-poetry.org/) 打包
+#       並管理套件相依性，並使用 Poetry 輸出 requirement.txt。
+#
+# ...
+# Methods:
+#
+# poetry add pip@^23.0.0 ipykernel sdv@~1.7.0 sdmetrics@^0.12.0 anonymeter@^0.0.2
+#
+#   - Add the necessary dependencies and allow Poetry
+#       to verify and install them.
+#     添加所需依賴項並讓 Poetry 檢查並安裝這些依賴。
+#
+#       - pip: 23.0.0 above
+#       - ipykernel
+#       - SDV: 1.7 only
+#           - https://github.com/sdv-dev/SDV
+#           - 1.7 update: 2023/11/16
+#           - Latest 1.8 update: 2023/12/05
+#       - SDMetrics: 0.12 above
+#           - https://github.com/sdv-dev/SDMetrics
+#           - 0.12.0 update: 2023/11/01
+#           - Latest 0.13.0 update: 2023/12/04
+#               - Because sdv (1.7.0) depends on sdmetrics (>=0.12.1,<0.13)
+#               -   and no versions of sdv match >1.7.0,<1.8.0,
+#               -   sdv (>=1.7.0,<1.8.0) requires sdmetrics (>=0.12.1,<0.13).
+#               - So, because petsard depends on both sdv (~1.7.0)
+#               -   and sdmetrics (^0.13.0), version solving failed.
+#       - SDV: 1.7 only
+#           - https://github.com/sdv-dev/SDV
+#           - 1.7 update: 2023/11/16
+#           - Latest 1.8 update: 2023/12/05
+#       - anonymeter, 0.0.2 above
+#           - https://github.com/statice/anonymeter
+#           - Latest 0.0.2 update: 2023/07/15
+#
+# poetry export -f requirements.txt -o requirements.txt --without-hashes
+#
+#   - Export to requirements.txt.
+#     輸出 requirements.txt。
+#   - You can add the --without-hashes option for easier visual inspection.
+#     可添加 --without-hashes 方便肉眼檢查
+#
+# """
+
+
+[tool.poetry]
+name = "petsard"
+version = "0.3.0-alpha"
+description = "Facilitates data generation algorithm and their evaluation processes"
+authors = [
+    "alexchen830 <alexchen830@gmail.com>",
+    "matheme-justyn <matheme.justyn@gmail.com>"
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+pip = "^23.0.0"
+ipykernel = "^6.28.0"
+sdv = "~1.7.0"
+sdmetrics = "^0.12.0"
+anonymeter = "^0.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
