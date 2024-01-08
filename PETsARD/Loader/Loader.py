@@ -7,7 +7,12 @@ from typing import (
     Union
 )
 
-from .LoaderFactory import LoaderFactory
+import pandas as pd
+
+from .Loader_pandas import (
+    Loader_csv_pandas,
+    Loader_excel_pandas
+)
 from ..util import df_casting
 from ..util import df_cast_check
 
@@ -140,7 +145,7 @@ class Loader:
                           ) -> dict:
         colnames_discrete = [] if colnames_discrete is None else colnames_discrete
         colnames_datetime = [] if colnames_datetime is None else colnames_datetime
-        __dict_colnames_string = dict.fromkeys(
+        dict_colnames_string = dict.fromkeys(
             [*colnames_discrete,
                 *colnames_datetime
              ],
@@ -149,6 +154,34 @@ class Loader:
         para_Loader.update({
             'colnames_discrete': colnames_discrete,
             'colnames_datetime': colnames_datetime,
-            'dtype': __dict_colnames_string
+            'dtype': dict_colnames_string
         })
         return para_Loader
+
+    def load(self) -> pd.DataFrame:
+        ###
+
+
+class LoaderFactory:
+    def __init__(
+            self,
+            para_Loader: dict
+    ):
+        _file_ext = para_Loader['file_ext']
+        if _file_ext == 'csv':
+            self.Loader = Loader_csv_pandas()
+        elif _file_ext in [
+            'xls', 'xlsx', 'xlsm', 'xlsb',
+            'odf', 'ods', 'odt'
+        ]:
+            self.Loader = Loader_excel_pandas()
+        else:
+            raise ValueError(
+                f"Loader - LoaderFactory: "
+                f"Unsupported file type, now is {_file_ext}."
+            )
+
+        self.para_Loader = para_Loader
+
+    def load(self) -> pd.DataFrame:
+        return self.Loader.load(self.para_Loader)
