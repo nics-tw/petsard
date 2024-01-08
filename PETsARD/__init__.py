@@ -29,11 +29,16 @@ from .Postprocessor import *
 from .Synthesizer   import *
 from .Preprocessor  import *
 from .Loader        import *
-__author__ = 'NICS-PETs'
-__email__ = 'matheme.justyn@gmail.com'
-__version__ = '0.2.0'
 
-
-__all__ = ['Loader', 'Splitter', 'Preprocessor', 'Synthesizer', 'Postprocessor', 'Evaluator',
-           'Processor', 'Executor', 'Splitter', 'Metadata'
-           ]
+__all__ = [
+    'Loader',
+    'Splitter',
+    'Preprocessor',
+    'Synthesizer',
+    'Postprocessor',
+    'Evaluator',
+    'Processor',
+    'Executor',
+    'Splitter',
+    'Metadata'
+]
