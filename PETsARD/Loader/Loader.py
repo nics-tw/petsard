@@ -13,6 +13,12 @@ from .Loader_pandas import (
     Loader_csv_pandas,
     Loader_excel_pandas
 )
+import pandas as pd
+
+from .Loader_pandas import (
+    Loader_csv_pandas,
+    Loader_excel_pandas
+)
 from ..util import df_casting
 from ..util import df_cast_check
 
