@@ -33,8 +33,7 @@
 **/.ipynb_checkpoints
 
 # Distribution
-**/.env
-**/env
+**/*{env,venv}
 
 # Mac
 **/.DS_Store
