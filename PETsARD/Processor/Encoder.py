@@ -1,18 +1,29 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import LabelEncoder
+
+from ..Error import UnfittedError
 
 
 class Encoder:
+    """
+    Base class for all Encoder classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         # Mapping dict
-        self.cat_to_val = None
+        self.cat_to_val: dict = None
 
         # Labels
-        self.labels = None
+        self.labels: list = None
 
-        self._is_fitted = False
+        self._is_fitted: bool = False
 
     def fit(self, data: pd.Series) -> None:
         """
@@ -100,12 +111,22 @@ class Encoder:
 
 
 class Encoder_Uniform(Encoder):
+    """
+    Implement a uniform encoder.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         super().__init__()
 
         # Lower and upper values
-        self.upper_values = None
-        self.lower_values = None
+        self.upper_values: np.ndarray = None
+        self.lower_values: np.ndarray = None
 
         # Initiate a random generator
         self._rgenerator = np.random.default_rng()
@@ -120,7 +141,7 @@ class Encoder_Uniform(Encoder):
         Return:
             None
         """
-        normalize_value_counts = data.value_counts(normalize=True)
+        normalize_value_counts: pd.Series = data.value_counts(normalize=True)
         # Get keys (original labels)
         self.labels = normalize_value_counts.index.get_level_values(0)\
             .to_list()
@@ -145,10 +166,12 @@ class Encoder_Uniform(Encoder):
             (np.ndarray): The transformed data.
         """
 
+        # the function doesn't accept categorical variables
+        # should convert to object first
         if isinstance(data.dtype, pd.api.types.CategoricalDtype):
-            data_obj = data.astype(object)
+            data_obj: pd.Series = data.astype(object)
         else:
-            data_obj = data.copy()
+            data_obj: pd.Series = data.copy()
 
         return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]).values
 
@@ -168,15 +191,25 @@ class Encoder_Uniform(Encoder):
             raise ValueError(
                 "The range of the data is out of range. Please check the data again.")
 
-        bins_val = np.append(self.lower_values, 1.0)
+        bins_val: np.ndarray = np.append(self.lower_values, 1.0)
 
         return pd.cut(data, right=False, include_lowest=True, bins=bins_val, labels=self.labels, ordered=False)
 
 
 class Encoder_Label(Encoder):
+    """
+    Implement a label encoder.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         super().__init__()
-        self.model = LabelEncoder()
+        self.model: LabelEncoder = LabelEncoder()
 
     def _fit(self, data: pd.Series) -> None:
         """

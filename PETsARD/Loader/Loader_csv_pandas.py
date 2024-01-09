@@ -1,20 +1,23 @@
+import pandas as pd
+
+
 class Loader_csv_pandas:
     def __init__(self):
         pass
 
-    def load(self ,para_Loader):
-        __dict_setting = {}
-        __dict_setting['filepath_or_buffer'] = para_Loader['filepath']
+    def load(self, para_Loader):
+        dict_setting = {}
+        dict_setting['filepath_or_buffer'] = para_Loader['filepath']
 
-        __list_setting = ['sep' ,'dtype' ,'na_values']
-        __dict_setting.update({k: para_Loader[k] for k in __list_setting})
+        list_setting = ['sep', 'dtype', 'na_values']
+        dict_setting.update({k: para_Loader[k] for k in list_setting})
 
         if para_Loader['header_exist']:
-            __dict_setting['header'] = 0
+            dict_setting['header'] = 0
         else:
-            __dict_setting.update({'header' : None
-                                  ,'names'  : para_Loader['header_names']
-                                  })
+            dict_setting.update({
+                'header': None,
+                'names':  para_Loader['header_names']
+            })
 
-        import pandas as pd
-        return pd.read_csv(**__dict_setting)
+        return pd.read_csv(**dict_setting)
