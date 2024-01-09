@@ -3,34 +3,21 @@ import pandas as pd
 from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 
-
 class Outlierist:
-    """
-    Base class for all Outlierist classes.
-
-    Args:
-        None
-
-    Return:
-        None
-    """
     def __init__(self) -> None:
-        self._is_fitted: bool = False
-        self.data_backup: np.ndarray = None  # for restoring data
+        self._is_fitted = False
+        self.data_backup = None # for restoring data
 
     def fit(self, data: pd.Series) -> None:
         """
         Base method of `fit`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be fitted.
 
-        Return:
+        Output:
             None
         """
-        if not self.IS_GLOBAL_TRANSFORMATION:
-            self._check_dtype_valid(data)
-
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
@@ -42,15 +29,12 @@ class Outlierist:
         """
         Base method of `transform`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The filter marking the outliers.
         """
-        if not self.IS_GLOBAL_TRANSFORMATION:
-            self._check_dtype_valid(data)
-
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
@@ -60,96 +44,63 @@ class Outlierist:
 
         return self._transform(data)
 
-    def _check_dtype_valid(self, data: pd.Series) -> None:
-        """
-        Check whether the data type is valid. Only called by the outlierists conducting local transformation, e.g., Outlierist_ZScore and Outlierist_IQR. The methods for global outlierists are conducted in Mediators.
-
-        Args:
-            data (pd.Series): The data to be processed.
-
-        Return:
-            None
-        """
-        if not pd.api.types.is_numeric_dtype(data):
-            raise ValueError(
-                f'The column {data.name} should be in numerical format to use an outlierist.')
-
-
 class Outlierist_ZScore(Outlierist):
-    """
-    Select outliers based on z-score > 3.
-
-    Args:
-        None
-
-    Return:
-        None
-    """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION: bool = False
+    IS_GLOBAL_TRANSFORMATION = False
 
     def __init__(self) -> None:
         super().__init__()
-        self.model: StandardScaler = StandardScaler()
+        self.model = StandardScaler()
 
     def _fit(self, data: np.ndarray) -> None:
         """
         Gather information for transformation and reverse transformation.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             None
         """
+        self.data_backup = data
+
         self.model.fit(data)
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The filter marking the outliers.
         """
-        self.data_backup = data
-
-        ss_data: np.ndarray = self.model.transform(data)
+        
+        ss_data = self.model.transform(data)
 
         return (np.abs(ss_data) > 3).ravel()
 
-
 class Outlierist_IQR(Outlierist):
-    """
-    Select outliers based on IQR. The data which is outside of the range of 1.5*IQR will be determined as an outlier.
-
-    Args:
-        None
-
-    Return:
-        None
-    """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION: bool = False
+    IS_GLOBAL_TRANSFORMATION = False
 
     def __init__(self) -> None:
         super().__init__()
-        self.Q1: float = None
-        self.Q3: float = None
-        self.IQR: float = None
-        self.lower: float = None
-        self.upper: float = None
+        self.Q1 = None
+        self.Q3 = None
+        self.IQR = None
+        self.lower = None
+        self.upper = None
 
     def _fit(self, data: np.ndarray) -> None:
         """
         Gather information for transformation and reverse transformation.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             None
         """
         self.Q1 = np.quantile(data, 0.25)
@@ -158,35 +109,28 @@ class Outlierist_IQR(Outlierist):
         self.lower = self.Q1 - 1.5 * self.IQR
         self.upper = self.Q3 + 1.5 * self.IQR
 
+        self.data_backup = data
+
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The filter marking the outliers.
         """
-        self.data_backup = data
 
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
-
-
+    
 class Outlierist_IsolationForest(Outlierist):
     """
-    Implementation of Isolation Forest.
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
-
-    Args:
-        None
-
-    Return:
-        None
     """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION: bool = True
+    IS_GLOBAL_TRANSFORMATION = True
 
     def __init__(self) -> None:
         super().__init__()
@@ -195,23 +139,15 @@ class Outlierist_IsolationForest(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data.ravel()
-
+        return data
 
 class Outlierist_LOF(Outlierist):
     """
-    Implementation of Isolation Forest.
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
-
-    Args:
-        None
-
-    Return:
-        None
     """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION: bool = True
+    IS_GLOBAL_TRANSFORMATION = True
 
     def __init__(self) -> None:
         super().__init__()
@@ -220,4 +156,4 @@ class Outlierist_LOF(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data.ravel()
+        return data
