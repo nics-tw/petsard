@@ -5,7 +5,8 @@ from .SDV_SingleTableFactory import SDV_SingleTableFactory
 
 class SDVFactory:
     """
-    Manage the SDV synthesizers. It allocates the task to the right SDV synthesizer based on the parameters.
+    Manage the SDV synthesizers.
+    It allocates the task to the right SDV synthesizer based on the parameters.
 
     Args:
         data (pd.DataFrame): The data to be synthesized from.
@@ -36,10 +37,8 @@ class SDVFactory:
     def create_synthesizer(self):
         """
         Create synthesizer instance.
-
         Args:
             None
-
         Return:
             self.Synthesizer (synthesizer): The synthesizer instance.
         """
