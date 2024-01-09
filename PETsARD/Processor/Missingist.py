@@ -1,16 +1,26 @@
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 
-from copy import deepcopy
+from ..Error import UnfittedError
 
 
 class Missingist:
+    """
+    Base class for all Missingist classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     def __init__(self) -> None:
-        self._is_fitted = False
-        self.na_percentage = None
-        self._imputation_index = None
-        self._imputation_index_len = 0
+        self._is_fitted: bool = False
+        self.na_percentage: float = None
+        self._imputation_index: list = None
+        self._imputation_index_len: int = 0
         self.rng = np.random.default_rng()
 
     def set_na_percentage(self, na_percentage: float = 0.0) -> None:
@@ -96,7 +106,7 @@ class Missingist:
                                        size=int(self.na_percentage *
                                                 self._imputation_index_len),
                                        replace=False)
-            _col_data = deepcopy(data)
+            _col_data: pd.Series = deepcopy(data)
             _col_data.iloc[_na_mask] = np.nan
 
             return _col_data
@@ -117,9 +127,18 @@ class Missingist:
 
 
 class Missingist_Mean(Missingist):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.data_mean = None
+    """
+    Impute NA values with the mean value.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.data_mean: float = None
 
     def _fit(self, data: pd.Series) -> None:
         """
@@ -154,9 +173,18 @@ class Missingist_Mean(Missingist):
 
 
 class Missingist_Median(Missingist):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.data_median = None
+    """
+    Impute NA values with the median value.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.data_median: float = None
 
     def _fit(self, data: pd.Series) -> None:
         """
@@ -191,9 +219,18 @@ class Missingist_Median(Missingist):
 
 
 class Missingist_Simple(Missingist):
-    def __init__(self, value: float = 0, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.data_value = value
+    """
+    Impute NA values with the given value.
+
+    Args:
+        value (float, default=0.0): The value for imputation.
+
+    Return:
+        None
+    """
+    def __init__(self, value: float = 0.0) -> None:
+        super().__init__()
+        self.data_value: float = value
 
     def _fit(self, data: None) -> None:
         pass  # Redundant
@@ -216,9 +253,18 @@ class Missingist_Simple(Missingist):
 
 
 class Missingist_Drop(Missingist):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.data_backup = None  # for restoring data
+    """
+    Drop the rows with NA values.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.data_backup: pd.Series = None  # for restoring data
 
     def _fit(self, data: None) -> None:
         pass  # Redundant

@@ -1,13 +1,24 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
+
+from ..Error import UnfittedError
 
 
 class Outlierist:
+    """
+    Base class for all Outlierist classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
-        self._is_fitted = False
-        self.data_backup = None  # for restoring data
+        self._is_fitted: bool = False
+        self.data_backup: np.ndarray = None  # for restoring data
 
     def fit(self, data: pd.Series) -> None:
         """
@@ -67,12 +78,21 @@ class Outlierist:
 
 
 class Outlierist_ZScore(Outlierist):
+    """
+    Select outliers based on z-score > 3.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION = False
+    IS_GLOBAL_TRANSFORMATION: bool = False
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = StandardScaler()
+        self.model: StandardScaler = StandardScaler()
 
     def _fit(self, data: np.ndarray) -> None:
         """
@@ -98,22 +118,31 @@ class Outlierist_ZScore(Outlierist):
         """
         self.data_backup = data
 
-        ss_data = self.model.transform(data)
+        ss_data: np.ndarray = self.model.transform(data)
 
         return (np.abs(ss_data) > 3).ravel()
 
 
 class Outlierist_IQR(Outlierist):
+    """
+    Select outliers based on IQR. The data which is outside of the range of 1.5*IQR will be determined as an outlier.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION = False
+    IS_GLOBAL_TRANSFORMATION: bool = False
 
     def __init__(self) -> None:
         super().__init__()
-        self.Q1 = None
-        self.Q3 = None
-        self.IQR = None
-        self.lower = None
-        self.upper = None
+        self.Q1: float = None
+        self.Q3: float = None
+        self.IQR: float = None
+        self.lower: float = None
+        self.upper: float = None
 
     def _fit(self, data: np.ndarray) -> None:
         """
@@ -148,11 +177,18 @@ class Outlierist_IQR(Outlierist):
 
 class Outlierist_IsolationForest(Outlierist):
     """
+    Implementation of Isolation Forest.
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
+
+    Args:
+        None
+
+    Return:
+        None
     """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION = True
+    IS_GLOBAL_TRANSFORMATION: bool = True
 
     def __init__(self) -> None:
         super().__init__()
@@ -166,11 +202,18 @@ class Outlierist_IsolationForest(Outlierist):
 
 class Outlierist_LOF(Outlierist):
     """
+    Implementation of Isolation Forest.
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
+
+    Args:
+        None
+
+    Return:
+        None
     """
     # indicator of whether the fit and transform process involved other columns
-    IS_GLOBAL_TRANSFORMATION = True
+    IS_GLOBAL_TRANSFORMATION: bool = True
 
     def __init__(self) -> None:
         super().__init__()
