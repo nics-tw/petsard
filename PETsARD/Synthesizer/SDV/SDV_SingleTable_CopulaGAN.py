@@ -20,4 +20,5 @@ class SDV_SingleTable_CopulaGAN(SDV_SingleTable):
         super().__init__(data, **kwargs)
         self.syn_method: str = 'CopulaGAN'
 
+        # metadata already create in SDV_SingleTable
         self._Synthesizer = CopulaGANSynthesizer(self.metadata)

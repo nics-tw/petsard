@@ -9,9 +9,11 @@ from .SDV import SDV
 class SDV_SingleTable(SDV):
     """
     Base class for all SDV SingleTable classes.
+
     Args:
         data (pd.DataFrame): The data to be synthesized.
         **kwargs: The other parameters.
+
     Return:
         None
     TODO - Put all SDV related class together
