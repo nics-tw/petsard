@@ -1,7 +1,9 @@
-from .Outlierist import Outlierist
 from pandas import to_datetime
 from pandas.api.types import is_datetime64_any_dtype
 from sklearn.neighbors import LocalOutlierFactor
+
+from .Outlierist import Outlierist
+
 
 class Outlierist_LOF(Outlierist):
     def __init__(self, df_data, **kwargs):
@@ -29,33 +31,42 @@ class Outlierist_LOF(Outlierist):
                 Specifies the columns for check outlier value.
         """
 
-        _row_ori = self.df_data.shape[0]
-        _digits_row_ori = len(str(_row_ori))
-        
+        row_ori = self.df_data.shape[0]
+        digits_row_ori = len(str(row_ori))
+
         transformed_data = self.df_data.copy()
 
-        for _col_name in self.outlier_columns_action:
-            _col_data = transformed_data[_col_name]
-            if is_datetime64_any_dtype(_col_data):
+        for col_name in self.outlier_columns_action:
+            col_data = transformed_data[col_name]
+            if is_datetime64_any_dtype(col_data):
 
-                _col_data_timestamp = to_datetime(
-                    _col_data).view(int) / 10**9
-                
-                transformed_data[_col_name] = _col_data_timestamp
+                col_data_timestamp = \
+                    to_datetime(col_data).view(int) / 10**9
+
+                transformed_data[col_name] = col_data_timestamp
 
         isof = LocalOutlierFactor()
 
-        outlier_vector = isof.fit_predict(transformed_data[self.outlier_columns_action])
+        outlier_vector = isof.fit_predict(
+            transformed_data[self.outlier_columns_action]
+        )
 
 
 
-        _row_drop_ttl = sum(outlier_vector == -1)
-        if _row_drop_ttl == 0:
-            print(f'Preprocessor - Outlierist (LOF): None of rows have been dropped.')
+        row_drop_ttl = sum(outlier_vector == -1)
+        if row_drop_ttl == 0:
+            print(
+                f"Preprocessor - Outlierist (LOF): "
+                f"None of rows have been dropped."
+            )
         else:
             print(
-                f'Preprocessor - Outlierist (LOF): Totally Dropped {_row_drop_ttl: >{_digits_row_ori}} in {_row_ori} rows.')
+                f"Preprocessor - Outlierist (LOF): "
+                f"Totally Dropped {row_drop_ttl: >{digits_row_ori}} "
+                f"in {row_ori} rows."
+            )
 
-        self.df_data = self.df_data.loc[outlier_vector == 1].reset_index(drop=True)
+        self.df_data = self.df_data\
+            .loc[outlier_vector == 1].reset_index(drop=True)
 
         return self.df_data

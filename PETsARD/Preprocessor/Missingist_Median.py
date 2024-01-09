@@ -15,7 +15,8 @@ class Missingist_Median(Missingist):
             Missingist_Mean(pandas.DataFrame)
             Returns:
                 pandas.DataFrame: A pandas DataFrame
-                    containing the table with filled missing value, and already re-indexing.
+                    containing the table with filled missing value,
+                    and already re-indexing.
         ...
 
         Args:
@@ -27,14 +28,20 @@ class Missingist_Median(Missingist):
                 Specifies the columns for check missing value.
         """
 
-        _row_before = self.df_data.isna().sum()
-        processed = self.df_data.fillna(value=self.df_data.median()).reset_index(drop=True)
-        _row_filled = _row_before - processed.isna().sum()
+        row_before = self.df_data.isna().sum()
+        processed = self.df_data\
+            .fillna(value=self.df_data.median()).reset_index(drop=True)
+        row_filled = row_before - processed.isna().sum()
 
-        if _row_filled == 0:
-            print(f'Preprocessor - Missingist (Median): No rows have been filled.')
+        if row_filled == 0:
+            print(
+                f"Preprocessor - Missingist (Median): "
+                f"No rows have been filled."
+            )
         else:
             print(
-                f'Preprocessor - Missingist (Median): Filled {_row_filled} rows.')
+                f'Preprocessor - Missingist (Median): "
+                f"Filled {row_filled} rows.'
+            )
 
         return processed

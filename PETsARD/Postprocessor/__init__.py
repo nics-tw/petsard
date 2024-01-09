@@ -1,4 +1,5 @@
 from .Postprocessor import Postprocessor
 
-__all__ = ['Postprocessor'
-          ]
+__all__ = [
+    'Postprocessor'
+]
