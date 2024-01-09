@@ -1,7 +1,3 @@
-from .SynthesizerFactory import SynthesizerFactory
-import pandas as pd
-
-
 class Synthesizer:
     """
     Base class for all "Synthesizer".
@@ -9,64 +5,43 @@ class Synthesizer:
     The "Synthesizer" class defines the common API
     that all the "Synthesizer" need to implement, as well as common functionality.
 
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        synthesizing_method (str): The synthesizing method to be implemented.
-        **kwargs: The other parameters.
+    ...
+    Methods:
+        Synthesizer(DataFrame): Synthesizing specified DataFrame.
+        Returns:
+            DataFrame: A pandas DataFrame that input data after synthesizing
+    ...
 
-    Return:
-        None
+    Args:
+
     """
 
-    def __init__(self, data: pd.DataFrame, synthesizing_method: str, **kwargs) -> None:
+    def __init__(self, data, synthesizing_method: str, **kwargs):
 
-        _para_Synthesizer: dict = {
+        _para_Synthesizer = {
             'synthesizing_method': synthesizing_method.lower()
         }
 
+        from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
             data=data, **_para_Synthesizer).create_synthesizer()
+        # data = Synthesizer.train_sample()
 
-        self.data_ori: pd.DataFrame = data
+        self.data_ori = data
         self.Synthesizer = Synthesizer
-        self.para: dict = {}
-        self.para['Synthesizer']: dict = _para_Synthesizer
+        self.para = {}
+        self.para['Synthesizer'] = _para_Synthesizer
 
-    def fit(self, **kwargs) -> None:
-        """
-        Fit the synthesizer.
-
-        Args:
-            **kwargs: The fitting parameters.
-
-        Return:
-            None
-        """
+    def fit(self ,**kwargs):
         self.Synthesizer.fit(**kwargs)
 
-    def sample(self, **kwargs) -> None:
-        """
-        Sample from the fitted synthesizer.
+    def sample(self ,**kwargs):
+        self.data_syn = self.Synthesizer.sample(**kwargs)
 
-        Args:
-            **kwargs: The sampling parameters.
+    def fit_sample(self ,**kwargs):
+        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
-        Return:
-            None
-        """
-        self.data_syn: pd.DataFrame = self.Synthesizer.sample(**kwargs)
 
-    def fit_sample(self, **kwargs) -> None:
-        """
-        Fit and sample from the synthesizer. The combination of the methods `fit()` and `sample()`.
-
-        Args:
-            **kwargs: The fitting/sampling parameters.
-
-        Return:
-            None
-        """
-        self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
 
         # _para_Synthesizer['SDV'] = {
         #     'SingleTable_sample_num_rows': kwargs.get('SDV_SingleTable_sample_num_rows', None)

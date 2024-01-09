@@ -18,22 +18,38 @@ Preprocessor.py
 """
 
 
+
 """Top-level package for PETs-Experiment."""
 
-from .Metadata import Metadata
-from .Executor import Executor
-from .Processor import *
-from .util          import *
-from .Evaluator     import *
-from .Postprocessor import *
-from .Synthesizer   import *
-from .Preprocessor  import *
-from .Loader        import *
-__author__ = 'NICS-PETs'
-__email__ = 'matheme.justyn@gmail.com'
+__author__  = 'NICS-PETs'
+__email__   = 'matheme.justyn@gmail.com'
 __version__ = '0.2.0'
 
 
-__all__ = ['Loader', 'Splitter', 'Preprocessor', 'Synthesizer', 'Postprocessor', 'Evaluator',
-           'Processor', 'Executor', 'Splitter', 'Metadata'
-           ]
+
+from .Loader        import *
+from .Preprocessor  import *
+from .Synthesizer   import *
+from .Postprocessor import *
+from .Evaluator     import *
+from .util          import *
+from .Processor import *
+
+from .Executor import Executor
+
+from .HyperProcessor import HyperProcessor
+
+__all__ =   ['Loader'
+                ,'Splitter'
+            ,'Preprocessor'
+            ,'Synthesizer'
+
+            ,'Postprocessor'
+            ,'Evaluator'
+            ,'Postprocessor',
+             'Processor'   
+            ,'Executor'
+            ,'Splitter'
+            
+                ,'HyperProcessor'
+            ]
