@@ -16,10 +16,6 @@ class Missingist:
         _na_mask = self.rng.random(len(col_data))
         _na_mask = _na_mask < self.na_percentage
         _col_data = col_data.copy()
-        try:
-            _col_data[_na_mask] = np.nan
-        except ValueError:
-            _col_data = _col_data.astype(float)
-            _col_data[_na_mask] = np.nan
+        _col_data[_na_mask] = np.nan
         return _col_data
 
