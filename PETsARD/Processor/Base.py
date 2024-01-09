@@ -1,4 +1,7 @@
+from copy import deepcopy
+import logging
 import warnings
+
 from .Encoder import *
 from .Missingist import *
 from .Outlierist import *
@@ -7,8 +10,6 @@ from .Mediator import *
 from ..Error import *
 from ..Metadata import Metadata
 
-from copy import deepcopy
-import logging
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
