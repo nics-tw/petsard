@@ -10,13 +10,17 @@ class SDV_SingleTableFactory:
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         """
         Base class for all "SDV".
+
         The "SDV" class defines the common API
         that all the "SDV" need to implement, as well as common functionality.
+
         Args:
             data (pd.DataFrame): The data to be synthesized.
             **kwargs: The other parameters.
+
         Return:
             None
+
         TODO As AnonymeterMethodMap, use class define mapping of string and int,
              don't use string condition.
         """
