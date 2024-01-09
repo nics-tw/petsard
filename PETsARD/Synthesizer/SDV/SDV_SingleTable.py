@@ -9,14 +9,11 @@ from .SDV import SDV
 class SDV_SingleTable(SDV):
     """
     Base class for all SDV SingleTable classes.
-
     Args:
         data (pd.DataFrame): The data to be synthesized.
         **kwargs: The other parameters.
-
     Return:
         None
-
     TODO - Put all SDV related class together
     TODO - Nice to have - Simplify the code (Factory part)
     """
@@ -29,10 +26,8 @@ class SDV_SingleTable(SDV):
     def _SingleTableMetadata(self) -> None:
         """
         Create metadata for SDV.
-
         Args:
             None
-
         Return:
             None
         """
@@ -49,10 +44,8 @@ class SDV_SingleTable(SDV):
     def fit(self) -> None:
         """
         Fit the synthesizer.
-
         Args:
             None
-
         Return:
             None
         """
@@ -81,7 +74,6 @@ class SDV_SingleTable(SDV):
                ) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
-
         Args:
             sample_num_rows (int, default=None):
                 Number of synthesized data will be sampled.
@@ -89,7 +81,6 @@ class SDV_SingleTable(SDV):
                 Whether the method should reset the randomisation.
             output_file_path (str, default=None):
                 The location of the output file.
-
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
@@ -158,7 +149,6 @@ class SDV_SingleTable(SDV):
         """
         Fit and sample from the synthesizer.
         The combination of the methods `fit()` and `sample()`.
-
         Args:
             sample_num_rows (int, default=None):
                 Number of synthesized data will be sampled.
@@ -166,7 +156,6 @@ class SDV_SingleTable(SDV):
                 Whether the method should reset the randomisation.
             output_file_path (str, default=None):
                 The location of the output file.
-
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
