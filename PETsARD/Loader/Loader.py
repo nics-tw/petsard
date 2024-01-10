@@ -83,18 +83,15 @@ class Loader:
 
     def __init__(
         self,
-        filepath:          str,
-        header_exist:      bool = True,
-        header_names:      Optional[List[str]] = None,
-        sep:               str = ',',
-        sheet_name:        Union[str, int] = 0,
+        filepath:     str,
+        header_exist: bool = True,
+        header_names: Optional[List[str]] = None,
+        na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
+        sep: str = ',',
+        sheet_name: Union[str, int] = 0,
         colnames_discrete: Optional[List[str]] = None,
         colnames_datetime: Optional[List[str]] = None,
-        dtype:             Optional[Dict[str, Any]] = None,
-        na_values:         Optional[Union[str,
-                                          List[str],
-                                          Dict[str, str]
-                                          ]] = None
+        dtype: Optional[Dict[str, Any]] = None,
     ):
 
         self.para = {}
