@@ -2,7 +2,7 @@ import time
 
 from anonymeter.evaluators import SinglingOutEvaluator
 
-from .Anonymeter import Anonymeter
+from PETsARD.Evaluator.Anonymeter import Anonymeter
 
 
 class Anonymeter_SinglingOut_Univariate(Anonymeter):

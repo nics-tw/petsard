@@ -1,4 +1,4 @@
-from .Anonymeter.AnonymeterFactory import AnonymeterFactory
+from PETsARD.Evaluator.Anonymeter.AnonymeterFactory import AnonymeterFactory
 
 
 class EvaluatorFactory:
