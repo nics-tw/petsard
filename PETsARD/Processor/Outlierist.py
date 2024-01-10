@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
+
+from ..Error import UnfittedError
 
 
 class Outlierist:
@@ -14,6 +15,7 @@ class Outlierist:
     Return:
         None
     """
+
     def __init__(self) -> None:
         self._is_fitted: bool = False
         self.data_backup: np.ndarray = None  # for restoring data
