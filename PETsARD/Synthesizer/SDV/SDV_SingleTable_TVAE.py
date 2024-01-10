@@ -1,7 +1,7 @@
 import pandas as pd
 from sdv.single_table import TVAESynthesizer
 
-from .SDV_SingleTable import SDV_SingleTable
+from PETsARD.Synthesizer.SDV.SDV_SingleTable import SDV_SingleTable
 
 
 class SDV_SingleTable_TVAE(SDV_SingleTable):

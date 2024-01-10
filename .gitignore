@@ -31,6 +31,8 @@
 
 # Jupyter Notebook
 **/.ipynb_checkpoints
+# Jupyter autopep8
+**/*.ipynb*.tmp
 
 # Distribution
 **/*{env,venv}

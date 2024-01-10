@@ -1,4 +1,4 @@
-from .Missingist import Missingist
+from PETsARD.Preprocessor.Missingist import Missingist
 
 
 class Missingist_Drop(Missingist):

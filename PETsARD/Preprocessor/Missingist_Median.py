@@ -1,4 +1,4 @@
-from .Missingist import Missingist
+from PETsARD.Preprocessor.Missingist import Missingist
 
 
 class Missingist_Median(Missingist):
@@ -40,8 +40,8 @@ class Missingist_Median(Missingist):
             )
         else:
             print(
-                f'Preprocessor - Missingist (Median): "
-                f"Filled {row_filled} rows.'
+                f"Preprocessor - Missingist(Median): "
+                f"Filled {row_filled} rows."
             )
 
         return processed

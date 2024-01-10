@@ -1,7 +1,7 @@
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 
-from .Scaler import Scaler
+from PETsARD.Preprocessor.Scaler import Scaler
 
 
 class Scaler_Standard(Scaler):
