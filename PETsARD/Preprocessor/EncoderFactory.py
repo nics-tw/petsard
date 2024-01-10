@@ -1,7 +1,7 @@
 import pandas as pd
 
-from .Encoder_Label import Encoder_Label
-from .Encoder_Uniform import Encoder_Uniform
+from PETsARD.Preprocessor.Encoder_Label import Encoder_Label
+from PETsARD.Preprocessor.Encoder_Uniform import Encoder_Uniform
 
 
 class EncoderFactory:

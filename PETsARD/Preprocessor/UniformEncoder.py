@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from ..Error import UnfittedError
+from PETsARD.Error import UnfittedError
 
 
 class UniformEncoder:
