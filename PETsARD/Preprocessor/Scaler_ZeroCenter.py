@@ -1,7 +1,7 @@
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
 
-from .Scaler import Scaler
+from PETsARD.Preprocessor.Scaler import Scaler
 
 
 class Scaler_ZeroCenter(Scaler):
@@ -44,7 +44,7 @@ class Scaler_ZeroCenter(Scaler):
                 self.df_data[col_name] = \
                     self.dict_scaler[col_name].fit_transform(
                         col_data.values.reshape(-1, 1)
-                    )
+                )
 
                 print(
                     f"Preprocessor - Scaler (Standard): "

@@ -1,4 +1,4 @@
-from .EvaluatorFactory import EvaluatorFactory
+from PETsARD.Evaluator.EvaluatorFactory import EvaluatorFactory
 
 
 class Evaluator:

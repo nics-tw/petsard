@@ -1,8 +1,8 @@
 import pandas as pd
 
-from .Scaler_Standard import Scaler_Standard
-from .Scaler_MinMax import Scaler_MinMax
-from .Scaler_ZeroCenter import Scaler_ZeroCenter
+from PETsARD.Preprocessor.Scaler_Standard import Scaler_Standard
+from PETsARD.Preprocessor.Scaler_MinMax import Scaler_MinMax
+from PETsARD.Preprocessor.Scaler_ZeroCenter import Scaler_ZeroCenter
 
 
 class ScalerFactory:

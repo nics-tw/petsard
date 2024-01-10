@@ -1,5 +1,6 @@
-from .SDV.SDVFactory import SDVFactory
 import pandas as pd
+
+from PETsARD.Synthesizer.SDV.SDVFactory import SDVFactory
 
 
 class SynthesizerFactory:
