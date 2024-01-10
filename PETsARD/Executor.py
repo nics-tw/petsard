@@ -115,8 +115,10 @@ class Executor:
         MAX_FILENAME = 36
 
         if module == 'Loader':
-            trial_name = os.path.basename(subpara['filepath'])[:MAX_FILENAME]\
-                if 'filepath' in subpara else 'Default'
+            trial_name = 'Default'
+            if 'filepath' in subpara:
+                filepath = os.path.basename(subpara['filepath'])
+                trial_name = filepath[:MAX_FILENAME]
         elif module == 'Splitter':
             # num_samples and train_split_ratio follows default of Splitter
             num_samples = (
