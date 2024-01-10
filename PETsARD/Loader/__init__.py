@@ -1,5 +1,5 @@
-from .Loader import Loader
-from .Splitter import Splitter
+from PETsARD.Loader.Loader import Loader
+from PETsARD.Loader.Splitter import Splitter
 
 
 __all__ = [
