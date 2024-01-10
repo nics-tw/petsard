@@ -8,16 +8,16 @@ from typing import (
     Union
 )
 
-from .Benchmarker import (
+from PETsARD.Loader.Benchmarker import (
     BenchmarkerBoto3,
     BenchmarkerRequests,
 )
-from .LoaderPandas import (
+from PETsARD.Loader.LoaderPandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
-from ..util import df_casting
-from ..util import df_cast_check
+from PETsARD.util import df_casting
+from PETsARD.util import df_cast_check
 
 
 class Loader:
@@ -205,6 +205,7 @@ class Loader:
                 )
         else:
             return {
+                'benchmark': False,
                 'filepath': filepath,
                 'file_ext': os.path.splitext(filepath)[1].lstrip('.').lower()
             }
