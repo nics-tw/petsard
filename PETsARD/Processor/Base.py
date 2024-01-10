@@ -2,13 +2,13 @@ from copy import deepcopy
 import logging
 import warnings
 
-from .Encoder import *
-from .Missingist import *
-from .Outlierist import *
-from .Scaler import *
-from .Mediator import *
-from ..Error import *
-from ..Metadata import Metadata
+from PETsARD.Processor.Encoder import *
+from PETsARD.Processor.Missingist import *
+from PETsARD.Processor.Outlierist import *
+from PETsARD.Processor.Scaler import *
+from PETsARD.Processor.Mediator import *
+from PETsARD.Error import *
+from PETsARD.Metadata import Metadata
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -256,7 +256,7 @@ class Processor:
                 config[processor] = {}
             for col in val.keys():
                 obj = config[processor].get(col, None)
-                
+
                 # accept string of processor
                 if type(obj) == str:
                     obj_convert = self._PROCESSOR_MAP.get(obj, None)

@@ -1,7 +1,7 @@
 from pandas.api.types import CategoricalDtype
 from sklearn.preprocessing import LabelEncoder
 
-from .Encoder import Encoder
+from PETsARD.Preprocessor.Encoder import Encoder
 
 
 class Encoder_Label(Encoder):

@@ -2,7 +2,7 @@ from pandas import to_datetime
 from pandas.api.types import is_datetime64_any_dtype
 from sklearn.ensemble import IsolationForest
 
-from .Outlierist import Outlierist
+from PETsARD.Preprocessor.Outlierist import Outlierist
 
 
 class Outlierist_IsolationForest(Outlierist):
