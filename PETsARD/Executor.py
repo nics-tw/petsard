@@ -197,7 +197,7 @@ class Executor:
         for load_trial, (load_trial_name, load_para) in \
                 enumerate(self.para['Loader_setting'].items()):
             trials['load'] = {
-                'trial': load_trial+1,
+                'trial': load_trial + 1,
                 'trial_name': load_trial_name,
                 'trial_max': load_trial_max
             }
@@ -207,7 +207,7 @@ class Executor:
             for split_trial, (split_trial_name, split_para) in \
                     enumerate(self.para['Splitter_setting'].items()):
                 trials['split'] = {
-                    'trial': split_trial+1,
+                    'trial': split_trial + 1,
                     'trial_name': split_trial_name,
                     'trial_max': split_trial_max,
                     'trial_splits': split_trial_splits,
@@ -236,7 +236,7 @@ class Executor:
                                 self.para['Preprocessor_setting'].items()
                     ):
                         trials['preproc'] = {
-                            'trial': preproc_trial+1,
+                            'trial': preproc_trial + 1,
                             'trial_name': preproc_trial_name,
                             'trial_max': preproc_trial_max
                         }
@@ -263,7 +263,7 @@ class Executor:
                                     self.para['Synthesizer_setting'].items()
                         ):
                             trials['syn'] = {
-                                'trial': syn_trial+1,
+                                'trial': syn_trial + 1,
                                 'trial_name': syn_trial_name,
                                 'trial_max': syn_trial_max
                             }
@@ -322,7 +322,7 @@ class Executor:
                                         self.para['Evaluator_setting'].items()
                             ):
                                 trials['eval'] = {
-                                    'trial': eval_trial+1,
+                                    'trial': eval_trial + 1,
                                     'trial_name': eval_trial_name,
                                     'trial_max': eval_trial_max,
                                     'trial_evals': eval_trial_evals,
@@ -331,7 +331,7 @@ class Executor:
                                 for eval_trial_key in \
                                         range(eval_trial_evals[eval_trial]):
                                     trials['eval']['eval_trial_key'] = \
-                                        eval_trial_key+1
+                                        eval_trial_key + 1
                                     eval_result = self._run_single_evaluator(
                                         {'ori': split_data['train'],
                                          'syn': postproc_result.data,
@@ -348,7 +348,7 @@ class Executor:
                                         preproc_trial_name,
                                         syn_trial_name,
                                         eval_trial_name,
-                                        eval_trial_key+1
+                                        eval_trial_key + 1
                                     )
                                     eval_fullname = (
                                         __version__,
@@ -368,7 +368,7 @@ class Executor:
                                         '-'.join(eval_trial_name.split('-')
                                                  [1:]),
                                         eval_trial_evals[eval_trial],
-                                        eval_trial_key+1
+                                        eval_trial_key + 1
                                     )
 
                                     trials['eval']['trial_data_key'] = \
@@ -448,7 +448,7 @@ class Executor:
                 for load_trial, (load_trial_name, load_para) in \
                         enumerate(self.para['Loader_setting'].items()):
                     trials['load'] = {
-                        'trial': load_trial+1,
+                        'trial': load_trial + 1,
                         'trial_name': load_trial_name,
                         'trial_max': load_trial_max
                     }
@@ -464,7 +464,7 @@ class Executor:
                     for split_trial, (split_trial_name, split_para) in \
                             enumerate(self.para['Splitter_setting'].items()):
                         trials['split'] = {
-                            'trial': split_trial+1,
+                            'trial': split_trial + 1,
                             'trial_name': split_trial_name,
                             'trial_max': split_trial_max,
                             'trial_splits': split_trial_splits,
@@ -500,7 +500,7 @@ class Executor:
                                     self.para['Preprocessor_setting'].items()
                             ):
                                 trials['preproc'] = {
-                                    'trial': preproc_trial+1,
+                                    'trial': preproc_trial + 1,
                                     'trial_name': preproc_trial_name,
                                     'trial_max': preproc_trial_max
                                 }
@@ -554,7 +554,7 @@ class Executor:
                     for syn_trial, (syn_trial_name, syn_para) in \
                             enumerate(self.para['Synthesizer_setting'].items()):
                         trials_preproc['syn'] = {
-                            'trial': syn_trial+1,
+                            'trial': syn_trial + 1,
                             'trial_name': syn_trial_name,
                             'trial_max': syn_trial_max
                         }
@@ -567,7 +567,7 @@ class Executor:
                             preproc_result.data,
                             trials_preproc['syn'],
                             syn_para,
-                            trial_fullname=syn_fullname+(
+                            trial_fullname=syn_fullname + (
                                 str(random.uniform(0, 99999999)).zfill(8),
                             )
                         )
@@ -628,7 +628,7 @@ class Executor:
                     for eval_trial, (eval_trial_name, eval_para) in \
                             enumerate(self.para['Evaluator_setting'].items()):
                         trials_syn['eval'] = {
-                            'trial': eval_trial+1,
+                            'trial': eval_trial + 1,
                             'trial_name': eval_trial_name,
                             'trial_max': eval_trial_max,
                             'trial_evals': eval_trial_evals,
@@ -637,7 +637,7 @@ class Executor:
                         for eval_trial_key in \
                                 range(eval_trial_evals[eval_trial]):
                             trials_syn['eval']['eval_trial_key'] = \
-                                eval_trial_key+1
+                                eval_trial_key + 1
 
                             dict_syn_data_temp = self.splitter[
                                 syn_fullname[0:2]].data[syn_fullname[2]
@@ -654,7 +654,7 @@ class Executor:
 
                             eval_name = postproc_name + (
                                 eval_trial_name,
-                                eval_trial_key+1
+                                eval_trial_key + 1
                             )
                             # TODO for now trail name execution\
                             #     depends on particular trial name format,
@@ -679,7 +679,7 @@ class Executor:
                                 eval_trial_name.split('-')[0],
                                 '-'.join(eval_trial_name.split('-')[1:]),
                                 eval_trial_evals[eval_trial],
-                                eval_trial_key+1
+                                eval_trial_key + 1
                             )
 
                             trials_syn['eval']['trial_data_key'] = \
@@ -837,7 +837,7 @@ class Executor:
             trial_data_key = {}
             with open(filename_prog, "a") as prog:
                 for data_key, data_value in data.items():
-                    trial_key_now = trial_key+data_key
+                    trial_key_now = trial_key + data_key
                     str_trial_key_now = \
                         str(trial_key_now).zfill(digit_ttl_trial)
                     str_data_key = \
@@ -975,14 +975,14 @@ class Executor:
                 'eval_samples',
                 'eval_num'
             ])
-            data_infor = data[0][:2]+(str_trial_key,)+data[0][2:]
+            data_infor = data[0][:2] + (str_trial_key,) + data[0][2:]
             rpt_line = ','.join([str(item) for item in data_infor])
             # TODO As AnonymeterMethodMap,
             #     use class define mapping of string and int,
             #     don't use string condition.
             if eval_trial_name.lower().startswith('anonymeter'):
                 eval_module = 'Anonymeter'
-                rpt_columns += ','+','.join([
+                rpt_columns += ',' + ','.join([
                     'secret',
                     'Risk', 'Risk_CI_btm', 'Risk_CI_top',
                     'Attack_Rate', 'Attack_Rate_err',
