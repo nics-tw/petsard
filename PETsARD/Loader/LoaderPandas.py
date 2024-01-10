@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .LoaderBase import LoaderBase
+from PETsARD.Loader.LoaderBase import LoaderBase
 
 
 class LoaderPandasCsv(LoaderBase):
