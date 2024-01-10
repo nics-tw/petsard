@@ -65,8 +65,8 @@ class Outlierist_IQR(Outlierist):
 
                 if row_drop == 0:
                     print(
-                        f'Preprocessor - Outlierist (IQR): "
-                        f"No rows have been dropped on {col_name}.'
+                        f"Preprocessor - Outlierist (IQR): "
+                        f"No rows have been dropped on {col_name}."
                     )
                 else:
                     print(
