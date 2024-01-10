@@ -12,7 +12,7 @@
 # ...
 # Methods:
 #
-# poetry add pip@^23.0.0 ipykernel sdv@~1.7.0 sdmetrics@^0.12.0 anonymeter@^0.0.2
+# poetry add pip@^23.0.0 ipykernel requests sdv@~1.7.0 sdmetrics@^0.12.0 anonymeter@^0.0.2
 #
 #   - Add the necessary dependencies and allow Poetry
 #       to verify and install them.
@@ -20,6 +20,7 @@
 #
 #       - pip: 23.0.0 above
 #       - ipykernel
+#       - requests
 #       - SDV: 1.7 only
 #           - https://github.com/sdv-dev/SDV
 #           - 1.7 update: 2023/11/16
@@ -41,7 +42,7 @@
 #           - https://github.com/statice/anonymeter
 #           - Latest 0.0.2 update: 2023/07/15
 #
-# poetry export -f requirements.txt -o requirements.txt --without-hashes
+# poetry export -f requirements.txt -o requirements.txt
 #
 #   - Export to requirements.txt.
 #     輸出 requirements.txt。
@@ -65,6 +66,7 @@ readme = "README.md"
 python = ">=3.10,<3.11"
 pip = "^23.0.0"
 ipykernel = "^6.28.0"
+requests = "^2.31.0"
 sdv = "~1.7.0"
 sdmetrics = "^0.12.0"
 anonymeter = "^0.0.2"
