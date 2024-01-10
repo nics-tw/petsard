@@ -1,8 +1,8 @@
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from .Missingist import Missingist_Drop
-from .Outlierist import *
+from Missingist import Missingist_Drop
+from PETsARD.Processor.Outlierist import *
 
 
 class Mediator:
