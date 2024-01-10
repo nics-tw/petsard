@@ -1,7 +1,7 @@
-from .MissingistFactory import MissingistFactory
-from .OutlieristFactory import OutlieristFactory
-from .EncoderFactory import EncoderFactory
-from .ScalerFactory import ScalerFactory
+from PETsARD.Preprocessor.MissingistFactory import MissingistFactory
+from PETsARD.Preprocessor.OutlieristFactory import OutlieristFactory
+from PETsARD.Preprocessor.EncoderFactory import EncoderFactory
+from PETsARD.Preprocessor.ScalerFactory import ScalerFactory
 
 
 class Preprocessor:

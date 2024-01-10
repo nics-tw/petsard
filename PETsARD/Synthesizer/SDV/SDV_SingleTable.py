@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from sdv.metadata import SingleTableMetadata
 
-from .SDV import SDV
+from PETsARD.Synthesizer.SDV.SDV import SDV
 
 
 class SDV_SingleTable(SDV):
