@@ -437,18 +437,12 @@ class Executor:
         self.evaluator = {}
 
         trials = {}
-        with tqdm(total=load_trial_max,
-                  desc='Loading: '
-                  ) as load_pbar, \
-            tqdm(total=load_trial_max
-                 * split_trial_max,
-                 desc='Splitting: '
-                 ) as split_pbar, \
-            tqdm(total=load_trial_max
-                 * split_trial_splits_sum
-                 * preproc_trial_max,
-                 desc='Preprocessing: '
-                 ) as preproc_pbar:
+        ttl_trials_till_load = load_trial_max
+        ttl_trials_till_split = ttl_trials_till_load * split_trial_max
+        ttl_trials_till_preproc = ttl_trials_till_split * preproc_trial_max
+        with tqdm(total=ttl_trials_till_load, desc='Loading: ') as load_pbar, \
+                tqdm(total=ttl_trials_till_split, desc='Splitting: ') as split_pbar, \
+                tqdm(total=ttl_trials_till_preproc, desc='Preprocessing: ') as preproc_pbar:
             with ProcessPoolExecutor(max_workers=max_workers) as pool_executor:
                 preproc_futures = {}
                 for load_trial, (load_trial_name, load_para) in \
@@ -548,24 +542,12 @@ class Executor:
                     trials_till_preproc[preproc_name] = trials_preproc
                     preproc_pbar.update(1)
 
-        with tqdm(total=load_trial_max
-                  * split_trial_splits_sum
-                  * preproc_trial_max
-                  * syn_trial_max,
-                  desc='Synthesizing: '
-                  ) as syn_pbar, \
-            tqdm(total=load_trial_max
-                 * split_trial_splits_sum
-                 * preproc_trial_max
-                 * syn_trial_max,
-                 desc='Postprocessing: '
-                 ) as postproc_pbar, \
-            tqdm(total=load_trial_max
-                 * split_trial_splits_sum
-                 * preproc_trial_max
-                 * syn_trial_max
-                 * eval_trial_evals_sum,
-                 desc='Evaluating: ') as eval_pbar:
+        ttl_trials_till_syn = ttl_trials_till_preproc * syn_trial_max
+        ttl_trials_till_postproc = ttl_trials_till_syn
+        ttl_trials_till_eval = ttl_trials_till_postproc * eval_trial_evals_sum
+        with tqdm(total=ttl_trials_till_syn, desc='Synthesizing: ') as syn_pbar, \
+                tqdm(total=ttl_trials_till_postproc, desc='Postprocessing: ') as postproc_pbar, \
+                tqdm(total=ttl_trials_till_eval, desc='Evaluating: ') as eval_pbar:
             with ThreadPoolExecutor(max_workers=max_workers) as thread_executor:
                 syn_futures = {}
                 for trials_name, trials_preproc in trials_till_preproc.items():
