@@ -277,13 +277,14 @@ class Executor:
                                     syn_result.data_syn,
                                     trials
                             )
-                            self.synthesizer[
-                                (load_trial_name,
-                                 split_trial_name,
-                                 split_data_key,
-                                 preproc_trial_name,
-                                 syn_trial_name)
-                            ] = syn_result
+                            self_synthesizer_name = (
+                                load_trial_name,
+                                split_trial_name,
+                                split_data_key,
+                                preproc_trial_name,
+                                syn_trial_name
+                            )
+                            self.synthesizer[self_synthesizer_name] = syn_result
 
                             # TODO add back missingist when ready
                             # 'missingist' : getattr(preproc_result,
@@ -508,12 +509,14 @@ class Executor:
                                     deepcopy(trials['preproc']),
                                     preproc_para
                                 )
+                                preproc_futures_name = (
+                                    load_trial_name,
+                                    split_trial_name,
+                                    split_data_key,
+                                    preproc_trial_name
+                                )
                                 preproc_futures[preproc_future] = {
-                                    'name': (load_trial_name,
-                                             split_trial_name,
-                                             split_data_key,
-                                             preproc_trial_name
-                                             ),
+                                    'name': preproc_futures_name,
                                     'trials': deepcopy(trials)
                                 }
 
