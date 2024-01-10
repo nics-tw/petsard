@@ -15,12 +15,12 @@ from tqdm import tqdm
 #     (...\PETsARD\PETsARD\__init__.py)
 # from . import __version__
 __version__ = '0.0.3'
-from .Loader import Loader
-from .Loader import Splitter
-from .Preprocessor import Preprocessor
-from .Synthesizer import Synthesizer
-from .Postprocessor import Postprocessor
-from .Evaluator import Evaluator
+from PETsARD.Loader import Loader
+from PETsARD.Loader import Splitter
+from PETsARD.Preprocessor import Preprocessor
+from PETsARD.Synthesizer import Synthesizer
+from PETsARD.Postprocessor import Postprocessor
+from PETsARD.Evaluator import Evaluator
 
 
 class Executor:
