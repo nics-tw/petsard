@@ -1,15 +1,44 @@
-**/__pycache__/
-**/.ipynb_checkpoints/
+###### ###### ###### ###### ###### ######
+# PETsARD
+###### ###### ###### ###### ###### ######
 
-\[sunset\]/*
+# temporary
+**/*.csv
+**/PETsARD*Executor.txt
+**/PETsARD*Trial*.csv
+**/log.txt
 
-.sample.csv.temp
-.vscode/settings.json
-.DS_Store
-.env
+# abandoned
+**/\[sunset\]
+
+
+
+###### ###### ###### ###### ###### ######
+# 3rd-party temporary
+###### ###### ###### ###### ###### ######
+
+# SDV
+**/.sample.csv.temp*
+
+
+
+###### ###### ###### ###### ###### ######
+# Enviroment related
+###### ###### ###### ###### ###### ######
+
+# Byte-compiled
+**/__pycache__
+
+# Jupyter Notebook
+**/.ipynb_checkpoints
+
+# Distribution
+**/*{env,venv}
+
+# Mac
+**/.DS_Store
+
+# VSCode
+**/.vscode
+**/.code-workspace
 *.code-workspace
-*.csv
-demo/PETsARD*Executor.txt
-demo/PETsARD*Trial*.csv
-demo/.sample.csv.temp*
-log.txt
