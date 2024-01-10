@@ -162,7 +162,7 @@ class Loader:
         """
         _handle_filepath
             Translate filepath setting,
-                than return necessary information format.
+                then return necessary information format.
         ...
         Args:
             filepath (str):
