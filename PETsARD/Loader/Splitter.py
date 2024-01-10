@@ -1,3 +1,9 @@
+import random
+from typing import Dict, Optional, Union
+
+import pandas as pd
+
+
 class Splitter:
     """
     Splitter is an independent module for Executor use. Incl.:
@@ -5,44 +11,72 @@ class Splitter:
     b.) resampling assigned times (num_samples)
     c.) output their train/validation indexes (self.index_samples) and pd.DataFrame data (self.data)
     """
-    def __init__(self, data, num_samples=1, train_split_ratio=0.8, random_state=None):
-        self.index_samples = self._index_bootstrapping(index=data.index.tolist(
-        ), num_samples=num_samples, train_split_ratio=train_split_ratio, random_state=random_state)
+
+    def __init__(
+        self,
+        data:              pd.DataFrame,
+        num_samples:       int = 1,
+        train_split_ratio: float = 0.8,
+        random_state:      Optional[Union[int, float, str]] = None
+    ):
+        self.index_samples = self._index_bootstrapping(
+            index=data.index.tolist(),
+            num_samples=num_samples,
+            train_split_ratio=train_split_ratio,
+            random_state=random_state
+        )
         self.data = self._df_bootstrapping(data)
 
-    def _index_bootstrapping(self, index, num_samples, train_split_ratio, random_state):
-        import random
-
+    def _index_bootstrapping(
+            self,
+            index:             list,
+            num_samples:       int,
+            train_split_ratio: float,
+            random_state:      Optional[Union[int, float, str]]
+    ):
         if random_state is not None:
             random.seed(random_state)
 
-        _sample_size = int(len(index) * train_split_ratio)
-        _max_attempts = num_samples  # assume max sampling time as num_sample.
-        _samples_seen = set()
+        sample_size = int(len(index) * train_split_ratio)
+        # assume max sampling time as num_sample.
+        maxattempts = num_samples
+        samples_seen = set()
         results = {}
-        for _n in range(num_samples):
-            _attempts = 0  # re-calculate when success.
-            while _attempts < _max_attempts:
-                _sampled_indices = tuple(
-                    sorted(random.sample(index, _sample_size)))
+        for n in range(num_samples):
+            # re-calculate when success.
+            attempts = 0
+            while attempts < maxattempts:
+                sampled_indices = tuple(
+                    sorted(random.sample(index, sample_size))
+                )
 
-                if _sampled_indices in _samples_seen:
-                    _attempts += 1
+                if sampled_indices in samples_seen:
+                    attempts += 1
                 else:
-                    _samples_seen.add(_sampled_indices)
-                    results[_n+1] = {'train': list(_sampled_indices), 'validation': list(set(index) - set(_sampled_indices))
-                                     }
+                    samples_seen.add(sampled_indices)
+                    results[n+1] = {
+                        'train':      list(sampled_indices),
+                        'validation': list(set(index) - set(sampled_indices))
+                    }
                     break
-                if _attempts == _max_attempts:
+                if attempts == maxattempts:
                     raise ValueError(
-                        f"Splitter - _index_sample_with_replacement: Unable to sample {num_sample} pairs of indexes with a ratio of {sample_ratio} within {num_sample} attempts due to collisions."
-                        f"Please review your data size and choose a suitable sampling ratio."
+                        f"Splitter - _index_sample_with_replacement: "
+                        f"Unable to sample {num_samples} pairs of indexes "
+                        f"with a ratio of {train_split_ratio} "
+                        f"within {num_samples} attempts due to collisions.\n"
+                        f"Please review your data size "
+                        f"and choose a suitable sampling ratio."
                     )
         return results
 
-    def _df_bootstrapping(self, data):
+    def _df_bootstrapping(self, data) -> Dict[str, pd.DataFrame]:
         results = {}
         for key, indices in self.index_samples.items():
-            results[key] = {'train': data.iloc[indices['train']].reset_index(
-                drop=True), 'validation': data.iloc[indices['validation']].reset_index(drop=True)}
+            df_train = data.iloc[indices['train']]
+            df_validation = data.iloc[indices['validation']]
+            results[key] = {
+                'train':      df_train.reset_index(drop=True),
+                'validation': df_validation.reset_index(drop=True)
+            }
         return results
