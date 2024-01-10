@@ -1,7 +1,7 @@
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import MinMaxScaler
 
-from .Scaler import Scaler
+from PETsARD.Preprocessor.Scaler import Scaler
 
 
 class Scaler_MinMax(Scaler):
@@ -43,7 +43,7 @@ class Scaler_MinMax(Scaler):
                 self.df_data[col_name] = \
                     self.dict_scaler[col_name].fit_transform(
                         col_data.values.reshape(-1, 1)
-                    )
+                )
 
                 print(
                     f"Preprocessor - Scaler (MinMax): "

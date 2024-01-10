@@ -2,7 +2,7 @@ from pandas import to_datetime
 from pandas.api.types import is_datetime64_any_dtype
 from sklearn.neighbors import LocalOutlierFactor
 
-from .Outlierist import Outlierist
+from PETsARD.Preprocessor.Outlierist import Outlierist
 
 
 class Outlierist_LOF(Outlierist):
@@ -50,8 +50,6 @@ class Outlierist_LOF(Outlierist):
         outlier_vector = isof.fit_predict(
             transformed_data[self.outlier_columns_action]
         )
-
-
 
         row_drop_ttl = sum(outlier_vector == -1)
         if row_drop_ttl == 0:

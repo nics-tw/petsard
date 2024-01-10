@@ -1,9 +1,9 @@
 import pandas as pd
 
-from .Outlierist_IQR import Outlierist_IQR
-from .Outlierist_Zscore import Outlierist_Zscore
-from .Outlierist_IsolationForest import Outlierist_IsolationForest
-from .Outlierist_LOF import Outlierist_LOF
+from PETsARD.Preprocessor.Outlierist_IQR import Outlierist_IQR
+from PETsARD.Preprocessor.Outlierist_Zscore import Outlierist_Zscore
+from PETsARD.Preprocessor.Outlierist_IsolationForest import Outlierist_IsolationForest
+from PETsARD.Preprocessor.Outlierist_LOF import Outlierist_LOF
 
 
 class OutlieristFactory:
