@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import LabelEncoder
+
+from PETsARD.Error import UnfittedError
 
 
 class Encoder:
@@ -14,6 +15,7 @@ class Encoder:
     Return:
         None
     """
+
     def __init__(self) -> None:
         # Mapping dict
         self.cat_to_val: dict = None
@@ -118,6 +120,7 @@ class Encoder_Uniform(Encoder):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -203,6 +206,7 @@ class Encoder_Label(Encoder):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.model: LabelEncoder = LabelEncoder()

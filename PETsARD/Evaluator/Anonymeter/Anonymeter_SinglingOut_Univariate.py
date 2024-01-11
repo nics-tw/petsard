@@ -1,18 +1,28 @@
-from .Anonymeter import Anonymeter
+import time
+
+from anonymeter.evaluators import SinglingOutEvaluator
+
+from PETsARD.Evaluator.Anonymeter import Anonymeter
+
 
 class Anonymeter_SinglingOut_Univariate(Anonymeter):
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self._eval_method = 'SinglingOut - Univariate'
+        self.eval_method: str = 'SinglingOut - Univariate'
 
-        import time
         _time_start = time.time()
-        print('Evaluator (Anonymeter - SinglingOut - Univariate): Now is SinglingOut - Univariate Evaluator')
-        from anonymeter.evaluators import SinglingOutEvaluator
-        _Evaluator = SinglingOutEvaluator(ori      = self.data_ori
-                                          ,syn     = self.data_syn
-                                          ,control = self.data_control
-                                          ,n_attacks = self.n_attacks
-                                          )
-        self._Evaluator = _Evaluator
-        print(f"Evaluator (Anonymeter - SinglingOut - Univariate): Evaluator time: {round(time.time()-_time_start ,4)} sec.")
+        print(
+            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
+            f"Now is SinglingOut - Univariate Evaluator"
+        )
+
+        self._Evaluator = SinglingOutEvaluator(
+            ori=self.data_ori,
+            syn=self.data_syn,
+            control=self.data_control,
+            n_attacks=self.n_attacks
+        )
+        print(
+            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
+            f"Evaluator time: {round(time.time()-_time_start ,4)} sec."
+        )
