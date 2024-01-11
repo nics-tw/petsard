@@ -1,9 +1,9 @@
 import pandas as pd
 
-from .Missingist_Drop import Missingist_Drop
-from .Missingist_Mean import Missingist_Mean
-from .Missingist_Median import Missingist_Median
-from .Missingist_Simple import Missingist_Simple
+from PETsARD.Preprocessor.Missingist_Drop import Missingist_Drop
+from PETsARD.Preprocessor.Missingist_Mean import Missingist_Mean
+from PETsARD.Preprocessor.Missingist_Median import Missingist_Median
+from PETsARD.Preprocessor.Missingist_Simple import Missingist_Simple
 
 
 class MissingistFactory:
@@ -49,8 +49,6 @@ class MissingistFactory:
                         f"Preprocessor - MissingistFactory: "
                         f"missing_method {self.missing_method} didn't support."
                     )
-
-                self.missing_dict[col] = _Missingist
 
     def handle(self) -> pd.DataFrame:
         processed_df = self.df.copy()

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from . import df_cast_check
+from PETsARD.util import df_cast_check
 
 
 def df_casting(

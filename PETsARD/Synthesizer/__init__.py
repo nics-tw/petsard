@@ -1,4 +1,4 @@
-from .Synthesizer import Synthesizer
+from PETsARD.Synthesizer.Synthesizer import Synthesizer
 
 __all__ = [
     'Synthesizer'
