@@ -1,4 +1,4 @@
-from collections import namedtuple
+from importlib import resources
 import os
 from typing import (
     Any,
@@ -7,6 +7,8 @@ from typing import (
     Optional,
     Union
 )
+
+import yaml
 
 from PETsARD.Loader.Benchmarker import (
     BenchmarkerBoto3,
@@ -93,12 +95,56 @@ class Loader:
         colnames_datetime: Optional[List[str]] = None,
         dtype: Optional[Dict[str, Any]] = None,
     ):
+        # organized yaml
+        PETSARD_CONFIG = {}
+        LIST_YAML = [
+            ('loader_config.yaml', 'loader'),
+            ('benchmark_datasets.yaml', 'benchmark_datasets')
+        ]
+        for yaml_name, config_name in LIST_YAML:
+            with resources.open_text('PETsARD.Loader', yaml_name) as file:
+                PETSARD_CONFIG[config_name] = yaml.safe_load(file)
+
+        # Compling PETSARD_CONFIG
+        # 1. update benchmark detail - replace _loader_mapping_benchmark()
+        #     PETSARD_CONFIG['benchmark_datasets'] (dict):
+        #         key (str): benchmark dataset name
+        #             filename (str): Its filename
+        #             public (str):   Belong to public or private bucket.
+        #             region_name (str): Its AWS S3 region.
+        #             bucket_name (str): Its AWS S3 bucket.
+        #             sha256 (str): Its SHA-256 value.
+        REGION_NAME = PETSARD_CONFIG['loader']['benchmark_region_name']
+        BUCKET_NAME = PETSARD_CONFIG['loader']['benchmark_bucket_name']
+        PETSARD_CONFIG['benchmark_datasets'] = {
+            key: {
+                'filename':    value['filename'],
+                'public':      value['public'],
+                'region_name': REGION_NAME,
+                'bucket_name': BUCKET_NAME[value['public']],
+                'sha256':      value['sha256']
+            }
+            for key, value in PETSARD_CONFIG['benchmark_datasets'].items()
+        }
+        # 2. implement sub-Loader mapping - replace _loader_mapping_file_ext
+        #    PETSARD_CONFIG['loader']['Loader'] (dict):
+        #        file_ext (str): related Loader class (LoaderBase)
+        FILE_EXT = PETSARD_CONFIG['loader']['file_ext']
+        LOADER_MAP = {
+            'LoaderPandasCsv': LoaderPandasCsv,
+            'LoaderPandasExcel': LoaderPandasExcel
+        }
+        PETSARD_CONFIG['loader']['Loader'] = {
+            file_ext: LOADER_MAP[key]
+            for key, file_exts in FILE_EXT.items()
+            for file_ext in file_exts
+        }
 
         self.para = {}
         # Check if file exist
         self.para['Loader'] = self._handle_filepath(
             filepath,
-            map_benchmark=self._loader_mapping_benchmark
+            map_benchmark=PETSARD_CONFIG['benchmark_datasets']
         )
         # If benchmark, download benchmark dataset, and execute as local file.
         if self.para['Loader']['benchmark']:
@@ -131,7 +177,7 @@ class Loader:
 
         # Factory method for implementing the specified Loader class
         file_ext = self.para['Loader']['file_ext'].lower()
-        map_file_ext = self._loader_mapping_file_ext
+        map_file_ext = PETSARD_CONFIG['loader']['Loader']
         if file_ext in map_file_ext:
             self.Loader = map_file_ext[file_ext](self.para['Loader'])
         else:
@@ -154,7 +200,7 @@ class Loader:
     @staticmethod
     def _handle_filepath(
         filepath:      str,
-        map_benchmark: Dict[str, namedtuple] = None
+        map_benchmark: Dict[str, Dict[str, str]] = None
     ) -> dict:
         """
         _handle_filepath
@@ -164,7 +210,7 @@ class Loader:
         Args:
             filepath (str):
                 The fullpath of dataset.
-            map_benchmark (Dict[str, namedtuple]):
+            map_benchmark (Dict[str, Dict[str, str]]):
                 The dictionary for benchmark details.
         ...
         Return:
@@ -182,19 +228,19 @@ class Loader:
                 return {
                     'filepath': os.path.join(
                         "benchmark",
-                        benchmark_value.filename
+                        benchmark_value['filename']
                     ),
                     'file_ext': os.path.splitext(
-                        benchmark_value.filename
+                        benchmark_value['filename']
                     )[1].lstrip('.').lower(),
                     'benchmark': True,
                     'benchmark_filepath':    filepath,
                     'benchmark_name':        benchmark_name,
-                    'benchmark_filename':    benchmark_value.filename,
-                    'benchmark_public':      benchmark_value.public,
-                    'benchmark_region_name': benchmark_value.region_name,
-                    'benchmark_bucket_name': benchmark_value.bucket_name,
-                    'benchmark_sha256':      benchmark_value.sha256,
+                    'benchmark_filename':    benchmark_value['filename'],
+                    'benchmark_public':      benchmark_value['public'],
+                    'benchmark_region_name': benchmark_value['region_name'],
+                    'benchmark_bucket_name': benchmark_value['bucket_name'],
+                    'benchmark_sha256':      benchmark_value['sha256'],
                 }
             else:
                 raise FileNotFoundError(
@@ -239,80 +285,23 @@ class Loader:
             }
         }
 
-    @property
-    def _loader_mapping_benchmark(self) -> Dict[str, namedtuple]:
-        """
-        Mapping of Benchmark dataset.
-        ...
-        Return:
-            (dict[namedtuple]):
-                key (str): benchmark dataset name
-                value (namedtuple): benchmark dataset information
-                    filename (str): Its filename
-                    public (str):   Belong to public or private bucket.
-                    region_name (str): Its AWS S3 region.
-                    bucket_name (str): Its AWS S3 bucket.
-                    sha256 (str): Its SHA-256 value.
-
-        """
-        Benchmark = namedtuple(
-            'Benchmark',
-            ['filename',
-             'public',
-             'region_name',
-             'bucket_name',
-             'sha256'
-             ]
-        )
-
-        # Asia Pacific (Singapore)
-        REGION_NAME = 'ap-southeast-1'
-        BUCKET_NAME = {
-            'public':  'petsard-benchmark',
-            'private': 'petsard-benchmark-private'
-        }
-
-        map_benchmark = {
-            'adult': {
-                'filename': 'adult.csv',
-                'public':   'public',
-                'sha256':   '1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0',
-            },
-            'adult-private': {
-                'filename': 'adult_private_for_demo.csv',
-                'public':   'private',
-                'sha256':   '1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0',
-            }
-        }
-
-        return {
-            key: Benchmark(
-                filename=value['filename'],
-                public=value['public'],
-                region_name=REGION_NAME,
-                bucket_name=BUCKET_NAME[value['public']],
-                sha256=value['sha256']
-            )
-            for key, value in map_benchmark.items()
-        }
-
-    @property
-    def _loader_mapping_file_ext(self) -> Dict:
-        """
-        Mapping of File extension.
-        ...
-        Return:
-            (dict):
-                file_ext (str): related Loader class (LoaderBase)
-        """
-        CSV = ('csv',)
-        EXCEL = ('xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt')
-        map_file_ext = [
-            (CSV,   LoaderPandasCsv),
-            (EXCEL, LoaderPandasExcel),
-        ]
-        return {
-            file_ext: loader
-            for file_exts, loader in map_file_ext
-            for file_ext in file_exts
-        }
+    # @property
+    # def _loader_mapping_file_ext(self) -> Dict:
+    #     """
+    #     Mapping of File extension.
+    #     ...
+    #     Return:
+    #         (dict):
+    #             file_ext (str): related Loader class (LoaderBase)
+    #     """
+    #     CSV = ('csv',)
+    #     EXCEL = ('xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt')
+    #     map_file_ext = [
+    #         (CSV,   LoaderPandasCsv),
+    #         (EXCEL, LoaderPandasExcel)
+    #     ]
+    #     return {
+    #         file_ext: loader
+    #         for file_exts, loader in map_file_ext
+    #         for file_ext in file_exts
+    #     }
