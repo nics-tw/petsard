@@ -111,8 +111,8 @@ class Anonymeter():
             UserWarning
                 anonymeter\stats\confidence.py:215:
                     UserWarning: Attack is as good or worse as baseline model.
-                    Estimated rates: attack = 0.30674239114619767,
-                    baseline = 0.30773856438771213.
+                    Estimated rates: attack = ...{float}... ,
+                    baseline = ...{float}... .
                     Analysis results cannot be trusted. self._sanity_check()
 
         """
