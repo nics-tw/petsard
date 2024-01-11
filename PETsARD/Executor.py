@@ -33,7 +33,6 @@ class Executor:
         Preprocessor: Dict = None,
         Synthesizer:  Dict = None,
         Evaluator:    Dict = None,
-        **kwargs
     ):
         self.exectime = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.outputname = f"PETsARD[{self.exectime}]"
@@ -270,7 +269,8 @@ class Executor:
                             }
                             syn_result = self._run_single_synthesizer(
                                 preproc_result.data, trials['syn'],
-                                syn_para
+                                syn_para,
+                                trial_fullname=None
                             )
                             trials['syn']['trial_data_key'] = \
                                 self._save_in_submodule(
@@ -685,7 +685,7 @@ class Executor:
         )
         print(f"====== ====== ====== ====== ====== ======")
 
-    def _run_single_loader(self, trial, para, **kwargs):
+    def _run_single_loader(self, trial, para):
         time_start = time.time()
         loader = Loader(**para)
         print(
@@ -715,10 +715,9 @@ class Executor:
         )
         return preprocessor
 
-    def _run_single_synthesizer(self, data, trial, para, **kwargs):
+    def _run_single_synthesizer(self, data, trial, para, trial_fullname):
         time_start = time.time()
         synthesizer = Synthesizer(data=data, **para)
-        trial_fullname = kwargs.get('trial_fullname', None)
         if trial_fullname:
             trial_tempfile = (
                 f".sample.csv.temp."
