@@ -287,21 +287,10 @@ class Executor:
                             self.synthesizer[self_synthesizer_name] = syn_result
 
                             # TODO add back missingist when ready
-                            # 'missingist' : getattr(preproc_result,
-                            #     'missingist',
-                            #     None
-                            # )
+                            # 'missingist' : preproc_result.missingist',
                             postproc_para = {
-                                'encoder': getattr(
-                                    preproc_result,
-                                    'encoder',
-                                    None
-                                ),
-                                'scaler': getattr(
-                                    preproc_result,
-                                    'scaler',
-                                    None
-                                )
+                                'encoder': preproc_result.encoder,
+                                'scaler': preproc_result.scaler,
                             }
                             trials['postproc'] = {
                                 'trial_name': preproc_trial_name
@@ -594,20 +583,10 @@ class Executor:
                         'trial_name': preproc_trial_name
                     }
                     # TODO add back missingist when ready
-                    # 'missingist' : getattr(
-                    #     self.preprocessor[syn_trial_name[0:-1]],
-                    #     'missingist',
-                    #     None
-                    # )
+                    # 'missingist': self.preprocessor[syn_name[0:-1]].missingist,
                     postproc_para = {
-                        'encoder': getattr(self.preprocessor[syn_name[0:-1]],
-                                           'encoder',
-                                           None
-                                           ),
-                        'scaler': getattr(self.preprocessor[syn_name[0:-1]],
-                                          'scaler',
-                                          None
-                                          )
+                        'encoder': self.preprocessor[syn_name[0:-1]].encoder,
+                        'scaler': self.preprocessor[syn_name[0:-1]].scaler,
                     }
                     postproc_result = thread_executor.submit(
                         self._run_single_postprocessor,
