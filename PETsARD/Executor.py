@@ -243,10 +243,8 @@ class Executor:
                     'Splitter',
                     split_result.data, trials
                 )
-                self.splitter[
-                    (load_trial_name,
-                     split_trial_name)
-                ] = split_result
+                self_splitter_name = (load_trial_name, split_trial_name)
+                self.splitter[self_splitter_name] = split_result
 
                 for split_data_key, split_data in split_result.data.items():
                     trials['split']['data_key'] = split_data_key
@@ -271,17 +269,16 @@ class Executor:
                                 preproc_result.data,
                                 trials
                         )
-                        self.preprocessor[
-                            (load_trial_name,
-                             split_trial_name,
-                             split_data_key,
-                             preproc_trial_name)
-                        ] = preproc_result
+                        self_preprocessor_name = (
+                            load_trial_name,
+                            split_trial_name,
+                            split_data_key,
+                            preproc_trial_name
+                        )
+                        self.preprocessor[self_preprocessor_name] = preproc_result
 
                         for syn_trial, (syn_trial_name, syn_para) in \
-                                enumerate(
-                                    self.para['Synthesizer_setting'].items()
-                        ):
+                                enumerate(self.para['Synthesizer_setting'].items()):
                             trials['syn'] = {
                                 'trial': syn_trial + 1,
                                 'trial_name': syn_trial_name,
@@ -492,10 +489,9 @@ class Executor:
                             split_result.data,
                             deepcopy(trials)
                         ).result()
-                        self.splitter[
-                            (load_trial_name,
-                             split_trial_name)
-                        ] = split_result
+                        self_splitter_name = (
+                            load_trial_name, split_trial_name)
+                        self.splitter[self_splitter_name] = split_result
 
                         split_pbar.update(1)
 
