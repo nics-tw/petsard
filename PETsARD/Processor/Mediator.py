@@ -1,8 +1,8 @@
-from .Missingist import Missingist_Drop
-from .Outlierist import *
-
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
+
+from .Missingist import Missingist_Drop
+from .Outlierist import *
 
 
 class Mediator:
@@ -69,6 +69,7 @@ class Mediator_Missingist(Mediator):
     Return:
         None
     """
+
     def __init__(self, config: dict) -> None:
         super().__init__()
         self._config: dict = config['missingist']
@@ -102,7 +103,8 @@ class Mediator_Missingist(Mediator):
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True)
 
             # restore the original data from the boolean data
             transformed.loc[:, col_name] = self._config.get(col_name,
@@ -110,9 +112,11 @@ class Mediator_Missingist(Mediator):
 
             return transformed
         else:
-            process_filter: np.ndarray = data[self._process_col].any(axis=1).values
+            process_filter: np.ndarray = data[self._process_col].any(
+                axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data
@@ -132,6 +136,7 @@ class Mediator_Outlierist(Mediator):
     Return:
         None
     """
+
     def __init__(self, config: dict) -> None:
         super().__init__()
         self._config: dict = config['outlierist']
@@ -191,18 +196,21 @@ class Mediator_Outlierist(Mediator):
         if self._global_model_indicator:
             # the model may classify most data as outliers after transformation by other processors
             # so fit_predict will be used in _transform
-            predict_result: np.ndarray = self.model.fit_predict(data[self._process_col])
+            predict_result: np.ndarray = self.model.fit_predict(
+                data[self._process_col])
             self.result: np.ndarray = predict_result
             process_filter: np.ndarray = predict_result == -1.0
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True)
 
             return transformed
         elif len(self._process_col) == 1:
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True)
 
             # restore the original data from the boolean data
             transformed.loc[:, col_name] = self._config.get(col_name,
@@ -210,9 +218,11 @@ class Mediator_Outlierist(Mediator):
 
             return transformed
         else:
-            process_filter: np.ndarray = data[self._process_col].any(axis=1).values
+            process_filter: np.ndarray = data[self._process_col].any(
+                axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data

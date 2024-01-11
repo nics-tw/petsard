@@ -1,8 +1,9 @@
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 
-from copy import deepcopy
+from ..Error import UnfittedError
 
 
 class Missingist:

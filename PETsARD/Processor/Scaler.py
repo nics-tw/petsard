@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
+
+from ..Error import UnfittedError
 
 
 class Scaler:
@@ -15,6 +16,7 @@ class Scaler:
     Return:
         None
     """
+
     def __init__(self) -> None:
         self._is_fitted: bool = False
 
@@ -104,6 +106,7 @@ class Scaler_Standard(Scaler):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.model: StandardScaler = StandardScaler()
@@ -157,6 +160,7 @@ class Scaler_ZeroCenter(Scaler_Standard):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.model: StandardScaler = StandardScaler(with_std=False)
@@ -172,6 +176,7 @@ class Scaler_MinMax(Scaler_Standard):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.model: MinMaxScaler = MinMaxScaler()
@@ -187,6 +192,7 @@ class Scaler_Log(Scaler):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
 

@@ -22,7 +22,10 @@ class SynthesizerFactory:
                                       synthesizing_method=synthesizing_method).create_synthesizer()
         else:
             raise ValueError(
-                f"Synthesizer - SynthesizerFactory: synthesizing_method {synthesizing_method} didn't support.")
+                f"Synthesizer - SynthesizerFactory: "
+                f"synthesizing_method {synthesizing_method} "
+                f"didn't support."
+            )
 
         self.Synthesizer = _Synthesizer
 
