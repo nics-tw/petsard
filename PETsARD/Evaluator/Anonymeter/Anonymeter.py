@@ -39,7 +39,7 @@ class Anonymeter():
             Sets the number of nearest neighbors to consider for each entry in the search.
             Default is 1. Indicating a successful linkability attack
                 only if the closest synthetic record matches
-                for both split original records."
+                for both split original records.
 
         anonymeter_aux_cols (Tuple[List[str], List[str]]):
             Tuple of two lists of strings.
