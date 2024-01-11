@@ -22,7 +22,7 @@ from PETsARD.util import df_casting
 from PETsARD.util import df_cast_check
 
 
-class FileExt():
+class LoaderFileExt():
     """
     Mapping of File extension.
         Replace original _loader_mapping_file_ext().
@@ -194,9 +194,9 @@ class Loader:
 
         # Factory method for implementing the specified Loader class
         file_ext = self.para['Loader']['file_ext'].lower()
-        if FileExt.getext(file_ext) == FileExt.CSVTYPE:
+        if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
             self.Loader = LoaderPandasCsv(self.para['Loader'])
-        elif FileExt.getext(file_ext) == FileExt.EXCELTYPE:
+        elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
             self.Loader = LoaderPandasExcel(self.para['Loader'])
         else:
             raise ValueError(
