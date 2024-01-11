@@ -1,9 +1,16 @@
-adult:
-  filename: adult.csv
-  public: public
-  sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+region_name: ap-southeast-1 # Asia Pacific (Singapore)
+bucket_name:
+  public: petsard-benchmark
+  private: petsard-benchmark-private
 
-adult-private:
-  filename: adult_private_for_demo.csv
-  public: private
-  sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+datasets:
+
+  adult:
+    filename: adult.csv
+    public: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
+  adult-private:
+    filename: adult_private_for_demo.csv
+    public: private
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
