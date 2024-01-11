@@ -15,6 +15,7 @@ class SDV():
     Return:
         None
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs):
         self.data: pd.DataFrame = data
-        pass
+        self.syn_method: str = 'Unknown'

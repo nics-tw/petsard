@@ -12,7 +12,11 @@
 # ...
 # Methods:
 #
-# poetry add pip@^23.0.0 ipykernel sdv@~1.7.0 sdmetrics@^0.12.0 anonymeter@^0.0.2
+# poetry add pip@^23.0.0 ipykernel pyyaml requests
+#   sdv@~1.7.0
+#   sdmetrics@^0.12.0 anonymeter@^0.0.2
+#
+#       ydata-synthetic@^1.3.2 conflict on pandas w/ anonymeter
 #
 #   - Add the necessary dependencies and allow Poetry
 #       to verify and install them.
@@ -20,6 +24,8 @@
 #
 #       - pip: 23.0.0 above
 #       - ipykernel
+#       - pyyaml
+#       - requests
 #       - SDV: 1.7 only
 #           - https://github.com/sdv-dev/SDV
 #           - 1.7 update: 2023/11/16
@@ -41,7 +47,7 @@
 #           - https://github.com/statice/anonymeter
 #           - Latest 0.0.2 update: 2023/07/15
 #
-# poetry export -f requirements.txt -o requirements.txt --without-hashes
+# poetry export -f requirements.txt -o requirements.txt
 #
 #   - Export to requirements.txt.
 #     輸出 requirements.txt。
@@ -68,6 +74,8 @@ ipykernel = "^6.28.0"
 sdv = "~1.7.0"
 sdmetrics = "^0.12.0"
 anonymeter = "^0.0.2"
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
 
 
 [build-system]

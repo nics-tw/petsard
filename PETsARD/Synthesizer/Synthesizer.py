@@ -1,5 +1,6 @@
-from .SynthesizerFactory import SynthesizerFactory
 import pandas as pd
+
+from .SynthesizerFactory import SynthesizerFactory
 
 
 class Synthesizer:
@@ -7,7 +8,8 @@ class Synthesizer:
     Base class for all "Synthesizer".
 
     The "Synthesizer" class defines the common API
-    that all the "Synthesizer" need to implement, as well as common functionality.
+    that all the "Synthesizer" need to implement,
+    as well as common functionality.
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
@@ -18,19 +20,24 @@ class Synthesizer:
         None
     """
 
-    def __init__(self, data: pd.DataFrame, synthesizing_method: str, **kwargs) -> None:
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        synthesizing_method: str,
+        **kwargs
+    ) -> None:
 
-        _para_Synthesizer: dict = {
+        self.para: dict = {}
+        self.para['Synthesizer']: dict = {
             'synthesizing_method': synthesizing_method.lower()
         }
 
         Synthesizer = SynthesizerFactory(
-            data=data, **_para_Synthesizer).create_synthesizer()
+            data=data, **self.para['Synthesizer']
+        ).create_synthesizer()
 
         self.data_ori: pd.DataFrame = data
         self.Synthesizer = Synthesizer
-        self.para: dict = {}
-        self.para['Synthesizer']: dict = _para_Synthesizer
 
     def fit(self, **kwargs) -> None:
         """
@@ -58,7 +65,8 @@ class Synthesizer:
 
     def fit_sample(self, **kwargs) -> None:
         """
-        Fit and sample from the synthesizer. The combination of the methods `fit()` and `sample()`.
+        Fit and sample from the synthesizer.
+        The combination of the methods `fit()` and `sample()`.
 
         Args:
             **kwargs: The fitting/sampling parameters.
@@ -67,8 +75,3 @@ class Synthesizer:
             None
         """
         self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
-
-        # _para_Synthesizer['SDV'] = {
-        #     'SingleTable_sample_num_rows': kwargs.get('SDV_SingleTable_sample_num_rows', None)
-        #    ,'SingleTable_sample_batch_size': kwargs.get('SDV_SingleTable_sample_batch_size', None)
-        # }
