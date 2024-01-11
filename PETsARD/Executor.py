@@ -2,20 +2,16 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_compl
 from copy import deepcopy
 from datetime import datetime
 import os
+import pathlib
 # import psutil
 import random
 import time
 # import threading
 from typing import Dict
+
+import toml
 from tqdm import tqdm
 
-# TODO get __version__
-#     ImportError: cannot import name '__version__'
-#     from partially initialized module 'PETsARD'
-#     (most likely due to a circular import)
-#     (...\PETsARD\PETsARD\__init__.py)
-from PETsARD import __version__
-# __version__ = '0.0.3'
 from PETsARD.Loader import Loader
 from PETsARD.Loader import Splitter
 from PETsARD.Preprocessor import Preprocessor
@@ -37,6 +33,8 @@ class Executor:
         self.exectime = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.outputname = f"PETsARD[{self.exectime}]"
 
+        self._get_version()
+
         self._para_handle(
             Loader,
             Splitter,
@@ -44,6 +42,26 @@ class Executor:
             Synthesizer,
             Evaluator
         )
+
+    def _get_version(self):
+        """
+        Get the PETsARD information within pyproject.toml
+        ...
+        TODO find the solution for get the version after release.
+        TODO Better handle of toml file,
+             use tomllib when we update to Python 3.11
+             see https://github.com/python-poetry/poetry/issues/273
+                 import tomllib
+        """
+        current_filepath = pathlib.Path(__file__)
+        pyproject_path = \
+            current_filepath.parent.parent.joinpath('pyproject.toml')
+        if pyproject_path.exists():
+            with pyproject_path.open('r', encoding="utf-8") as file:
+                pyproject = toml.load(file)
+                self.version = pyproject['tool']['poetry']['version']
+        else:
+            self.version = 'Unknown'
 
     def _para_handle(
         self,
@@ -196,9 +214,9 @@ class Executor:
         self.synthesizer = {}
         self.evaluator = {}
         trials = {}
-        for load_trial, (load_trial_name, load_para) in
+        for load_trial, (load_trial_name, load_para) in \
                 enumerate(self.para['Loader_setting'].items()):
-            trials['load']= {
+            trials['load'] = {
                 'trial': load_trial + 1,
                 'trial_name': load_trial_name,
                 'trial_max': load_trial_max
@@ -344,7 +362,7 @@ class Executor:
                                         eval_trial_key + 1
                                     )
                                     eval_fullname = (
-                                        __version__,
+                                        self.version,
                                         self.exectime,
                                         load_trial_name,
                                         split_trial_name,
@@ -647,7 +665,7 @@ class Executor:
                             #     need to be modify for customerized available
                             #     print(preproc_trial_name)
                             eval_fullname = (
-                                __version__,
+                                self.version,
                                 self.exectime,
                                 load_trial_name,
                                 split_trial_name,
