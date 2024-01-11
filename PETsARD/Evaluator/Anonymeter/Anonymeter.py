@@ -26,7 +26,7 @@ class Anonymeter():
             Following data logic defined in Evaluator.
 
         anonymeter_n_attacks (int):
-            The number of attack attempts within the specified attack method.
+            The number of attack attempts using the specified attack method.
             Default is 2,000.
 
         anonymeter_n_neighbors (int):
