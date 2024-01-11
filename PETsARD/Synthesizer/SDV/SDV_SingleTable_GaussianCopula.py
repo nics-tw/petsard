@@ -1,9 +1,10 @@
-from .SDV_SingleTable import SDV_SingleTable
-from sdv.single_table import GaussianCopulaSynthesizer
 import pandas as pd
+from sdv.single_table import GaussianCopulaSynthesizer
+
+from PETsARD.Synthesizer.SDV.SDV_SingleTable import SDV_SingleTable
 
 
-class SDV_SingleTable_GaussianCoupula(SDV_SingleTable):
+class SDV_SingleTable_GaussianCopula(SDV_SingleTable):
     """
     Implement Gaussian Copula synthesize method.
 
@@ -14,9 +15,9 @@ class SDV_SingleTable_GaussianCoupula(SDV_SingleTable):
     Return:
         None
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs):
         super().__init__(data, **kwargs)
-        self._syn_method: str = 'GaussianCoupula'
+        self.syn_method: str = 'GaussianCopula'
 
-        # metadata already create in SDV_SingleTable
         self._Synthesizer = GaussianCopulaSynthesizer(self.metadata)

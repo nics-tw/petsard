@@ -1,6 +1,7 @@
-from .SDV_SingleTable import SDV_SingleTable
-from sdv.single_table import TVAESynthesizer
 import pandas as pd
+from sdv.single_table import TVAESynthesizer
+
+from PETsARD.Synthesizer.SDV.SDV_SingleTable import SDV_SingleTable
 
 
 class SDV_SingleTable_TVAE(SDV_SingleTable):
@@ -14,9 +15,9 @@ class SDV_SingleTable_TVAE(SDV_SingleTable):
     Return:
         None
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs):
         super().__init__(data, **kwargs)
-        self._syn_method: str = 'TVAE'
+        self.syn_method: str = 'TVAE'
 
-        # metadata already create in SDV_SingleTable
         self._Synthesizer = TVAESynthesizer(self.metadata)

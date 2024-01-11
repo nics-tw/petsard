@@ -1,8 +1,9 @@
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 
-from copy import deepcopy
+from PETsARD.Error import UnfittedError
 
 
 class Missingist:
@@ -15,6 +16,7 @@ class Missingist:
     Return:
         None
     """
+
     def __init__(self) -> None:
         self._is_fitted: bool = False
         self.na_percentage: float = None
@@ -135,6 +137,7 @@ class Missingist_Mean(Missingist):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.data_mean: float = None
@@ -181,6 +184,7 @@ class Missingist_Median(Missingist):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.data_median: float = None
@@ -227,6 +231,7 @@ class Missingist_Simple(Missingist):
     Return:
         None
     """
+
     def __init__(self, value: float = 0.0) -> None:
         super().__init__()
         self.data_value: float = value
@@ -261,6 +266,7 @@ class Missingist_Drop(Missingist):
     Return:
         None
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.data_backup: pd.Series = None  # for restoring data
