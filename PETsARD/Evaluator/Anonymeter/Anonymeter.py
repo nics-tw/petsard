@@ -31,7 +31,7 @@ class Anonymeter():
 
         anonymeter_n_neighbors (int):
             Specifies the number of jobs Anonymeter will use.
-            -1 means every thread resides 1.
+            -1 means all threads except one.
             -2 means every thread.
             Default is -2.
 
