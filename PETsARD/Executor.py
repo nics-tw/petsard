@@ -141,8 +141,10 @@ class Executor:
                 list_preproc.append(subpara['encoding_method'])
             if 'scaling_method' in subpara:
                 list_preproc.append(subpara['scaling_method'])
-            trial_name= '-'.join(list_preproc) if len(
-                list_preproc) >= 1 else 'Default'
+            trial_name= (
+                '-'.join(list_preproc)
+                if len(list_preproc) >= 1 else 'Default'
+            )
         elif module == 'Synthesizer':
             trial_name= (
                 subpara['synthesizing_method']
