@@ -6,6 +6,7 @@ import os
 import random
 import time
 # import threading
+from typing import Dict
 from tqdm import tqdm
 
 # TODO get __version__
@@ -25,14 +26,34 @@ from PETsARD.Evaluator import Evaluator
 
 class Executor:
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        Loader:       Dict = None,
+        Splitter:     Dict = None,
+        Preprocessor: Dict = None,
+        Synthesizer:  Dict = None,
+        Evaluator:    Dict = None,
+        **kwargs
+    ):
         self.exectime = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.outputname = f"PETsARD[{self.exectime}]"
 
-        self.kwargs = kwargs
-        self.para_handle()
+        self._para_handle(
+            Loader,
+            Splitter,
+            Preprocessor,
+            Synthesizer,
+            Evaluator
+        )
 
-    def para_handle(self):
+    def _para_handle(
+        self,
+        Loader,
+        Splitter,
+        Preprocessor,
+        Synthesizer,
+        Evaluator
+    ):
         """
         有三種情況：
 
@@ -72,19 +93,18 @@ class Executor:
 
         para = {}
         list_module = [
-            'Loader',
-            'Splitter',
-            'Preprocessor',
-            'Synthesizer',
-            'Evaluator'
+            ('Loader',       Loader),
+            ('Splitter',     Splitter),
+            ('Preprocessor', Preprocessor),
+            ('Synthesizer',  Synthesizer),
+            ('Evaluator',    Evaluator)
         ]
-        for module in list_module:
-            module_value = self.kwargs.get(module, True)
-            if isinstance(module_value, dict):
-                para[module] = True
-                para[module+'_setting'] = module_value
+        for module_name, module in list_module:
+            if isinstance(module, dict):
+                para[module_name] = True
+                para[module_name+'_setting'] = module
             else:
-                para[module] = False
+                para[module_name] = False
 
         if para['Preprocessor']:
             para['Postprocessor'] = True
