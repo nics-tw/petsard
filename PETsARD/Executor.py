@@ -122,17 +122,17 @@ class Executor:
         elif module == 'Splitter':
             # num_samples and train_split_ratio follows default of Splitter
             num_samples = (
-                str(subpara['num_samples']) if 'num_samples' in subpara
-                else '1'
+                subpara['num_samples'] if 'num_samples' in subpara
+                else 1
             )
             train_split_ratio = (
-                str(subpara['train_split_ratio'])
+                subpara['train_split_ratio'])
                 if 'train_split_ratio' in subpara
-                else '0.8'
+                else 0.8
             )
-            trial_name = f"{train_split_ratio}x{num_samples}"
+            trial_name= f"{str(train_split_ratio)}x{str(num_samples)}"
         elif module == 'Preprocessor':
-            list_preproc = []
+            list_preproc= []
             if 'missing_method' in subpara:
                 list_preproc.append(subpara['missing_method'])
             if 'outlier_method' in subpara:
@@ -141,62 +141,62 @@ class Executor:
                 list_preproc.append(subpara['encoding_method'])
             if 'scaling_method' in subpara:
                 list_preproc.append(subpara['scaling_method'])
-            trial_name = '-'.join(list_preproc) if len(
+            trial_name= '-'.join(list_preproc) if len(
                 list_preproc) >= 1 else 'Default'
         elif module == 'Synthesizer':
-            trial_name = (
+            trial_name= (
                 subpara['synthesizing_method']
                 if 'synthesizing_method' in subpara
                 else 'Default'
             )
         elif module == 'Evaluator':
             # num_samples follows default of Splitter
-            num_samples = (
-                str(subpara['num_samples']) if 'num_samples' in subpara
-                else '1'
+            num_samples: str= (
+                subpara['num_samples'] if 'num_samples' in subpara
+                else 1
             )
-            eval_method = (
+            eval_method= (
                 subpara['evaluating_method']
                 if 'evaluating_method' in subpara
                 else 'Default'
             )
-            trial_name = f"{eval_method}x{num_samples}"
+            trial_name= f"{eval_method}x{str(num_samples)}"
         else:
-            trial_name = 'Default'
+            trial_name= 'Default'
 
         return trial_name
 
     def run(self):
-        time_start = time.time()
+        time_start= time.time()
 
         self._save_in_submodule(module='Executor_Start')
 
-        load_trial_max = len(self.para['Loader_setting'])
-        split_trial_max = len(self.para['Splitter_setting'])
-        preproc_trial_max = len(self.para['Preprocessor_setting'])
-        syn_trial_max = len(self.para['Synthesizer_setting'])
-        eval_trial_max = len(self.para['Evaluator_setting'])
+        load_trial_max= len(self.para['Loader_setting'])
+        split_trial_max= len(self.para['Splitter_setting'])
+        preproc_trial_max= len(self.para['Preprocessor_setting'])
+        syn_trial_max= len(self.para['Synthesizer_setting'])
+        eval_trial_max= len(self.para['Evaluator_setting'])
 
-        split_trial_splits = [
+        split_trial_splits= [
             setting['num_samples'] if 'num_samples' in setting else 1
             for setting in self.para['Splitter_setting'].values()
         ]
-        split_trial_splits_sum = sum(split_trial_splits)
-        eval_trial_evals = [
+        split_trial_splits_sum= sum(split_trial_splits)
+        eval_trial_evals= [
             setting['num_samples'] if 'num_samples' in setting else 1
             for setting in self.para['Evaluator_setting'].values()
         ]
-        eval_trial_evals_sum = sum(eval_trial_evals)
+        eval_trial_evals_sum= sum(eval_trial_evals)
 
-        self.loader = {}
-        self.splitter = {}
-        self.preprocessor = {}
-        self.synthesizer = {}
-        self.evaluator = {}
-        trials = {}
-        for load_trial, (load_trial_name, load_para) in \
+        self.loader= {}
+        self.splitter= {}
+        self.preprocessor= {}
+        self.synthesizer= {}
+        self.evaluator= {}
+        trials= {}
+        for load_trial, (load_trial_name, load_para) in
                 enumerate(self.para['Loader_setting'].items()):
-            trials['load'] = {
+            trials['load']= {
                 'trial': load_trial + 1,
                 'trial_name': load_trial_name,
                 'trial_max': load_trial_max
