@@ -36,17 +36,7 @@ class Executor:
         """
         有三種情況：
 
-        1. 想跑單一種設定的單次執行：module 每個設定都直接表述，例如
-            'Loader_filepath':  'adult.csv',
-            'Loader_na_values': {k : '?' for k in [
-                    'workclass',
-                    'occupation',
-                    'native-country'
-                ]
-            }
-            'Spitternum_samples': 2,
-            'Spittertrain_split_ratio': 0.8
-            此時 module 可以留空或設定為 True (default)
+        1. 20240111, 棄用『想跑單一種設定的單次執行：module 每個設定都直接表述』
 
         2. 想跳過這個 module
             此時 module 必須寫為 False。
@@ -88,20 +78,11 @@ class Executor:
             'Synthesizer',
             'Evaluator'
         ]
-
         for module in list_module:
             module_value = self.kwargs.get(module, True)
             if isinstance(module_value, dict):
                 para[module] = True
                 para[module+'_setting'] = module_value
-            elif module_value:
-                para[module] = True
-                para[module+'_setting'] = {}
-                subpara = {k.replace(module+'_', '', 1): v
-                           for k, v in self.kwargs.items()
-                           if k.startswith(module+'_')}
-                name = self.para_handle_naming(module, subpara)
-                para[module+'_setting'][name] = subpara
             else:
                 para[module] = False
 
