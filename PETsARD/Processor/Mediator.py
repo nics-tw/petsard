@@ -1,7 +1,7 @@
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from PETsARD.Processor.Missingist import Missingist_Drop
+from Missingist import Missingist_Drop
 from PETsARD.Processor.Outlierist import *
 
 
