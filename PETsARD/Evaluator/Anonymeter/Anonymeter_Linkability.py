@@ -6,6 +6,16 @@ from PETsARD.Evaluator.Anonymeter import Anonymeter
 
 
 class Anonymeter_Linkability(Anonymeter):
+    """
+    Estimation of the Linkability attacks in the Anonymeter library.
+
+    ...
+    Returns:
+        None
+            Notes: Stores the result in self._Evaluator.evaluation.
+
+    """
+
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
         self.eval_method: str = 'Linkability'

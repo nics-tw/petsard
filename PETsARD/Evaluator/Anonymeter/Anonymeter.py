@@ -1,5 +1,11 @@
 import time
-from typing import Dict, List, Optional, Union
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union
+)
 import warnings
 
 import numpy as np
@@ -7,13 +13,63 @@ import pandas as pd
 
 
 class Anonymeter():
+    """
+    Base class for all "Evaluator".
+
+    The "Evaluator" class defines the common API
+    that all the "Evaluator" need to implement, as well as common functionality.
+
+    ...
+
+    Args:
+        data (dict)
+            Following data logic defined in Evaluator.
+
+        anonymeter_n_attacks (int):
+            The number of attack attempts within the specified attack method.
+            Default is 2,000.
+
+        anonymeter_n_neighbors (int):
+            Specifies the number of jobs Anonymeter will use.
+            -1 means every thread resides 1.
+            -2 means every thread.
+            Default is -2.
+
+        anonymeter_n_neighbors (int):
+            Sets the number of nearest neighbors to consider for each entry in the search.
+            Default is 1. Indicating a successful linkability attack
+                only if the closest synthetic record matches
+                for both split original records."
+
+        anonymeter_aux_cols (Tuple[List[str], List[str]]):
+            Tuple of two lists of strings.
+            Features of the records that are given to
+                the attacker as auxiliary information.
+            Optional.
+            The Anonymeter documentation states it supports 'tuple of int',
+                but this is not reflected in their type annotations,
+                so we will omit it here and only mention this for reference.
+
+        anonymeter_secret (str | List[str]]):
+            The secret attribute(s) of the target records, unknown to the attacker.
+                This is what the attacker will try to guess.
+            Optional.
+
+    ...
+    Returns:
+        None
+
+    ...
+    TODO n_attacks recommendation based on the conclusions of Experiment 1.
+
+    """
 
     def __init__(self,
                  data: Dict[str, pd.DataFrame],
                  anonymeter_n_attacks:   int = 2000,
                  anonymeter_n_jobs:      int = -2,
-                 anonymeter_n_neighbors: int = 10,
-                 anonymeter_aux_cols:    Optional[List[List[str]]] = None,
+                 anonymeter_n_neighbors: int = 1,
+                 anonymeter_aux_cols:    Tuple[List[str], List[str]] = None,
                  anonymeter_secret:      Optional[Union[str,
                                                         List[str]]] = None,
                  **kwargs
@@ -37,6 +93,10 @@ class Anonymeter():
 
     def eval(self):
         """
+        eval() of Anonymeter.
+            Defines the sub-evaluator and suppresses specific warnings
+            due to known reasons from the Anonymeter library
+
         ...
 
         Exception:
@@ -99,8 +159,60 @@ class Anonymeter():
                 )
 
     def _extract_result(self) -> dict:
-        # TODO Use other method to extract results.
-        #      also consider to migrated to Reporter.
+        """
+        _extract_result of Anonymeter.
+            Uses .risk()/.results() method in Anonymeter
+            to extract result from self._Evaluator into the designated dictionary.
+
+        ...
+        Return
+            (dict)
+                Contains the following key-value pairs
+
+                Risk (float)
+                    Privacy Risk value of specified attacks.
+                    Ranging from 0 to 1.
+                    A value of 0 indicates no risk, and 1 indicates full risk.
+                    Includes CI_btm and CI_top for the bottom and top of the confidence interval.
+
+                Attack_Rate (float)
+                    Main attack rate of specified attacks,
+                        which the attacker uses the synthetic dataset
+                        to deduce private information of records
+                        in the original/training dataset.
+                    Ranging from 0 to 1.
+                    A value of 0 indicates none of success attack,
+                        and 1 indicates totally success attack.
+                    Includes _err for its error rate.
+
+                Baseline_Rate (float)
+                    Naive, or Baseline attack rate of specified attacks,
+                        which is carried out based on random guessing,
+                        to provide a baseline against
+                        which the strength of the “main” attack can be compared.
+                    Ranging from 0 to 1.
+                    A value of 0 indicates none of success attack,
+                        and 1 indicates totally success attack.
+                    Includes _err for its error rate.
+
+                Control_Rate (float)
+                    Control attack rate of specified attacks,
+                        which is conducted on a set of control dataset,
+                        to distinguish the concrete privacy risks
+                        of the original data records (i.e., specific information)
+                        from general risks intrinsic
+                        to the whole population (i.e., generic information).
+                    Ranging from 0 to 1.
+                    A value of 0 indicates none of success attack,
+                        and 1 indicates totally success attack.
+                    Includes _err for its error rate.
+
+        ...
+
+        TODO  Consider using alternative methods to extract results
+                and evaluate migrating this functionality to the Reporter.
+
+        """
         dict_result = {}
         para_to_handle = [
             ('Risk',              ['risk()',    'value']),
@@ -150,6 +262,11 @@ class Anonymeter():
 
 
 class AnonymeterMethodMap():
+    """
+    map of Anonymeter
+    ...
+    TODO Consider YAML
+    """
     method_map = {
         'singlingout - univariate':   0,
         'singlingout - multivariate': 1,
@@ -159,6 +276,9 @@ class AnonymeterMethodMap():
 
     @classmethod
     def map(cls, method_name: str) -> int:
+        """
+        mapping method and handle exception
+        """
         try:
             return cls.method_map[method_name.lower()]
         except KeyError as ex:
