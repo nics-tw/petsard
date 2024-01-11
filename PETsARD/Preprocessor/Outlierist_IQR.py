@@ -5,7 +5,7 @@ from pandas.api.types import (
     is_datetime64_any_dtype
 )
 
-from .Outlierist import Outlierist
+from PETsARD.Preprocessor.Outlierist import Outlierist
 
 
 class Outlierist_IQR(Outlierist):

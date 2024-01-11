@@ -2,8 +2,29 @@ from PETsARD.Evaluator.Anonymeter.AnonymeterFactory import AnonymeterFactory
 
 
 class EvaluatorFactory:
-    # TODO As AnonymeterMethodMap, use class define mapping of string and int,
-    #      don't use string condition.
+    """
+    Factory for "Evaluator".
+
+    EvaluatorFactory defines which library to use
+        and implements the Factory for that library.
+
+    ...
+
+    Args:
+        evaluating_method (str):
+            Follow the 'evaluating_method' logic defined in Evaluator.
+
+    ...
+    Returns:
+        None
+
+    ...
+    TODO As AnonymeterMethodMap,
+            use a class to define mappings of string and int,
+            avoiding string conditions.
+
+    """
+
     def __init__(self, **kwargs):
         evaluating_method = kwargs.get('evaluating_method', None)
 
@@ -16,4 +37,13 @@ class EvaluatorFactory:
             )
 
     def create_evaluator(self):
+        """
+        Factory method to designated the selected evaluator.
+        ...
+        TODO As Loader,
+                transform the Factory into the main module
+                and create a Base module for inheritance
+                to address the 'One Library, One Code' issue."
+
+        """
         return self.Evaluator

@@ -2,8 +2,8 @@ import numpy as np
 from pandas.api.types import CategoricalDtype
 import pandas as pd
 
-from .Encoder import Encoder
-from .UniformEncoder import UniformEncoder
+from PETsARD.Preprocessor.Encoder import Encoder
+from PETsARD.Preprocessor.UniformEncoder import UniformEncoder
 
 
 class Encoder_Uniform(Encoder):

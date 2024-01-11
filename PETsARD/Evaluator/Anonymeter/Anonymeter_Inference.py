@@ -6,6 +6,20 @@ from PETsARD.Evaluator.Anonymeter import Anonymeter
 
 
 class Anonymeter_Inference(Anonymeter):
+    """
+    Estimation of the Inference attacks in the Anonymeter library.
+
+    ...
+    Returns:
+        None
+            Notes: Stores the result in self._Evaluator.evaluation.
+
+    ...
+    TODO Currently, it calculates a single column as the secret.
+            According to the paper, consider handling multiple secrets.
+
+    """
+
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
         self.eval_method: str = 'Inference'
