@@ -6,6 +6,19 @@ from PETsARD.Evaluator.Anonymeter import Anonymeter
 
 
 class Anonymeter_SinglingOut_Univariate(Anonymeter):
+    """
+    Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
+
+    ...
+    Returns:
+        None
+            Notes: Stores the result in self._Evaluator.evaluation.
+
+    ...
+    TODO SinglingOut attacks of Multi-variate.
+
+    """
+
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
         self.eval_method: str = 'SinglingOut - Univariate'

@@ -68,9 +68,13 @@ class BenchmarkerBase(ABC):
                 sha256hash.update(byte_block)
         return sha256hash.hexdigest()
 
-    def _verify_download(self):
+    def _verify_download(self, link: str = ''):
         """
         Verifing the download file SHA-256 value is matched as expected.
+        ...
+        Arg:
+            link (str)
+                The download link for error message.
         """
         download_sha256hash = \
             self._calculate_sha256(self.para_Loader['filepath'])
@@ -86,7 +90,7 @@ class BenchmarkerBase(ABC):
             raise ValueError(
                 f"Loader - Benchmarker: The SHA-256 of file "
                 f"{self.para_Loader['benchmark_filename']} "
-                f"download from S3 bucket {url} "
+                f"download from link/S3 bucket {link} "
                 f"didn't match library record.\n"
                 f"                      "
                 f"Download data been remove, "
@@ -141,7 +145,7 @@ class BenchmarkerRequests(BenchmarkerBase):
                         f"{response.status_code} error. "
                         f"Failed to download the benchmark dataset in {url}."
                     )
-            self._verify_download()
+            self._verify_download(link=url)
 
 
 class BenchmarkerBoto3(BenchmarkerBase):
@@ -173,15 +177,17 @@ class BenchmarkerBoto3(BenchmarkerBase):
             )
         else:
             try:
+                bucket_name = self.para_Loader['benchmark_bucket_name']
+                bucket_key = self.para_Loader['benchmark_filename']
                 s3_resource = boto3.resource('s3')
                 s3_object = s3_resource.Object(
-                    bucket_name=self.para_Loader['benchmark_bucket_name'],
-                    key=self.para_Loader['benchmark_filename']
+                    bucket_name=bucket_name,
+                    key=bucket_key
                 )
                 s3_object.download_file(
                     Filename=self.para_Loader['filepath']
                 )
-                self._verify_download()
+                self._verify_download(link=bucket_name + bucket_key)
             except NoCredentialsError:
                 print(
                     f"Loader - Benchmarker: "
