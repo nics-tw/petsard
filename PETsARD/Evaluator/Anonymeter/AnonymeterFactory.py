@@ -4,8 +4,18 @@ from PETsARD.Evaluator.Anonymeter import Anonymeter_Inference
 
 
 class AnonymeterFactory:
-    # TODO As AnonymeterMethodMap, use class define mapping of string and int,
-    #      don't use string condition.
+    """
+    Factory for "Anonymeter" Evaluator.
+
+    AnonymeterFactory defines which module to use within Anonymeter.
+
+    ...
+    TODO As AnonymeterMethodMap,
+            use a class to define mappings of string and int,
+            avoiding string conditions.
+
+    """
+
     def __init__(self, **kwargs):
         evaluating_method: str = kwargs.get('evaluating_method', None)
 
@@ -22,4 +32,8 @@ class AnonymeterFactory:
             )
 
     def create_evaluator(self):
+        """
+        create_evaluator()
+            return the Evaluator which selected by Factory.
+        """
         return self.Evaluator
