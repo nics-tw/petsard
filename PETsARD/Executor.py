@@ -140,7 +140,8 @@ class Executor:
         elif module == 'Splitter':
             # num_samples and train_split_ratio follows default of Splitter
             num_samples = (
-                subpara['num_samples'] if 'num_samples' in subpara
+                subpara['num_samples']
+                if 'num_samples' in subpara
                 else 1
             )
             train_split_ratio = (
@@ -161,7 +162,8 @@ class Executor:
                 list_preproc.append(subpara['scaling_method'])
             trial_name = (
                 '-'.join(list_preproc)
-                if len(list_preproc) >= 1 else 'Default'
+                if len(list_preproc) >= 1
+                else 'Default'
             )
         elif module == 'Synthesizer':
             trial_name = (
@@ -172,7 +174,8 @@ class Executor:
         elif module == 'Evaluator':
             # num_samples follows default of Splitter
             num_samples: str = (
-                subpara['num_samples'] if 'num_samples' in subpara
+                subpara['num_samples']
+                if 'num_samples' in subpara
                 else 1
             )
             eval_method = (
@@ -198,12 +201,16 @@ class Executor:
         eval_trial_max = len(self.para['Evaluator_setting'])
 
         split_trial_splits = [
-            setting['num_samples'] if 'num_samples' in setting else 1
+            setting['num_samples']
+            if 'num_samples' in setting
+            else 1
             for setting in self.para['Splitter_setting'].values()
         ]
         split_trial_splits_sum = sum(split_trial_splits)
         eval_trial_evals = [
-            setting['num_samples'] if 'num_samples' in setting else 1
+            setting['num_samples']
+            if 'num_samples' in setting
+            else 1
             for setting in self.para['Evaluator_setting'].values()
         ]
         eval_trial_evals_sum = sum(eval_trial_evals)
@@ -422,14 +429,16 @@ class Executor:
         eval_trial_max = len(self.para['Evaluator_setting'])
 
         split_trial_splits = [
-            setting['num_samples'] if 'num_samples' in setting
+            setting['num_samples']
+            if 'num_samples' in setting
             else 1
             for setting in self.para['Splitter_setting'].values()
         ]
         split_trial_splits_sum = sum(split_trial_splits)
 
         eval_trial_evals = [
-            setting['num_samples'] if 'num_samples' in setting
+            setting['num_samples']
+            if 'num_samples' in setting
             else 1
             for setting in self.para['Evaluator_setting'].values()
         ]
