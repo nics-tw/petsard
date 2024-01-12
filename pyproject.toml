@@ -1,18 +1,7 @@
-# """
-# pyproject.toml
-#
-#   The pyproject.toml is a package configuration file introduced
-#       by [PEP 518](https://peps.python.org/pep-0518/). Our library utilizes
-#       [Poetry](https://python-poetry.org/) for packaging and managing package
-#        dependencies, and uses Poetry to export requirements.txt.
-#   pyproject.toml 為 [PEP 518](https://peps.python.org/pep-0518/) 引入的
-#       套件配置文件。本函式庫使用 [Poetry](https://python-poetry.org/) 打包
-#       並管理套件相依性，並使用 Poetry 輸出 requirement.txt。
-#
 # ...
 # Methods:
 #
-# poetry add pip@^23.0.0 ipykernel pyyaml requests urllib3@~1.25.0 boto3 tqdm sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^0.0.2
+# poetry add pip@^23.0.0 ipykernel pyyaml requests toml urllib3@~1.25.0 boto3 tqdm sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^0.0.2
 #
 #       ydata-synthetic@^1.3.2 conflict on pandas w/ anonymeter
 #
@@ -22,11 +11,13 @@
 #
 #       - pip: 23.0.0 above
 #       - ipykernel
+#       - boto3
 #       - pyyaml
 #       - boto3
 #       - requests
 #           - urllib3: 1.25
 #               requests need urllib3 to be >= 1.21.1, <= 1.26
+#       - toml
 #       - tqdm
 #       - SDV: 1.8 above
 #           - https://github.com/sdv-dev/SDV
@@ -67,7 +58,6 @@
 #
 # """
 
-
 [tool.poetry]
 name = "petsard"
 version = "0.3.0-alpha"
@@ -84,12 +74,14 @@ python = ">=3.10,<3.11"
 pip = "^23.0.0"
 ipykernel = "^6.28.0"
 pyyaml = "^6.0.1"
+requests = "^2.31.0"
+urllib3 = "~1.25.0"
+toml = "^0.10.2"
+tqdm = "^4.66.1"
 boto3 = "^1.34.16"
 sdv = "^1.8.0"
 sdmetrics = "^0.13.0"
 anonymeter = "^0.0.2"
-requests = "^2.31.0"
-urllib3 = "~1.25.0"
 
 
 [tool.poetry.group.dev.dependencies]
