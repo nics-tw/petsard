@@ -11,13 +11,15 @@ class Synthesizer:
     that all the "Synthesizer" need to implement,
     as well as common functionality.
 
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        synthesizing_method (str): The synthesizing method to be implemented.
-        **kwargs: The other parameters.
+    ...
+    Methods:
+        Synthesizer(DataFrame): Synthesizing specified DataFrame.
+        Returns:
+            DataFrame: A pandas DataFrame that input data after synthesizing
+    ...
 
-    Return:
-        None
+    Args:
+
     """
 
     def __init__(
@@ -32,36 +34,22 @@ class Synthesizer:
             'synthesizing_method': synthesizing_method.lower()
         }
 
+        from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
             data=data, **self.para['Synthesizer']
         ).create_synthesizer()
 
-        self.data_ori: pd.DataFrame = data
+        self.data_ori = data
         self.Synthesizer = Synthesizer
 
-    def fit(self, **kwargs) -> None:
-        """
-        Fit the synthesizer.
-
-        Args:
-            **kwargs: The fitting parameters.
-
-        Return:
-            None
-        """
+    def fit(self, **kwargs):
         self.Synthesizer.fit(**kwargs)
 
-    def sample(self, **kwargs) -> None:
-        """
-        Sample from the fitted synthesizer.
+    def sample(self, **kwargs):
+        self.data_syn = self.Synthesizer.sample(**kwargs)
 
-        Args:
-            **kwargs: The sampling parameters.
-
-        Return:
-            None
-        """
-        self.data_syn: pd.DataFrame = self.Synthesizer.sample(**kwargs)
+    def fit_sample(self, **kwargs):
+        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """

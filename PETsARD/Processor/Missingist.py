@@ -18,20 +18,18 @@ class Missingist:
     """
 
     def __init__(self) -> None:
-        self._is_fitted: bool = False
-        self.na_percentage: float = None
-        self._imputation_index: list = None
-        self._imputation_index_len: int = 0
+        self._is_fitted = False
+        self.na_percentage = None
         self.rng = np.random.default_rng()
 
     def set_na_percentage(self, na_percentage: float = 0.0) -> None:
         """
         Set NA percentage for the instance.
 
-        Args:
+        Input:
             na_percentage (float, default=0.0): NA percentage from the metadata.
 
-        Return:
+        Output:
             None
         """
         if na_percentage > 1.0 or na_percentage < 0.0:
@@ -40,30 +38,14 @@ class Missingist:
 
         self.na_percentage = na_percentage
 
-    def set_imputation_index(self, index_list: list = []) -> None:
-        """
-        Determine which indices can be imputed as NA globally.
-
-        Args:
-            index_list (float, default=0.0): NA percentage from the metadata.
-
-        Return:
-            None
-        """
-        if type(index_list) != list:
-            raise ValueError('Invalid index_list. It should be a list.')
-
-        self._imputation_index = index_list
-        self._imputation_index_len = len(index_list)
-
     def fit(self, data: pd.Series) -> None:
         """
         Base method of `fit`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be fitted.
 
-        Return:
+        Output:
             None
         """
         self._fit(data)
@@ -74,10 +56,10 @@ class Missingist:
         """
         Base method of `transform`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             (pd.Series | np.ndarray): The transformed data.
         """
         # Check the object is fitted
@@ -90,41 +72,22 @@ class Missingist:
         """
         Insert NA into the data to have the same pattern with the original data.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed inversely.
 
-        Return:
+        Output:
             (pd.Series): The inverse transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        if self.na_percentage == 0.0 or self._imputation_index_len == 0:
-            return data
-        else:
-            _na_mask = self.rng.choice(self._imputation_index,
-                                       size=int(self.na_percentage *
-                                                self._imputation_index_len),
-                                       replace=False)
-            _col_data: pd.Series = deepcopy(data)
-            _col_data.iloc[_na_mask] = np.nan
+        _na_mask = self.rng.random(data.shape[0])
+        _na_mask = _na_mask < self.na_percentage
+        _col_data = deepcopy(data)
+        _col_data[_na_mask] = np.nan
 
-            return _col_data
-
-    def _check_dtype_valid(self, data: pd.Series) -> None:
-        """
-        Check whether the data type is numerical type. Only called by Missingist_Mean and Missingist_Median.
-
-        Args:
-            data (pd.Series): The data to be processed.
-
-        Return:
-            None
-        """
-        if not pd.api.types.is_numeric_dtype(data):
-            raise ValueError(
-                f'The column {data.name} should be in numerical format to use the current missingist.')
+        return _col_data
 
 
 class Missingist_Mean(Missingist):
@@ -146,13 +109,12 @@ class Missingist_Mean(Missingist):
         """
         Gather information for transformation and reverse transformation.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             None
         """
-        self._check_dtype_valid(data)
 
         self.data_mean = data.mean()
 
@@ -160,15 +122,14 @@ class Missingist_Mean(Missingist):
         """
         Fill NA with mean.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
-            (np.ndarray): The transformed data.
+        Output:
+            (pd.Series): The transformed data.
         """
-        self._check_dtype_valid(data)
 
-        return data.fillna(self.data_mean).values.ravel()
+        return data.fillna(self.data_mean)
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
@@ -193,13 +154,12 @@ class Missingist_Median(Missingist):
         """
         Gather information for transformation and reverse transformation.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             None
         """
-        self._check_dtype_valid(data)
 
         self.data_median = data.median()
 
@@ -207,15 +167,14 @@ class Missingist_Median(Missingist):
         """
         Fill NA with median.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
-            (np.ndarray): The transformed data.
+        Output:
+            (pd.Series): The transformed data.
         """
-        self._check_dtype_valid(data)
 
-        return data.fillna(self.data_median).values.ravel()
+        return data.fillna(self.data_median)
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
@@ -241,16 +200,16 @@ class Missingist_Simple(Missingist):
 
     def _transform(self, data: pd.Series) -> pd.Series:
         """
-        Fill NA with the predefined value.
+        Fill NA with median.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
-            (np.ndarray): The transformed data.
+        Output:
+            (pd.Series): The transformed data.
         """
 
-        return data.fillna(self.data_value).values.ravel()
+        return data.fillna(self.data_value)
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
@@ -278,10 +237,10 @@ class Missingist_Drop(Missingist):
         """
         Mark the NA cells and store the original data.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The filter marking the NA cells.
         """
         self.data_backup = data
