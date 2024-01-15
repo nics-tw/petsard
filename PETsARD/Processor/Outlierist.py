@@ -1,12 +1,24 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 
+from PETsARD.Error import UnfittedError
+
+
 class Outlierist:
+    """
+    Base class for all Outlierist classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         self._is_fitted = False
-        self.data_backup = None # for restoring data
+        self.data_backup = None  # for restoring data
 
     def fit(self, data: pd.Series) -> None:
         """
@@ -44,6 +56,7 @@ class Outlierist:
 
         return self._transform(data)
 
+
 class Outlierist_ZScore(Outlierist):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
@@ -76,10 +89,11 @@ class Outlierist_ZScore(Outlierist):
         Output:
             (np.ndarray): The filter marking the outliers.
         """
-        
+
         ss_data = self.model.transform(data)
 
         return (np.abs(ss_data) > 3).ravel()
+
 
 class Outlierist_IQR(Outlierist):
     # indicator of whether the fit and transform process involved other columns
@@ -123,7 +137,8 @@ class Outlierist_IQR(Outlierist):
         """
 
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
-    
+
+
 class Outlierist_IsolationForest(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
@@ -141,9 +156,10 @@ class Outlierist_IsolationForest(Outlierist):
     def _transform(self, data: np.ndarray) -> np.ndarray:
         return data
 
+
 class Outlierist_LOF(Outlierist):
     """
-    Dummy class, doing nothing related to the method. 
+    Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
     """
     # indicator of whether the fit and transform process involved other columns

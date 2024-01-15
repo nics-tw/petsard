@@ -1,7 +1,12 @@
-from .Outlierist import Outlierist
 from pandas import to_datetime
-from pandas.api.types import is_dtype_equal
-from pandas.api.types import is_numeric_dtype, is_datetime64_any_dtype
+from pandas.api.types import (
+    is_dtype_equal,
+    is_numeric_dtype,
+    is_datetime64_any_dtype
+)
+
+from PETsARD.Preprocessor.Outlierist import Outlierist
+
 
 class Outlierist_IQR(Outlierist):
     def __init__(self, df_data, **kwargs):
@@ -29,49 +34,63 @@ class Outlierist_IQR(Outlierist):
                 Specifies the columns for check outlier value.
         """
 
-        _row_ori = self.df_data.shape[0]
-        _digits_row_ori = len(str(_row_ori))
-        _index_final = set(self.df_data.index)
-        _digits_longest_colname = len(
-            max(self.outlier_columns_action, key=len))
-        for _col_name in self.outlier_columns_action:
-            _col_data = self.df_data[_col_name]
-            if is_numeric_dtype(_col_data) or is_datetime64_any_dtype(_col_data):
-                if is_datetime64_any_dtype(_col_data):
+        row_ori = self.df_data.shape[0]
+        digits_row_ori = len(str(row_ori))
+        index_final = set(self.df_data.index)
+        digits_longest_colname = len(
+            max(self.outlier_columns_action, key=len)
+        )
+        for col_name in self.outlier_columns_action:
+            col_data = self.df_data[col_name]
+            if is_numeric_dtype(col_data) or is_datetime64_any_dtype(col_data):
+                if is_datetime64_any_dtype(col_data):
 
-                    _col_data_timestamp = to_datetime(
-                        _col_data).view(int) / 10**9
-                    _index_filter, _btm, _upp = self._index_IQR(
-                        _col_data_timestamp)
+                    col_data_timestamp = \
+                        to_datetime(col_data).view(int) / 10**9
+                    index_filter, btm, upp = self._index_IQR(
+                        col_data_timestamp
+                    )
 
-                    if is_dtype_equal(_col_data.dtype, 'datetime64[ns]'):
-                        _btm = to_datetime(_btm, unit='s').normalize()
-                        _upp = to_datetime(_upp, unit='s').normalize()
+                    if is_dtype_equal(col_data.dtype, 'datetime64[ns]'):
+                        btm = to_datetime(btm, unit='s').normalize()
+                        upp = to_datetime(upp, unit='s').normalize()
                     else:
-                        _btm = to_datetime(_btm, unit='s')
-                        _upp = to_datetime(_upp, unit='s')
+                        btm = to_datetime(btm, unit='s')
+                        upp = to_datetime(upp, unit='s')
                 else:
-                    _index_filter, _btm, _upp = self._index_IQR(_col_data)
+                    index_filter, btm, upp = self._index_IQR(col_data)
 
-                _row_drop = len(_index_filter)
-                _index_final -= set(_index_filter)
+                row_drop = len(index_filter)
+                index_final -= set(index_filter)
 
-                if _row_drop == 0:
+                if row_drop == 0:
                     print(
-                        f'Preprocessor - Outlierist (IQR): No rows have been dropped on {_col_name}.')
+                        f"Preprocessor - Outlierist (IQR): "
+                        f"No rows have been dropped on {col_name}."
+                    )
                 else:
                     print(
-                        f'Preprocessor - Outlierist (IQR): Dropped {_row_drop: >{_digits_row_ori}} rows on {_col_name: <{_digits_longest_colname}}. Kept [{_btm}, {_upp}] only.')
+                        f"Preprocessor - Outlierist (IQR): "
+                        f"Dropped {row_drop: >{digits_row_ori}} rows "
+                        f"on {col_name: <{digits_longest_colname}}. "
+                        f"Kept [{btm}, {upp}] only."
+                    )
 
-        _row_drop_ttl = _row_ori - len(_index_final)
-        if _row_drop_ttl == 0:
-            print(f'Preprocessor - Outlierist (IQR): None of rows have been dropped.')
+        row_drop_ttl = row_ori - len(index_final)
+        if row_drop_ttl == 0:
+            print(
+                f"Preprocessor - Outlierist (IQR): "
+                f"None of rows have been dropped."
+            )
         else:
             print(
-                f'Preprocessor - Outlierist (IQR): Totally Dropped {_row_drop_ttl: >{_digits_row_ori}} in {_row_ori} rows.')
+                f"Preprocessor - Outlierist (IQR): "
+                f"Totally Dropped {row_drop_ttl: >{digits_row_ori}} "
+                f"in {row_ori} rows."
+            )
 
-        self.df_data = self.df_data.loc[list(_index_final)]\
-                                   .reset_index(drop=True)
+        self.df_data = self.df_data\
+            .loc[list(index_final)].reset_index(drop=True)
 
         return self.df_data
 
@@ -81,6 +100,6 @@ class Outlierist_IQR(Outlierist):
         IQR = Q3 - Q1
         btm = Q1 - 1.5 * IQR
         upp = Q3 + 1.5 * IQR
-        return col_data.index[((col_data < btm)
-                               | (col_data > upp))
-                              ].tolist(), btm, upp
+        return col_data.index[
+            ((col_data < btm) | (col_data > upp))
+        ].tolist(), btm, upp

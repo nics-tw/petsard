@@ -1,20 +1,39 @@
+from PETsARD.Evaluator.Anonymeter import Anonymeter_SinglingOut_Univariate
+from PETsARD.Evaluator.Anonymeter import Anonymeter_Linkability
+from PETsARD.Evaluator.Anonymeter import Anonymeter_Inference
+
+
 class AnonymeterFactory:
+    """
+    Factory for "Anonymeter" Evaluator.
+
+    AnonymeterFactory defines which module to use within Anonymeter.
+
+    ...
+    TODO As AnonymeterMethodMap,
+            use a class to define mappings of string and int,
+            avoiding string conditions.
+
+    """
+
     def __init__(self, **kwargs):
-        evaluating_method = kwargs.get('evaluating_method', None)
+        evaluating_method: str = kwargs.get('evaluating_method', None)
 
         if evaluating_method.startswith('anonymeter-singlingout-univariate'):
-            from .Anonymeter_SinglingOut_Univariate import Anonymeter_SinglingOut_Univariate
-            _Evaluator = Anonymeter_SinglingOut_Univariate(**kwargs)
+            self.Evaluator = Anonymeter_SinglingOut_Univariate(**kwargs)
         elif evaluating_method.startswith('anonymeter-linkability'):
-            from .Anonymeter_Linkability import Anonymeter_Linkability
-            _Evaluator = Anonymeter_Linkability(**kwargs)
+            self.Evaluator = Anonymeter_Linkability(**kwargs)
         elif evaluating_method.startswith('anonymeter-inference'):
-            from .Anonymeter_Inference import Anonymeter_Inference
-            _Evaluator = Anonymeter_Inference(**kwargs)
+            self.Evaluator = Anonymeter_Inference(**kwargs)
         else:
-            raise ValueError(f"Evaluator (Anonymeter - AnonymeterFactory): evaluating_method {evaluating_method} didn't support.")
-
-        self.Evaluator = _Evaluator
+            raise ValueError(
+                f"Evaluator (Anonymeter - AnonymeterFactory): "
+                f"evaluating_method {evaluating_method} didn't support."
+            )
 
     def create_evaluator(self):
+        """
+        create_evaluator()
+            return the Evaluator which selected by Factory.
+        """
         return self.Evaluator
