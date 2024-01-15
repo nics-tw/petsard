@@ -1,10 +1,24 @@
-from .SDV_SingleTable import SDV_SingleTable
+import pandas as pd
+from sdv.single_table import CTGANSynthesizer
+
+from PETsARD.Synthesizer.SDV.SDV_SingleTable import SDV_SingleTable
+
 
 class SDV_SingleTable_CTGAN(SDV_SingleTable):
-    def __init__(self,   data, **kwargs):
-        super().__init__(data, **kwargs)
-        self._syn_method = 'CTGAN'
+    """
+    Implement CTGAN synthesize method.
 
-        # metadata already create in SDV_SingleTable
-        from sdv.single_table import CTGANSynthesizer
+    Args:
+        data (pd.DataFrame): The data to be synthesized.
+        **kwargs: The other parameters.
+
+    Return:
+        None
+    """
+
+    def __init__(self, data: pd.DataFrame, **kwargs):
+        super().__init__(data, **kwargs)
+
+        self.syn_method: str = 'CTGAN'
+
         self._Synthesizer = CTGANSynthesizer(self.metadata)

@@ -1,4 +1,5 @@
-from .Evaluator import Evaluator
+from PETsARD.Evaluator.Evaluator import Evaluator
 
-__all__ = ['Evaluator'
-           ]
+__all__ = [
+    'Evaluator'
+]

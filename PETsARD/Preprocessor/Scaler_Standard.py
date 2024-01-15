@@ -1,6 +1,7 @@
-from .Scaler import Scaler
 from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import StandardScaler
+
+from PETsARD.Preprocessor.Scaler import Scaler
 
 
 class Scaler_Standard(Scaler):
@@ -32,16 +33,22 @@ class Scaler_Standard(Scaler):
         """
 
         self.dict_scaler = {}
-        _digits_longest_colname = len(
-            max(self.scaling_columns_action, key=len))
-        for _col_name in self.scaling_columns_action:
-            _col_data = self.df_data[_col_name]
-            if is_numeric_dtype(_col_data):
-                self.dict_scaler[_col_name] = StandardScaler()
-                self.df_data[_col_name] = self.dict_scaler[_col_name].fit_transform(
-                    _col_data.values.reshape(-1, 1))
+        digits_longest_colname = len(
+            max(self.scaling_columns_action, key=len)
+        )
+        for col_name in self.scaling_columns_action:
+            col_data = self.df_data[col_name]
+            if is_numeric_dtype(col_data):
+                self.dict_scaler[col_name] = StandardScaler()
+                self.df_data[col_name] = \
+                    self.dict_scaler[col_name].fit_transform(
+                        col_data.values.reshape(-1, 1)
+                )
 
                 print(
-                    f'Preprocessor - Scaler (Standard): Column {_col_name:<{_digits_longest_colname}} been standardized.')
+                    f"Preprocessor - Scaler (Standard): "
+                    f"Column {col_name:<{digits_longest_colname}} "
+                    f"been standardized."
+                )
 
         return self.df_data, self.dict_scaler

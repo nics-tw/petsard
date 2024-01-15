@@ -1,10 +1,22 @@
 import numpy as np
 import pandas as pd
-from ..Error import UnfittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
+from PETsARD.Error import UnfittedError
+
+
 class Scaler:
+    """
+    Base class for all Scaler classes.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         self._is_fitted = False
 
@@ -63,7 +75,18 @@ class Scaler:
 
         return self._inverse_transform(data)
 
+
 class Scaler_Standard(Scaler):
+    """
+    Apply StandardScaler.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.model = StandardScaler()
@@ -90,9 +113,9 @@ class Scaler_Standard(Scaler):
         Output:
             (np.ndarray): The transformed data.
         """
-        
+
         return self.model.transform(data)
-    
+
     def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
         """
         Inverse the transformed data to the data in the original scale.
@@ -103,15 +126,95 @@ class Scaler_Standard(Scaler):
         Output:
             (np.ndarray): The inverse transformed data.
         """
-        
+
         return self.model.inverse_transform(data)
 
+
 class Scaler_ZeroCenter(Scaler_Standard):
+    """
+    Apply StandardScaler without std scaling.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.model = StandardScaler(with_std=False)
 
+
 class Scaler_MinMax(Scaler_Standard):
+    """
+    Apply MinMaxScaler.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
     def __init__(self) -> None:
         super().__init__()
-        self.model = MinMaxScaler()
+        self.model: MinMaxScaler = MinMaxScaler()
+
+
+class Scaler_Log(Scaler):
+    """
+    Scale the data by log transformation.
+
+    Args:
+        None
+
+    Return:
+        None
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def _fit(self, data: np.ndarray) -> None:
+        """
+        Check whether the log transformation can be performed.
+
+        Args:
+            data (np.ndarray): The data needed to be transformed.
+
+        Return:
+            None
+        """
+        if (data <= 0).any():
+            raise ValueError(
+                'Log transformation does not support non-positive values.')
+
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Conduct log transformation.
+
+        Args:
+            data (np.ndarray): The data needed to be transformed.
+
+        Return:
+            (np.ndarray): The transformed data.
+        """
+        if (data <= 0).any():
+            raise ValueError(
+                'Log transformation does not support non-positive values.')
+        else:
+            return np.log(data)
+
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Inverse the transformed data to the data in the original scale.
+
+        Args:
+            data (np.ndarray): The data needed to be transformed inversely.
+
+        Return:
+            (np.ndarray): The inverse transformed data.
+        """
+
+        return np.exp(data)
