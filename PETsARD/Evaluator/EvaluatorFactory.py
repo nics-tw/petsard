@@ -68,9 +68,9 @@ class EvaluatorFactory:
             self.Evaluator = SDMetrics(**kwargs).create_evaluator()
         else:
             raise ValueError(
-                f"Evaluator - EvaluatorFactory: evaluating_method "
-                f"{evaluating_method} didn't support."
-            )
+                f"Evaluator - EvaluatorFactory: evaluating_method {evaluating_method} didn't support.")
+
+        self.Evaluator = _Evaluator
 
     def create_evaluator(self):
         """
