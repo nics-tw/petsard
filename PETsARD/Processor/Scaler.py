@@ -18,20 +18,18 @@ class Scaler:
     """
 
     def __init__(self) -> None:
-        self._is_fitted: bool = False
+        self._is_fitted = False
 
     def fit(self, data: pd.Series) -> None:
         """
         Base method of `fit`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be fitted.
 
-        Return:
+        Output:
             None
         """
-        self._check_dtype_valid(data)
-
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
@@ -43,17 +41,15 @@ class Scaler:
         """
         Base method of `transform`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
-
-        self._check_dtype_valid(data)
 
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -64,36 +60,20 @@ class Scaler:
         """
         Base method of `inverse_transform`.
 
-        Args:
+        Input:
             data (pd.Series): The data needed to be transformed inversely.
 
-        Return:
+        Output:
             (np.ndarray): The inverse transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        self._check_dtype_valid(data)
-
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
-
-    def _check_dtype_valid(self, data: pd.Series) -> None:
-        """
-        Check whether the data type is valid.
-
-        Args:
-            data (pd.Series): The data to be processed.
-
-        Return:
-            None
-        """
-        if not pd.api.types.is_numeric_dtype(data):
-            raise ValueError(
-                f'The column {data.name} should be in numerical format to use a scaler.')
 
 
 class Scaler_Standard(Scaler):
@@ -109,16 +89,16 @@ class Scaler_Standard(Scaler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model: StandardScaler = StandardScaler()
+        self.model = StandardScaler()
 
     def _fit(self, data: np.ndarray) -> None:
         """
         Gather information for transformation and reverse transformation.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             None
         """
         self.model.fit(data)
@@ -127,10 +107,10 @@ class Scaler_Standard(Scaler):
         """
         Conduct standardisation.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed.
 
-        Return:
+        Output:
             (np.ndarray): The transformed data.
         """
 
@@ -140,10 +120,10 @@ class Scaler_Standard(Scaler):
         """
         Inverse the transformed data to the data in the original scale.
 
-        Args:
+        Input:
             data (np.ndarray): The data needed to be transformed inversely.
 
-        Return:
+        Output:
             (np.ndarray): The inverse transformed data.
         """
 
@@ -163,7 +143,7 @@ class Scaler_ZeroCenter(Scaler_Standard):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model: StandardScaler = StandardScaler(with_std=False)
+        self.model = StandardScaler(with_std=False)
 
 
 class Scaler_MinMax(Scaler_Standard):
