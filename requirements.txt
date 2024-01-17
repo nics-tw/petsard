@@ -163,7 +163,7 @@ charset-normalizer==3.3.2 ; python_version >= "3.10" and python_version < "3.11"
 cloudpickle==2.2.1 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:61f594d1f4c295fa5cd9014ceb3a1fc4a70b0de1164b94fbc2d854ccba056f9f \
     --hash=sha256:d89684b8de9e34a2a43b3460fbca07d09d6e25ce858df4d5a44240403b6178f5
-colorama==0.4.6 ; python_version >= "3.10" and python_version < "3.11" and (sys_platform == "win32" or platform_system == "Windows") \
+colorama==0.4.6 ; python_version >= "3.10" and python_version < "3.11" and (platform_system == "Windows" or sys_platform == "win32") \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
 comm==0.2.1 ; python_version >= "3.10" and python_version < "3.11" \
@@ -1052,6 +1052,9 @@ tenacity==8.2.3 ; python_version >= "3.10" and python_version < "3.11" \
 threadpoolctl==3.2.0 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:2b7818516e423bdaebb97c723f86a7c6b0a83d3f3b0970328d66f4d9104dc032 \
     --hash=sha256:c96a0ba3bdddeaca37dc4cc7344aafad41cdb8c313f74fdfe387a867bba93355
+toml==0.10.2 ; python_version >= "3.10" and python_version < "3.11" \
+    --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
+    --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
 torch==2.1.2 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:05b18594f60a911a0c4f023f38a8bda77131fba5fd741bda626e97dcf5a3dd0a \
     --hash=sha256:0e13034fd5fb323cbbc29e56d0637a3791e50dd589616f40c79adfa36a5a35a1 \
