@@ -1,5 +1,3 @@
-# https://github.com/aws/amazon-sagemaker-examples/blob/main/sagemaker-remote-function/quick_start/environment.yml
-
 name: remote_conda_env
 channels:
   - defaults
