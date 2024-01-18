@@ -9,12 +9,6 @@ from PETsARD.Error import UnfittedError
 class Scaler:
     """
     Base class for all Scaler classes.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -24,11 +18,8 @@ class Scaler:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
-
-        Output:
-            None
         """
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -41,10 +32,10 @@ class Scaler:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
         # Check the object is fitted
@@ -60,10 +51,10 @@ class Scaler:
         """
         Base method of `inverse_transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
         # Check the object is fitted
@@ -79,12 +70,6 @@ class Scaler:
 class Scaler_Standard(Scaler):
     """
     Apply StandardScaler.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -95,11 +80,8 @@ class Scaler_Standard(Scaler):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
         self.model.fit(data)
 
@@ -107,10 +89,10 @@ class Scaler_Standard(Scaler):
         """
         Conduct standardisation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
 
@@ -120,10 +102,10 @@ class Scaler_Standard(Scaler):
         """
         Inverse the transformed data to the data in the original scale.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
 
@@ -133,12 +115,6 @@ class Scaler_Standard(Scaler):
 class Scaler_ZeroCenter(Scaler_Standard):
     """
     Apply StandardScaler without std scaling.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -149,12 +125,6 @@ class Scaler_ZeroCenter(Scaler_Standard):
 class Scaler_MinMax(Scaler_Standard):
     """
     Apply MinMaxScaler.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -165,12 +135,6 @@ class Scaler_MinMax(Scaler_Standard):
 class Scaler_Log(Scaler):
     """
     Scale the data by log transformation.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -182,9 +146,6 @@ class Scaler_Log(Scaler):
 
         Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Return:
-            None
         """
         if (data <= 0).any():
             raise ValueError(

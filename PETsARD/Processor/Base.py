@@ -21,14 +21,6 @@ class Processor:
     Manage the processors. 
     It arrange the execution queue and allocate the tasks 
     to the right processors based on the metadata and the parameters.
-
-    Args:
-        metadata (Metadata): The metadata class to 
-            provide the metadata of the data.
-        config (dict): The user-defined config.
-
-    Return:
-        None
     """
 
     # object datatype indicates the unusual data,
@@ -73,6 +65,12 @@ class Processor:
                             'scaler_log': Scaler_Log}
 
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
+        """
+        Args:
+        metadata (Metadata): The metadata class to 
+            provide the metadata of the data.
+        config (dict): The user-defined config.
+        """
         metadata: dict = metadata.metadata
         self._check_metadata_valid(metadata=metadata)
         self._metadata: dict = metadata

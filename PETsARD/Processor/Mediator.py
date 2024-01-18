@@ -12,12 +12,6 @@ class Mediator:
     It is responsible for two actions:
         1. Gather all columns needed to process
         2. Coordinate and perform global behaviours
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -31,9 +25,6 @@ class Mediator:
         Args:
             None, the config is read during initialisation.
             data: Redundant input.
-
-        Return:
-            None
         """
         # in most cases, mediator doesn't need data to fit
         # just to keep the interface unified
@@ -63,16 +54,14 @@ class Mediator:
 class Mediator_Missingist(Mediator):
     """
     Deal with global behaviours in Missingist.
-
-    Args:
-        config (dict): The config related to the processing data 
-        to cope with global behaviours.
-
-    Return:
-        None
     """
 
     def __init__(self, config: dict) -> None:
+        """
+        Args:
+            config (dict): The config related to the processing data 
+            to cope with global behaviours.
+        """
         super().__init__()
         self._config: dict = config['missingist']
 
@@ -83,9 +72,6 @@ class Mediator_Missingist(Mediator):
         Args:
             None, the config is read during initialisation.
             data: Redundant input.
-
-        Return:
-            None
         """
         for col, obj in self._config.items():
             if type(obj) == Missingist_Drop:
@@ -133,16 +119,14 @@ class Mediator_Missingist(Mediator):
 class Mediator_Outlierist(Mediator):
     """
     Deal with global behaviours in Outlierist.
-
-    Args:
-        config (dict): The config related to the processing data 
-        to cope with global behaviours.
-
-    Return:
-        None
     """
 
     def __init__(self, config: dict) -> None:
+        """
+        Args:
+            config (dict): The config related to the processing data 
+            to cope with global behaviours.
+        """
         super().__init__()
         self._config: dict = config['outlierist']
         self.model = None
@@ -173,9 +157,6 @@ class Mediator_Outlierist(Mediator):
         Args:
             None, the config is read during initialisation.
             data: Redundant input.
-
-        Return:
-            None
         """
         if self._global_model_indicator:
             # global transformation from sklearn only accepts numeric type data
