@@ -26,49 +26,70 @@ class Processor:
     # object datatype indicates the unusual data,
     # passive actions will be taken in processing procedure
 
-    _DEFAULT_MISSINGIST: dict = {'numerical': Missingist_Mean,
-                                 'categorical': Missingist_Drop,
-                                 'datetime': Missingist_Drop,
-                                 'object': Missingist_Drop}
+    _DEFAULT_MISSINGIST: dict = {
+        'numerical': Missingist_Mean,
+        'categorical': Missingist_Drop,
+        'datetime': Missingist_Drop,
+        'object': Missingist_Drop
+        }
 
-    _DEFAULT_OUTLIERIST: dict = {'numerical': Outlierist_IQR,
-                                 'categorical': None,
-                                 'datatime': Outlierist_IQR,
-                                 'object': None}
+    _DEFAULT_OUTLIERIST: dict = {
+        'numerical': Outlierist_IQR,
+        'categorical': None,
+        'datatime': Outlierist_IQR,
+        'object': None
+        }
 
-    _DEFAULT_ENCODER: dict = {'numerical': None,
-                              'categorical': Encoder_Uniform,
-                              'datetime': None,
-                              'object': Encoder_Uniform}
+    _DEFAULT_ENCODER: dict = {
+        'numerical': None,
+        'categorical': Encoder_Uniform,
+        'datetime': None,
+        'object': Encoder_Uniform
+        }
 
-    _DEFAULT_SCALER: dict = {'numerical': Scaler_Standard,
-                             'categorical': None,
-                             'datetime': Scaler_Standard,
-                             'object': None}
+    _DEFAULT_SCALER: dict = {
+        'numerical': Scaler_Standard,
+        'categorical': None,
+        'datetime': Scaler_Standard,
+        'object': None
+        }
 
     _DEFAULT_SEQUENCE: list = ['missingist', 'outlierist', 'encoder', 'scaler']
 
-    _PROCESSOR_MAP: dict = {'encoder_uniform': Encoder_Uniform,
-                            'encoder_label': Encoder_Label,
-                            'missingist_mean': Missingist_Mean,
-                            'missingist_median': Missingist_Median,
-                            'missingist_simple': Missingist_Simple,
-                            'missingist_drop': Missingist_Drop,
-                            'outlierist_zscore': Outlierist_ZScore,
-                            'outlierist_iqr': Outlierist_IQR,
-                            'outlierist_isolationforest': 
-                                Outlierist_IsolationForest,
-                            'outlierist_lof': Outlierist_LOF,
-                            'scaler_standard': Scaler_Standard,
-                            'scaler_zerocenter': Scaler_ZeroCenter,
-                            'scaler_minmax': Scaler_MinMax,
-                            'scaler_log': Scaler_Log}
+    _PROCESSOR_MAP: dict = {
+        'encoder_uniform': Encoder_Uniform,
+        'encoder_label': Encoder_Label,
+        'missingist_mean': Missingist_Mean,
+        'missingist_median': Missingist_Median,
+        'missingist_simple': Missingist_Simple,
+        'missingist_drop': Missingist_Drop,
+        'outlierist_zscore': Outlierist_ZScore,
+        'outlierist_iqr': Outlierist_IQR,
+        'outlierist_isolationforest': Outlierist_IsolationForest,
+        'outlierist_lof': Outlierist_LOF,
+        'scaler_standard': Scaler_Standard,
+        'scaler_zerocenter': Scaler_ZeroCenter,
+        'scaler_minmax': Scaler_MinMax,
+        'scaler_log': Scaler_Log
+        }
 
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
         Args:
         metadata (Metadata): The metadata class to 
             provide the metadata of the data.
+            The structure of metadata is:
+                {'metadata_col': {
+                    col_name: {'type': data_type ('categorical'|'numerical'), 
+                            'na_percentage': float}, ...
+                    }
+                },
+                'metadata_global':{
+                    'row_num': int,
+                    'col_num': int,
+                    'na_percentage': float
+                    }
+                }
         config (dict): The user-defined config.
         """
         metadata: dict = metadata.metadata
@@ -155,18 +176,22 @@ class Processor:
             raise TypeError('Config should be a dict.')
 
         # check the validity of processor types
-        if not set(config_to_check.keys()).issubset({'missingist',
-                                                      'outlierist', 
-                                                      'encoder', 
-                                                      'scaler'}):
+        if not set(config_to_check.keys()).issubset({
+            'missingist',
+            'outlierist', 
+            'encoder', 
+            'scaler'}
+            ):
             raise ValueError(
                 f'Invalid config processor type in the input dict,\
                       please check the dict keys of processor types.')
 
-        for processor, processor_class in {'missingist': Missingist, 
-                                           'outlierist': Outlierist, 
-                                           'encoder': Encoder, 
-                                           'scaler': Scaler}.items():
+        for processor, processor_class in {
+            'missingist': Missingist,
+            'outlierist': Outlierist,
+            'encoder': Encoder,
+            'scaler': Scaler
+            }.items():
 
             if config_to_check.get(processor, None) is None:
                 continue
@@ -207,33 +232,29 @@ class Processor:
             None: The config will be stored in the instance itself.
         """
         self._config: dict = None  # initialise the dict
-        self._config = {'missingist': {},
-                        'outlierist': {},
-                        'encoder': {},
-                        'scaler': {}}
+        self._config = {
+            'missingist': {},
+            'outlierist': {},
+            'encoder': {},
+            'scaler': {}
+            }
 
         for col, val in self._metadata['metadata_col'].items():
 
-            processor_dict: dict = {'missingist': self._DEFAULT_MISSINGIST\
-                                        [val['infer_dtype']]()
-                                    if self._DEFAULT_MISSINGIST\
-                                        [val['infer_dtype']] is not None 
-                                    else None,
-                                    'outlierist': self._DEFAULT_OUTLIERIST\
-                                        [val['infer_dtype']]()
-                                    if self._DEFAULT_OUTLIERIST\
-                                        [val['infer_dtype']] is not None 
-                                    else None,
-                                    'encoder': self._DEFAULT_ENCODER\
-                                        [val['infer_dtype']]()
-                                    if self._DEFAULT_ENCODER\
-                                        [val['infer_dtype']] is not None 
-                                    else None,
-                                    'scaler': self._DEFAULT_SCALER\
-                                        [val['infer_dtype']]()
-                                    if self._DEFAULT_SCALER\
-                                        [val['infer_dtype']] is not None 
-                                    else None}
+            processor_dict: dict = {
+                'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
+                if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None 
+                else None,
+                'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()
+                if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None 
+                else None,
+                'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()
+                if self._DEFAULT_ENCODER[val['infer_dtype']] is not None 
+                else None,
+                'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()
+                if self._DEFAULT_SCALER[val['infer_dtype']] is not None 
+                else None
+                }
 
             for processor, obj in processor_dict.items():
                 self._config[processor][col] = obj
@@ -253,10 +274,12 @@ class Processor:
             (dict): The config with selected columns.
         """
         get_col_list: list = []
-        result_dict: dict = {'missingist': {},
-                             'outlierist': {},
-                             'encoder': {},
-                             'scaler': {}}
+        result_dict: dict = {
+            'missingist': {},
+            'outlierist': {},
+            'encoder': {},
+            'scaler': {}
+            }
 
         if col:
             get_col_list = col
@@ -595,11 +618,12 @@ class Processor:
         changes_dict: dict = {'processor': [], 'col': [],
                               'current': [], 'default': []}
 
-        for processor, default_class in {'missingist': self._DEFAULT_MISSINGIST,
-                                        'outlierist': self._DEFAULT_OUTLIERIST,
-                                        'encoder': self._DEFAULT_ENCODER,
-                                        'scaler': self._DEFAULT_SCALER}.\
-                                            items():
+        for processor, default_class in {
+            'missingist': self._DEFAULT_MISSINGIST,
+            'outlierist': self._DEFAULT_OUTLIERIST,
+            'encoder': self._DEFAULT_ENCODER,
+            'scaler': self._DEFAULT_SCALER
+            }.items():
             for col, obj in self._config[processor].items():
                 if default_class[self._metadata['metadata_col']\
                                  [col]['infer_dtype']] is None:
