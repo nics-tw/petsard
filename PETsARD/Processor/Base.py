@@ -80,13 +80,13 @@ class Processor:
             provide the metadata of the data.
             The structure of metadata is:
                 {
-                    'metadata_col': {
+                    'col': {
                     col_name: {'type': data_type 
                                 ('categorical'|'numerical'|'datetime'|'object'), 
                             'na_percentage': float}, ...
                     }
                 },
-                'metadata_global':{
+                'global':{
                     'row_num': int,
                     'col_num': int,
                     'na_percentage': float
@@ -110,7 +110,7 @@ class Processor:
         self.mediator_outlierist: Mediator_Outlierist | None = None
 
         # global NA values imputation
-        self._na_percentage_global: float = metadata['metadata_global'].\
+        self._na_percentage_global: float = metadata['global'].\
                                     get('na_percentage', 0.0)
         self.rng = np.random.default_rng()
 
@@ -126,7 +126,7 @@ class Processor:
     def _check_metadata_valid(self, metadata: dict) -> None:
         """
         Check whether the metadata contains 
-            the proper keys (metadata_col and metadata_global) 
+            the proper keys (col and global) 
             for generating config.
 
         Args:
@@ -137,21 +137,21 @@ class Processor:
         if type(metadata) != dict:
             raise TypeError('Metadata should be a dict.')
 
-        if not ('metadata_col' in metadata and 'metadata_global' in metadata):
+        if not ('col' in metadata and 'global' in metadata):
             raise ValueError(
-                "'metadata_col' and \
-                    'metadata_global' should be in the metadata.")
+                "'col' and \
+                    'global' should be in the metadata.")
 
-        if type(metadata['metadata_col']) != dict:
-            raise TypeError('metadata_col should be a dict.')
+        if type(metadata['col']) != dict:
+            raise TypeError("'col' in metadata should be a dict.")
 
-        if type(metadata['metadata_global']) != dict:
-            raise TypeError('metadata_global should be a dict.')
+        if type(metadata['global']) != dict:
+            raise TypeError("'global' in metadata should be a dict.")
 
-        for v in metadata['metadata_col'].values():
+        for v in metadata['col'].values():
             if type(v) != dict:
                 raise TypeError(
-                    'The elements in metadata_col should be a dict.')
+                    "The elements in 'col' in metadata should be a dict.")
 
     def _check_config_valid(self, config_to_check: dict = None) -> None:
         """
@@ -198,7 +198,7 @@ class Processor:
 
             # check the validity of column names (keys)
             if not set(config_to_check[processor].keys()).\
-                issubset(set(self._metadata['metadata_col'].keys())):
+                issubset(set(self._metadata['col'].keys())):
                 raise ValueError(
                     f'Some columns in the input config {processor} \
                         are not in the metadata. \
@@ -235,7 +235,7 @@ class Processor:
             'scaler': {}
             }
 
-        for col, val in self._metadata['metadata_col'].items():
+        for col, val in self._metadata['col'].items():
 
             processor_dict: dict = {
                 'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
@@ -280,7 +280,7 @@ class Processor:
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._metadata['metadata_col'].keys())
+            get_col_list = list(self._metadata['col'].keys())
 
         if print_config:
             for processor in self._config.keys():
@@ -544,7 +544,7 @@ class Processor:
                     # the NA percentage taking global NA percentage 
                     # into consideration
                     adjusted_na_percentage: float = \
-                        self._metadata['metadata_col'][col].\
+                        self._metadata['col'][col].\
                             get('na_percentage', 0.0)\
                         / self._na_percentage_global
             # if there is no NA in the original data
@@ -600,7 +600,7 @@ class Processor:
             'scaler': self._DEFAULT_SCALER
             }.items():
             for col, obj in self._config[processor].items():
-                if default_class[self._metadata['metadata_col']\
+                if default_class[self._metadata['col']\
                                  [col]['infer_dtype']] is None:
                     if obj is not None:
                         changes_dict['processor'].append(processor)
@@ -608,13 +608,13 @@ class Processor:
                         changes_dict['current'].append(type(obj).__name__)
                         changes_dict['default'].append('NoneType')
                 elif not isinstance(obj, default_class\
-                                    [self._metadata['metadata_col'][col]\
+                                    [self._metadata['col'][col]\
                                      ['infer_dtype']]):
                     changes_dict['processor'].append(processor)
                     changes_dict['col'].append(col)
                     changes_dict['current'].append(type(obj).__name__)
                     changes_dict['default'].append(
-                        default_class[self._metadata['metadata_col'][col]\
+                        default_class[self._metadata['col'][col]\
                                       ['infer_dtype']].__name__)
 
         return pd.DataFrame(changes_dict)
