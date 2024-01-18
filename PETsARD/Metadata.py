@@ -18,11 +18,11 @@ class Metadata:
         """
         self._check_dataframe_valid(data)
 
-        metadata = {'metadata_col': None, 'metadata_global': {}}
+        metadata = {'col': None, 'global': {}}
 
-        metadata['metadata_global']['row_num'] = data.shape[0]
-        metadata['metadata_global']['col_num'] = data.shape[1]
-        metadata['metadata_global']['na_percentage'] = data.isna()\
+        metadata['global']['row_num'] = data.shape[0]
+        metadata['global']['col_num'] = data.shape[1]
+        metadata['global']['na_percentage'] = data.isna()\
             .any(axis=1).mean()
 
         # create type and na_percentage keys and values automatically
@@ -34,7 +34,7 @@ class Metadata:
         metadata_df['infer_dtype'] = metadata_df['dtype']\
             .apply(self._convert_dtypes)
 
-        metadata['metadata_col'] = metadata_df.to_dict('index')
+        metadata['col'] = metadata_df.to_dict('index')
 
         self.metadata = metadata
 
@@ -93,7 +93,7 @@ class Metadata:
 
         sdv_metadata = {'columns': {}}
 
-        for col, val in self.metadata['metadata_col'].items():
+        for col, val in self.metadata['col'].items():
             sdtype = val.get('infer_dtype')
 
             if sdtype is None or sdtype == 'object':
