@@ -50,9 +50,9 @@ class Encoder:
         # included in the fitted instance
         if not set(data.unique()).issubset(set(self.labels)):
             raise ValueError(
-                "The data contains categories that the object hasn't seen\
-                      in the fitting process. \
-                        Please check the data categories again.")
+                "The data contains categories that the object hasn't seen",
+                " in the fitting process.", 
+                " Please check the data categories again.")
 
         return self._transform(data)
 
@@ -112,8 +112,8 @@ class Encoder_Uniform(Encoder):
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """
-        Transform categorical data to a uniform distribution. \
-            For example, a column with two categories (e.g., 'Male', 'Female')\
+        Transform categorical data to a uniform distribution. 
+            For example, a column with two categories (e.g., 'Male', 'Female')
                   can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
 
         Args:
@@ -147,8 +147,8 @@ class Encoder_Uniform(Encoder):
         # Check the range of the data is valid
         if data.max() > 1 or data.min() < 0:
             raise ValueError(
-                "The range of the data is out of range. \
-                    Please check the data again.")
+                "The range of the data is out of range.",
+                " Please check the data again.")
 
         bins_val = np.append(self.lower_values, 1.0)
 
