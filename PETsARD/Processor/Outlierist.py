@@ -10,6 +10,8 @@ class Outlierist:
     Base class for all Outlierist classes.
     """
 
+    PROC_TYPE = 'outlierist'
+
     def __init__(self) -> None:
         self._is_fitted = False
         self.data_backup = None  # for restoring data

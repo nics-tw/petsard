@@ -11,6 +11,8 @@ class Scaler:
     Base class for all Scaler classes.
     """
 
+    PROC_TYPE = 'scaler'
+
     def __init__(self) -> None:
         self._is_fitted = False
 
