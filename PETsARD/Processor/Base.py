@@ -139,8 +139,7 @@ class Processor:
 
         if not ('col' in metadata and 'global' in metadata):
             raise ValueError(
-                "'col' and \
-                    'global' should be in the metadata.")
+                "'col' and 'global' should be in the metadata.")
 
         if type(metadata['col']) != dict:
             raise TypeError("'col' in metadata should be a dict.")
@@ -178,8 +177,8 @@ class Processor:
             'scaler'}
             ):
             raise ValueError(
-                f'Invalid config processor type in the input dict,\
-                      please check the dict keys of processor types.')
+                f'Invalid config processor type in the input dict,',
+                ' please check the dict keys of processor types.')
 
         for processor in [
             'missingist',
@@ -199,9 +198,9 @@ class Processor:
             if not set(config_to_check[processor].keys()).\
                 issubset(set(self._metadata['col'].keys())):
                 raise ValueError(
-                    f'Some columns in the input config {processor} \
-                        are not in the metadata. \
-                            Please check the config or metadata again.')
+                    f'Some columns in the input config {processor}',
+                    ' are not in the metadata.',
+                    ' Please check the config or metadata again.')
 
     def _generate_config(self) -> None:
         """
@@ -391,7 +390,8 @@ class Processor:
                         continue
 
                     if obj.PROC_TYPE != processor:
-                        raise ValueError(f'Invalid processor from {col} in {processor}')
+                        raise ValueError(
+                            f'Invalid processor from {col} in {processor}')
 
                     obj.fit(data[col])
 
@@ -425,8 +425,8 @@ class Processor:
 
         if len(list(set(sequence))) != len(sequence):
             raise ValueError(
-                'There are duplicated procedures in the sequence,\
-                      please remove them.')
+                'There are duplicated procedures in the sequence,',
+                ' please remove them.')
 
         for processor in sequence:
             if processor not in ['missingist', 'outlierist', 
@@ -451,8 +451,8 @@ class Processor:
                 is_global_transformation = True
                 replaced_class = obj.__class__
                 logging.info(
-                    f'Global transformation detected. \
-                        All processors will be replaced to {replaced_class}.')
+                    f'Global transformation detected.',
+                    f' All processors will be replaced to {replaced_class}.')
                 break
 
         if is_global_transformation:
@@ -558,8 +558,8 @@ class Processor:
             for col, obj in self._config[processor].items():
 
                 logging.debug(
-                    f'{processor}: {obj} from {col} start\
-                          inverse transforming.')
+                    f'{processor}: {obj} from {col} start',
+                    ' inverse transforming.')
 
                 if obj is None:
                     continue
