@@ -81,8 +81,9 @@ class Processor:
             The structure of metadata is:
                 {
                     'col': {
-                    col_name: {'type': data_type 
-                                ('categorical'|'numerical'|'datetime'|'object'), 
+                    col_name: {'type': pd.dtype,
+                                'infer_dtype': 
+                                'categorical'|'numerical'|'datetime'|'object',
                             'na_percentage': float}, ...
                     }
                 },
@@ -223,7 +224,6 @@ class Processor:
             }
 
         for col, val in self._metadata['col'].items():
-
             processor_dict: dict = {
                 'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
                 if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None 
