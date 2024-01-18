@@ -14,10 +14,10 @@ import pandas as pd
 
 class Anonymeter():
     """
-    Base class for all "Evaluator".
+    Base class for all "Anonymeter".
 
-    The "Evaluator" class defines the common API
-    that all the "Evaluator" need to implement, as well as common functionality.
+    The "Anonymeter" class defines the common API
+    that all the "Anonymeter" need to implement, as well as common functionality.
 
     ...
 
@@ -61,7 +61,7 @@ class Anonymeter():
 
     ...
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
-
+    TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
     def __init__(self,
@@ -74,14 +74,9 @@ class Anonymeter():
                                                         List[str]]] = None,
                  **kwargs
                  ):
-        dataattr = {
-            'data_ori':     ('ori',     None),
-            'data_syn':     ('syn',     None),
-            'data_control': ('control', None)
-        }
-        for attr, (key, default) in dataattr.items():
-            value = data.get(key, default)
-            setattr(self, attr, value)
+        self.data_ori = data['ori']
+        self.data_syn = data['syn']
+        self.data_control = data['control']
 
         self.n_attacks = anonymeter_n_attacks
         self.n_jobs = anonymeter_n_jobs
