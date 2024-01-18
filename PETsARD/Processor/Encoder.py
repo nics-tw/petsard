@@ -10,6 +10,8 @@ class Encoder:
     Base class for all Encoder classes.
     """
 
+    PROC_TYPE = 'encoder'
+
     def __init__(self) -> None:
         # Mapping dict
         self.cat_to_val = None
