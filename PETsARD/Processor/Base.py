@@ -35,23 +35,23 @@ class Processor:
 
     _DEFAULT_OUTLIERIST: dict = {
         'numerical': Outlierist_IQR,
-        'categorical': None,
+        'categorical': lambda: None,
         'datatime': Outlierist_IQR,
-        'object': None
+        'object': lambda: None
         }
 
     _DEFAULT_ENCODER: dict = {
-        'numerical': None,
+        'numerical': lambda: None,
         'categorical': Encoder_Uniform,
-        'datetime': None,
+        'datetime': lambda: None,
         'object': Encoder_Uniform
         }
 
     _DEFAULT_SCALER: dict = {
         'numerical': Scaler_Standard,
-        'categorical': None,
+        'categorical': lambda: None,
         'datetime': Scaler_Standard,
-        'object': None
+        'object': lambda: None
         }
 
     _DEFAULT_SEQUENCE: list = ['missingist', 'outlierist', 'encoder', 'scaler']
@@ -225,22 +225,14 @@ class Processor:
 
         for col, val in self._metadata['col'].items():
             processor_dict: dict = {
-                'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
-                if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None 
-                else None,
-                'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()
-                if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None 
-                else None,
-                'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()
-                if self._DEFAULT_ENCODER[val['infer_dtype']] is not None 
-                else None,
-                'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()
-                if self._DEFAULT_SCALER[val['infer_dtype']] is not None 
-                else None
-                }
+                'missingist': self._DEFAULT_MISSINGIST,
+                'outlierist': self._DEFAULT_OUTLIERIST,
+                'encoder': self._DEFAULT_ENCODER,
+                'scaler': self._DEFAULT_SCALER
+            }
 
             for processor, obj in processor_dict.items():
-                self._config[processor][col] = obj
+                self._config[processor][col] = obj[val['infer_dtype']]()
 
     def get_config(self, col: list = None, print_config: bool = False) -> dict:
         """
@@ -451,7 +443,7 @@ class Processor:
                 is_global_transformation = True
                 replaced_class = obj.__class__
                 logging.info(
-                    f'Global transformation detected.',
+                    'Global transformation detected.'+\
                     f' All processors will be replaced to {replaced_class}.')
                 break
 
