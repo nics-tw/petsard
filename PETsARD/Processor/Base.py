@@ -174,22 +174,14 @@ class Processor:
             raise TypeError('Config should be a dict.')
 
         # check the validity of processor types
-        if not set(config_to_check.keys()).issubset({
-            'missingist',
-            'outlierist', 
-            'encoder', 
-            'scaler'}
+        if not set(config_to_check.keys()).issubset(
+                set(self._default_processor.keys())
             ):
             raise ValueError(
                 f'Invalid config processor type in the input dict,',
                 ' please check the dict keys of processor types.')
 
-        for processor in [
-            'missingist',
-            'outlierist',
-            'encoder',
-            'scaler'
-            ]:
+        for processor in self._default_processor.keys():
 
             if config_to_check.get(processor, None) is None:
                 continue
@@ -218,12 +210,9 @@ class Processor:
         Return:
             None: The config will be stored in the instance itself.
         """
-        self._config: dict = None  # initialise the dict
-        self._config = {
-            'missingist': {},
-            'outlierist': {},
-            'encoder': {},
-            'scaler': {}
+        # initialise the dict
+        self._config: dict = {
+            processor: {} for processor in self._default_processor.keys()
             }
 
         for col, val in self._metadata['col'].items():
@@ -246,10 +235,7 @@ class Processor:
         """
         get_col_list: list = []
         result_dict: dict = {
-            'missingist': {},
-            'outlierist': {},
-            'encoder': {},
-            'scaler': {}
+            processor: {} for processor in self._default_processor.keys()
             }
 
         if col:
