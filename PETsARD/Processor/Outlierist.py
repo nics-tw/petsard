@@ -154,7 +154,7 @@ class Outlierist_IsolationForest(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data
+        return data.ravel()
 
 
 class Outlierist_LOF(Outlierist):
@@ -172,4 +172,4 @@ class Outlierist_LOF(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data
+        return data.ravel()
