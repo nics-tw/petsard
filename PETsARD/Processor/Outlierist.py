@@ -8,12 +8,6 @@ from PETsARD.Error import UnfittedError
 class Outlierist:
     """
     Base class for all Outlierist classes.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -24,11 +18,8 @@ class Outlierist:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
-
-        Output:
-            None
         """
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -41,10 +32,10 @@ class Outlierist:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
         # Check the object is fitted
@@ -69,11 +60,8 @@ class Outlierist_ZScore(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
         self.data_backup = data
 
@@ -83,10 +71,10 @@ class Outlierist_ZScore(Outlierist):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
 
@@ -111,11 +99,8 @@ class Outlierist_IQR(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
         self.Q1 = np.quantile(data, 0.25)
         self.Q3 = np.quantile(data, 0.75)
@@ -129,10 +114,10 @@ class Outlierist_IQR(Outlierist):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
 
