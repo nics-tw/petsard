@@ -23,56 +23,6 @@ class Processor:
     to the right processors based on the metadata and the parameters.
     """
 
-    # object datatype indicates the unusual data,
-    # passive actions will be taken in processing procedure
-
-    _DEFAULT_MISSINGIST: dict = {
-        'numerical': Missingist_Mean,
-        'categorical': Missingist_Drop,
-        'datetime': Missingist_Drop,
-        'object': Missingist_Drop
-        }
-
-    _DEFAULT_OUTLIERIST: dict = {
-        'numerical': Outlierist_IQR,
-        'categorical': lambda: None,
-        'datatime': Outlierist_IQR,
-        'object': lambda: None
-        }
-
-    _DEFAULT_ENCODER: dict = {
-        'numerical': lambda: None,
-        'categorical': Encoder_Uniform,
-        'datetime': lambda: None,
-        'object': Encoder_Uniform
-        }
-
-    _DEFAULT_SCALER: dict = {
-        'numerical': Scaler_Standard,
-        'categorical': lambda: None,
-        'datetime': Scaler_Standard,
-        'object': lambda: None
-        }
-
-    _DEFAULT_SEQUENCE: list = ['missingist', 'outlierist', 'encoder', 'scaler']
-
-    _PROCESSOR_MAP: dict = {
-        'encoder_uniform': Encoder_Uniform,
-        'encoder_label': Encoder_Label,
-        'missingist_mean': Missingist_Mean,
-        'missingist_median': Missingist_Median,
-        'missingist_simple': Missingist_Simple,
-        'missingist_drop': Missingist_Drop,
-        'outlierist_zscore': Outlierist_ZScore,
-        'outlierist_iqr': Outlierist_IQR,
-        'outlierist_isolationforest': Outlierist_IsolationForest,
-        'outlierist_lof': Outlierist_LOF,
-        'scaler_standard': Scaler_Standard,
-        'scaler_zerocenter': Scaler_ZeroCenter,
-        'scaler_minmax': Scaler_MinMax,
-        'scaler_log': Scaler_Log
-        }
-
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
         Args:
@@ -95,6 +45,59 @@ class Processor:
                 }
         config (dict): The user-defined config.
         """
+        # object datatype indicates the unusual data,
+        # passive actions will be taken in processing procedure
+        self._default_processor: dict = {
+            'missingist': {
+                'numerical': Missingist_Mean,
+                'categorical': Missingist_Drop,
+                'datetime': Missingist_Drop,
+                'object': Missingist_Drop
+            },
+            'outlierist': {
+                'numerical': Outlierist_IQR,
+                'categorical': lambda: None,
+                'datatime': Outlierist_IQR,
+                'object': lambda: None
+            },
+            'encoder': {
+                'numerical': lambda: None,
+                'categorical': Encoder_Uniform,
+                'datetime': lambda: None,
+                'object': Encoder_Uniform
+            },
+            'scaler': {
+                'numerical': Scaler_Standard,
+                'categorical': lambda: None,
+                'datetime': Scaler_Standard,
+                'object': lambda: None
+            }
+        }
+
+        self._default_sequence: list = [
+            'missingist', 
+            'outlierist', 
+            'encoder', 
+            'scaler'
+        ]
+
+        self._processor_map: dict = {
+            'encoder_uniform': Encoder_Uniform,
+            'encoder_label': Encoder_Label,
+            'missingist_mean': Missingist_Mean,
+            'missingist_median': Missingist_Median,
+            'missingist_simple': Missingist_Simple,
+            'missingist_drop': Missingist_Drop,
+            'outlierist_zscore': Outlierist_ZScore,
+            'outlierist_iqr': Outlierist_IQR,
+            'outlierist_isolationforest': Outlierist_IsolationForest,
+            'outlierist_lof': Outlierist_LOF,
+            'scaler_standard': Scaler_Standard,
+            'scaler_zerocenter': Scaler_ZeroCenter,
+            'scaler_minmax': Scaler_MinMax,
+            'scaler_log': Scaler_Log
+        }
+
         metadata: dict = metadata.metadata
         self._check_metadata_valid(metadata=metadata)
         self._metadata: dict = metadata
@@ -224,14 +227,7 @@ class Processor:
             }
 
         for col, val in self._metadata['col'].items():
-            processor_dict: dict = {
-                'missingist': self._DEFAULT_MISSINGIST,
-                'outlierist': self._DEFAULT_OUTLIERIST,
-                'encoder': self._DEFAULT_ENCODER,
-                'scaler': self._DEFAULT_SCALER
-            }
-
-            for processor, obj in processor_dict.items():
+            for processor, obj in self._default_processor.items():
                 self._config[processor][col] = obj[val['infer_dtype']]()
 
     def get_config(self, col: list = None, print_config: bool = False) -> dict:
@@ -266,8 +262,8 @@ class Processor:
                 print(processor)
                 for colname in get_col_list:
                     print(
-                        f'    {colname}: \
-                            {type(self._config[processor][colname]).__name__}')
+                        f'    {colname}:',
+                        f' {type(self._config[processor][colname]).__name__}')
                     result_dict[processor][colname] = \
                         self._config[processor][colname]
         else:
@@ -298,7 +294,7 @@ class Processor:
 
                 # accept string of processor
                 if type(obj) == str:
-                    obj_convert = self._PROCESSOR_MAP.get(obj, None)
+                    obj_convert = self._processor_map.get(obj, None)
                     if obj_convert is None:
                         raise ValueError(f'Invalid processor name {obj}.')
                     else:
@@ -319,7 +315,7 @@ class Processor:
             for col, obj in val.items():
                 # accept string of processor
                 if type(obj) == str:
-                    obj_convert = self._PROCESSOR_MAP.get(obj, None)
+                    obj_convert = self._processor_map.get(obj, None)
                     if obj_convert is None:
                         raise ValueError(f'Invalid processor name {obj}.')
                     else:
@@ -340,7 +336,7 @@ class Processor:
         """
 
         if sequence is None:
-            self._sequence = self._DEFAULT_SEQUENCE
+            self._sequence = self._default_sequence
         else:
             self._check_sequence_valid(sequence)
             self._sequence = sequence
@@ -576,12 +572,7 @@ class Processor:
         changes_dict: dict = {'processor': [], 'col': [],
                               'current': [], 'default': []}
 
-        for processor, default_class in {
-            'missingist': self._DEFAULT_MISSINGIST,
-            'outlierist': self._DEFAULT_OUTLIERIST,
-            'encoder': self._DEFAULT_ENCODER,
-            'scaler': self._DEFAULT_SCALER
-            }.items():
+        for processor, default_class in self._default_processor.items():
             for col, obj in self._config[processor].items():
                 if default_class[self._metadata['col']\
                                  [col]['infer_dtype']] is None:
