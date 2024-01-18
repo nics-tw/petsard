@@ -81,7 +81,8 @@ class Processor:
             The structure of metadata is:
                 {
                     'metadata_col': {
-                    col_name: {'type': data_type ('categorical'|'numerical'), 
+                    col_name: {'type': data_type 
+                                ('categorical'|'numerical'|'datetime'|'object'), 
                             'na_percentage': float}, ...
                     }
                 },
