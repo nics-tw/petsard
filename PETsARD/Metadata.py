@@ -7,15 +7,14 @@ class Metadata:
 
     def build_metadata(self, data: pd.DataFrame) -> None:
         """
-        Create metadata from the data and infer data types from the metadata, which is used for generating config and `to_sdv` method.
+        Create metadata from the data and infer data types from the metadata, 
+        which is used for generating config and `to_sdv` method.
 
-        The infer data types can be one of the following: 'numerical', 'categorical', 'datetime', and 'object'.
+        The infer data types can be one of the following: 
+        'numerical', 'categorical', 'datetime', and 'object'.
 
         Args:
             data (pd.DataFrame): The dataframe used for building metadata.
-
-        Return:
-            None
         """
         self._check_dataframe_valid(data)
 
@@ -45,9 +44,6 @@ class Metadata:
 
         Args:
             data (pd.DataFrame): The dataframe to be checked.
-
-        Return:
-            None
         """
         if type(data) != pd.DataFrame:
             raise TypeError('Data should be a pd.DataFrame.')
@@ -87,9 +83,6 @@ class Metadata:
     def to_sdv(self) -> dict:
         """
         Transform the metadata to meet the format of SDV.
-
-        Args:
-            None
 
         Return:
             sdv_metadata (dict): The metadata in SDV metadata format.
