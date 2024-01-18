@@ -216,14 +216,26 @@ class Processor:
 
         for col, val in self._metadata['metadata_col'].items():
 
-            processor_dict: dict = {'missingist': self._DEFAULT_MISSINGIST[val['infer_dtype']]()
-                                    if self._DEFAULT_MISSINGIST[val['infer_dtype']] is not None else None,
-                                    'outlierist': self._DEFAULT_OUTLIERIST[val['infer_dtype']]()
-                                    if self._DEFAULT_OUTLIERIST[val['infer_dtype']] is not None else None,
-                                    'encoder': self._DEFAULT_ENCODER[val['infer_dtype']]()
-                                    if self._DEFAULT_ENCODER[val['infer_dtype']] is not None else None,
-                                    'scaler': self._DEFAULT_SCALER[val['infer_dtype']]()
-                                    if self._DEFAULT_SCALER[val['infer_dtype']] is not None else None}
+            processor_dict: dict = {'missingist': self._DEFAULT_MISSINGIST\
+                                        [val['infer_dtype']]()
+                                    if self._DEFAULT_MISSINGIST\
+                                        [val['infer_dtype']] is not None 
+                                    else None,
+                                    'outlierist': self._DEFAULT_OUTLIERIST\
+                                        [val['infer_dtype']]()
+                                    if self._DEFAULT_OUTLIERIST\
+                                        [val['infer_dtype']] is not None 
+                                    else None,
+                                    'encoder': self._DEFAULT_ENCODER\
+                                        [val['infer_dtype']]()
+                                    if self._DEFAULT_ENCODER\
+                                        [val['infer_dtype']] is not None 
+                                    else None,
+                                    'scaler': self._DEFAULT_SCALER\
+                                        [val['infer_dtype']]()
+                                    if self._DEFAULT_SCALER\
+                                        [val['infer_dtype']] is not None 
+                                    else None}
 
             for processor, obj in processor_dict.items():
                 self._config[processor][col] = obj
@@ -585,19 +597,27 @@ class Processor:
         changes_dict: dict = {'processor': [], 'col': [],
                               'current': [], 'default': []}
 
-        for processor, default_class in {'missingist': self._DEFAULT_MISSINGIST, 'outlierist': self._DEFAULT_OUTLIERIST, 'encoder': self._DEFAULT_ENCODER, 'scaler': self._DEFAULT_SCALER}.items():
+        for processor, default_class in {'missingist': self._DEFAULT_MISSINGIST,
+                                        'outlierist': self._DEFAULT_OUTLIERIST,
+                                        'encoder': self._DEFAULT_ENCODER,
+                                        'scaler': self._DEFAULT_SCALER}.\
+                                            items():
             for col, obj in self._config[processor].items():
-                if default_class[self._metadata['metadata_col'][col]['infer_dtype']] is None:
+                if default_class[self._metadata['metadata_col']\
+                                 [col]['infer_dtype']] is None:
                     if obj is not None:
                         changes_dict['processor'].append(processor)
                         changes_dict['col'].append(col)
                         changes_dict['current'].append(type(obj).__name__)
                         changes_dict['default'].append('NoneType')
-                elif not isinstance(obj, default_class[self._metadata['metadata_col'][col]['infer_dtype']]):
+                elif not isinstance(obj, default_class\
+                                    [self._metadata['metadata_col'][col]\
+                                     ['infer_dtype']]):
                     changes_dict['processor'].append(processor)
                     changes_dict['col'].append(col)
                     changes_dict['current'].append(type(obj).__name__)
                     changes_dict['default'].append(
-                        default_class[self._metadata['metadata_col'][col]['infer_dtype']].__name__)
+                        default_class[self._metadata['metadata_col'][col]\
+                                      ['infer_dtype']].__name__)
 
         return pd.DataFrame(changes_dict)

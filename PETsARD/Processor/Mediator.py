@@ -7,7 +7,8 @@ from PETsARD.Processor.Outlierist import *
 
 class Mediator:
     """
-    Deal with the processors with the same type to manage (column-wise) global behaviours including dropping the records.
+    Deal with the processors with the same type to 
+    manage (column-wise) global behaviours including dropping the records.
     It is responsible for two actions:
         1. Gather all columns needed to process
         2. Coordinate and perform global behaviours
@@ -64,7 +65,8 @@ class Mediator_Missingist(Mediator):
     Deal with global behaviours in Missingist.
 
     Args:
-        config (dict): The config related to the processing data to cope with global behaviours.
+        config (dict): The config related to the processing data 
+        to cope with global behaviours.
 
     Return:
         None
@@ -103,25 +105,27 @@ class Mediator_Missingist(Mediator):
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
-                drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].\
+                reset_index(drop=True)
 
             # restore the original data from the boolean data
             transformed.loc[:, col_name] = self._config.get(col_name,
-                                                            None).data_backup[~process_filter].values
+                                                            None).\
+                                            data_backup[~process_filter].values
 
             return transformed
         else:
             process_filter: np.ndarray = data[self._process_col].any(
                 axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
-                drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].\
+                reset_index(drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data
                 transformed.loc[:, col] = self._config.get(col,
-                                                           None).data_backup[~process_filter].values
+                                                           None).\
+                                            data_backup[~process_filter].values
 
             return transformed
 
@@ -131,7 +135,8 @@ class Mediator_Outlierist(Mediator):
     Deal with global behaviours in Outlierist.
 
     Args:
-        config (dict): The config related to the processing data to cope with global behaviours.
+        config (dict): The config related to the processing data 
+        to cope with global behaviours.
 
     Return:
         None
@@ -142,10 +147,12 @@ class Mediator_Outlierist(Mediator):
         self._config: dict = config['outlierist']
         self.model = None
 
-        # indicator for using global outlier methods, such as Isolation Forest and Local Outlier Factor
+        # indicator for using global outlier methods, 
+        # such as Isolation Forest and Local Outlier Factor
         self._global_model_indicator: bool = False
 
-        # if any column in the config sets outlierist method as isolation forest or local outlier factor
+        # if any column in the config sets outlierist method 
+        # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
             if type(obj) == Outlierist_IsolationForest:
@@ -177,7 +184,8 @@ class Mediator_Outlierist(Mediator):
 
             if len(self._process_col) < 1:
                 raise ValueError(
-                    'There should be at least one numerical column to fit the model.')
+                    'There should be at least one numerical column \
+                        to fit the model.')
         else:
             for col, obj in self._config.items():
                 if type(obj) in [Outlierist_IQR, Outlierist_ZScore]:
@@ -194,39 +202,42 @@ class Mediator_Outlierist(Mediator):
             transformed (pd.DataFrame): The finished data.
         """
         if self._global_model_indicator:
-            # the model may classify most data as outliers after transformation by other processors
+            # the model may classify most data as outliers 
+            # after transformation by other processors
             # so fit_predict will be used in _transform
             predict_result: np.ndarray = self.model.fit_predict(
                 data[self._process_col])
             self.result: np.ndarray = predict_result
             process_filter: np.ndarray = predict_result == -1.0
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
-                drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].\
+                reset_index(drop=True)
 
             return transformed
         elif len(self._process_col) == 1:
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
-                drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].\
+                reset_index(drop=True)
 
             # restore the original data from the boolean data
             transformed.loc[:, col_name] = self._config.get(col_name,
-                                                            None).data_backup[~process_filter]
+                                                            None).\
+                                                data_backup[~process_filter]
 
             return transformed
         else:
             process_filter: np.ndarray = data[self._process_col].any(
                 axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
-                drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].\
+                reset_index(drop=True)
 
             for col in self._process_col:
                 # restore the original data from the boolean data
                 transformed.loc[:, col] = self._config.get(col,
-                                                           None).data_backup[~process_filter]
+                                                           None).\
+                                                data_backup[~process_filter]
 
             return transformed
