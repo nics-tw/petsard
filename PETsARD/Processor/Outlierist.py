@@ -65,7 +65,6 @@ class Outlierist_ZScore(Outlierist):
         Args:
             data (np.ndarray): The data needed to be transformed.
         """
-        self.data_backup = data
 
         self.model.fit(data)
 
@@ -79,6 +78,9 @@ class Outlierist_ZScore(Outlierist):
         Return:
             (np.ndarray): The filter marking the outliers.
         """
+
+        # back up the data before transformation
+        self.data_backup = data
 
         ss_data = self.model.transform(data)
 
@@ -110,8 +112,6 @@ class Outlierist_IQR(Outlierist):
         self.lower = self.Q1 - 1.5 * self.IQR
         self.upper = self.Q3 + 1.5 * self.IQR
 
-        self.data_backup = data
-
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
@@ -122,6 +122,9 @@ class Outlierist_IQR(Outlierist):
         Return:
             (np.ndarray): The filter marking the outliers.
         """
+
+        # back up the data before transformation
+        self.data_backup = data
 
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
 

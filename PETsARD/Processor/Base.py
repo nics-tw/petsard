@@ -575,7 +575,7 @@ class Processor:
         for processor, default_class in self._default_processor.items():
             for col, obj in self._config[processor].items():
                 if default_class[self._metadata['col']\
-                                 [col]['infer_dtype']] is None:
+                                 [col]['infer_dtype']]() is None:
                     if obj is not None:
                         changes_dict['processor'].append(processor)
                         changes_dict['col'].append(col)
