@@ -341,7 +341,7 @@ class Processor:
             # right after the missingist
             self.mediator_missingist = MediatorMissingist(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('missingist')+1,
+                self._fitting_sequence.index('missingist') + 1,
                 self.mediator_missingist)
             logging.info('Mediator_Missingist is created.')
 
@@ -351,7 +351,7 @@ class Processor:
             # right after the outlierist
             self.mediator_outlierist = MediatorOutlierist(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('outlierist')+1,
+                self._fitting_sequence.index('outlierist') + 1,
                 self.mediator_outlierist)
             logging.info('Mediator_Outlierist is created.')
 
