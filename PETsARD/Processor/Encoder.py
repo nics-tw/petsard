@@ -73,7 +73,7 @@ class Encoder:
         return self._inverse_transform(data)
 
 
-class Encoder_Uniform(Encoder):
+class EncoderUniform(Encoder):
     """
     Implement a uniform encoder.
     """
@@ -156,7 +156,7 @@ class Encoder_Uniform(Encoder):
                       labels=self.labels, ordered=False)
 
 
-class Encoder_Label(Encoder):
+class EncoderLabel(Encoder):
     """
     Implement a label encoder.
     """

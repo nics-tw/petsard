@@ -52,27 +52,27 @@ class Processor:
         # passive actions will be taken in processing procedure
         self._default_processor: dict = {
             'missingist': {
-                'numerical': Missingist_Mean,
-                'categorical': Missingist_Drop,
-                'datetime': Missingist_Drop,
-                'object': Missingist_Drop
+                'numerical': MissingistMean,
+                'categorical': MissingistDrop,
+                'datetime': MissingistDrop,
+                'object': MissingistDrop
             },
             'outlierist': {
-                'numerical': Outlierist_IQR,
+                'numerical': OutlieristIQR,
                 'categorical': lambda: None,
-                'datatime': Outlierist_IQR,
+                'datatime': OutlieristIQR,
                 'object': lambda: None
             },
             'encoder': {
                 'numerical': lambda: None,
-                'categorical': Encoder_Uniform,
+                'categorical': EncoderUniform,
                 'datetime': lambda: None,
-                'object': Encoder_Uniform
+                'object': EncoderUniform
             },
             'scaler': {
-                'numerical': Scaler_Standard,
+                'numerical': ScalerStandard,
                 'categorical': lambda: None,
-                'datetime': Scaler_Standard,
+                'datetime': ScalerStandard,
                 'object': lambda: None
             }
         }
@@ -85,20 +85,20 @@ class Processor:
         ]
 
         self._processor_map: dict = {
-            'encoder_uniform': Encoder_Uniform,
-            'encoder_label': Encoder_Label,
-            'missingist_mean': Missingist_Mean,
-            'missingist_median': Missingist_Median,
-            'missingist_simple': Missingist_Simple,
-            'missingist_drop': Missingist_Drop,
-            'outlierist_zscore': Outlierist_ZScore,
-            'outlierist_iqr': Outlierist_IQR,
-            'outlierist_isolationforest': Outlierist_IsolationForest,
-            'outlierist_lof': Outlierist_LOF,
-            'scaler_standard': Scaler_Standard,
-            'scaler_zerocenter': Scaler_ZeroCenter,
-            'scaler_minmax': Scaler_MinMax,
-            'scaler_log': Scaler_Log
+            'encoder_uniform': EncoderUniform,
+            'encoder_label': EncoderLabel,
+            'missingist_mean': MissingistMean,
+            'missingist_median': MissingistMedian,
+            'missingist_simple': MissingistSimple,
+            'missingist_drop': MissingistDrop,
+            'outlierist_zscore': OutlieristZScore,
+            'outlierist_iqr': OutlieristIQR,
+            'outlierist_isolationforest': OutlieristIsolationForest,
+            'outlierist_lof': OutlieristLOF,
+            'scaler_standard': ScalerStandard,
+            'scaler_zerocenter': ScalerZeroCenter,
+            'scaler_minmax': ScalerMinMax,
+            'scaler_log': ScalerLog
         }
 
         metadata: dict = metadata.metadata
@@ -113,8 +113,8 @@ class Processor:
         self._is_fitted: bool = False
 
         # deal with global transformation of missingist and outlierist
-        self.mediator_missingist: Mediator_Missingist | None = None
-        self.mediator_outlierist: Mediator_Outlierist | None = None
+        self.mediator_missingist: MediatorMissingist | None = None
+        self.mediator_outlierist: MediatorOutlierist | None = None
 
         # global NA values imputation
         self._na_percentage_global: float = metadata['global'].\
@@ -336,7 +336,7 @@ class Processor:
             # if missingist is in the procedure, 
             # Mediator_Missingist should be in the queue 
             # right after the missingist
-            self.mediator_missingist = Mediator_Missingist(self._config)
+            self.mediator_missingist = MediatorMissingist(self._config)
             self._fitting_sequence.insert(
                 self._fitting_sequence.index('missingist')+1,
                 self.mediator_missingist)
@@ -346,7 +346,7 @@ class Processor:
             # if outlierist is in the procedure, 
             # Mediator_Outlierist should be in the queue 
             # right after the outlierist
-            self.mediator_outlierist = Mediator_Outlierist(self._config)
+            self.mediator_outlierist = MediatorOutlierist(self._config)
             self._fitting_sequence.insert(
                 self._fitting_sequence.index('outlierist')+1,
                 self.mediator_outlierist)
