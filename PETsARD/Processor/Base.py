@@ -27,7 +27,10 @@ class Processor:
         """
         Args:
         metadata (Metadata): The metadata class to 
-            provide the metadata of the data.
+            provide the metadata of the data, which contains the properties
+            of the data, including column names, column types, inferred 
+            column types, NA percentage per column, total number of rows and 
+            columns, NA percentage in the data.
             The structure of metadata is:
                 {
                     'col': {
