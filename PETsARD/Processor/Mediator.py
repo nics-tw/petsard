@@ -1,7 +1,7 @@
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from PETsARD.Processor.Missingist import Missingist_Drop
+from PETsARD.Processor.Missingist import MissingistDrop
 from PETsARD.Processor.Outlierist import *
 
 
@@ -51,7 +51,7 @@ class Mediator:
             return self._transform(data)
 
 
-class Mediator_Missingist(Mediator):
+class MediatorMissingist(Mediator):
     """
     Deal with global behaviours in Missingist.
     """
@@ -74,7 +74,7 @@ class Mediator_Missingist(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == Missingist_Drop:
+            if type(obj) == MissingistDrop:
                 self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -116,7 +116,7 @@ class Mediator_Missingist(Mediator):
             return transformed
 
 
-class Mediator_Outlierist(Mediator):
+class MediatorOutlierist(Mediator):
     """
     Deal with global behaviours in Outlierist.
     """
@@ -139,11 +139,11 @@ class Mediator_Outlierist(Mediator):
         # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
-            if type(obj) == Outlierist_IsolationForest:
+            if type(obj) == OutlieristIsolationForest:
                 self.model = IsolationForest()
                 self._global_model_indicator = True
                 break
-            elif type(obj) == Outlierist_LOF:
+            elif type(obj) == OutlieristLOF:
                 self.model = LocalOutlierFactor()
                 self._global_model_indicator = True
                 break
@@ -169,7 +169,7 @@ class Mediator_Outlierist(Mediator):
                         to fit the model.')
         else:
             for col, obj in self._config.items():
-                if type(obj) in [Outlierist_IQR, Outlierist_ZScore]:
+                if type(obj) in [OutlieristIQR, OutlieristZScore]:
                     self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:

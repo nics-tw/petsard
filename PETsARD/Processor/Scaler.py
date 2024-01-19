@@ -69,7 +69,7 @@ class Scaler:
         return self._inverse_transform(data)
 
 
-class Scaler_Standard(Scaler):
+class ScalerStandard(Scaler):
     """
     Apply StandardScaler.
     """
@@ -114,7 +114,7 @@ class Scaler_Standard(Scaler):
         return self.model.inverse_transform(data)
 
 
-class Scaler_ZeroCenter(Scaler_Standard):
+class ScalerZeroCenter(ScalerStandard):
     """
     Apply StandardScaler without std scaling.
     """
@@ -124,7 +124,7 @@ class Scaler_ZeroCenter(Scaler_Standard):
         self.model = StandardScaler(with_std=False)
 
 
-class Scaler_MinMax(Scaler_Standard):
+class ScalerMinMax(ScalerStandard):
     """
     Apply MinMaxScaler.
     """
@@ -134,7 +134,7 @@ class Scaler_MinMax(Scaler_Standard):
         self.model: MinMaxScaler = MinMaxScaler()
 
 
-class Scaler_Log(Scaler):
+class ScalerLog(Scaler):
     """
     Scale the data by log transformation.
     """

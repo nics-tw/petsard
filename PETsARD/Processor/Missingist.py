@@ -100,7 +100,7 @@ class Missingist:
             return _col_data
 
 
-class Missingist_Mean(Missingist):
+class MissingistMean(Missingist):
     """
     Impute NA values with the mean value.
     """
@@ -136,7 +136,7 @@ class Missingist_Mean(Missingist):
         pass  # Redundant
 
 
-class Missingist_Median(Missingist):
+class MissingistMedian(Missingist):
     """
     Impute NA values with the median value.
     """
@@ -172,7 +172,7 @@ class Missingist_Median(Missingist):
         pass  # Redundant
 
 
-class Missingist_Simple(Missingist):
+class MissingistSimple(Missingist):
     """
     Impute NA values with the given value.
     """
@@ -205,7 +205,7 @@ class Missingist_Simple(Missingist):
         pass  # Redundant
 
 
-class Missingist_Drop(Missingist):
+class MissingistDrop(Missingist):
     """
     Drop the rows with NA values.
     """

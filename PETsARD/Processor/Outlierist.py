@@ -50,7 +50,7 @@ class Outlierist:
         return self._transform(data)
 
 
-class Outlierist_ZScore(Outlierist):
+class OutlieristZScore(Outlierist):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -87,7 +87,7 @@ class Outlierist_ZScore(Outlierist):
         return (np.abs(ss_data) > 3).ravel()
 
 
-class Outlierist_IQR(Outlierist):
+class OutlieristIQR(Outlierist):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -129,7 +129,7 @@ class Outlierist_IQR(Outlierist):
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
 
 
-class Outlierist_IsolationForest(Outlierist):
+class OutlieristIsolationForest(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
@@ -147,7 +147,7 @@ class Outlierist_IsolationForest(Outlierist):
         return data.ravel()
 
 
-class Outlierist_LOF(Outlierist):
+class OutlieristLOF(Outlierist):
     """
     Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
