@@ -78,9 +78,9 @@ class Processor:
         }
 
         self._default_sequence: list = [
-            'missingist', 
-            'outlierist', 
-            'encoder', 
+            'missingist',
+            'outlierist',
+            'encoder',
             'scaler'
         ]
 
@@ -118,7 +118,7 @@ class Processor:
 
         # global NA values imputation
         self._na_percentage_global: float = metadata['global'].\
-                                    get('na_percentage', 0.0)
+            get('na_percentage', 0.0)
         self.rng = np.random.default_rng()
 
         # initialise the dict
@@ -179,10 +179,11 @@ class Processor:
         # check the validity of processor types
         if not set(config_to_check.keys()).issubset(
                 set(self._default_processor.keys())
-            ):
+        ):
             raise ValueError(
                 f'Invalid config processor type in the input dict,',
-                ' please check the dict keys of processor types.')
+                ' please check the dict keys of processor types.'
+            )
 
         for processor in self._default_processor.keys():
 
@@ -195,11 +196,12 @@ class Processor:
 
             # check the validity of column names (keys)
             if not set(config_to_check[processor].keys()).\
-                issubset(set(self._metadata['col'].keys())):
+                    issubset(set(self._metadata['col'].keys())):
                 raise ValueError(
                     f'Some columns in the input config {processor}',
                     ' are not in the metadata.',
-                    ' Please check the config or metadata again.')
+                    ' Please check the config or metadata again.'
+                )
 
     def _generate_config(self) -> None:
         """
@@ -235,7 +237,7 @@ class Processor:
         get_col_list: list = []
         result_dict: dict = {
             processor: {} for processor in self._default_processor.keys()
-            }
+        }
 
         if col:
             get_col_list = col
@@ -292,8 +294,6 @@ class Processor:
                   " Generate a config automatically.")
             self._generate_config()
 
-        
-
     def update_config(self, config: dict) -> None:
         """
         Update part of the config.
@@ -336,8 +336,8 @@ class Processor:
         self._fitting_sequence = self._sequence.copy()
 
         if 'missingist' in self._sequence:
-            # if missingist is in the procedure, 
-            # Mediator_Missingist should be in the queue 
+            # if missingist is in the procedure,
+            # Mediator_Missingist should be in the queue
             # right after the missingist
             self.mediator_missingist = MediatorMissingist(self._config)
             self._fitting_sequence.insert(
@@ -346,8 +346,8 @@ class Processor:
             logging.info('Mediator_Missingist is created.')
 
         if 'outlierist' in self._sequence:
-            # if outlierist is in the procedure, 
-            # Mediator_Outlierist should be in the queue 
+            # if outlierist is in the procedure,
+            # Mediator_Outlierist should be in the queue
             # right after the outlierist
             self.mediator_outlierist = MediatorOutlierist(self._config)
             self._fitting_sequence.insert(
@@ -409,7 +409,7 @@ class Processor:
                 ' please remove them.')
 
         for processor in sequence:
-            if processor not in ['missingist', 'outlierist', 
+            if processor not in ['missingist', 'outlierist',
                                  'encoder', 'scaler']:
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
@@ -431,7 +431,7 @@ class Processor:
                 is_global_transformation = True
                 replaced_class = obj.__class__
                 logging.info(
-                    'Global transformation detected.'+\
+                    'Global transformation detected.' +
                     f' All processors will be replaced to {replaced_class}.')
                 break
 
@@ -497,9 +497,9 @@ class Processor:
         # set NA percentage in Missingist
         index_list: list = list(self.rng.choice(data.index,
                                                 size=int(
-                                                    data.shape[0]*\
-                                                        self.\
-                                                        _na_percentage_global),
+                                                    data.shape[0] *
+                                                    self.
+                                                    _na_percentage_global),
                                                 replace=False).ravel())
 
         for col, obj in self._config['missingist'].items():
@@ -509,14 +509,14 @@ class Processor:
 
             try:
                 with warnings.catch_warnings():
-                    # ignore the known warning about RuntimeWarning: 
+                    # ignore the known warning about RuntimeWarning:
                     # invalid value encountered in scalar divide
                     warnings.simplefilter('ignore')
-                    # the NA percentage taking global NA percentage 
+                    # the NA percentage taking global NA percentage
                     # into consideration
                     adjusted_na_percentage: float = \
                         self._metadata['col'][col].\
-                            get('na_percentage', 0.0)\
+                        get('na_percentage', 0.0)\
                         / self._na_percentage_global
             # if there is no NA in the original data
             except ZeroDivisionError:
@@ -561,26 +561,30 @@ class Processor:
             (pd.DataFrame): A dataframe recording the differences 
                 bewteen the current config and the default config.
         """
-        changes_dict: dict = {'processor': [], 'col': [],
-                              'current': [], 'default': []}
+        changes_dict: dict = {
+            'processor': [],
+            'col': [],
+            'current': [],
+            'default': []
+        }
 
         for processor, default_class in self._default_processor.items():
             for col, obj in self._config[processor].items():
-                if default_class[self._metadata['col']\
+                if default_class[self._metadata['col']
                                  [col]['infer_dtype']]() is None:
                     if obj is not None:
                         changes_dict['processor'].append(processor)
                         changes_dict['col'].append(col)
                         changes_dict['current'].append(type(obj).__name__)
                         changes_dict['default'].append('NoneType')
-                elif not isinstance(obj, default_class\
-                                    [self._metadata['col'][col]\
+                elif not isinstance(obj, default_class
+                                    [self._metadata['col'][col]
                                      ['infer_dtype']]):
                     changes_dict['processor'].append(processor)
                     changes_dict['col'].append(col)
                     changes_dict['current'].append(type(obj).__name__)
                     changes_dict['default'].append(
-                        default_class[self._metadata['col'][col]\
+                        default_class[self._metadata['col'][col]
                                       ['infer_dtype']].__name__)
 
         return pd.DataFrame(changes_dict)
