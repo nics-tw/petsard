@@ -121,12 +121,12 @@ class Processor:
                                     get('na_percentage', 0.0)
         self.rng = np.random.default_rng()
 
-        self._config: dict = dict()
+        # initialise the dict
+        self._config: dict = {
+            processor: {} for processor in self._default_processor.keys()
+        }
 
-        if config is None:
-            self._generate_config()
-        else:
-            self.set_config(config=config)
+        self.set_config(config=config)
 
         logging.debug(f'Config loaded.')
 
@@ -170,7 +170,7 @@ class Processor:
                 or with the same format.
         """
         if config_to_check is None:
-            raise ValueError('A config should be passed.')
+            raise NoConfigError('A config should be passed.')
 
         # check the structure of config
         if type(config_to_check) != dict:
@@ -213,10 +213,6 @@ class Processor:
         Return:
             None: The config will be stored in the instance itself.
         """
-        # initialise the dict
-        self._config: dict = {
-            processor: {} for processor in self._default_processor.keys()
-            }
 
         for col, val in self._metadata['col'].items():
             for processor, obj in self._default_processor.items():
@@ -273,23 +269,30 @@ class Processor:
         Args:
             config (dict): The dict with the same format as the config class.
         """
-        self._check_config_valid(config_to_check=config)
+        try:
+            self._check_config_valid(config_to_check=config)
 
-        for processor, val in self._config.items():
-            if processor not in config.keys():
-                config[processor] = {}
-            for col in val.keys():
-                obj = config[processor].get(col, None)
+            for processor, val in self._config.items():
+                if processor not in config.keys():
+                    config[processor] = {}
+                for col in val.keys():
+                    obj = config[processor].get(col, None)
 
-                # accept string of processor
-                if type(obj) == str:
-                    obj_convert = self._processor_map.get(obj, None)
-                    if obj_convert is None:
-                        raise ValueError(f'Invalid processor name {obj}.')
+                    # accept string of processor
+                    if type(obj) == str:
+                        obj_convert = self._processor_map.get(obj, None)
+                        if obj_convert is None:
+                            raise ValueError(f'Invalid processor name {obj}.')
+                        else:
+                            self._config[processor][col] = obj_convert()
                     else:
-                        self._config[processor][col] = obj_convert()
-                else:
-                    self._config[processor][col] = obj
+                        self._config[processor][col] = obj
+        except NoConfigError:
+            print("No self-defined config passed.",
+                  " Generate a config automatically.")
+            self._generate_config()
+
+        
 
     def update_config(self, config: dict) -> None:
         """
