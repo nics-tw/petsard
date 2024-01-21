@@ -1,7 +1,8 @@
 class Postprocessor:
     def __init__(self, data, encoder=None, scaler=None, missingist=None):
 
-        # Assume order here: Encoder than Scaler. So decode should Scaler than Encoder
+        # Assume order here: Encoder than Scaler.
+        #     So decode should Scaler than Encoder
         if scaler:
             data = self._decoding(data, scaler, 'Scaler')
         if encoder:
@@ -12,19 +13,27 @@ class Postprocessor:
         self.data = data
 
     def _decoding(self, data, Preprocessor, action=''):
-        _df_result = data.copy()
-        for _col, _Preprocessor in Preprocessor.items():
+        df_result = data.copy()
+        for col, preprocessor in Preprocessor.items():
             if action == 'Encoder':
-                _col_data = data[_col].values
+                col_data = data[col].values
             elif action == 'Scaler':
-                _col_data = data[_col].values.reshape(-1, 1)
+                col_data = data[col].values.reshape(-1, 1)
             elif action == 'Missingist':
-                _col_data = data[_col].values
+                col_data = data[col].values
             else:
                 raise ValueError(
-                    "Postprocessor - _decoding: Only Encoder, Scaler, and Missingist is allowed to decoding.")
-            _df_result[_col] = _Preprocessor.inverse_transform(
-                _col_data).ravel()
+                    f"Postprocessor - _decoding: "
+                    f"Only Encoder, Scaler, and Missingist "
+                    f"is allowed to decoding."
+                )
+
+            df_result[col] = preprocessor.inverse_transform(
+                col_data).ravel()
             print(
-                f"Postprocessor - {action} ({str(_Preprocessor).rstrip('()')}): Decoding {_col}.")
-        return _df_result
+                f"Postprocessor - "
+                f"{action} ({str(preprocessor).rstrip('()')}): "
+                f"Decoding {col}."
+            )
+
+        return df_result
