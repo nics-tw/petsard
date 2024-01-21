@@ -1,8 +1,8 @@
 # PETsARD
 
-PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitates data generation algorithm evaluation processes.
+PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitates data generation algorithm and their evaluation processes.
 
-PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法的評估過程而設計的 Python 程式庫。
+PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法及其評估過程而設計的 Python 程式庫。
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
@@ -51,14 +51,6 @@ Undefined 未定
 Undefined 未定
 
 
-
-## History 歷史
-
-- **In Developing 開發階段**
-    - **0.2.0** (2023-11-16): **PETs_Tool release.** PETs_Tool 釋出。
-        - Included PETs_Loader/Describer/Desc_Reporter/SD_SDV/util, executable Synthetic data pipeline is ready for programming. 已包含 PETs_Loader、Describer、Desc_Reporter、SD_SDV 及 util，可執行的合成資料流程已準備好進行程式設計。
-    - **0.1.0** (2023-11-03): **PET_raw_data release.** PET_raw_data 釋出。
-        - Defined benchmark datasets and applied SDV as example. 決定經典資料集與 SDV 合成範例。
 
 > The format of version number follows [Semantic Versioning](https://semver.org/).
 >

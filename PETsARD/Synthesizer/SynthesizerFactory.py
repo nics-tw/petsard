@@ -1,3 +1,8 @@
+import pandas as pd
+
+from PETsARD.Synthesizer.SDV.SDVFactory import SDVFactory
+
+
 class SynthesizerFactory:
     def __init__(self, data, **kwargs):
         synthesizing_method = kwargs.get('synthesizing_method', None)
@@ -8,7 +13,10 @@ class SynthesizerFactory:
                                       ).create_synthesizer()
         else:
             raise ValueError(
-                f"Synthesizer - SynthesizerFactory: synthesizing_method {synthesizing_method} didn't support.")
+                f"Synthesizer - SynthesizerFactory: "
+                f"synthesizing_method {synthesizing_method} "
+                f"didn't support."
+            )
 
         self.Synthesizer = _Synthesizer
 
