@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from PETsARD.Error import UnfittedError
 
@@ -206,3 +206,51 @@ class EncoderLabel(Encoder):
         """
 
         return self.model.inverse_transform(data)
+
+class EncoderOneHot(Encoder):
+    """
+    Implement a one-hot encoder.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.model = OneHotEncoder(sparse_output=False)
+
+    def _fit(self, data: pd.Series) -> None:
+        """
+        Gather information for transformation and reverse transformation.
+
+        Args:
+            data (pd.Series): The categorical data needed to be transformed.
+        """
+        self.model.fit(data.values.reshape(-1, 1))
+
+        # Set original labels
+        self.labels = self.model.categories_[0].tolist()
+
+    def _transform(self, data: pd.Series) -> np.ndarray:
+        """
+        Transform categorical data to a one-hot numeric array.
+
+        Args:
+            data (pd.Series): The categorical data needed to be transformed.
+
+        Return:
+            (np.ndarray): The transformed data.
+        """
+
+        return self.model.transform(data.values.reshape(-1, 1))
+
+    def _inverse_transform(self, data: pd.Series) -> np.ndarray:
+        """
+        Inverse the transformed data to the categorical data.
+
+        Args:
+            data (pd.Series): The categorical data needed to 
+            be transformed inversely.
+
+        Return:
+            (np.ndarray): The inverse transformed data.
+        """
+
+        return self.model.inverse_transform(data).ravel()
