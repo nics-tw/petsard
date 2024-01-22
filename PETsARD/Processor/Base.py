@@ -112,9 +112,10 @@ class Processor:
         self._inverse_sequence: list = None
         self._is_fitted: bool = False
 
-        # deal with global transformation of missingist and outlierist
+        # deal with global transformation
         self.mediator_missingist: MediatorMissingist | None = None
         self.mediator_outlierist: MediatorOutlierist | None = None
+        self.mediator_encoder: MediatorEncoder | None = None
 
         # global NA values imputation
         self._na_percentage_global: float = metadata['global'].\
@@ -337,23 +338,33 @@ class Processor:
 
         if 'missingist' in self._sequence:
             # if missingist is in the procedure,
-            # Mediator_Missingist should be in the queue
+            # MediatorMissingist should be in the queue
             # right after the missingist
             self.mediator_missingist = MediatorMissingist(self._config)
             self._fitting_sequence.insert(
                 self._fitting_sequence.index('missingist') + 1,
                 self.mediator_missingist)
-            logging.info('Mediator_Missingist is created.')
+            logging.info('MediatorMissingist is created.')
 
         if 'outlierist' in self._sequence:
             # if outlierist is in the procedure,
-            # Mediator_Outlierist should be in the queue
+            # MediatorOutlierist should be in the queue
             # right after the outlierist
             self.mediator_outlierist = MediatorOutlierist(self._config)
             self._fitting_sequence.insert(
                 self._fitting_sequence.index('outlierist') + 1,
                 self.mediator_outlierist)
-            logging.info('Mediator_Outlierist is created.')
+            logging.info('MediatorOutlierist is created.')
+
+        if 'encoder' in self._sequence:
+            # if encoder is in the procedure,
+            # MediatorEncoder should be in the queue
+            # right after the encoder
+            self.mediator_encoder = MediatorEncoder(self._config)
+            self._fitting_sequence.insert(
+                self._fitting_sequence.index('encoder') + 1,
+                self.mediator_encoder)
+            logging.info('MediatorEncoder is created.')
 
         self._detect_edit_global_transformation()
 
@@ -529,24 +540,45 @@ class Processor:
         if 'outlierist' in self._inverse_sequence:
             self._inverse_sequence.remove('outlierist')
 
+        if 'encoder' in self._inverse_sequence:
+            # if encoder is in the procedure,
+            # MediatorEncoder should be in the queue
+            # right after the encoder
+            self._inverse_sequence.insert(
+                self._inverse_sequence.index('encoder') + 1,
+                self.mediator_encoder)
+            logging.info('MediatorEncoder is created.')
+
         logging.debug(f'Inverse sequence generation completed.')
 
         transformed: pd.DataFrame = deepcopy(data)
 
-        # mediators are not involved in the inverse_transform process.
         for processor in self._inverse_sequence:
-            for col, obj in self._config[processor].items():
+            if type(processor) == str:
+                for col, obj in self._config[processor].items():
 
+                    logging.debug(
+                        f'{processor}: {obj} from {col} start',
+                        ' inverse transforming.')
+
+                    if obj is None:
+                        continue
+
+                    transformed[col] = obj.inverse_transform(transformed[col])
+
+                    logging.info(f'{processor} inverse transformation done.')
+            else:
+                # if the processor is not a string,
+                # it should be a mediator, which transforms the data directly.
                 logging.debug(
-                    f'{processor}: {obj} from {col} start',
-                    ' inverse transforming.')
-
-                if obj is None:
-                    continue
-
-                transformed[col] = obj.inverse_transform(transformed[col])
-
-            logging.info(f'{processor} inverse transformation done.')
+                    f'mediator: {processor} start inverse transforming.'
+                )
+                logging.debug(
+                    f'before transformation: data shape: {transformed.shape}')
+                transformed = processor.inverse_transform(transformed)
+                logging.debug(
+                    f'after transformation: data shape: {transformed.shape}')
+                logging.info(f'{processor} transformation done.')        
 
         return transformed
 

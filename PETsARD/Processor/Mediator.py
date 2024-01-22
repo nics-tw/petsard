@@ -65,7 +65,10 @@ class Mediator:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        return self._inverse_transform(data)
+        if len(self._process_col) == 0:
+            return data
+        else:
+            return self._inverse_transform(data)
 
 
 class MediatorMissingist(Mediator):
