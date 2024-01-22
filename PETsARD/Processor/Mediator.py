@@ -50,6 +50,22 @@ class Mediator:
             return data
         else:
             return self._transform(data)
+        
+    def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Base method of `inverse_transform`.
+        Only for MediatorEncoder currently.
+
+        Args:
+            data (pd.DataFrame): The in-processing data.
+
+        Return:
+            (pd.DataFrame): The finished data.
+        """
+        if not self._is_fitted:
+            raise UnfittedError('The object is not fitted. Use .fit() first.')
+
+        return self._inverse_transform(data)
 
 
 class MediatorMissingist(Mediator):
@@ -115,6 +131,11 @@ class MediatorMissingist(Mediator):
                                             data_backup[~process_filter].values
 
             return transformed
+        
+    def _inverse_transform(self, data: pd.DataFrame):
+        raise NotImplementedError(
+            '_inverse_transform is not supported in this class'
+        )
 
 
 class MediatorOutlierist(Mediator):
@@ -223,6 +244,11 @@ class MediatorOutlierist(Mediator):
                                                 data_backup[~process_filter]
 
             return transformed
+        
+    def _inverse_transform(self, data: pd.DataFrame):
+        raise NotImplementedError(
+            '_inverse_transform is not supported in this class'
+        )
 
 class MediatorEncoder(Mediator):
     """
@@ -238,6 +264,11 @@ class MediatorEncoder(Mediator):
         super().__init__()
         self._config: dict = config['encoder']
 
+        # store the original column order
+        self._colname: list = []
+
+        self.label_map: dict = {}
+
     def _fit(self, data: None) -> None:
         """
         Gather information for the columns needing global transformation.
@@ -249,6 +280,8 @@ class MediatorEncoder(Mediator):
         for col, obj in self._config.items():
             if type(obj) == EncoderOneHot:
                 self._process_col.append(col)
+
+        self._colname = data.columns
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -273,12 +306,14 @@ class MediatorEncoder(Mediator):
             new_labels = [str(col) + '_' + str(l) for l in label_list]
 
             # check if the new labels and the original columns overlap
-            while len(set(new_labels) & set(data.columns)) != 0:
+            while len(set(new_labels) & set(self._colname)) != 0:
                 n = n + 1
                 new_labels = [str(col) + '_' * n + str(l) for l in label_list]
 
             ohe_df = pd.DataFrame(self._config[col]._transform_temp, 
                                   columns=new_labels)
+            
+            self.label_map[col] = new_labels
             
             # clear the temp
             self._config[col]._transform_temp = None
@@ -287,3 +322,27 @@ class MediatorEncoder(Mediator):
             transformed = pd.concat([transformed, ohe_df], axis=1)
             
         return transformed
+    
+    def _inverse_transform(self, data: pd.DataFrame):
+        """
+        Conduct global inverse transformation.
+        Can be seperated into two steps:
+        1. Retrieve new column data and extract values.
+        2. Drop the new columns and insert the original ones to the dataframe.
+
+        Args:
+            data (pd.DataFrame): The in-processing data.
+
+        Return:
+            transformed (pd.DataFrame): The finished data.
+        """
+        transformed = data.copy()
+
+        for ori_col, new_col in self.label_map.items():
+            transformed.drop(new_col, axis=1, inplace=True)
+            transformed[ori_col] = self._config[ori_col]._invtransform_temp
+
+            # clear the temp
+            self._config[ori_col]._transform_temp = None
+            
+        return transformed.reindex(columns=self._colname)

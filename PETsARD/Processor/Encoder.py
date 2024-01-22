@@ -241,9 +241,12 @@ class EncoderOneHot(Encoder):
 
         Return:
             None: The transformed data is stored in _transform_temp.
+            data (pd.Series): Original data (dummy).
         """
 
         self._transform_temp = self.model.transform(data.values.reshape(-1, 1))
+
+        return data
 
     def _inverse_transform(self, data: pd.Series) -> None:
         """
@@ -255,6 +258,9 @@ class EncoderOneHot(Encoder):
 
         Return:
             None: The inverse transformed data is stored in _invtransform_temp.
+            data (pd.Series): Original data (dummy).
         """
 
         self._invtransform_temp = self.model.inverse_transform(data).ravel()
+
+        return data
