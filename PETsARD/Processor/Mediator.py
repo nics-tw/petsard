@@ -19,6 +19,9 @@ class Mediator:
         self._process_col: list = []
         self._is_fitted: bool = False
 
+        # for working config adjustment
+        self.map: dict = {}
+
     def fit(self, data: None) -> None:
         """
         Base method of `fit`.
@@ -270,8 +273,6 @@ class MediatorEncoder(Mediator):
         # store the original column order
         self._colname: list = []
 
-        self.label_map: dict = {}
-
     def _fit(self, data: None) -> None:
         """
         Gather information for the columns needing global transformation.
@@ -316,7 +317,7 @@ class MediatorEncoder(Mediator):
             ohe_df = pd.DataFrame(self._config[col]._transform_temp, 
                                   columns=new_labels)
             
-            self.label_map[col] = new_labels
+            self.map[col] = new_labels
             
             # clear the temp
             self._config[col]._transform_temp = None
@@ -341,11 +342,9 @@ class MediatorEncoder(Mediator):
         """
         transformed = data.copy()
 
-        for ori_col, new_col in self.label_map.items():
+        for ori_col, new_col in self.map.items():
             transformed.drop(new_col, axis=1, inplace=True)
-            transformed[ori_col] = self._config[ori_col]._invtransform_temp
-
-            # clear the temp
-            self._config[ori_col]._transform_temp = None
+            transformed[ori_col] = self._config[ori_col].model.\
+                inverse_transform(data[new_col]).ravel()
             
         return transformed.reindex(columns=self._colname)

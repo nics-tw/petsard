@@ -130,6 +130,9 @@ class Processor:
 
         self.set_config(config=config)
 
+        # the temp config records the config from in-process/expanded column 
+        self._working_config: dict = {}
+
         logging.debug(f'Config loaded.')
 
     def _check_metadata_valid(self, metadata: dict) -> None:
@@ -396,6 +399,9 @@ class Processor:
                 processor.fit(data)
                 logging.info(f'{processor} fitting done.')
 
+        # it is a shallow copy
+        self._working_config = self._config.copy()
+        
         self._is_fitted = True
 
     def _check_sequence_valid(self, sequence: list) -> None:
@@ -468,7 +474,7 @@ class Processor:
 
         for processor in self._fitting_sequence:
             if type(processor) == str:
-                for col, obj in self._config[processor].items():
+                for col, obj in self._working_config[processor].items():
 
                     logging.debug(
                         f'{processor}: {obj} from {col} start transforming.')
@@ -487,6 +493,7 @@ class Processor:
                 logging.debug(
                     f'before transformation: data shape: {transformed.shape}')
                 transformed = processor.transform(transformed)
+                self._adjust_working_config(processor, self._fitting_sequence)
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
@@ -514,7 +521,7 @@ class Processor:
                                                     _na_percentage_global),
                                                 replace=False).ravel())
 
-        for col, obj in self._config['missingist'].items():
+        for col, obj in self._working_config['missingist'].items():
             if obj is None:
                 continue
             obj.set_imputation_index(index_list)
@@ -538,6 +545,7 @@ class Processor:
 
         # there is no method for restoring outliers
         self._inverse_sequence = self._sequence.copy()
+        self._inverse_sequence.reverse()
         if 'outlierist' in self._inverse_sequence:
             self._inverse_sequence.remove('outlierist')
 
@@ -546,7 +554,7 @@ class Processor:
             # MediatorEncoder should be in the queue
             # right after the encoder
             self._inverse_sequence.insert(
-                self._inverse_sequence.index('encoder') + 1,
+                self._inverse_sequence.index('encoder'),
                 self.mediator_encoder)
             logging.info('MediatorEncoder is created.')
 
@@ -556,7 +564,7 @@ class Processor:
 
         for processor in self._inverse_sequence:
             if type(processor) == str:
-                for col, obj in self._config[processor].items():
+                for col, obj in self._working_config[processor].items():
 
                     logging.debug(
                         f'{processor}: {obj} from {col} start',
@@ -621,3 +629,43 @@ class Processor:
                                       ['infer_dtype']].__name__)
 
         return pd.DataFrame(changes_dict)
+    
+    def _adjust_working_config(self, mediator: Mediator, sequence: list):
+        """
+        Adjust the working config for the downstream tasks.
+
+        For example, after one-hot encoding, some columns will be created
+        and some will be removed. This method aims to correct the config
+        to fit the current state and make all tasks done at ease.
+
+        Specifically, it tracks the difference between old and new data through
+        Mediator.map, creates the new config for the new data by inheriting
+        the old one, and removes the old config. All changes will be applied
+        to the procedures after the current one.
+
+        Args:
+            mediator (Mediator): The Mediator instance for checking the
+                difference.
+            sequence (list): Read the fitting sequence to determine the scope
+                of the adjustment.
+
+        Return:
+            None: It will adjust the working config directly.
+        """
+        if len(mediator.map) == 0:
+            pass
+        else:
+            # locate the current stage
+            current_index = sequence.index(mediator)
+
+            for i in range(current_index + 1, len(sequence)):
+                if type(sequence[i]) is not str:
+                    # it is a mediator
+                    continue
+                else:
+                    processor = sequence[i]
+
+                    for ori_col, new_col in mediator.map.items():
+                        for col in new_col:
+                            self._working_config[processor][col] = \
+                                deepcopy(self._config[processor][ori_col])

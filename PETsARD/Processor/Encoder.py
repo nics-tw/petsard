@@ -218,7 +218,6 @@ class EncoderOneHot(Encoder):
 
         # for the use in Mediator
         self._transform_temp: np.ndarray = None
-        self._invtransform_temp: np.ndarray = None
 
     def _fit(self, data: pd.Series) -> None:
         """
@@ -251,16 +250,14 @@ class EncoderOneHot(Encoder):
     def _inverse_transform(self, data: pd.Series) -> None:
         """
         Inverse the transformed data to the categorical data.
+        This is a dummy method, and it is implemented in MediatorEncoder.
 
         Args:
             data (pd.Series): The categorical data needed to 
             be transformed inversely.
 
         Return:
-            None: The inverse transformed data is stored in _invtransform_temp.
             data (pd.Series): Original data (dummy).
         """
-
-        self._invtransform_temp = self.model.inverse_transform(data).ravel()
 
         return data
