@@ -216,6 +216,10 @@ class EncoderOneHot(Encoder):
         super().__init__()
         self.model = OneHotEncoder(sparse_output=False)
 
+        # for the use in Mediator
+        self._transform_temp: np.ndarray = None
+        self._invtransform_temp: np.ndarray = None
+
     def _fit(self, data: pd.Series) -> None:
         """
         Gather information for transformation and reverse transformation.
@@ -228,7 +232,7 @@ class EncoderOneHot(Encoder):
         # Set original labels
         self.labels = self.model.categories_[0].tolist()
 
-    def _transform(self, data: pd.Series) -> np.ndarray:
+    def _transform(self, data: pd.Series) -> None:
         """
         Transform categorical data to a one-hot numeric array.
 
@@ -236,12 +240,12 @@ class EncoderOneHot(Encoder):
             data (pd.Series): The categorical data needed to be transformed.
 
         Return:
-            (np.ndarray): The transformed data.
+            None: The transformed data is stored in _transform_temp.
         """
 
-        return self.model.transform(data.values.reshape(-1, 1))
+        self._transform_temp = self.model.transform(data.values.reshape(-1, 1))
 
-    def _inverse_transform(self, data: pd.Series) -> np.ndarray:
+    def _inverse_transform(self, data: pd.Series) -> None:
         """
         Inverse the transformed data to the categorical data.
 
@@ -250,7 +254,7 @@ class EncoderOneHot(Encoder):
             be transformed inversely.
 
         Return:
-            (np.ndarray): The inverse transformed data.
+            None: The inverse transformed data is stored in _invtransform_temp.
         """
 
-        return self.model.inverse_transform(data).ravel()
+        self._invtransform_temp = self.model.inverse_transform(data).ravel()
