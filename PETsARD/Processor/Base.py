@@ -7,6 +7,7 @@ from PETsARD.Processor.Missingist import *
 from PETsARD.Processor.Outlierist import *
 from PETsARD.Processor.Scaler import *
 from PETsARD.Processor.Mediator import *
+from PETsARD.Processor.discretizing import *
 from PETsARD.Error import *
 from PETsARD.Metadata import Metadata
 
@@ -14,10 +15,6 @@ from PETsARD.Metadata import Metadata
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
-
-# TODO - New processor class- Processor.discretizing.DiscretizeHandler
-# for cat, LabelEncoder; for num, KBinsDiscretizer
-# no processor can be after this one, cannot exist with Encoder
 
 class Processor:
     """
@@ -77,6 +74,12 @@ class Processor:
                 'categorical': lambda: None,
                 'datetime': ScalerStandard,
                 'object': lambda: None
+            },
+            'cube': {
+                'numerical': DiscretizerKBins,
+                'categorical': EncoderLabel,
+                'datetime': DiscretizerKBins,
+                'object': EncoderLabel
             }
         }
 
@@ -102,7 +105,8 @@ class Processor:
             'scaler_standard': ScalerStandard,
             'scaler_zerocenter': ScalerZeroCenter,
             'scaler_minmax': ScalerMinMax,
-            'scaler_log': ScalerLog
+            'scaler_log': ScalerLog,
+            'discretizer_kbins': DiscretizerKBins
         }
 
         metadata: dict = metadata.metadata
@@ -200,7 +204,8 @@ class Processor:
 
             if type(config_to_check[processor]) != dict:
                 raise TypeError(
-                    'The config in each processor should be a dict.')
+                    'The config in each processor should be a dict.'
+                )
 
             # check the validity of column names (keys)
             if not set(config_to_check[processor].keys()).\
@@ -429,12 +434,17 @@ class Processor:
                 'There are duplicated procedures in the sequence,',
                 ' please remove them.')
 
-        # TODO - change the list to available_processor
         for processor in sequence:
-            if processor not in ['missingist', 'outlierist',
-                                 'encoder', 'scaler']:
+            if processor not in self._default_processor.keys():
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
+            
+        if 'cube' in sequence:
+            if 'encoder' in sequence:
+                raise ValueError("'cube' and 'encoder' processor" + \
+                                 " cannot coexist.")
+            if sequence[-1] != 'cube':
+                raise ValueError("'cube' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """
