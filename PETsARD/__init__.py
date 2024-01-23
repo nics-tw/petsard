@@ -31,7 +31,7 @@ from PETsARD.Postprocessor import *
 from PETsARD.Evaluator import *
 from PETsARD.util import *
 from PETsARD.Executor import Executor
-from PETsARD.Metadata import Metadata
+from PETsARD.Loader.Metadata import Metadata
 from PETsARD.Processor import *
 
 

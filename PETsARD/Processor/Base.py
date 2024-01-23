@@ -8,7 +8,7 @@ from PETsARD.Processor.Outlierist import *
 from PETsARD.Processor.Scaler import *
 from PETsARD.Processor.Mediator import *
 from PETsARD.Error import *
-from PETsARD.Metadata import Metadata
+from PETsARD.Loader.Metadata import Metadata
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
