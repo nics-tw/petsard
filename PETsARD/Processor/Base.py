@@ -634,7 +634,8 @@ class Processor:
 
         return pd.DataFrame(changes_dict)
     
-    def _adjust_working_config(self, mediator: Mediator, sequence: list):
+    def _adjust_working_config(self, mediator: Mediator, 
+                               sequence: list) -> None:
         """
         Adjust the working config for the downstream tasks.
 
