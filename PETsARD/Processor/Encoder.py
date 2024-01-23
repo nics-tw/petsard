@@ -10,7 +10,7 @@ class Encoder:
     Base class for all Encoder classes.
     """
 
-    PROC_TYPE = 'encoder'
+    PROC_TYPE = ('encoder',)
 
     def __init__(self) -> None:
         # Mapping dict
@@ -160,6 +160,8 @@ class EncoderLabel(Encoder):
     """
     Implement a label encoder.
     """
+
+    PROC_TYPE = ('encoder', 'cube')
 
     def __init__(self) -> None:
         super().__init__()

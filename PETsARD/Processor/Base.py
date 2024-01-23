@@ -392,7 +392,7 @@ class Processor:
                     if obj is None:
                         continue
 
-                    if obj.PROC_TYPE != processor:
+                    if processor not in obj.PROC_TYPE:
                         raise ValueError(
                             f'Invalid processor from {col} in {processor}')
 
