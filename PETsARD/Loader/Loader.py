@@ -18,6 +18,7 @@ from PETsARD.Loader.LoaderPandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
+from PETsARD.Loader.Metadata import Metadata
 from PETsARD.util import df_casting
 from PETsARD.util import df_cast_check
 
@@ -214,6 +215,11 @@ class Loader:
 
         # Casting data for more efficient storage space
         self.data = df_casting(self.data, self.dtype)
+
+        # metadata
+        metadata = Metadata()
+        metadata.build_metadata(data=self.data)
+        self.metadata = metadata.metadata
 
     @staticmethod
     def _handle_filepath(
