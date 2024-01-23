@@ -72,7 +72,7 @@ class DiscretizerKBins(Discretizer):
         self.model = KBinsDiscretizer(encode='ordinal', 
                                       strategy='uniform', 
                                       n_bins=n_bins,
-                                      subsample=None)
+                                      subsample=200000)
         self.bin_edges: np.ndarray = None
 
     def _fit(self, data: pd.Series) -> None:
@@ -82,6 +82,10 @@ class DiscretizerKBins(Discretizer):
         Args:
             data (pd.Series): The categorical data needed to be transformed.
         """
+        if len(data.unique()) < 2:
+            raise ValueError(f'{data.name} is constant.' + \
+                             ' Please drop the data or change the data type' +\
+                             ' to categorical.')
         self.model.fit(data.values.reshape(-1, 1))
 
         self.bin_edges = self.model.bin_edges_
