@@ -219,7 +219,7 @@ class Loader:
         # metadata
         metadata = Metadata()
         metadata.build_metadata(data=self.data)
-        self.metadata = metadata.metadata
+        self.metadata = metadata
 
     @staticmethod
     def _handle_filepath(
