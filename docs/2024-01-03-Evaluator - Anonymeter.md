@@ -10,7 +10,7 @@ Therefore, `PETsARD` includes built-in calls to `Anonymeter`. For more details, 
 
 此三點是根據歐盟個人資料保護指令第29條設立之[個資保護工作小組](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp216_en.pdf)(WP29)，於 2014 年發布的書面指引中所列出，用於評估匿名化技術的有效性標準。而 `Anonymeter` 於 2023 年 02 月 13 日受到[法國國家資訊自由委員會](https://www.cnil.fr/en/home)(CNIL)的正面評價，認為此工具能有效評估合成資料的匿名化有效性三個標準，並建議使用本函式庫來評估資料被重新識別的風險。
 
-因此 `PETsARD`內建了對 `Anonymeter` 的調用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
+因此 `PETsARD`整合了對 `Anonymeter` 的使用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
 
 
 ```python
