@@ -151,9 +151,6 @@ class SmartNoiseFactory:
         Args:
             data (pd.DataFrame): The data to be synthesized.
             **kwargs: The other parameters.
-
-        Return:
-            None
         """
         synthesizing_method: str = kwargs.get('synthesizing_method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
@@ -174,8 +171,6 @@ class SmartNoiseFactory:
     def create_synthesizer(self):
         """
         Create synthesizer instance.
-        Args:
-            None
         Return:
             self.Synthesizer (synthesizer): The synthesizer instance.
         """
@@ -195,9 +190,6 @@ class SmartNoiseCreator(SmartNoise):
             synthesizing_method (str): The synthesizing method to be applied.
             epsilon (float, default = 5.0): The privacy budget.
             **kwargs: The other parameters.
-
-        Return:
-            None
         """
         super().__init__(data, **kwargs)
         self.syn_method: str = synthesizing_method
