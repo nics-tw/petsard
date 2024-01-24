@@ -175,7 +175,7 @@ $$PrivacyRisk = \frac{AttackRate_{Main}-AttackRate_{Control}}{1-AttackRate_{Cont
   - From zero to one, a higher number indicates a higher success rate for that specific attack.
 
 - **攻擊率**意指無論是由惡意還是誠實但好奇的使用者**成功**執行特定攻擊的比例。又被稱為**成功攻擊率**。
-  - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用**威爾遜分數區間**來估算二項式成功率與調整後的信賴區間如下。預設信賴分數為 95%。
+  - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用**威爾遜分數區間**來估算二項式成功率與調整後的信賴區間如下。預設信心水準為 95%。
   - 零到一，數字越大代表該特定攻擊的成功率越高。
 
 $$
