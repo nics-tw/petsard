@@ -103,7 +103,7 @@ Therefore, we plan to determine the default upper limit automatically in future 
 `n_attacks` 代表著 `Anonymeter` 將執行這種攻擊多少次的參數，較高的數量會降低結果的統計不確定性，但會增加運算時間。事實上各種攻擊方式都存在有潛在的攻擊次數上限：
 
 - `Singling Out`：不重複`搜索語句` (`queries`)的數量。`搜索語句`是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到`指認性`。
-- `Linkability` 跟 `Inference`：訓練資料集行數。這兩種攻擊方式背後實現的原理，是對`原始訓練資料進行抽樣。
+- `Linkability` 跟 `Inference`：訓練資料集行數。這兩種攻擊方式背後實現的原理，是對`原始訓練資料`進行抽樣。
 
 如果設定了超過潛在上限攻擊次數的值，則 `Anonymeter` 將回傳警告，並忽略剩下的次數。
 
