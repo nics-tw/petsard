@@ -100,7 +100,7 @@ If a value exceeding the potential maximum attack count is set, `Anonymeter` wil
 
 Therefore, we plan to determine the default upper limit automatically in future release, to ensure comprehensive testing for `PETsARD`. If users find that the computation time is too long during a trial, it is recommended to reduce reduce it to the attack numbers provided in the official `Anonymeter` examples: 500 for `Singling Out`, and 2,000 for `Linkability` and `Inference`.
 
-`n_attacks` 即 `Anonymeter` 將執行這種攻擊多少次的參數，較高的數量會降低結果的統計不確定性，但會增加運算時間。事實上各種攻擊方式都存在有潛在的攻擊次數上限：
+`n_attacks` 代表著 `Anonymeter` 將執行這種攻擊多少次的參數，較高的數量會降低結果的統計不確定性，但會增加運算時間。事實上各種攻擊方式都存在有潛在的攻擊次數上限：
 
 - `Singling Out`：不重複`搜索語句` (`queries`)的數量。`搜索語句`是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到`指認性`。
 - `Linkability` 跟 `Inference`：訓練資料集行數。這兩種攻擊方式背後實現的原理，是對`原始訓練資料進行抽樣。
