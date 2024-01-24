@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-from PETsARD.Error import UnfittedError, NotImplementedError
+from PETsARD.Error import UnfittedError
 
 
 class Outlierist:

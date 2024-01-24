@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-from PETsARD.Error import UnfittedError, NotImplementedError
+from PETsARD.Error import UnfittedError
 
 
 class Missingist:
