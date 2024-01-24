@@ -158,12 +158,14 @@ The evaluation results are stored directly as a dictionary in `self.Evaluator.ev
 
 - **Privacy Risk** is a high level estimation of specific privacy risk obtained from the attack rates mentioned below. Its formula is as follows.
     - The numerator represents the attacker's exploitation of synthetic data, as the **Main Attack** to excess of the **Control Attack** success rate.
-    - The denominator is the normalization factor by **1 minus Control Attack**, representing the perfect attacker's effectiveness, to calculate the difference in the numerator.
+    - The denominator is the normalization factor by **1 minus Control Attack**, representing the signifying the effectiveness of Main Attack relative to the Perfect Attacker (100%), to calculate the difference in the numerator.
+    - **Perfect Attacker** is a concept that represents an all-knowing, all-powerful attacker. In our evaluating, this means they have a 100% chance of a successful attack. Therefore, the underlying idea behind this score is that **Main Attack**, due to their access to synthesized data, have a higher success rate compared to **Control Attack**. However, the proportion of this success rate increase relative to the **Perfect Attacker's** perfect success rate is what matters.
     - Ranging from zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
 
 - **隱私風險**是綜合下述攻擊率而得到的對特定隱私風險的評估，其公式如下。
   - 分子代表攻擊者利用合成資料的攻擊、也就是**主要攻擊**對**控制攻擊**成功率的改進。
-  - 分母則以 **1 減 控制攻擊** 代表完美攻擊者效果，作為歸一化因子計算分子的差異。
+  - 分母則以 **1 減 控制攻擊** 代表**主要攻擊**相對於完美攻擊者 (100%) 的效果，作為歸一化因子計算分子的差異。
+  - **完美攻擊者**是一個概念，代表著一個全知全能的攻擊者，在我們的驗測中，這表示他有 100% 的成功攻擊機會。因此，這個分數背後的思想是，**主要攻擊**因為取得合成資料，因此相對於控制攻擊有更高的成功率，但這個成功率提升，相對於**完美攻擊者**完美的成功率提升，所佔的比例有多少。
   - 零到一，數字越大代表隱私的風險越高，合成資料提供的資訊能使攻擊者越接近完美攻擊者。
 
 $$PrivacyRisk = \frac{AttackRate_{Main}-AttackRate_{Control}}{1-AttackRate_{Control}}$$
