@@ -283,9 +283,9 @@ To handle mixed data types, `Anonymeter` uses Gower's Distance/Similarity:
 
 After combining all attributes, the Manhattan Distance is calculated, and return the nearest N neighbors. So, in the context of `Linkability risk`, `n_neighbors` represents how close the two sets of data from the same person need to be linked to be considered a successful linkability attack.
 
-`Anonymeter` does not provide a recommended value for `n_neighbors`. In the example, a value of 10 is used, but the default value in the code is 1. `PETsARD` uses 10 as the default value.
+`Anonymeter` does not provide a recommended value for `n_neighbors`. In an example, a value of 10 is used, but the default value in the code is 1. `PETsARD` uses 10 as the default value.
 
-為了處理混合資料類型的資料，`Anonymeter` 使用的是高爾距離/高爾相似性：
+為了處理混合資料類型的資料，`Anonymeter` 使用的是高爾距離/高爾相似性 (Gower's Distance/Similarity)：
 
 - 數值型變數：高爾距離為歸一化後兩者相差的絕對值
 - 類別型變數：只要不相等，高爾距離即為 1
