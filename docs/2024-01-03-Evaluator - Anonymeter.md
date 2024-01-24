@@ -274,7 +274,7 @@ The potential linkability attack method could be something like, "Since we know 
 
 ### n_neighbors
 
-`n_neighbors` (`int`, default=10): Number of neighbors considered for the link search 連結搜索時考慮的鄰居數量
+`n_neighbors` (`int`, default=10): The N closest neighbors considered for the link search 連結搜索時考慮的前 N 個最近鄰居數量
 
 To handle mixed data types, `Anonymeter` uses Gower's Distance/Similarity:
 
