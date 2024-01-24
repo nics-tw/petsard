@@ -118,8 +118,7 @@ class MediatorMissingist(Mediator):
                 reset_index(drop=True)
 
             # restore the original data from the boolean data
-            transformed.loc[:, col_name] = self._config.get(col_name,
-                                                            None).\
+            transformed.loc[:, col_name] = self._config[col_name].\
                                             data_backup[~process_filter].values
 
             return transformed
@@ -132,8 +131,7 @@ class MediatorMissingist(Mediator):
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed.loc[:, col] = self._config.get(col,
-                                                           None).\
+                transformed.loc[:, col] = self._config[col].\
                                             data_backup[~process_filter].values
 
             return transformed
@@ -231,8 +229,7 @@ class MediatorOutlierist(Mediator):
                 reset_index(drop=True)
 
             # restore the original data from the boolean data
-            transformed.loc[:, col_name] = self._config.get(col_name,
-                                                            None).\
+            transformed.loc[:, col_name] = self._config[col_name].\
                                                 data_backup[~process_filter]
 
             return transformed
@@ -245,8 +242,7 @@ class MediatorOutlierist(Mediator):
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed.loc[:, col] = self._config.get(col,
-                                                           None).\
+                transformed.loc[:, col] = self._config[col].\
                                                 data_backup[~process_filter]
 
             return transformed

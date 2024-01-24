@@ -132,9 +132,6 @@ class MissingistMean(Missingist):
 
         return data.fillna(self.data_mean)
 
-    def _inverse_transform(self, data: None) -> None:
-        pass  # Redundant
-
 
 class MissingistMedian(Missingist):
     """
@@ -168,9 +165,6 @@ class MissingistMedian(Missingist):
 
         return data.fillna(self.data_median)
 
-    def _inverse_transform(self, data: None) -> None:
-        pass  # Redundant
-
 
 class MissingistSimple(Missingist):
     """
@@ -201,9 +195,6 @@ class MissingistSimple(Missingist):
 
         return data.fillna(self.data_value)
 
-    def _inverse_transform(self, data: None) -> None:
-        pass  # Redundant
-
 
 class MissingistDrop(Missingist):
     """
@@ -230,6 +221,3 @@ class MissingistDrop(Missingist):
         self.data_backup = data
 
         return data.isna().values.ravel()
-
-    def _inverse_transform(self, data: None) -> None:
-        pass  # Redundant
