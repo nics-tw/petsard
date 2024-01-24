@@ -1,71 +1,54 @@
 import time
 
 import pandas as pd
-from sdv.metadata import SingleTableMetadata
 
-from PETsARD.Synthesizer.SmartNoise import SmartNoise
+from snsynth.transform import NoTransformer, TableTransformer
+from snsynth.transform.identity import IdentityTransformer
+from snsynth import Synthesizer as SNSyn
 
-
-class SDV_SingleTable(SmartNoise):
+class SmartNoise:
     """
-    Base class for all SDV SingleTable classes.
+    Base class for all "SmartNoise".
 
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        **kwargs: The other parameters.
-
-    Return:
-        None
-    TODO - Put all SDV related class together
-    TODO - Nice to have - Simplify the code (Factory part)
+    The "SmartNoise" class defines the common API
+    that all the "SmartNoise" need to implement, 
+    as well as common functionality.
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        super().__init__(data, **kwargs)
-
-        self._SingleTableMetadata()
-
-    def _SingleTableMetadata(self) -> None:
         """
-        Create metadata for SDV.
         Args:
-            None
-        Return:
-            None
+            data (pd.DataFrame): The data to be synthesized.
+            **kwargs: The other parameters.
         """
-        time_start = time.time()
-
-        self.metadata = SingleTableMetadata()
-        self.metadata.detect_from_dataframe(self.data)
-        print(
-            f"Synthesizer (SDV - SingleTable): "
-            f"Metafile loading time: "
-            f"{round(time.time()-time_start ,4)} sec."
-        )
+        self.data: pd.DataFrame = data
+        self.syn_method: str = 'Unknown'
 
     def fit(self) -> None:
         """
         Fit the synthesizer.
-        Args:
-            None
-        Return:
-            None
         """
         if self._Synthesizer:
             time_start = time.time()
 
             print(
-                f"Synthesizer (SDV - SingleTable): Fitting {self.syn_method}."
+                f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
             )
-            self._Synthesizer.fit(self.data)
+
+            t = TableTransformer([IdentityTransformer() 
+                                  for i in range(self.data.shape[1])])
+
+            # TODO - Only support cube-style synthesizer. 
+            # GAN-style synthesizer needed to be implemented.
+            self._Synthesizer.fit(self.data, transformer=t)
             print(
-                f"Synthesizer (SDV - SingleTable): "
+                f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
                 f"{round(time.time()-time_start ,4)} sec."
             )
         else:
             raise ValueError(
-                f"Synthesizer (SDV - SingleTable): "
+                f"Synthesizer (SmartNoise): "
                 f".fit() while _Synthesizer didn't ready."
             )
 
@@ -80,7 +63,7 @@ class SDV_SingleTable(SmartNoise):
             sample_num_rows (int, default=None):
                 Number of synthesized data will be sampled.
             reset_sampling (bool, default=False):
-                Whether the method should reset the randomisation.
+                Redundant variable.
             output_file_path (str, default=None):
                 The location of the output file.
         Return:
@@ -101,29 +84,18 @@ class SDV_SingleTable(SmartNoise):
                     else sample_num_rows
                 )
 
-                # batch_size: if sample_num_rows more than 1M,
-                #             batch 100K at once,
-                #             otherwise same as sample_num_rows
-                self.sample_batch_size = (
-                    100000 if self.sample_num_rows >= 1000000
-                    else self.sample_num_rows
-                )
-
-                if reset_sampling:
-                    self._Synthesizer.reset_sampling()
-
                 data_syn = self._Synthesizer.sample(
-                    num_rows=self.sample_num_rows,
-                    batch_size=self.sample_batch_size,
-                    output_file_path=output_file_path
+                    self.sample_num_rows
                 )
+
+                data_syn.to_csv(output_file_path, index=False)
 
                 str_sample_num_rows_as_raw = (
                     ' (same as raw)' if self.sample_num_rows_as_raw
                     else ''
                 )
                 print(
-                    f"Synthesizer (SDV - SingleTable): "
+                    f"Synthesizer (SmartNoise): "
                     f"Sampling {self.syn_method} "
                     f"# {self.sample_num_rows} rows"
                     f"{str_sample_num_rows_as_raw} "
@@ -132,13 +104,13 @@ class SDV_SingleTable(SmartNoise):
                 return data_syn
             except Exception as ex:
                 raise NotImplementedError(
-                    f"Synthesizer (SDV - SingleTable): "
+                    f"Synthesizer (SmartNoise): "
                     f".sample() while _Synthesizer didn't fitted, "
                     f"run .fit() before sampling."
                 )
         else:
             raise NotImplementedError(
-                f"Synthesizer (SDV - SingleTable): "
+                f"Synthesizer (SmartNoise): "
                 f".sample() while _Synthesizer didn't ready."
             )
 
@@ -155,7 +127,7 @@ class SDV_SingleTable(SmartNoise):
             sample_num_rows (int, default=None):
                 Number of synthesized data will be sampled.
             reset_sampling (bool, default=False):
-                Whether the method should reset the randomisation.
+                Redundant variable.
             output_file_path (str, default=None):
                 The location of the output file.
         Return:
@@ -163,3 +135,70 @@ class SDV_SingleTable(SmartNoise):
         """
         self.fit()
         return self.sample(sample_num_rows, reset_sampling, output_file_path)
+    
+class SmartNoiseFactory:
+    """
+    Base class for all "SmartNoise".
+
+    Manage the SmartNoise synthesizers.
+    It allocates the task to the right SmartNoise synthesizer 
+    based on the parameters.
+    """
+    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
+        """
+        Args:
+            data (pd.DataFrame): The data to be synthesized.
+            **kwargs: The other parameters.
+
+        Return:
+            None
+        """
+        synthesizing_method: str = kwargs.get('synthesizing_method', None)
+        epsilon: float = kwargs.get('epsilon', 5.0)
+
+        if synthesizing_method.startswith('smartnoise-'):
+            self.Synthesizer = SmartNoiseCreator(
+                data,
+                synthesizing_method=synthesizing_method.split('-')[1], 
+                epsilon=epsilon
+            )
+        else:
+            raise ValueError(
+                f"Synthesizer (SmartNoise - SmartNoiseFactory): "
+                f"synthesizing_method {synthesizing_method} "
+                f"didn't support."
+            )
+
+    def create_synthesizer(self):
+        """
+        Create synthesizer instance.
+        Args:
+            None
+        Return:
+            self.Synthesizer (synthesizer): The synthesizer instance.
+        """
+        return self.Synthesizer
+
+
+class SmartNoiseCreator(SmartNoise):
+    """
+    Implement synthesize methods from SmartNoise library.
+    """
+
+    def __init__(self, data: pd.DataFrame, 
+                 synthesizing_method: str, epsilon: float = 5.0, **kwargs):
+        """
+        Args:
+            data (pd.DataFrame): The data to be synthesized.
+            synthesizing_method (str): The synthesizing method to be applied.
+            epsilon (float, default = 5.0): The privacy budget.
+            **kwargs: The other parameters.
+
+        Return:
+            None
+        """
+        super().__init__(data, **kwargs)
+        self.syn_method: str = synthesizing_method
+
+        self._Synthesizer = SNSyn.\
+                create(synthesizing_method, epsilon=epsilon)

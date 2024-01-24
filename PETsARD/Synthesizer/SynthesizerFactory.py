@@ -1,13 +1,13 @@
 import pandas as pd
 
 from PETsARD.Synthesizer.SDV.SDVFactory import SDVFactory
-from PETsARD.Synthesizer.SmartNoise.SmartNoiseFactory import SmartNoiseFactory
+from PETsARD.Synthesizer.smartnoise import SmartNoiseFactory
 
 
 class SynthesizerFactory:
     def __init__(self, data, **kwargs):
         synthesizing_method = kwargs.get('synthesizing_method', None)
-        eps: float = kwargs.get('epsilon', 5.0)
+        epsilon: float = kwargs.get('epsilon', 5.0)
 
         if synthesizing_method.startswith('sdv'):
             _Synthesizer = SDVFactory(data=data, 
@@ -16,7 +16,7 @@ class SynthesizerFactory:
         elif synthesizing_method.startswith('smartnoise'):
             _Synthesizer = SmartNoiseFactory(data=data,
                                 synthesizing_method=synthesizing_method,
-                                epsilon=eps
+                                epsilon=epsilon
                                 ).create_synthesizer()
         else:
             raise ValueError(
