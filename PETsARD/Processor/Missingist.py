@@ -57,6 +57,16 @@ class Missingist:
 
         self._is_fitted = True
 
+    def _fit():
+        """
+        _fit method is implemented in subclasses.
+
+        fit method is responsible for general action defined by Encoder.
+        _fit method is for specific procedure conducted by each subclasses.
+        """
+        raise NotImplementedError("_fit method should be implemented " + \
+                                  "in subclasses.")
+
     def transform(self, data: pd.Series) -> pd.Series | np.ndarray:
         """
         Base method of `transform`.
