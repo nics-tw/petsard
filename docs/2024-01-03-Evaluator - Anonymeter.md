@@ -213,7 +213,7 @@ The paper on `Anonymeter` specifically mentions: "It's important to note that si
 individual is often enough to exert control on that individual, or to
 mount other privacy attacks."
 
-Currently, only single variable mode Singling Out evaluating (`univariate`) are implemented. In future updates, multi variables mode (`multivariate`) will be included to support singling out attacks by multiple attributes combination.
+Currently, only single variable mode of Singling Out evaluating (`univariate`) is implemented. In future updates, multi variables mode (`multivariate`) will be included to support singling out attacks by multiple attributes combination.
 
 **指認性風險**表示即便經過隱私強化技術處理，仍有多大的可能性去識別出來**特定個體**，其部分或完整記錄的可能性。以 `Anonymeter` 的舉例，就是「只有一個人同時擁有著 X、Y、與 Z 特徵」。換句話說，攻擊者可以嘗試辨識出特定的個體。
 
