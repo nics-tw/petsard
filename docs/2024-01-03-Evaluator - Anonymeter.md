@@ -197,7 +197,7 @@ $$
 
 - **主要攻擊率** (**Main Attack Rate**) 是指使用合成資料來推斷訓練資料紀錄的攻擊率
 - **基線攻擊率** (**Baseline Attack Rate**) 或是**天真攻擊率** (**Naive Attack Rate**) 則是使用隨機猜測來推斷訓練資料紀錄的成功率
-  - 基線攻擊率提供了衡量攻擊強度的基準值，如果**主要攻擊率小於等於基線攻擊率**，則代表主要攻擊的建模、其效果還不如隨機猜測，此時結果沒有意義，`Anonymeter`函式庫會在回傳結果的同時。警告用戶應該從分析中加以排除，避免錯誤的報告成『沒有風險』的結果。`PETsARD` 會直接回傳結果，請用戶自行篩選。
+  - 基線攻擊率提供了衡量攻擊強度的基準值，如果**主要攻擊率小於等於基線攻擊率**，則代表主要攻擊的建模、其效果還不如隨機猜測，此時結果沒有意義，`Anonymeter`函式庫會在回傳結果的同時。警告用戶應該從分析中加以排除，避免錯誤的報告成「沒有風險」的結果。`PETsARD` 會直接回傳結果，請用戶自行篩選。
   - 導致主要攻擊率不如隨機猜測的可能性，包括攻擊次數過少 (`n_attacks`)，攻擊者可獲得的輔助資訊過少（例如 `Inference` 功能中 `aux_cols` 設定錯誤），或者資料本身存在問題（例如欄位數量不足、記錄太少、或者類別變數的排列組合過於有限等情況）。
 - **控制攻擊率** (**Control Attack Rate**) 則是使用合成資料來推斷控制資料紀錄的攻擊率
 
@@ -262,9 +262,9 @@ The potential linkability attack method could be something like, "Since we know 
 
 `aux_cols` involves domain-specific knowledge about the dataset, so neither `PETsARD` nor `Anonymeter` provide default values for it. Users need to configure it themselves based on their understanding of the dataset. In future updates, following the experimental approach outlined in the `Anonymeter` paper, different amounts of auxiliary information will be considered. The attacker's auxiliary information will be sampled from "only two columns" to "the maximum number of columns in the dataset," and these options will be provided as default values.
 
-而此時潛在的連結性攻擊方式，便可能是『由於知道首富姓名、且知道首富居住在這個村里，則知道釋出資料中年收入最高的便是首富繳稅紀錄』。
+而此時潛在的連結性攻擊方式，便可能是「由於知道首富姓名、且知道首富居住在這個村里，則知道釋出資料中年收入最高的便是首富繳稅紀錄」。
 
-`aux_cols` 涉及對資料集的專業知識，故 `PETsARD`  跟 `Anonymeter` 均不設預設值，須由使用者自行設定。在未來更新中，也將依照 `Anonymeter` 論文的實驗方式，考量不同數量的輔助資訊，將攻擊者的輔助資訊從『僅有兩列』到『資料集的最大列數』所有抽樣方式都遍歷考慮一次，提供這樣的預設值。
+`aux_cols` 涉及對資料集的專業知識，故 `PETsARD`  跟 `Anonymeter` 均不設預設值，須由使用者自行設定。在未來更新中，也將依照 `Anonymeter` 論文的實驗方式，考量不同數量的輔助資訊，將攻擊者的輔助資訊從「僅有兩列」到「資料集的最大列數」所有抽樣方式都遍歷考慮一次，提供這樣的預設值。
 
 ---
 
@@ -332,7 +332,7 @@ Currently, both `secret` and `aux_cols` have no default values, and it is recomm
 
 這樣能遍歷每個欄位被視作 `secret`。然後參考 `Anonymeter` 論文的方法，對所有 `secret` 的風險結果取平均、則為資料集整體的 **推論性風險**（論文中沒詳細描述，但 `PETsARD` 使用算術平均）。
 
-目前 `secret` 跟 `aux_cols` 都沒有預設值，建議使用者手動設定為 `aux_cols` 統一為 `secret` 以外的所有屬性。在未來更新中，將依照 `Anonymeter` 論文的實驗方式，將攻擊者的輔助資訊從『除 `secret` 以外僅有一列』到『除 `secret` 以外所有列』所有抽樣方式都遍歷考慮一次，來提供這樣的預設值。
+目前 `secret` 跟 `aux_cols` 都沒有預設值，建議使用者手動設定為 `aux_cols` 統一為 `secret` 以外的所有屬性。在未來更新中，將依照 `Anonymeter` 論文的實驗方式，將攻擊者的輔助資訊從「除 `secret` 以外僅有一列」到「除 `secret` 以外所有列」所有抽樣方式都遍歷考慮一次，來提供這樣的預設值。
 
 ## Refenece
 
