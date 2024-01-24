@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-from PETsARD.Error import UnfittedError
+from PETsARD.Error import UnfittedError, NotImplementedError
 
 
 class Missingist:
@@ -82,6 +82,18 @@ class Missingist:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         return self._transform(data)
+    
+    def _transform():
+        """
+        _transform method is implemented in subclasses.
+
+        transform method is responsible for general action 
+            defined by the base class.
+        _transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_transform method should be implemented " + \
+                                  "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
         """
@@ -108,6 +120,18 @@ class Missingist:
             _col_data.iloc[_na_mask] = np.nan
 
             return _col_data
+        
+    def _inverse_transform():
+        """
+        _inverse_transform method is implemented in subclasses.
+
+        inverse_transform method is responsible for general action 
+            defined by the base class.
+        _inverse_transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_inverse_transform method should be " +\
+                                  "implemented in subclasses.")
 
 
 class MissingistMean(Missingist):
