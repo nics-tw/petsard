@@ -171,7 +171,7 @@ The evaluation results are stored directly as a dictionary in `self.Evaluator.ev
 $$PrivacyRisk = \frac{AttackRate_{Main}-AttackRate_{Control}}{1-AttackRate_{Control}}$$
 
 - **Attack Rate** refers to the proportion of **successful** executions of a specific attack, whether by malicious or honest-but-curious users. Also called **Success Attack Rate**.
-  - Since it is assumed that each attack is independent, and attacks are only concerned with either success or failure, they can be modeled as Bernoulli trials. The **Wilson Score Interval** can be used to estimate the binomial success rate and adjusted confidence interval as below.The default of confidence level is 95%.
+  - Since it is assumed that each attack is independent, and attacks are only concerned with either success or failure, they can be modeled as Bernoulli trials. The **Wilson Score Interval** can be used to estimate the binomial success rate and adjusted confidence interval as below. The default of confidence level is 95%.
   - From zero to one, a higher number indicates a higher success rate for that specific attack.
 
 - **攻擊率**意指無論是由惡意還是誠實但好奇的使用者**成功**執行特定攻擊的比例。又被稱為**成功攻擊率**。
