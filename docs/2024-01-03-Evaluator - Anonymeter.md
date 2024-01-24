@@ -93,7 +93,7 @@ evaluating_method='anonymeter-inference'              # Inference risk
 
 `n_attacks` is the parameter in `Anonymeter` that specifies how many times this particular attack will be executed. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. In fact, each type of attack has a potential maximum limit on number of attacks:
 
-- `Singling Out`: Number of distinct `queries`. A `query` is a specific condition-based query that allows the query to correspond to only one record in a certain field, achieving `Singling Out`.
+- `Singling Out`: Number of distinct `queries`. A `query` is a specific condition-based searching command matching only one record in a certain field, achieving `Singling Out`.
 - `Linkability` and `Inference`: Number of rows in the training dataset. The implementation of these two attack methods is to sample from the `Original Train data`.
 
 If a value exceeding the potential maximum attack count is set, `Anonymeter` will issue a warning and disregard the remaining counts.
