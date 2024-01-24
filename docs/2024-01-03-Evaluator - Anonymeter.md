@@ -176,12 +176,16 @@ $$PrivacyRisk = \frac{AttackRate_{Main}-AttackRate_{Control}}{1-AttackRate_{Cont
   - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用**威爾遜分數區間**來估算二項式成功率與調整後的信賴區間如下。預設信賴分數為 95%。
   - 零到一，數字越大代表該特定攻擊的成功率越高。
 
-$$AttackRate = \frac{N_{Success}+\frac{{Z}^{2}}{2}}{N_{Total}+{Z}^{2}}\quad
-\left\{\begin{matrix}
+$$
+AttackRate =
+\frac{N_{ Success}+\frac{ {Z}^{2} }{2} }{ N_{Total}+{Z}^{2} }\quad\left
+\{\begin{matrix}
 N_{Success} & Number\;of\;Success\;Attack\\
 N_{Total} & Number\;of\;Total\;Attack\\
 Z & Z\;score\;of\;confidence\;level
-\end{matrix}\right.$$
+\end{matrix}
+\right.
+$$
 
 - **Main Attack Rate** refers to the attack rate inferred from the training data records using synthetic data.
 - **Baseline Attack Rate** or **Naive Attack Rate** is the success rate inferred from the training data records using random guessing.
