@@ -4,6 +4,7 @@ from PETsARD.Processor.Missingist import *
 from PETsARD.Processor.Outlierist import *
 from PETsARD.Processor.Encoder import *
 from PETsARD.Processor.Scaler import *
+from PETsARD.Processor.discretizing import *
 
 __all__ = [
     'Base',
@@ -11,5 +12,6 @@ __all__ = [
     'Missingist',
     'Outlierist',
     'Encoder',
-    'Scaler'
+    'Scaler',
+    'discretizing'
 ]
