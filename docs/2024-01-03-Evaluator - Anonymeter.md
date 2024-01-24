@@ -73,9 +73,9 @@ evaluating_method='anonymeter-inference'              # Inference risk
 
 `data` (`Dict[str, pd.DataFrame]`): input data 輸入資料
 
-`data` is a dictionary with a specific format, where each label corresponds to a value that is a Pandas DataFrame.
+`data` is a dictionary with a specific format, containing specific keys, and each value is a Pandas DataFrame.
 
-`data` 是具特定格式的字典，其中每個標籤對應的值都是 Pandas DataFrame。
+`data` 是具特定格式的字典，有特定的鍵，並且每個值都是一個 Pandas DataFrame。
 
 - `ori`: `Original Train data`. A portion of the original data used to generate synthetic data (`syn`).
 - `syn`: `Synethsizing data`. Synthetic data generated from `ori`.
