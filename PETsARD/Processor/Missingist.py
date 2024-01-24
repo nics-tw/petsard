@@ -11,7 +11,7 @@ class Missingist:
     Base class for all Missingist classes.
     """
 
-    PROC_TYPE = ('missingist',)
+    PROC_TYPE = 'missingist'
 
     def __init__(self) -> None:
         self._is_fitted: True = False
