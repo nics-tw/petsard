@@ -26,15 +26,16 @@ class Synthesizer:
         self,
         data: pd.DataFrame,
         synthesizing_method: str,
+        epsilon: float = 5.0,
         **kwargs
     ) -> None:
 
         self.para: dict = {}
         self.para['Synthesizer']: dict = {
-            'synthesizing_method': synthesizing_method.lower()
+            'synthesizing_method': synthesizing_method.lower(),
+            'epsilon': epsilon
         }
 
-        from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
             data=data, **self.para['Synthesizer']
         ).create_synthesizer()
@@ -47,9 +48,6 @@ class Synthesizer:
 
     def sample(self, **kwargs):
         self.data_syn = self.Synthesizer.sample(**kwargs)
-
-    def fit_sample(self, **kwargs):
-        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """

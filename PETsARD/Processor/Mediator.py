@@ -2,6 +2,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
 from PETsARD.Processor.Missingist import MissingistDrop
+from PETsARD.Processor.Encoder import EncoderOneHot
 from PETsARD.Processor.Outlierist import *
 
 from PETsARD.Error import NotImplementedError
@@ -19,6 +20,9 @@ class Mediator:
     def __init__(self) -> None:
         self._process_col: list = []
         self._is_fitted: bool = False
+
+        # for working config adjustment
+        self.map: dict = {}
 
     def fit(self, data: None) -> None:
         """
@@ -73,6 +77,7 @@ class Mediator:
         """
         raise NotImplementedError("_transform method should be implemented " + \
                                   "in subclasses.")
+
 
 
 class MediatorMissingist(Mediator):
@@ -136,6 +141,11 @@ class MediatorMissingist(Mediator):
                                             data_backup[~process_filter].values
 
             return transformed
+        
+    def _inverse_transform(self, data: pd.DataFrame):
+        raise NotImplementedError(
+            '_inverse_transform is not supported in this class'
+        )
 
 
 class MediatorOutlierist(Mediator):
@@ -242,3 +252,101 @@ class MediatorOutlierist(Mediator):
                                                 data_backup[~process_filter]
 
             return transformed
+        
+    def _inverse_transform(self, data: pd.DataFrame):
+        raise NotImplementedError(
+            '_inverse_transform is not supported in this class'
+        )
+
+class MediatorEncoder(Mediator):
+    """
+    Deal with global behaviours in Encoder.
+    """
+
+    def __init__(self, config: dict) -> None:
+        """
+        Args:
+            config (dict): The config related to the processing data 
+            to cope with global behaviours.
+        """
+        super().__init__()
+        self._config: dict = config['encoder']
+
+        # store the original column order
+        self._colname: list = []
+
+    def _fit(self, data: None) -> None:
+        """
+        Gather information for the columns needing global transformation.
+
+        Args:
+            None, the config is read during initialisation.
+            data: Redundant input.
+        """
+        for col, obj in self._config.items():
+            if type(obj) == EncoderOneHot:
+                self._process_col.append(col)
+
+        self._colname = data.columns
+
+    def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Conduct global transformation.
+        Can be seperated into two steps:
+        1. Create propers new column names (to avoid duplicates).
+        2. Drop the original columns and insert the new ones to the dataframe.
+
+        Args:
+            data (pd.DataFrame): The in-processing data.
+
+        Return:
+            transformed (pd.DataFrame): The finished data.
+        """
+        transformed = data.copy()
+
+        for col in self._process_col:
+            label_list = self._config[col].labels
+
+            # prevent duplicates
+            n = 1
+            new_labels = [str(col) + '_' + str(l) for l in label_list]
+
+            # check if the new labels and the original columns overlap
+            while len(set(new_labels) & set(self._colname)) != 0:
+                n = n + 1
+                new_labels = [str(col) + '_' * n + str(l) for l in label_list]
+
+            ohe_df = pd.DataFrame(self._config[col]._transform_temp, 
+                                  columns=new_labels)
+            
+            self.map[col] = new_labels
+            
+            # clear the temp
+            self._config[col]._transform_temp = None
+
+            transformed.drop(col, axis=1, inplace=True)
+            transformed = pd.concat([transformed, ohe_df], axis=1)
+            
+        return transformed
+    
+    def _inverse_transform(self, data: pd.DataFrame):
+        """
+        Conduct global inverse transformation.
+        Can be seperated into two steps:
+        1. Retrieve new column data and extract values.
+        2. Drop the new columns and insert the original ones to the dataframe.
+
+        Args:
+            data (pd.DataFrame): The in-processing data.
+
+        Return:
+            transformed (pd.DataFrame): The finished data.
+        """
+        transformed = data.copy()
+
+        for ori_col, new_col in self.map.items():
+            transformed.drop(new_col, axis=1, inplace=True)
+            transformed[ori_col] = self._config[ori_col].model.\
+                inverse_transform(data[new_col]).ravel()
+            
+        return transformed.reindex(columns=self._colname)
