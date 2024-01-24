@@ -75,6 +75,37 @@ class Mediator:
         """
         raise NotImplementedError("_transform method should be implemented " + \
                                   "in subclasses.")
+    
+    def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Base method of `inverse_transform`.
+        Only for MediatorEncoder currently.
+
+        Args:
+            data (pd.DataFrame): The in-processing data.
+
+        Return:
+            (pd.DataFrame): The finished data.
+        """
+        if not self._is_fitted:
+            raise UnfittedError('The object is not fitted. Use .fit() first.')
+
+        if len(self._process_col) == 0:
+            return data
+        else:
+            return self._inverse_transform(data)
+        
+    def _inverse_transform():
+        """
+        _inverse_transform method is implemented in subclasses.
+
+        inverse_transform method is responsible for general action 
+            defined by the base class.
+        _inverse_transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_inverse_transform method should be " +\
+                                  "implemented in subclasses.")
 
 
 
