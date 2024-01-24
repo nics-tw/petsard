@@ -128,7 +128,7 @@ eval.eval()
 
 `self.Evaluator.evaluation` (`Dict[str, float]`): evaluation 評估結果
 
-The evaluation results are stored directly as a dictionary in `self.Evaluator.evaluation`, following a specific format, and all values are floating-point numbers within the range of 0.0 to 1.0:
+The evaluation results are stored directly as a dictionary in `self.Evaluator.evaluation` with a specific format, and all values are floating-point numbers within the range of 0.0 to 1.0:
 
 評估結果直接作為字典儲存在 `self.Evaluator.evaluation` 內，具有特定格式，且值都是範圍為 0.0 ~ 1.0 的浮點數：
 
