@@ -14,8 +14,10 @@ from tqdm import tqdm
 
 from PETsARD.Loader import Loader
 from PETsARD.Loader import Splitter
-from PETsARD.Preprocessor import Preprocessor
 from PETsARD.Synthesizer import Synthesizer
+from PETsARD.Processor import Processor
+
+from PETsARD.Preprocessor import Preprocessor
 from PETsARD.Postprocessor import Postprocessor
 from PETsARD.Evaluator import Evaluator
 
