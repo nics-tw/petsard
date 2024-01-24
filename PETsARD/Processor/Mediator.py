@@ -5,8 +5,6 @@ from PETsARD.Processor.Missingist import MissingistDrop
 from PETsARD.Processor.Encoder import EncoderOneHot
 from PETsARD.Processor.Outlierist import *
 
-from PETsARD.Error import NotImplementedError
-
 
 class Mediator:
     """
