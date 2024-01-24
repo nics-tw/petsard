@@ -243,26 +243,26 @@ Only applicable to multi-variable mode (`multivariate`), not implemented
 
 `aux_cols` (`Tuple[List[str], List[str]]`) Columns of auxiliary information 輔助資訊欄位
 
-The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, can obtain some of the data columns. They use this information to infer the linkability of the other confidential and unreleased data columns. In this context, the auxiliary data columns `aux_cols` are the data columns included in each of these two sets of data.
+The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping **original train data** columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine which data corresponds to each other. In this context, the auxiliary data columns `aux_cols` are the data columns included in each of these two sets of data.
 
-For example, if we will public tax records at a village level, the released data may only include annual income, tax amount, and tax deductions, while the unreleased data may contain names, gender, and addresses. In this case, `aux_cols` may look like this:
+For example, a medical center intends to release synthesized data from their heart disease research, which includes age, gender, postal code, and the number of heart attacks. Meanwhile, the attacker may have obtained real population data, such as gender and postal codes, from public sources or data leaks, along with real epidemiological data, such as age and the frequency of heart attacks, in their original form or in proportion. In this case, aux_cols` would be as follows:
 
-連結性攻擊的攻擊樣態，是假定攻擊者，無論惡意還是誠實但好奇的使用者，能夠取得其中一部分資料欄位，依此推斷出與另一部分保密的、未釋出的資料欄位的連結性。此時輔助資料欄位 `aux_cols` 便是這兩批資料所各自包含的資料欄位。
+連結性攻擊的攻擊樣態，是假定攻擊者，無論惡意還是誠實但好奇的使用者，擁有兩部分不重疊的**原始訓練資料**欄位，而當涉及這兩份資料欄位的綜合性合成資料被釋出，攻擊者便可以用合成資料**連結**到自己手中的原始資料，來推測哪些資料是互相對應的。此時輔助資料欄位 `aux_cols` 便是這兩批資料所各自包含的資料欄位。
 
-舉例來說，某個村里層級的個人繳稅紀錄要做公開資料應用，那釋出的資料可能僅包含了年收入、所得稅額、稅務抵免，未釋出的資料則可能包含了姓名、性別、地址。那 `aux_cols` 便如下所示：
+舉例來說，某間醫學中心要釋出自己心臟病研究的合成資料，其中包括了年齡、性別、郵遞區號、心臟病發次數，而攻擊者可能已經從公開資料或資料洩漏中，得知了真實的戶政資料：性別與郵遞區號、以及真實的流行病學資料：年紀與心臟病發次數，兩種資料的比例或原始資料。那 `aux_cols` 便如下所示：
 
 ```python
 aux_cols = [
-    ['annual_income', 'tax_amount', 'tax_deduction_amount'], # public
-    [ 'name', 'gender', 'address'] # private
+    ['sex', 'zip_code'], # public
+    ['age', 'heart_attack_times'] # private
 ]
 ```
 
-The potential linkability attack method could be something like, "Since we know the name of the richest person and that they live in this village, we can deduce that the person with the highest annual income in the released data is the tax record of the richest individual."
+The potential linkage attack method in this case may be that "due to the close similarity between the real population data and real epidemiological data with the values in this synthesized data, it is possible to link the age and the frequency of heart attacks of a certain group of people from the population data, or link the gender and place of residence of a certain group of people from the epidemiological data."
 
 `aux_cols` involves domain-specific knowledge about the dataset, so neither `PETsARD` nor `Anonymeter` provide default values for it. Users need to configure it themselves based on their understanding of the dataset. In future updates, following the experimental approach outlined in the `Anonymeter` paper, different amounts of auxiliary information will be considered. The attacker's auxiliary information will be sampled from "only two columns" to "the maximum number of columns in the dataset," and these options will be provided as default values.
 
-而此時潛在的連結性攻擊方式，便可能是「由於知道首富姓名、且知道首富居住在這個村里，則知道釋出資料中年收入最高的便是首富繳稅紀錄」。
+而此時潛在的連結性攻擊方式，便可能是「由於真實戶政資料跟真實流行病學資料，都跟此合成資料的數值差異足夠接近，於是可以由戶政資料連結出某群人的年紀與心臟病發次數，或是由流行病學資料連結出某群人的性別與居住地」。
 
 `aux_cols` 涉及對資料集的專業知識，故 `PETsARD`  跟 `Anonymeter` 均不設預設值，須由使用者自行設定。在未來更新中，也將依照 `Anonymeter` 論文的實驗方式，考量不同數量的輔助資訊，將攻擊者的輔助資訊從「僅有兩列」到「資料集的最大列數」所有抽樣方式都遍歷考慮一次，提供這樣的預設值。
 
