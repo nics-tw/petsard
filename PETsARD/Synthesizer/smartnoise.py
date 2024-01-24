@@ -102,6 +102,8 @@ class SmartNoise:
                     f"in {round(time.time()-time_start ,4)} sec."
                 )
                 return data_syn
+            
+            # TODO - Make Exception more precise
             except Exception as ex:
                 raise NotImplementedError(
                     f"Synthesizer (SmartNoise): "
