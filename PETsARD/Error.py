@@ -18,3 +18,6 @@ class UnfittedError(Exception):
 
 class NoConfigError(Exception):
     pass
+
+class NotImplementedError(Exception):
+    pass
