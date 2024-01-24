@@ -207,8 +207,6 @@ $$
 
 **Singling Out risk** represents the possibility of still being able to identify a particular individual, their part, or complete records, even after any Privacy-Enhancing Techniques have been applied. In the example from the `Anonymeter`, it refers to the scenario where "there is only one person with attributes X, Y, and Z". In other words, attackers may attempt to identify specific individuals.
 
-In the example provided by `Anonymeter`, there is exactly one individual in the original dataset with the attributes: `gender`: male, `age`: 65, `ZIP code`: 30305, and `the number of heart attacks`: 4, and this individual can **be singled out**.
-
 The paper on `Anonymeter` specifically mentions: "It's important to note that singling out does not imply re-identification. Yet the ability to isolate an
 individual is often enough to exert control on that individual, or to
 mount other privacy attacks."
@@ -216,8 +214,6 @@ mount other privacy attacks."
 Currently, only single variable mode of Singling Out evaluating (`univariate`) is implemented. In future updates, multi variables mode (`multivariate`) will be included to support singling out attacks by multiple attributes combination.
 
 **指認性風險**表示即便經過隱私強化技術處理，仍有多大的可能性去識別出來**特定個體**，其部分或完整記錄的可能性。以 `Anonymeter` 的舉例，就是「只有一個人同時擁有著 X、Y、與 Z 特徵」。換句話說，攻擊者可以嘗試辨識出特定的個體。
-
-`Anonymeter` 的舉例是，原始資料中，`性別`為男性、`年齡`65歲、`郵遞區號`是30305、`心臟病發次數`為4次的個體恰好只有一個，便能**被指認**出來。
 
 `Anonymeter` 的論文有特別提到：「值得注意的是，指認不等於重新識別。然而，能夠單獨辨識一個體通常足以對該個體施加控制，或者進行其他隱私攻擊。」
 
@@ -300,11 +296,7 @@ After combining all attributes, the Manhattan Distance is calculated, and return
 
 **Inference risk** represents the possibility that, even after Privacy-Enhancing Techniques have been applied, there is still a significant chance of deducing the value of an attribute from the values of a set of other attributes. In the example from the `Anonymeter`, it refers to the scenario where "a person with attributes X and Y also have Z". To phrase it differently, even if attackers **cannot single out** individual identities or **cannot link** different records, they may still be able to deduce specific information via statistical analysis or other methods.
 
-An example provided by `Anonymeter`  is that when in the original data, the `gender` is male, the `age` is 65, and the `ZIP code` is 30305, the attacker can easily **infer** that the secret attribute `number of heart attacks` is 4.
-
 **推斷性風險**代表的是即使經過隱私強化技術處理，仍有多大的可能，從一組其他的特徵中推斷出某個特徵的值。以 `Anonymeter` 的舉例，就是「擁有特徵 X 和特徵 Y 的人也擁有特徵 Z」。也就是說，即使攻擊者**無法指認**個體身分、也無法**連結**不同紀錄，攻擊者仍可以透過統計分析或其他方法來推斷出特定的資訊。
-
-`Anonymeter` 的舉例是，當原始資料中，`性別`為男性、`年齡`65歲、且`郵遞區號`是30305，則攻擊者很容易就能**推斷**出秘密屬性`心臟病發次數`為4次。
 
 ---
 
