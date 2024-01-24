@@ -54,7 +54,7 @@ In the `Anonymeter` module, which is embedded within the `Evaluator` module and 
 
 The parameter `evaluating_method`, which is inherited from Evaluator, determines which evaluation module to invoke. Input values starting with 'anonymeter-' can call the following methods of `Anonymeter` (case-insensitive):
 
-評估方法 (**`evaluating_method`**) 這個繼承自 `Evaluator` 的參數，能決定呼叫哪種評估模組，其中以 **'anonymeter-'** 打頭的輸入值便能調用 `Anonymeter`，有以下方法（大小寫不分）：
+繼承自 `Evaluator` 的參數評估方法 (**`evaluating_method`**) 能決定呼叫哪種評估模組，其中以 **'anonymeter-'** 開頭的輸入值便能調用 `Anonymeter`，有以下方法（大小寫不分）：
 
 - **'anonymeter-singlingout-univariate'**: Singling Out risk - Univariate mode
     指認性風險 - 單變數模式
