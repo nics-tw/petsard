@@ -42,9 +42,9 @@ print(eval.Evaluator.evaluation)
 
 ## Common: Inherited from Evaluator
 
-The `Anonymeter` module serves as one of the implementations of the `Evaluator` and inherits parameters from it. Additionally, "Anonymeter" follows a standardized output format.
+In the `Anonymeter` module, which is embedded within the `Evaluator` module and inherits parameters from it. Additionally, "Anonymeter" follows a standardized output format.
 
-`Anonymeter` 模組作為 `Evaluator` 的一種實現方式，具有繼承自 `Evaluator` 的參數。同時，`Anonymeter` 也有統一的輸出格式。
+`Anonymeter` 內嵌在 `Evaluator` 模組、並繼承其參數。同時 `Anonymeter` 也有統一的輸出格式。
 
 ---
 
