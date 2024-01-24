@@ -332,7 +332,7 @@ Currently, both `secret` and `aux_cols` have no default values, and it is recomm
 
 這樣能遍歷每個欄位被視作 `secret`。然後參考 `Anonymeter` 論文的方法，對所有 `secret` 的風險結果取平均、則為資料集整體的 **推論性風險**（論文中沒詳細描述，但 `PETsARD` 使用算術平均）。
 
-目前 `secret` 跟 `aux_cols` 都沒有預設值，建議使用者手動設定為 `aux_cols` 統一為 `secret` 以外的所有屬性。在未來更新中，將依照 `Anonymeter` 論文的實驗方式，將攻擊者的輔助資訊從『除 `secret` 以外僅有一列』到『除 `secret` 以外所有列』所有抽樣方式都遍歷考慮一次，提供這樣的預設值。
+目前 `secret` 跟 `aux_cols` 都沒有預設值，建議使用者手動設定為 `aux_cols` 統一為 `secret` 以外的所有屬性。在未來更新中，將依照 `Anonymeter` 論文的實驗方式，將攻擊者的輔助資訊從『除 `secret` 以外僅有一列』到『除 `secret` 以外所有列』所有抽樣方式都遍歷考慮一次，來提供這樣的預設值。
 
 ## Refenece
 
