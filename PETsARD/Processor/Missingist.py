@@ -61,7 +61,7 @@ class Missingist:
         """
         _fit method is implemented in subclasses.
 
-        fit method is responsible for general action defined by Encoder.
+        fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
         raise NotImplementedError("_fit method should be implemented " + \
