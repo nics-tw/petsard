@@ -195,11 +195,11 @@ $$
     - The possibility of the Main Attack being inferior to random includes scenarios with insufficient attack occurrences (`n_attacks`), attackers having too little auxiliary information (e.g., misconfigured `aux_cols` in the `Inference` function), or issues with the data itself (e.g., too few columns, too few records, or too few combinations of categorical variables).
 - **Control Attack Rate** is the attack rate inferred from the control data records using synthetic data.
 
-- **主要攻擊率**是指使用合成資料來推斷訓練資料紀錄的攻擊率
-- **基線攻擊率**或是**天真攻擊率**則是使用隨機猜測來推斷訓練資料紀錄的成功率
+- **主要攻擊率** (**Main Attack Rate**) 是指使用合成資料來推斷訓練資料紀錄的攻擊率
+- **基線攻擊率** (**Baseline Attack Rate**) 或是**天真攻擊率** (**Naive Attack Rate**) 則是使用隨機猜測來推斷訓練資料紀錄的成功率
   - 基線攻擊率提供了衡量攻擊強度的基準值，如果**主要攻擊率小於等於基線攻擊率**，則代表主要攻擊的建模、其效果還不如隨機猜測，此時結果沒有意義，`Anonymeter`函式庫會在回傳結果的同時。警告用戶應該從分析中加以排除，避免錯誤的報告成『沒有風險』的結果。`PETsARD` 會直接回傳結果，請用戶自行篩選。
   - 導致主要攻擊率不如隨機猜測的可能性，包括攻擊次數過少 (`n_attacks`)，攻擊者可獲得的輔助資訊過少（例如 `Inference` 功能中 `aux_cols` 設定錯誤），或者資料本身存在問題（例如欄位數量不足、記錄太少、或者類別變數的排列組合過於有限等情況）。
-- **控制攻擊率**則是使用合成資料來推斷控制資料紀錄的攻擊率
+- **控制攻擊率** (**Control Attack Rate**) 則是使用合成資料來推斷控制資料紀錄的攻擊率
 
 ---
 
