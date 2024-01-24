@@ -98,7 +98,7 @@ evaluating_method='anonymeter-inference'              # Inference risk
 
 If a value exceeding the potential maximum attack count is set, `Anonymeter` will issue a warning and disregard the remaining counts.
 
-Therefore, we plan to set the default value to automatically determine this upper limit in future release, to ensure comprehensive testing for `PETsARD`. If users find that the computation time is too long during trial, you can reduce it to the attack numbers provided in the official `Anonymeter` examples: 500 for `Singling Out`, and 2,000 for `Linkability` and `Inference`.
+Therefore, we plan to determine the default upper limit automatically in future release, to ensure comprehensive testing for `PETsARD`. If users find that the computation time is too long during a trial, it is recommended to reduce reduce it to the attack numbers provided in the official `Anonymeter` examples: 500 for `Singling Out`, and 2,000 for `Linkability` and `Inference`.
 
 `n_attacks` 即 `Anonymeter` 將執行這種攻擊多少次的參數，較高的數量會降低結果的統計不確定性，但會增加運算時間。事實上各種攻擊方式都存在有潛在的攻擊次數上限：
 
@@ -107,7 +107,7 @@ Therefore, we plan to set the default value to automatically determine this uppe
 
 如果設定了超過潛在上限攻擊次數的值，則 `Anonymeter` 將回傳警告，並忽略剩下的次數。
 
-因此，在未來的更新中，我們計劃將預設值設定為自動判斷上限，以確保 `PETsARD` 的測試足夠全面。如果使用者在試用中發現運算時間過長，可以暫時將攻擊數調低，而 `Anonymeter` 官方範例中設定的值為：`Singling Out` 為 500，`Linkability` 跟 `Inference` 為 2,000。
+因此，在未來的更新中，我們計劃能預設自動判斷攻擊的上限，以確保 `PETsARD` 的測試足夠全面。如果使用者在試用中發現運算時間過長，可以暫時將攻擊數調低，而 `Anonymeter` 官方範例中設定的值為：`Singling Out` 為 500，`Linkability` 跟 `Inference` 為 2,000。
 
 ---
 
