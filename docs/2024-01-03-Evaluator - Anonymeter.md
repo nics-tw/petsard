@@ -6,7 +6,7 @@ These three points are based on the criteria established by [Article 29 Data Pro
 
 Therefore, `PETsARD` includes built-in calls to `Anonymeter`. For more details, please refer to its official GitHub: [statice/anonymeter](https://github.com/statice/anonymeter)
 
-`Anonymeter` 是一個全面評估合成表格資料中不同層面隱私風險的 Python 函式庫，包括**指認性**、**連結性**和**推斷性**風險。
+`Anonymeter` 是一個全面評估合成表格資料中不同層面隱私風險的 Python 函式庫，包括**指認性**(**Singling Out**)、**連結性**(**Linkability**)、和**推斷性**(**Inference**)風險。
 
 此三點是根據歐盟個人資料保護指令第29條設立之[個資保護工作小組](https://ec.europa.eu/justice/article-29/documentation/opinion-recommendation/files/2014/wp216_en.pdf)，於 2014 年發布的書面指引中所列出，用於評估匿名化技術的有效性標準。而 `Anonymeter` 於 2023 年 02 月 13 日受到[法國國家資訊自由委員會](https://www.cnil.fr/en/home)的積極評價，認為此工具能有效評估合成資料的匿名化有效性三個標準，並建議使用本函式庫來評估資料被重新識別的風險。
 
