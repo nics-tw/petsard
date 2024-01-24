@@ -159,7 +159,7 @@ The evaluation results are stored directly as a dictionary in `self.Evaluator.ev
 - **Privacy Risk** is a high level estimation of specific privacy risk obtained from the attack rates mentioned below. Its formula is as follows.
     - The numerator represents the attacker's exploitation of synthetic data, as the **Main Attack** to excess of the **Control Attack** success rate.
     - The denominator is the normalization factor by **1 minus Control Attack**, representing the perfect attacker's effectiveness, to calculate the difference in the numerator.
-    - From zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
+    - Ranging from zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
 
 - **隱私風險**是綜合下述攻擊率而得到的對特定隱私風險的評估，其公式如下。
   - 分子代表攻擊者利用合成資料的攻擊、也就是**主要攻擊**對**控制攻擊**成功率的改進。
