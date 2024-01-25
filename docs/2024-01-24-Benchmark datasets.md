@@ -22,8 +22,14 @@ print(loader.data.head(1))
 
 ## data lists
 
-- **Benchmark name**: 基準資料集的標籤，用於輸入`benchmark://{Benchmark}`，大小寫不限。
-- **Benchmark filename**:  `./benchmark/{Benchmark filename}`
+- **Name** `benchmark://{Benchmark}`: The labels for benchmark datasets, used as input, are case-insensitive. 基準資料集的標籤，用於輸入，大小寫不限。
+- **Filename** ( `./benchmark/{Benchmark filename}`): The actual file will be stored locally and read with the filename. 實際會存到本地、並讀取資料的檔名。
+- **Access**: Public or Private. 公開或私有。
+- **Columns**: Columns number. 欄位數。
+- **Rows**: Rows number. 行數。
+- **File size**: File size. 檔案大小。
+- **License**: License of datasets. 資料集的授權。
+- **Hash**: Top 6 digits of Hash values. 哈希值的前六位。
 
 <!-- This <div> here is special function for sighingnow/jekyll-gitbook -->
 <div class="table-wrapper" markdown="block">
@@ -455,6 +461,7 @@ https://usa.ipums.org/usa/1940CensusDASTestData.shtml
 |By Connection    |          2|intrusion, uk_us_pf_prop_net|       |
 |By Geospatial    |          1|covtype                     |       |
 |By House         |          1|uk_us_pf_household          |       |
+|By Organism      |          1|iris                        |       |
 |By Person        |All remains|(skip)                      |(skip) |
 |By Recommendation|          1|expedia_hotel_logs          |       |
 
