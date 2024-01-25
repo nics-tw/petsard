@@ -32,6 +32,16 @@ class Mediator:
 
         self._is_fitted = True
 
+    def _fit():
+        """
+        _fit method is implemented in subclasses.
+
+        fit method is responsible for general action defined by the base class.
+        _fit method is for specific procedure conducted by each subclasses.
+        """
+        raise NotImplementedError("_fit method should be implemented " + \
+                                  "in subclasses.")
+
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Base method of `transform`.
@@ -49,6 +59,18 @@ class Mediator:
             return data
         else:
             return self._transform(data)
+        
+    def _transform():
+        """
+        _transform method is implemented in subclasses.
+
+        transform method is responsible for general action 
+            defined by the base class.
+        _transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_transform method should be implemented " + \
+                                  "in subclasses.")
 
 
 class MediatorMissingist(Mediator):
