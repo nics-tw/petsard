@@ -34,7 +34,6 @@ class Synthesizer:
             'synthesizing_method': synthesizing_method.lower()
         }
 
-        from .SynthesizerFactory import SynthesizerFactory
         Synthesizer = SynthesizerFactory(
             data=data, **self.para['Synthesizer']
         ).create_synthesizer()
@@ -47,9 +46,6 @@ class Synthesizer:
 
     def sample(self, **kwargs):
         self.data_syn = self.Synthesizer.sample(**kwargs)
-
-    def fit_sample(self, **kwargs):
-        self.data_syn = self.Synthesizer.fit_sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """

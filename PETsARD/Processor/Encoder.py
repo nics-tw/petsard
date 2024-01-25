@@ -32,6 +32,16 @@ class Encoder:
 
         self._is_fitted = True
 
+    def _fit():
+        """
+        _fit method is implemented in subclasses.
+
+        fit method is responsible for general action defined by the base class.
+        _fit method is for specific procedure conducted by each subclasses.
+        """
+        raise NotImplementedError("_fit method should be implemented " + \
+                                  "in subclasses.")
+
     def transform(self, data: pd.Series) -> np.ndarray:
         """
         Base method of `transform`.
@@ -55,6 +65,18 @@ class Encoder:
                 " Please check the data categories again.")
 
         return self._transform(data)
+    
+    def _transform():
+        """
+        _transform method is implemented in subclasses.
+
+        transform method is responsible for general action 
+            defined by the base class.
+        _transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_transform method should be implemented " + \
+                                  "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> pd.Series | np.ndarray:
         """
@@ -71,6 +93,18 @@ class Encoder:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         return self._inverse_transform(data)
+    
+    def _inverse_transform():
+        """
+        _inverse_transform method is implemented in subclasses.
+
+        inverse_transform method is responsible for general action 
+            defined by the base class.
+        _inverse_transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_inverse_transform method should be " +\
+                                  "implemented in subclasses.")
 
 
 class EncoderUniform(Encoder):
