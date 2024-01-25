@@ -243,7 +243,7 @@ Only applicable to multi-variable mode (`multivariate`), not implemented
 
 `aux_cols` (`Tuple[List[str], List[str]]`) Columns of auxiliary information 輔助資訊欄位
 
-The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping **original train data** columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine which data corresponds to each other. In this context, the auxiliary data columns `aux_cols` are the data columns included in each of these two sets of data.
+The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping **original train data** columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine whether the data from one dataset belongs to certain records in another dataset. In this context, the auxiliary data columns `aux_cols` are the two pieces of information the attackers own.
 
 For example, a medical center intends to release synthesized data from their heart disease research, which includes age, gender, postal code, and the number of heart attacks. Meanwhile, the attacker may have obtained real population data, such as gender and postal codes, from public sources or data leaks, along with real epidemiological data, such as age and the frequency of heart attacks, in their original form or in proportion. In this case, aux_cols` would be as follows:
 
