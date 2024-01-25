@@ -545,10 +545,16 @@ e. "reddit" dataset didn't have reference. "reddit" 資料集缺乏參考資料�
 
 OpenDP's demo use 1,000 records of California demographics, only below columns: ["age", "sex", "educ", "race", "income", "married"]. But didn't specific which year they use (2005~2022 is available)
 
-OpenDP 與 smartnoise 的示範使用了 1,000 條加州人口統計數據，僅包含以下欄位：["age", "sex", "educ", "race", "income", "married"]。但並未具體指明使用了哪一年的數據（2005年至2022年的數據均可用）。"
+In reference to the NIST CRC 2023 Deidentified Data Archives, it may be possible to define multiple PUMAs based on geographical regions, and the classification approach can initially follow their guidelines
+
+OpenDP 與 smartnoise 的示範使用了 1,000 條加州人口統計數據，僅包含以下欄位：["age", "sex", "educ", "race", "income", "married"]。但並未具體指明使用了哪一年的數據（2005年至2022年的數據均可用）。
+
+參考了NIST CRC 2023 去識別化資料存檔的介紹，或許可以依照地區定義多個PUMAs，然後分類方法可以先依照他們。
 
 https://www.census.gov/programs-surveys/acs/microdata.html
 https://github.com/opendp/smartnoise-sdk/tree/main/datasets
+https://pages.nist.gov/privacy_collaborative_research_cycle/pages/archive.html#acceleration-bundle
+https://github.com/usnistgov/SDNist/tree/main/nist%20diverse%20communities%20data%20excerpts
 
 #### texas
 
