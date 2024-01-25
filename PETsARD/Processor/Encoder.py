@@ -8,13 +8,9 @@ from PETsARD.Error import UnfittedError
 class Encoder:
     """
     Base class for all Encoder classes.
-
-    Args:
-        None
-
-    Return:
-        None
     """
+
+    PROC_TYPE = 'encoder'
 
     def __init__(self) -> None:
         # Mapping dict
@@ -29,11 +25,8 @@ class Encoder:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data to be fitted.
-
-        Output:
-            None
         """
         self._fit(data)
 
@@ -43,20 +36,23 @@ class Encoder:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        # Check whether the categories of the column are included in the fitted instance
+        # Check whether the categories of the column are 
+        # included in the fitted instance
         if not set(data.unique()).issubset(set(self.labels)):
             raise ValueError(
-                "The data contains categories that the object hasn't seen in the fitting process. Please check the data categories again.")
+                "The data contains categories that the object hasn't seen",
+                " in the fitting process.", 
+                " Please check the data categories again.")
 
         return self._transform(data)
 
@@ -64,10 +60,10 @@ class Encoder:
         """
         Base method of `inverse_transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data to be inverse transformed.
 
-        Output:
+        Return:
             (pd.Series | np.ndarray): The inverse transformed data.
         """
         # Check the object is fitted
@@ -77,15 +73,9 @@ class Encoder:
         return self._inverse_transform(data)
 
 
-class Encoder_Uniform(Encoder):
+class EncoderUniform(Encoder):
     """
     Implement a uniform encoder.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -102,11 +92,8 @@ class Encoder_Uniform(Encoder):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (pd.Series): The categorical data needed to be transformed.
-
-        Output:
-            None
         """
         normalize_value_counts = data.value_counts(normalize=True)
         # Get keys (original labels)
@@ -115,7 +102,8 @@ class Encoder_Uniform(Encoder):
         # Get values (upper and lower bounds)
         self.upper_values = np.cumsum(normalize_value_counts.values)
         self.lower_values = np.roll(self.upper_values, 1)
-        # To make sure the range of the data is in [0, 1]. That is, the range of an uniform dist.
+        # To make sure the range of the data is in [0, 1]. 
+        # That is, the range of an uniform dist.
         self.upper_values[-1] = 1.0
         self.lower_values[0] = 0.0
 
@@ -124,12 +112,14 @@ class Encoder_Uniform(Encoder):
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """
-        Transform categorical data to a uniform distribution. For example, a column with two categories (e.g., 'Male', 'Female') can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
+        Transform categorical data to a uniform distribution. 
+            For example, a column with two categories (e.g., 'Male', 'Female')
+                  can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
 
-        Input:
+        Args:
             data (pd.Series): The categorical data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
 
@@ -138,38 +128,37 @@ class Encoder_Uniform(Encoder):
         else:
             data_obj = data.copy()
 
-        return data_obj.map(lambda x: self._rgenerator.uniform(self.cat_to_val[x][0], self.cat_to_val[x][1], size=1)[0]).values
+        return data_obj.map(lambda x: self._rgenerator.\
+                            uniform(self.cat_to_val[x][0], 
+                                    self.cat_to_val[x][1], size=1)[0]).values
 
     def _inverse_transform(self, data: pd.Series) -> pd.Series:
         """
         Inverse the transformed data to the categorical data.
 
-        Input:
-            data (pd.Series): The categorical data needed to be transformed inversely.
+        Args:
+            data (pd.Series): The categorical data needed to 
+            be transformed inversely.
 
-        Output:
+        Return:
             (pd.Series): The inverse transformed data.
         """
 
         # Check the range of the data is valid
         if data.max() > 1 or data.min() < 0:
             raise ValueError(
-                "The range of the data is out of range. Please check the data again.")
+                "The range of the data is out of range.",
+                " Please check the data again.")
 
         bins_val = np.append(self.lower_values, 1.0)
 
-        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, labels=self.labels, ordered=False)
+        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, 
+                      labels=self.labels, ordered=False)
 
 
-class Encoder_Label(Encoder):
+class EncoderLabel(Encoder):
     """
     Implement a label encoder.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -180,11 +169,8 @@ class Encoder_Label(Encoder):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (pd.Series): The categorical data needed to be transformed.
-
-        Output:
-            None
         """
         self.model.fit(data)
 
@@ -198,10 +184,10 @@ class Encoder_Label(Encoder):
         """
         Transform categorical data to a series of integer labels.
 
-        Input:
+        Args:
             data (pd.Series): The categorical data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
 
@@ -211,10 +197,11 @@ class Encoder_Label(Encoder):
         """
         Inverse the transformed data to the categorical data.
 
-        Input:
-            data (pd.Series): The categorical data needed to be transformed inversely.
+        Args:
+            data (pd.Series): The categorical data needed to 
+            be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
 
