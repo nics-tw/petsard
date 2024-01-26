@@ -8,13 +8,9 @@ from PETsARD.Error import UnfittedError
 class Outlierist:
     """
     Base class for all Outlierist classes.
-
-    Args:
-        None
-
-    Return:
-        None
     """
+
+    PROC_TYPE = 'outlierist'
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -24,11 +20,8 @@ class Outlierist:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
-
-        Output:
-            None
         """
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -37,14 +30,24 @@ class Outlierist:
 
         self._is_fitted = True
 
+    def _fit():
+        """
+        _fit method is implemented in subclasses.
+
+        fit method is responsible for general action defined by the base class.
+        _fit method is for specific procedure conducted by each subclasses.
+        """
+        raise NotImplementedError("_fit method should be implemented " + \
+                                  "in subclasses.")
+
     def transform(self, data: pd.Series) -> np.ndarray:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
         # Check the object is fitted
@@ -55,9 +58,21 @@ class Outlierist:
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
+    
+    def _transform():
+        """
+        _transform method is implemented in subclasses.
+
+        transform method is responsible for general action 
+            defined by the base class.
+        _transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_transform method should be implemented " + \
+                                  "in subclasses.")
 
 
-class Outlierist_ZScore(Outlierist):
+class OutlieristZScore(Outlierist):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -69,13 +84,9 @@ class Outlierist_ZScore(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
-        self.data_backup = data
 
         self.model.fit(data)
 
@@ -83,19 +94,22 @@ class Outlierist_ZScore(Outlierist):
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
+
+        # back up the data before transformation
+        self.data_backup = data
 
         ss_data = self.model.transform(data)
 
         return (np.abs(ss_data) > 3).ravel()
 
 
-class Outlierist_IQR(Outlierist):
+class OutlieristIQR(Outlierist):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -111,11 +125,8 @@ class Outlierist_IQR(Outlierist):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
         self.Q1 = np.quantile(data, 0.25)
         self.Q3 = np.quantile(data, 0.75)
@@ -123,23 +134,24 @@ class Outlierist_IQR(Outlierist):
         self.lower = self.Q1 - 1.5 * self.IQR
         self.upper = self.Q3 + 1.5 * self.IQR
 
-        self.data_backup = data
-
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
         Conduct standardisation and mark inliers as 1.0 and outliers as -1.0.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The filter marking the outliers.
         """
+
+        # back up the data before transformation
+        self.data_backup = data
 
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
 
 
-class Outlierist_IsolationForest(Outlierist):
+class OutlieristIsolationForest(Outlierist):
     """
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
@@ -154,10 +166,10 @@ class Outlierist_IsolationForest(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data
+        return data.ravel()
 
 
-class Outlierist_LOF(Outlierist):
+class OutlieristLOF(Outlierist):
     """
     Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
@@ -172,4 +184,4 @@ class Outlierist_LOF(Outlierist):
         pass
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
-        return data
+        return data.ravel()

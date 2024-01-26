@@ -9,13 +9,9 @@ from PETsARD.Error import UnfittedError
 class Scaler:
     """
     Base class for all Scaler classes.
-
-    Args:
-        None
-
-    Return:
-        None
     """
+
+    PROC_TYPE = 'scaler'
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -24,11 +20,8 @@ class Scaler:
         """
         Base method of `fit`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be fitted.
-
-        Output:
-            None
         """
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -37,14 +30,24 @@ class Scaler:
 
         self._is_fitted = True
 
+    def _fit():
+        """
+        _fit method is implemented in subclasses.
+
+        fit method is responsible for general action defined by the base class.
+        _fit method is for specific procedure conducted by each subclasses.
+        """
+        raise NotImplementedError("_fit method should be implemented " + \
+                                  "in subclasses.")
+
     def transform(self, data: pd.Series) -> np.ndarray:
         """
         Base method of `transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
         # Check the object is fitted
@@ -55,15 +58,27 @@ class Scaler:
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
+    
+    def _transform():
+        """
+        _transform method is implemented in subclasses.
+
+        transform method is responsible for general action 
+            defined by the base class.
+        _transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_transform method should be implemented " + \
+                                  "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> np.ndarray:
         """
         Base method of `inverse_transform`.
 
-        Input:
+        Args:
             data (pd.Series): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
         # Check the object is fitted
@@ -74,17 +89,23 @@ class Scaler:
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
+    
+    def _inverse_transform():
+        """
+        _inverse_transform method is implemented in subclasses.
+
+        inverse_transform method is responsible for general action 
+            defined by the base class.
+        _inverse_transform method is for specific procedure 
+            conducted by each subclasses.
+        """
+        raise NotImplementedError("_inverse_transform method should be " +\
+                                  "implemented in subclasses.")
 
 
-class Scaler_Standard(Scaler):
+class ScalerStandard(Scaler):
     """
     Apply StandardScaler.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -95,11 +116,8 @@ class Scaler_Standard(Scaler):
         """
         Gather information for transformation and reverse transformation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Output:
-            None
         """
         self.model.fit(data)
 
@@ -107,10 +125,10 @@ class Scaler_Standard(Scaler):
         """
         Conduct standardisation.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed.
 
-        Output:
+        Return:
             (np.ndarray): The transformed data.
         """
 
@@ -120,25 +138,19 @@ class Scaler_Standard(Scaler):
         """
         Inverse the transformed data to the data in the original scale.
 
-        Input:
+        Args:
             data (np.ndarray): The data needed to be transformed inversely.
 
-        Output:
+        Return:
             (np.ndarray): The inverse transformed data.
         """
 
         return self.model.inverse_transform(data)
 
 
-class Scaler_ZeroCenter(Scaler_Standard):
+class ScalerZeroCenter(ScalerStandard):
     """
     Apply StandardScaler without std scaling.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -146,15 +158,9 @@ class Scaler_ZeroCenter(Scaler_Standard):
         self.model = StandardScaler(with_std=False)
 
 
-class Scaler_MinMax(Scaler_Standard):
+class ScalerMinMax(ScalerStandard):
     """
     Apply MinMaxScaler.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -162,15 +168,9 @@ class Scaler_MinMax(Scaler_Standard):
         self.model: MinMaxScaler = MinMaxScaler()
 
 
-class Scaler_Log(Scaler):
+class ScalerLog(Scaler):
     """
     Scale the data by log transformation.
-
-    Args:
-        None
-
-    Return:
-        None
     """
 
     def __init__(self) -> None:
@@ -182,9 +182,6 @@ class Scaler_Log(Scaler):
 
         Args:
             data (np.ndarray): The data needed to be transformed.
-
-        Return:
-            None
         """
         if (data <= 0).any():
             raise ValueError(
