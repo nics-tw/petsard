@@ -1,0 +1,102 @@
+region_name: ap-southeast-1 # Asia Pacific (Singapore)
+bucket_name:
+  public: petsard-benchmark
+  private: petsard-benchmark-private
+
+datasets:
+
+  adult:
+    folder: None
+    filename: adult.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
+  # adult:
+  #   folder: adult
+  #   filename: TODO
+  #   access: public
+  #   sha256: TODO
+
+  alarm:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  car_insurance:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  coil2000:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  covtype:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  ds_salaries:
+    folder: ds_salaries
+    filename: ds_salaries.csv
+    access: public
+    sha256: TODO
+
+  expedia_hotel_logs:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  intrusion:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  nhanes_diabetes:
+    folder: TODO
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  smoking_driking:
+    folder: smoking_driking
+    filename: smoking_driking_dataset_Ver01.csv
+    access: public
+    sha256: TODO
+
+  uk_us_pf_household:
+    folder: uk_us_pf
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  uk_us_pf_person:
+    folder: uk_us_pf
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  uk_us_pf_prop_net:
+    folder: uk_us_pf
+    filename: TODO
+    access: public
+    sha256: TODO
+
+  adult-private:
+    folder: TODO
+    filename: adult_private_for_demo.csv
+    access: private
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
+  us_census_1940:
+    folder: TODO
+    filename: TODO
+    access: private
+    sha256: TODO
