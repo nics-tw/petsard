@@ -61,6 +61,8 @@ class BenchmarkerBase(ABC):
         return:
             (str)
                 SHA-256 value of file.
+        ...
+        TODO public method, and no need to initialized
         """
         sha256hash = hashlib.sha256()
         with open(filepath, "rb") as f:
