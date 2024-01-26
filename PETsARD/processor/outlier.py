@@ -5,12 +5,12 @@ from sklearn.preprocessing import StandardScaler
 from PETsARD.error import UnfittedError
 
 
-class Outlierist:
+class OutlierHandler:
     """
-    Base class for all Outlierist classes.
+    Base class for all OutlierHandler classes.
     """
 
-    PROC_TYPE = 'outlierist'
+    PROC_TYPE = 'outlierhandler'
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -72,7 +72,7 @@ class Outlierist:
                                   "in subclasses.")
 
 
-class OutlieristZScore(Outlierist):
+class OutlierZScore(OutlierHandler):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -109,7 +109,7 @@ class OutlieristZScore(Outlierist):
         return (np.abs(ss_data) > 3).ravel()
 
 
-class OutlieristIQR(Outlierist):
+class OutlierIQR(OutlierHandler):
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = False
 
@@ -151,7 +151,7 @@ class OutlieristIQR(Outlierist):
         return (np.logical_or(data > self.upper, data < self.lower)).ravel()
 
 
-class OutlieristIsolationForest(Outlierist):
+class OutlierIsolationForest(OutlierHandler):
     """
     Dummy class, doing nothing related to the method. 
     It's implemented in the mediator because it's global transformation.
@@ -169,7 +169,7 @@ class OutlieristIsolationForest(Outlierist):
         return data.ravel()
 
 
-class OutlieristLOF(Outlierist):
+class OutlierLOF(OutlierHandler):
     """
     Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.

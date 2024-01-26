@@ -1,7 +1,7 @@
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from PETsARD.processor.missing import MissingistDrop
+from PETsARD.processor.missing import MissingDrop
 from PETsARD.processor.outlier import *
 
 
@@ -73,9 +73,9 @@ class Mediator:
                                   "in subclasses.")
 
 
-class MediatorMissingist(Mediator):
+class MediatorMissing(Mediator):
     """
-    Deal with global behaviours in Missingist.
+    Deal with global behaviours in MissingHandler.
     """
 
     def __init__(self, config: dict) -> None:
@@ -85,7 +85,7 @@ class MediatorMissingist(Mediator):
             to cope with global behaviours.
         """
         super().__init__()
-        self._config: dict = config['missingist']
+        self._config: dict = config['missing']
 
     def _fit(self, data: None) -> None:
         """
@@ -96,7 +96,7 @@ class MediatorMissingist(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == MissingistDrop:
+            if type(obj) == MissingDrop:
                 self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -136,9 +136,9 @@ class MediatorMissingist(Mediator):
             return transformed
 
 
-class MediatorOutlierist(Mediator):
+class MediatorOutlier(Mediator):
     """
-    Deal with global behaviours in Outlierist.
+    Deal with global behaviours in OutlierHandler.
     """
 
     def __init__(self, config: dict) -> None:
@@ -148,22 +148,22 @@ class MediatorOutlierist(Mediator):
             to cope with global behaviours.
         """
         super().__init__()
-        self._config: dict = config['outlierist']
+        self._config: dict = config['outlier']
         self.model = None
 
         # indicator for using global outlier methods, 
         # such as Isolation Forest and Local Outlier Factor
         self._global_model_indicator: bool = False
 
-        # if any column in the config sets outlierist method 
+        # if any column in the config sets outlier method 
         # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
-            if type(obj) == OutlieristIsolationForest:
+            if type(obj) == OutlierIsolationForest:
                 self.model = IsolationForest()
                 self._global_model_indicator = True
                 break
-            elif type(obj) == OutlieristLOF:
+            elif type(obj) == OutlierLOF:
                 self.model = LocalOutlierFactor()
                 self._global_model_indicator = True
                 break
@@ -189,7 +189,7 @@ class MediatorOutlierist(Mediator):
                         to fit the model.')
         else:
             for col, obj in self._config.items():
-                if type(obj) in [OutlieristIQR, OutlieristZScore]:
+                if type(obj) in [OutlierIQR, OutlierZScore]:
                     self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
