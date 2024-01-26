@@ -34,30 +34,30 @@ print(loader.data.head(1))
 <!-- This <div> here is special function for sighingnow/jekyll-gitbook -->
 <div class="table-wrapper" markdown="block">
 
-|Name              |Filename                         |Access |Columns|Rows       |File size|License        |Hash  |
-|:----------------:|:-------------------------------:|:-----:|:-----:|:---------:|:-------:|:-------------:|:----:|
-|adult             |adult.csv                        |Public |15     |     48,842|     5 MB|CC BY 4.0      |1f13ee|
-|alarm             |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO  |
-|car_insurance     |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO  |
-|coil2000          |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO  |
-|covtype           |TODO                             |Public |TODO   |TODO       |TODO     |CC BY-NC-SA 4.0|TODO  |
-|ds_salaries       |ds_salaries.csv                  |Public |11     |        607|TODO     |CC0            |TODO  |
-|expedia_hotel_logs|TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO  |
-|intrusion         |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO  |
-|nhanes_diabetes   |B.csv                            |Public |12     |      4,190|    <1 MB|TODO           |TODO  |
-|smoking_driking   |smoking_driking_dataset_Ver01.csv|Public |24     |    991,346|TODO     |CC BY-NC-SA 4.0|TODO  |
-|uk_us_pf_household|TODO                             |Public |TODO   |  3,094,494|   167 MB|TODO           |TODO  |
-|uk_us_pf_person   |TODO                             |Public |TODO   |  7,688,060|    83 MB|TODO           |TODO  |
-|uk_us_pf_prop_net |TODO                             |Public |TODO   |166,971,542| 6,117 MB|TODO           |TODO  |
-|us_census_1940    |TODO                             |Private|TODO   |TODO       |TODO     |Restricted     |TODO  |
+|Name              |Filename                         |Access |Columns|Rows       |File size|License        |Hash    |
+|:----------------:|:-------------------------------:|:-----:|:-----:|:---------:|:-------:|:-------------:|:------:|
+|adult             |adult.csv                        |Public |15     |     48,842|     5 MB|CC BY 4.0      |`1f13ee`|
+|alarm             |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|car_insurance     |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|coil2000          |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|covtype           |TODO                             |Public |TODO   |TODO       |TODO     |CC BY-NC-SA 4.0|TODO    |
+|ds_salaries       |ds_salaries.csv                  |Public |11     |        607|TODO     |CC0            |TODO    |
+|expedia_hotel_logs|TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|intrusion         |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|nhanes_diabetes   |B.csv                            |Public |12     |      4,190|    <1 MB|TODO           |TODO    |
+|smoking_driking   |smoking_driking_dataset_Ver01.csv|Public |24     |    991,346|   104 MB|CC BY-NC-SA 4.0|TODO    |
+|uk_us_pf_household|TODO                             |Public |TODO   |  3,094,494|   167 MB|TODO           |TODO    |
+|uk_us_pf_person   |TODO                             |Public |TODO   |  7,688,060|    83 MB|TODO           |TODO    |
+|uk_us_pf_prop_net |TODO                             |Public |TODO   |166,971,542| 6,117 MB|TODO           |TODO    |
+|us_census_1940    |TODO                             |Private|TODO   |TODO       |TODO     |Restricted     |TODO    |
 
 </div>
 
-### adult
+### **adult**
 
-- Name: Adult
-- Alias: Adult income, Census Income
-- Subject Area: Social Science
+- Name: **Adult**
+- Alias: **Adult income**, **Census Income**
+- Subject Area: **Social Science**
 - Precision: 1 Person 1 records
 - Columns: 15
   - Continuous: TODO
@@ -68,7 +68,7 @@ print(loader.data.head(1))
   - Int: TODO
 - Missing %: Yes (TODO)
   - Special NA value: "?"
-- Hash: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+- Hash: `1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0`
 
 Filtered extraction from 1994 US Census.
 
@@ -90,11 +90,11 @@ https://archive.ics.uci.edu/dataset/2/adult
 https://archive.ics.uci.edu/dataset/20/census+income
 https://www.kaggle.com/datasets/wenruliu/adult-income-dataset
 
-### alarm
+### **alarm**
 
-- Name: A Logical Alarm Reduction Mechanism (ALARM) monitoring system (synthetic) data set
+- Name: **A Logical Alarm Reduction Mechanism (ALARM) monitoring system (synthetic) data set**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 House 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -108,11 +108,11 @@ https://www.kaggle.com/datasets/wenruliu/adult-income-dataset
 
 https://www.bnlearn.com/documentation/man/alarm.html
 
-### car_insurance
+### **car_insurance**
 
-- Name: Insurance evaluation network (synthetic) data set
-- Alias: insurance
-- Subject Area: Business
+- Name: **Insurance evaluation network (synthetic) data set**
+- Alias: **insurance**
+- Subject Area: **Business**
 - Precision: 1 Person 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -128,11 +128,11 @@ The naming as "car_insurance" is because the name "insurance" may be confused wi
 
 命名為 "car_insurance" 是因為 "insurance" 這個名稱可能會跟許多 Kaggle 上保險公司提供的資料集混淆。這只是暫時的命名。
 
-### coil2000
+### **coil2000**
 
-- Name: Insurance Company Benchmark (COIL 2000)
+- Name: **Insurance Company Benchmark (COIL 2000)**
 - Alias:
-- Subject Area: Social Science
+- Subject Area: **Social Science**
 - Precision: 1 Person 1 records
 - Columns: 86
   - Continuous: TODO
@@ -150,11 +150,11 @@ The caravan insurance dataset from the Netherlands, used for the Computational I
 
 https://archive.ics.uci.edu/dataset/125/insurance+company+benchmark+coil+2000
 
-### covtype
+### **covtype**
 
-- Name: Forest cover types datasets
+- Name: **Forest cover types datasets**
 - Alias:
-- Subject Area: Climate and Enviorment
+- Subject Area: **Climate and Enviorment**
 - Precision: 1 geospatial 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -172,11 +172,11 @@ This study area includes four wilderness areas located in the Roosevelt National
 
 https://archive.ics.uci.edu/dataset/31/covertype
 
-### ds_salaries
+### **ds_salaries**
 
-- Name: Data Science Jobs Salaries Dataset
+- Name: **Data Science Jobs Salaries Dataset**
 - Alias:
-- Subject Area: Business
+- Subject Area: **Business**
 - Precision: 1 Person 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -195,11 +195,11 @@ Salary data for Data Scientists from 2020 to 2021 sourced from ai-jobs.net.
 https://www.kaggle.com/datasets/saurabhshahane/data-science-jobs-salaries
 https://ai-jobs.net/salaries/form/
 
-### expedia_hotel_logs
+### **expedia_hotel_logs**
 
-- Name: Expedia Hotel Recommendations datasets
+- Name: **Expedia Hotel Recommendations datasets**
 - Alias:
-- Subject Area: Computer Science
+- Subject Area: **Computer Science**
 - Precision: 1 Recommendations 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -217,11 +217,11 @@ From Expedia Hotel Recommendations competitions in Kaggle.
 
 https://www.kaggle.com/competitions/expedia-hotel-recommendations/data
 
-### intrusion
+### **intrusion**
 
-- Name: Intrusion Detector Learning
+- Name: **Intrusion Detector Learning**
 - Alias:
-- Subject Area: Computer Science
+- Subject Area: **Computer Science**
 - Precision: 1 Connection 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -239,11 +239,11 @@ This dataset contains network traffic with simulated attacks on a U.S. Air Force
 
 https://kdd.ics.uci.edu/databases/kddcup99/task.html
 
-### iris
+### **iris**
 
-- Name: Fisher's Iris data set
+- Name: **Fisher's Iris data set**
 - Alias:
-- Subject Area: Biology
+- Subject Area: **Biology**
 - Precision: 1 Organism 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -263,11 +263,11 @@ Iris 資料集，最初是由 Edgar Anderson 收集以量化鳶尾花的形態�
 
 https://en.wikipedia.org/wiki/Iris_flower_data_set
 
-### nhanes_diabetes
+### **nhanes_diabetes**
 
-- Name: National Health and Nutrition Examination Survey (NHANES) 2015-2016 diabetes
+- Name: **National Health and Nutrition Examination Survey (NHANES) 2015-2016 diabetes**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 Person 1 records
 - Columns: 12
   - Continuous: TODO
@@ -312,11 +312,11 @@ https://github.com/kikn88/pwscup2021
 https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2015
 https://hackmd.io/@petworks/rJ-UOh9Rn/https%3A%2F%2Fhackmd.io%2F%40petworks%2Fr15yF3zYT
 
-### smoking_driking
+### **smoking_driking**
 
-- Name: Smoking and Drinking Dataset with body signal
+- Name: **Smoking and Drinking Dataset with body signal**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 Person 1 records
 - Columns: 24
   - Continuous: TODO
@@ -335,11 +335,11 @@ Provided by the National Health Insurance Service in Korea, a dataset on smoking
 https://www.kaggle.com/datasets/sooyoungher/smoking-drinking-dataset/data
 
 
-### uk_us_pf_household
+### **uk_us_pf_household**
 
-- Name: UK-US PETs prize challenges - Pandemic Forecasting: Household datasets
+- Name: **UK-US PETs prize challenges - Pandemic Forecasting: Household datasets**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 House 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -360,11 +360,11 @@ https://prepare-vo.org/synthetic-pandemic-outbreaks
 https://dataverse.lib.virginia.edu/dataset.xhtml?persistentId=doi:10.18130/V3/ZOG1FF
 https://net.science/files/resources/datasets/PET_Prize_PandemicForecasting/
 
-### uk_us_pf_person
+### **uk_us_pf_person**
 
-- Name: UK-US PETs prize challenges - Pandemic Forecasting: Person datasets
+- Name: **UK-US PETs prize challenges - Pandemic Forecasting: Person datasets**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 Person 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -376,15 +376,15 @@ https://net.science/files/resources/datasets/PET_Prize_PandemicForecasting/
 - Missing %: Yes (TODO)
   - Special NA value: TODO
 
-See "uk_us_pf_household" for more details.
+See **uk_us_pf_household** for more details.
 
-詳情請見 "uk_us_pf_household"。
+詳情請見 **uk_us_pf_household**。
 
-### uk_us_pf_prop_net
+### **uk_us_pf_prop_net**
 
-- Name: UK-US PETs prize challenges - Pandemic Forecasting: Population Network datasets
+- Name: **UK-US PETs prize challenges - Pandemic Forecasting: Population Network datasets**
 - Alias:
-- Subject Area: Health and Medicine
+- Subject Area: **Health and Medicine**
 - Precision: 1 Connection 1 records
 - Columns: TODO
   - Continuous: TODO
@@ -396,15 +396,15 @@ See "uk_us_pf_household" for more details.
 - Missing %: Yes (TODO)
   - Special NA value: TODO
 
-See "uk_us_pf_household" for more details.
+See **uk_us_pf_household** for more details.
 
-詳情請見 "uk_us_pf_household"。
+詳情請見 **uk_us_pf_household**。
 
-### us_census_1940
+### **us_census_1940**
 
-- Name: Version 8.0 Extract of 1940 Census full-count dataset
-- Alias: US Census
-- Subject Area: Social Science
+- Name: **Version 8.0 Extract of 1940 Census full-count dataset**
+- Alias: **US Census**
+- Subject Area: **Social Science**
 - Precision: 1 Person 1 records
 - Columns: 15
   - Continuous: TODO
@@ -449,7 +449,7 @@ https://usa.ipums.org/usa/1940CensusDASTestData.shtml
 
 </div>
 
-- "car_insurance" be categorized in Business, but "coil2000" from UCI ML have been categorized in Social Science.
+- **car_insurance** be categorized in **Business**, but **coil2000** from UCI ML have been categorized in **Social Science**.
 
 ### Precision
 
@@ -496,13 +496,13 @@ The inclusion of the Benchmark dataset is based on retaining only the most signi
   -  PETsWork: included ["nhanes_diabetes"](https://hackmd.io/@petworks/rJ-UOh9Rn/https%3A%2F%2Fhackmd.io%2F%40petworks%2Fr15yF3zYT)
 - 112 ITRI: (Industrial Technology Research Institute) 工研院112年計畫成果有使用
   - Some of the data from 112 ITRI are solely test data created by the Academia Sinica, and the dataset size is too small so we excluded. 有些工研院112年使用的只是中研院產生的測試用假資料，且資料大小太小，故不納入。
-    - Included "fake_job.csv", "fake_lat.csv", "fake_lon.csv", "revenue_tw_id.csv", "sports_id.csv", and "zh_tw_header.csv"
+    - Included **fake_job.csv**, **fake_lat.csv**, **fake_lon.csv**, **revenue_tw_id.csv**, **sports_id.csv**, and **zh_tw_header.csv**.
 - Precision: Enrich Precision type 增加多元精度類型
-  - The value of "covtype" in privacy protection research is questionable "covtype" 在隱私保護研究的價值是存疑的
+  - The value of **covtype** in privacy protection research is questionable **covtype** 在隱私保護研究的價值是存疑的
 - Replication: Replicated research findings 重製研究成果
 - Competition: Used in a competition 在隱私強化技術競賽用過
 - Others: Others/Uncategorized 其他/未分類
-  - some of SDGym datasets have be categorized here because not sure are these datasets popular enough. 有些 SDGym 的資料集被分在此，是由於不清楚這些資料集是否夠知名。
+  - some of **SDGym** datasets have be categorized here because not sure are these datasets popular enough. 有些 **SDGym** 的資料集被分在此，是由於不清楚這些資料集是否夠知名。
 
 ### Mention in Research
 
@@ -521,11 +521,11 @@ The inclusion of the Benchmark dataset is based on retaining only the most signi
 2. https://docs.sdv.dev/sdgym/customization/datasets/public-sdv-datasets
 3. https://github.com/opendp/smartnoise-sdk/tree/main/datasets
 
-a. "texas" requires payment. "texas" 需要付費。
-b. "census" is duplicated and its webpage is offline. "census" 資料集重複，且其網頁已經無法訪問。
-c. "child" and "news" datasets didn't have reference. "child" 和 "news" 資料集缺乏參考資料。
-d. 4 "pums" datasets discussion see below. 有關4個 "pums" 資料集的討論請參見下文。
-e. "reddit" dataset didn't have reference. "reddit" 資料集缺乏參考資料。
+a. **texas** requires payment. **texas** 需要付費。
+b. **census** is duplicated and its webpage is offline. **census** 資料集重複，且其網頁已經無法訪問。
+c. **child** and **news** datasets didn't have reference. **child** 和 **news** 資料集缺乏參考資料。
+d. 4 **pums** datasets discussion see below. 有關4個 **pums** 資料集的討論請參見下文。
+e. **reddit** dataset didn't have reference. **reddit** 資料集缺乏參考資料。
 
 ### Used in Competition
 
@@ -539,33 +539,33 @@ e. "reddit" dataset didn't have reference. "reddit" 資料集缺乏參考資料�
 
 </div>
 
-1. PWSCup2021: Use "nhanes_diabetes" https://www.iwsec.org/pws/2021/index.html
-2. PWSCup2020: Use Synthetic data from "adult" https://www.iwsec.org/pws/2020/cup20.html
+1. PWSCup2021: Use **nhanes_diabetes** https://www.iwsec.org/pws/2021/index.html
+2. PWSCup2020: Use Synthetic data from **adult** https://www.iwsec.org/pws/2020/cup20.html
 3. UK-US PETs prize challenges 2023: https://petsprizechallenges.com/
   - There's couples of datasets in UK-US, we include only the most representative. Here's remains: TODO
 
-### Appendix for non-included datasets
+## Appendix for non-included datasets
 
-#### pums
+### **pums**
 
-- Name: The American Community Survey (ACS) Public Use Microdata Sample (PUMS)
+- Name: **The American Community Survey (ACS) Public Use Microdata Sample (PUMS)**
 
-OpenDP's demo use 1,000 records of California demographics, only below columns: ["age", "sex", "educ", "race", "income", "married"]. But didn't specific which year they use (2005~2022 is available)
+**OpenDP**'s and **smartnoise**'s demo use 1,000 records of California demographics, only below columns: ["age", "sex", "educ", "race", "income", "married"]. But didn't specific which year they use (2005~2022 is available)
 
-In reference to the NIST CRC 2023 Deidentified Data Archives, it may be possible to define multiple PUMAs based on geographical regions, and the classification approach can initially follow their guidelines
+In reference to the NIST CRC 2023 Deidentified Data Archives, it may be possible to define multiple **PUMAs** based on geographical regions, and the classification approach can initially follow their guidelines
 
-OpenDP 與 smartnoise 的示範使用了 1,000 條加州人口統計數據，僅包含以下欄位：["age", "sex", "educ", "race", "income", "married"]。但並未具體指明使用了哪一年的數據（2005年至2022年的數據均可用）。
+**OpenDP** 與 **smartnoise** 的示範使用了 1,000 條加州人口統計數據，僅包含以下欄位：["age", "sex", "educ", "race", "income", "married"]。但並未具體指明使用了哪一年的數據（2005年至2022年的數據均可用）。
 
-參考了NIST CRC 2023 去識別化資料存檔的介紹，或許可以依照地區定義多個PUMAs，然後分類方法可以先依照他們。
+參考了 NIST CRC 2023 去識別化資料存檔的介紹，或許可以依照地區定義多個 **PUMAs**，然後分類方法可以先依照他們。
 
 https://www.census.gov/programs-surveys/acs/microdata.html
 https://github.com/opendp/smartnoise-sdk/tree/main/datasets
 https://pages.nist.gov/privacy_collaborative_research_cycle/pages/archive.html#acceleration-bundle
 https://github.com/usnistgov/SDNist/tree/main/nist%20diverse%20communities%20data%20excerpts
 
-#### texas
+### **texas**
 
-- Name: Texas Hospital Discharge Data Public Use Data
+- Name: **Texas Hospital Discharge Data Public Use Data**
 
 For data downloads by non-Texas public universities and public health institutions, it is necessary to complete an application form and pay an annual subscription fee.
 
