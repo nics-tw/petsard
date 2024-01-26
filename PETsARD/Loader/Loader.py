@@ -141,7 +141,7 @@ class Loader:
         #     PETSARD_CONFIG['benchmark_datasets'] (dict):
         #         key (str): benchmark dataset name
         #             filename (str): Its filename
-        #             public (str):   Belong to public or private bucket.
+        #             access (str):   Belong to public or private bucket.
         #             region_name (str): Its AWS S3 region.
         #             bucket_name (str): Its AWS S3 bucket.
         #             sha256 (str): Its SHA-256 value.
@@ -150,9 +150,9 @@ class Loader:
         PETSARD_CONFIG['benchmark_datasets']['datasets'] = {
             key: {
                 'filename':    value['filename'],
-                'public':      value['public'],
+                'access':      value['access'],
                 'region_name': REGION_NAME,
-                'bucket_name': BUCKET_NAME[value['public']],
+                'bucket_name': BUCKET_NAME[value['access']],
                 'sha256':      value['sha256']
             }
             for key, value in PETSARD_CONFIG['benchmark_datasets']['datasets'].items()
@@ -166,15 +166,15 @@ class Loader:
         )
         # If benchmark, download benchmark dataset, and execute as local file.
         if self.para['Loader']['benchmark']:
-            benchmark_public = self.para['Loader']['benchmark_public']
-            if benchmark_public == 'public':
+            benchmark_access = self.para['Loader']['benchmark_access']
+            if benchmark_access == 'public':
                 BenchmarkerRequests(self.para['Loader']).download()
-            elif benchmark_public == 'private':
+            elif benchmark_access == 'private':
                 BenchmarkerBoto3(self.para['Loader']).download()
             else:
                 raise ValueError(
-                    f"Loader - Unsupported benchmark public/private type, "
-                    f"now is {benchmark_public}."
+                    f"Loader - Unsupported benchmark access type, "
+                    f"now is {benchmark_access}."
                 )
         # Force define the discrete and date/datetime dtype
         self.para['Loader'].update(
@@ -257,7 +257,7 @@ class Loader:
                     'benchmark_filepath':    filepath,
                     'benchmark_name':        benchmark_name,
                     'benchmark_filename':    benchmark_filename,
-                    'benchmark_public':      benchmark_value['public'],
+                    'benchmark_access':      benchmark_value['access'],
                     'benchmark_region_name': benchmark_value['region_name'],
                     'benchmark_bucket_name': benchmark_value['bucket_name'],
                     'benchmark_sha256':      benchmark_value['sha256'],
