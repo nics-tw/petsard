@@ -6,12 +6,12 @@ import pandas as pd
 from PETsARD.error import UnfittedError
 
 
-class Missingist:
+class MissingHandler:
     """
-    Base class for all Missingist classes.
+    Base class for all MissingHandler classes.
     """
 
-    PROC_TYPE = 'missingist'
+    PROC_TYPE = 'missinghandler'
 
     def __init__(self) -> None:
         self._is_fitted: True = False
@@ -134,7 +134,7 @@ class Missingist:
                                   "implemented in subclasses.")
 
 
-class MissingistMean(Missingist):
+class MissingMean(MissingHandler):
     """
     Impute NA values with the mean value.
     """
@@ -167,7 +167,7 @@ class MissingistMean(Missingist):
         return data.fillna(self.data_mean)
 
 
-class MissingistMedian(Missingist):
+class MissingMedian(MissingHandler):
     """
     Impute NA values with the median value.
     """
@@ -200,7 +200,7 @@ class MissingistMedian(Missingist):
         return data.fillna(self.data_median)
 
 
-class MissingistSimple(Missingist):
+class MissingSimple(MissingHandler):
     """
     Impute NA values with the given value.
     """
@@ -230,7 +230,7 @@ class MissingistSimple(Missingist):
         return data.fillna(self.data_value)
 
 
-class MissingistDrop(Missingist):
+class MissingDrop(MissingHandler):
     """
     Drop the rows with NA values.
     """
