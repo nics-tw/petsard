@@ -9,60 +9,6 @@ class ProcessorConfig():
     """
     The Config dataclass of Processor
     ...
-
-    colnames (List)
-        The column names of data which will be processing
-
-    config (Dict[sub-processor_name: None|str|List|dict])
-        config should be any type of below:
-
-        1. Not apply: Don't apply specific submodule.
-            config = {
-                'submodule_name': None
-            }
-
-        2. Simplest: One method in submodule apply to all columns.
-            config = {
-                'submodule_name': {
-                    'method': 'method_name_1',
-                    'all': True
-                }
-            }
-
-        3. Single filter: One method in submodule apply to columns
-            that only include/exclude certain fields.
-            config = {
-                'submodule_name': {
-                    'method': 'method_name_1',
-                    'include': 'colname_1'
-                }
-            }
-            config = {
-                'submodule_name': {
-                    'method': 'method_name_1',
-                    'exclude': 'colname_1'
-                }
-            }
-            config = {
-                'submodule_name': {
-                    'method': 'method_name_1',
-                    'include': ['colname_1','colname_2']
-                }
-            }
-
-        4. Multiple methods: Record different methods in a list
-            to apply them to different columns in the submodule.
-            config = {
-                'submodule_name': [
-                    {'method': 'method_name_1',
-                    'include': 'colname_1'
-                    },
-                    {'method': 'method_name_2',
-                    'exclude': 'colname_1'
-                    },
-                ]
-            }
-    ...
     TODO verify method list
     TODO accept less method str (e.g. drop in missingist =auto=> missingist_drop)
     TODO support variable type input
@@ -78,6 +24,70 @@ class ProcessorConfig():
     ] = field(default_factory=dict)
 
     def __post_init__(self):
+        """
+        Check and transform each submodule in Config, than save result in self.config_transform
+        ...
+        Args
+
+            config (Dict[sub-processor_name: None|str|List|dict])
+                config should be any type of below:
+
+                1. Not apply: Don't apply specific submodule.
+                    config = {
+                        'submodule_name': None
+                    }
+
+                2. Simplest: One method in submodule apply to all columns.
+                    config = {
+                        'submodule_name': {
+                            'method': 'method_name_1',
+                            'all': True
+                        }
+                    }
+
+                3. Single filter: One method in submodule apply to columns
+                    that only include/exclude certain fields.
+                    config = {
+                        'submodule_name': {
+                            'method': 'method_name_1',
+                            'include': 'colname_1'
+                        }
+                    }
+                    config = {
+                        'submodule_name': {
+                            'method': 'method_name_1',
+                            'exclude': 'colname_1'
+                        }
+                    }
+                    config = {
+                        'submodule_name': {
+                            'method': 'method_name_1',
+                            'include': ['colname_1','colname_2']
+                        }
+                    }
+
+                4. Multiple methods: Record different methods in a list
+                    to apply them to different columns in the submodule.
+                    config = {
+                        'submodule_name': [
+                            {'method': 'method_name_1',
+                            'include': 'colname_1'
+                            },
+                            {'method': 'method_name_2',
+                            'exclude': 'colname_1'
+                            },
+                        ]
+                    }
+
+            colnames (List)
+                The column names of data which will be processing
+
+        ...
+        Output:
+            self.config_transform
+                The Config format ready for Processor
+            
+        """
         SUBPROCESSOR = ['missingist', 'outlierist', 'encoder', 'scaler']
         config_transform = {}
 
@@ -87,6 +97,13 @@ class ProcessorConfig():
                 "ProcessorConfig: colnames should be a list of strings.")
 
         for proc_name, proc_config in self.config.items():
+            if proc_name not in SUBPROCESSOR:
+                raise ConfigError(
+                    f"ProcessorConfig: Invalid method value:\n"
+                    f"Only [{','.join(SUBPROCESSOR)}] been accepted "
+                    f"but it is {proc_name} now."
+                )
+
             config_transform[proc_name] = self._single_config(
                 proc_name, proc_config)
 
