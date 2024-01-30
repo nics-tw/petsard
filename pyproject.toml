@@ -64,7 +64,7 @@
 
 [tool.poetry]
 name = "petsard"
-version = "0.5.0-alpha"
+version = "0.6.0-alpha"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     "alexchen830 <alexchen830@gmail.com>",
