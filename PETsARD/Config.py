@@ -104,8 +104,14 @@ class ProcessorConfig():
                     f"but it is {proc_name} now."
                 )
 
-            config_transform[proc_name] = self._single_config(
-                proc_name, proc_config)
+            if proc_config is None:
+                config_transform[proc_name] = {
+                    colname: None for colname in self.colnames
+                }
+            else:
+                config_transform[proc_name] = self._single_config(
+                    proc_name, proc_config
+                )
 
         self.config_transform = config_transform
 
@@ -114,8 +120,21 @@ class ProcessorConfig():
         proc_name: str,
         proc_config: Dict[str, Union[str, Dict[str, str]]]
     ) -> Dict[str, str]:
+        """
+        Convert each sub-processor manual setting to Processor read-able.
+        ...
+        Args
+            proc_name (str)
+                Sub-Processor name
+            proc_config (Dict)
+                Config of single sub-procesor,
+        ...
+        Output
+            (Dict)
+                {colname: method} for single sub-processor
+        """
         method = proc_config.setdefault('method', None)
-        all = proc_config.setdefault('all',    False)
+        all = proc_config.setdefault('all', False)
         include = proc_config.setdefault(
             'include', proc_config.setdefault('incl', None))
         exclude = proc_config.setdefault(
