@@ -122,6 +122,10 @@ class ProcessorConfig():
     ) -> Dict[str, str]:
         """
         Convert each sub-processor manual setting to Processor read-able.
+
+        The _single_config_dict() is used in _single_config().
+        If _single_config() found config is a dict, or a dict in list,
+            it wll call _single_config_dict()
         ...
         Args
             proc_name (str)
@@ -197,6 +201,16 @@ class ProcessorConfig():
             3-b. Their value(s) should be str or List[Str]
             3-c. Their value(s) should be included in colnames
             3-d. If it both contains focus and ignore, than their value should NOT overlay
+        ...
+        Args
+            proc_name (str)
+                Sub-Processor name
+            proc_config (Dict)
+                Config of single sub-procesor,
+        ...
+        Output
+            (Dict)
+                {colname: method} for single sub-processor
         """
         if proc_config is None:
             # Config 1st. - Not apply: Don't apply specific submodule.
