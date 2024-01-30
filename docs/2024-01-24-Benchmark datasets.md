@@ -39,6 +39,7 @@ print(loader.data.head(1))
 |adult             |adult.csv                        |Public |15     |     48,842|     5 MB|CC BY 4.0      |`1f13ee`|
 |alarm             |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
 |car_insurance     |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
+|census            |TODO                             |Public |TODO   |TODO       |TODO     |CC BY-NC-SA 4.0|TODO    |
 |coil2000          |TODO                             |Public |TODO   |TODO       |TODO     |TODO           |TODO    |
 |covtype           |TODO                             |Public |TODO   |TODO       |TODO     |CC BY-NC-SA 4.0|TODO    |
 |ds_salaries       |ds_salaries.csv                  |Public |11     |        607|TODO     |CC0            |TODO    |
@@ -127,6 +128,28 @@ https://www.bnlearn.com/documentation/man/alarm.html
 The naming as "car_insurance" is because the name "insurance" may be confused with many datasets provided by insurance companies on Kaggle. This is just a temporary name.
 
 命名為 "car_insurance" 是因為 "insurance" 這個名稱可能會跟許多 Kaggle 上保險公司提供的資料集混淆。這只是暫時的命名。
+
+### **census**
+
+- Name: **Census-Income (KDD)**
+- Alias:
+- Subject Area: **Social Science**
+- Precision: 1 Person 1 records
+- Columns: 41
+  - Continuous: TODO
+  - Datetime: TODO
+  - Discrete: TODO
+  - Float: TODO
+  - String: TODO
+  - Int: TODO
+- Missing %: Yes (TODO)
+  - Special NA value: TODO
+
+The weighted census data extracted from the 1994 and 1995 Current Population Surveys conducted by the U.S. Census Bureau.
+
+從美國人口普查局進行的1994年和1995年的加權人口普查數據。
+
+https://archive.ics.uci.edu/dataset/117/census+income+kdd
 
 ### **coil2000**
 
@@ -444,7 +467,7 @@ https://usa.ipums.org/usa/1940CensusDASTestData.shtml
 |Health and Medicine   |     5|nhanes_diabetes, smoking_driking, uk_us_pf_household, uk_us_pf_person, uk_us_pf_prop_net|              |
 |Law                   |     0|                                                                                        |              |
 |Physics and Chemistry |     0|                                                                                        |              |
-|Social Science        |     3|adult, coil2000                                                                         |us_census_1940|
+|Social Science        |     4|adult, census, coil2000                                                                 |us_census_1940|
 |Other                 |     0|                                                                                        |              |
 
 </div>
@@ -478,7 +501,7 @@ The inclusion of the Benchmark dataset is based on retaining only the most signi
 
 |Reason           |Counts|Public                                                         |Private       |
 |:---------------:|:----:|:-------------------------------------------------------------:|:------------:|
-|Common PETs      |     1|adult                                                          |              |
+|Common PETs      |     2|adult, census                                                  |              |
 |Common DS/ML     |     2|coil2000, iris                                                 |              |
 |Taiwan guidelines|     1|nhanes_diabetes                                                |              |
 |112 ITRI         |     1|ds_salaries, smoking_driking                                   |              |
@@ -509,11 +532,11 @@ The inclusion of the Benchmark dataset is based on retaining only the most signi
 <!-- This <div> here is special function for sighingnow/jekyll-gitbook -->
 <div class="table-wrapper" markdown="block">
 
-|Topic     |Paper|Counts|Public                                                             |Private       |Coverage%|Notes |
-|:--------:|:---:|:----:|:-----------------------------------------------------------------:|:------------:|:-------:|:----:|
-|Anonymeter|1.   |     2|adult                                                              |us_census_1940|    66.7%|a.    |
-|SDGym     |2.   |     6|adult, alarm, car_insurance, covtype, expedia_hotel_logs, intrusion|              |    66.7%|b.c.  |
-|smartnoise|3.   |     1|iris                                                               |              |    16.7%|d.e.  |
+|Topic     |Paper|Counts|Public                                                                     |Private       |Coverage%|Notes |
+|:--------:|:---:|:----:|:-------------------------------------------------------------------------:|:------------:|:-------:|:----:|
+|Anonymeter|1.   |     2|adult                                                                      |us_census_1940|    66.7%|a.    |
+|SDGym     |2.   |     6|adult, alarm, car_insurance, census, covtype, expedia_hotel_logs, intrusion|              |    66.7%|b.    |
+|smartnoise|3.   |     1|iris                                                                       |              |    16.7%|c.d.  |
 
 </div>
 
@@ -522,10 +545,9 @@ The inclusion of the Benchmark dataset is based on retaining only the most signi
 3. https://github.com/opendp/smartnoise-sdk/tree/main/datasets
 
 a. **texas** requires payment. **texas** 需要付費。
-b. **census** is duplicated and its webpage is offline. **census** 資料集重複，且其網頁已經無法訪問。
-c. **child** and **news** datasets didn't have reference. **child** 和 **news** 資料集缺乏參考資料。
-d. 4 **pums** datasets discussion see below. 有關4個 **pums** 資料集的討論請參見下文。
-e. **reddit** dataset didn't have reference. **reddit** 資料集缺乏參考資料。
+b. **child** and **news** datasets didn't have reference. **child** 和 **news** 資料集缺乏參考資料。
+c. 4 **pums** datasets discussion see below. 有關4個 **pums** 資料集的討論請參見下文。
+d. **reddit** dataset didn't have reference. **reddit** 資料集缺乏參考資料。
 
 ### Used in Competition
 
