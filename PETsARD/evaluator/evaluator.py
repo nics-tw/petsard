@@ -1,4 +1,4 @@
-from PETsARD.Evaluator.EvaluatorFactory import EvaluatorFactory
+from PETsARD.evaluator.evaluator_factory import EvaluatorFactory
 
 
 class Evaluator:

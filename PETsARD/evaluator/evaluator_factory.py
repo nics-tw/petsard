@@ -1,7 +1,7 @@
 import re
 
-from PETsARD.Evaluator.Anonymeter.AnonymeterFactory import AnonymeterFactory
-from PETsARD.Evaluator.SDMetrics import SDMetrics
+from PETsARD.evaluator.anonymeter.anonymeter_factory import AnonymeterFactory
+from PETsARD.evaluator.sdmetrics import SDMetrics
 
 
 class EvaluatorMethodMap():
