@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
-from PETsARD.Error import ConfigError
+from PETsARD.error import ConfigError
 
 
 @dataclass
@@ -88,7 +88,7 @@ class ProcessorConfig():
                 The Config format ready for Processor
             
         """
-        SUBPROCESSOR = ['missingist', 'outlierist', 'encoder', 'scaler']
+        SUBPROCESSOR = ['missing', 'outlier', 'encoder', 'scaler']
         config_transform = {}
 
         if not isinstance(self.colnames, list) \

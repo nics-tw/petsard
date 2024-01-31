@@ -25,7 +25,7 @@ from PETsARD.synthesizer import *
 from PETsARD.evaluator import *
 from PETsARD.util import *
 from PETsARD.executor import Executor
-from PETsARD.Config import *
+from PETsARD.config import *
 
 
 __all__ = [
