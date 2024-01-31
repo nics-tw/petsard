@@ -6,10 +6,9 @@ from PETsARD.processor.encoder import *
 from PETsARD.processor.scaler import *
 
 __all__ = [
-    'Base',
     'Mediator',
-    'Missingist',
-    'Outlierist',
+    'MissingHandler',
+    'OutlierHandler',
     'Encoder',
     'Scaler'
 ]

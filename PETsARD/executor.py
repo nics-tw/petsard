@@ -16,7 +16,7 @@ from PETsARD.loader import Loader, Splitter
 from PETsARD.synthesizer import Synthesizer
 from PETsARD.processor import Processor
 from PETsARD.evaluator import Evaluator
-from PETsARD.Config import *
+from PETsARD.config import *
 
 
 class Executor:

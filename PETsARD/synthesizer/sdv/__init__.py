@@ -1,4 +1,4 @@
-from PETsARD.Synthesizer.SDV.SDV import SDV
+from PETsARD.synthesizer.sdv.sdv import SDV
 
 
 __all__ = [
