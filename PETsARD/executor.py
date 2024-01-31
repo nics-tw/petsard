@@ -12,12 +12,11 @@ from typing import Dict
 import toml
 from tqdm import tqdm
 
-from PETsARD.loader import Loader
-from PETsARD.loader import Splitter
-from PETsARD.Preprocessor import Preprocessor
+from PETsARD.loader import Loader, Splitter
 from PETsARD.synthesizer import Synthesizer
-from PETsARD.Postprocessor import Postprocessor
+from PETsARD.processor import Processor
 from PETsARD.evaluator import Evaluator
+from PETsARD.Config import *
 
 
 class Executor:
