@@ -1,11 +1,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from PETsARD.Processor.Encoder import Encoder_Uniform, Encoder_Label
-from PETsARD.Error import UnfittedError
+from PETsARD.processor.encoder import EncoderUniform, EncoderLabel
+from PETsARD.error import UnfittedError
 
-class Test_Encoder_Uniform:
-    def test_Encoder_Uniform(self):
+class Test_EncoderUniform:
+    def test_EncoderUniform(self):
         # Prepare test data
         df_data1 = ['A'] * 7 + ['B'] * 3 + ['C'] * 5 + ['D'] * 5
         df_data2 = [0] * 20
@@ -16,7 +16,7 @@ class Test_Encoder_Uniform:
         df_data_error = pd.DataFrame({'col1': df_data1_error, 'col2': df_data2})
 
         # Create an instance of the class
-        encoder = Encoder_Uniform()
+        encoder = EncoderUniform()
 
         with pytest.raises(UnfittedError):
             encoder.transform(df_data)
@@ -55,8 +55,8 @@ class Test_Encoder_Uniform:
 
         assert list(rtransformed) == list(df_data['col1'].values)
 
-class Test_Encoder_Label:
-    def test_Encoder_Label(self):
+class Test_EncoderLabel:
+    def test_EncoderLabel(self):
         # Prepare test data
         df_data1 = ['A'] * 7 + ['B'] * 3 + ['C'] * 5 + ['D'] * 5
         df_data2 = [0] * 20
@@ -67,7 +67,7 @@ class Test_Encoder_Label:
         df_data_error = pd.DataFrame({'col1': df_data1_error, 'col2': df_data2})
 
         # Create an instance of the class
-        encoder = Encoder_Label()
+        encoder = EncoderLabel()
 
         with pytest.raises(UnfittedError):
             encoder.transform(df_data)
