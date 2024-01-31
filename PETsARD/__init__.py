@@ -25,25 +25,22 @@
 """
 
 from PETsARD.loader import *
-from PETsARD.Preprocessor import *
+from PETsARD.loader.metadata import Metadata
+from PETsARD.processor import *
 from PETsARD.synthesizer import *
-from PETsARD.Postprocessor import *
 from PETsARD.evaluator import *
 from PETsARD.util import *
 from PETsARD.executor import Executor
-from PETsARD.loader.metadata import Metadata
-from PETsARD.processor import *
+from PETsARD.Config import *
 
 
 __all__ = [
-    'Loader',
-    'Splitter',
-    'Preprocessor',
-    'Synthesizer',
-    'Postprocessor',
-    'Evaluator',
-    'Processor',
+    'loader',
+    'processor',
+    'synthesizer',
+    'evaluator',
     'Executor',
-    'Splitter',
-    'Metadata'
+    'util',
+    'Metadata',
+    'Config'
 ]
