@@ -2,13 +2,13 @@ from copy import deepcopy
 import logging
 import warnings
 
-from PETsARD.Processor.Encoder import *
-from PETsARD.Processor.Missingist import *
-from PETsARD.Processor.Outlierist import *
-from PETsARD.Processor.Scaler import *
-from PETsARD.Processor.Mediator import *
-from PETsARD.Error import *
-from PETsARD.Loader.Metadata import Metadata
+from PETsARD.processor.encoder import *
+from PETsARD.processor.missing import *
+from PETsARD.processor.outlier import *
+from PETsARD.processor.scaler import *
+from PETsARD.processor.mediator import *
+from PETsARD.error import *
+from PETsARD.loader.metadata import Metadata
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -51,16 +51,16 @@ class Processor:
         # object datatype indicates the unusual data,
         # passive actions will be taken in processing procedure
         self._default_processor: dict = {
-            'missingist': {
-                'numerical': MissingistMean,
-                'categorical': MissingistDrop,
-                'datetime': MissingistDrop,
-                'object': MissingistDrop
+            'missing': {
+                'numerical': MissingMean,
+                'categorical': MissingDrop,
+                'datetime': MissingDrop,
+                'object': MissingDrop
             },
-            'outlierist': {
-                'numerical': OutlieristIQR,
+            'outlier': {
+                'numerical': OutlierIQR,
                 'categorical': lambda: None,
-                'datatime': OutlieristIQR,
+                'datatime': OutlierIQR,
                 'object': lambda: None
             },
             'encoder': {
@@ -78,8 +78,8 @@ class Processor:
         }
 
         self._default_sequence: list = [
-            'missingist',
-            'outlierist',
+            'missing',
+            'outlier',
             'encoder',
             'scaler'
         ]
@@ -87,14 +87,14 @@ class Processor:
         self._processor_map: dict = {
             'encoder_uniform': EncoderUniform,
             'encoder_label': EncoderLabel,
-            'missingist_mean': MissingistMean,
-            'missingist_median': MissingistMedian,
-            'missingist_simple': MissingistSimple,
-            'missingist_drop': MissingistDrop,
-            'outlierist_zscore': OutlieristZScore,
-            'outlierist_iqr': OutlieristIQR,
-            'outlierist_isolationforest': OutlieristIsolationForest,
-            'outlierist_lof': OutlieristLOF,
+            'missing_mean': MissingMean,
+            'missing_median': MissingMedian,
+            'missing_simple': MissingSimple,
+            'missing_drop': MissingDrop,
+            'outlier_zscore': OutlierZScore,
+            'outlier_iqr': OutlierIQR,
+            'outlier_isolationforest': OutlierIsolationForest,
+            'outlier_lof': OutlierLOF,
             'scaler_standard': ScalerStandard,
             'scaler_zerocenter': ScalerZeroCenter,
             'scaler_minmax': ScalerMinMax,
@@ -112,9 +112,9 @@ class Processor:
         self._inverse_sequence: list = None
         self._is_fitted: bool = False
 
-        # deal with global transformation of missingist and outlierist
-        self.mediator_missingist: MediatorMissingist | None = None
-        self.mediator_outlierist: MediatorOutlierist | None = None
+        # deal with global transformation of missinghandler and outlierhandler
+        self.mediator_missing: MediatorMissing | None = None
+        self.mediator_outlier: MediatorOutlier | None = None
 
         # global NA values imputation
         self._na_percentage_global: float = metadata['global'].\
@@ -322,7 +322,7 @@ class Processor:
         Args:
             data (pd.DataFrame): The data to be fitted.
             sequence (list): The processing sequence. 
-                Avaliable procedures: 'missingist', 'outlierist', 
+                Avaliable procedures: 'missing', 'outlier', 
                     'encoder', 'scaler'.
                 This is the default sequence.
         """
@@ -335,25 +335,25 @@ class Processor:
 
         self._fitting_sequence = self._sequence.copy()
 
-        if 'missingist' in self._sequence:
-            # if missingist is in the procedure,
-            # Mediator_Missingist should be in the queue
-            # right after the missingist
-            self.mediator_missingist = MediatorMissingist(self._config)
+        if 'missing' in self._sequence:
+            # if missing is in the procedure,
+            # MediatorMissing should be in the queue
+            # right after the missing
+            self.mediator_missing = MediatorMissing(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('missingist') + 1,
-                self.mediator_missingist)
-            logging.info('Mediator_Missingist is created.')
+                self._fitting_sequence.index('missing') + 1,
+                self.mediator_missing)
+            logging.info('MediatorMissing is created.')
 
-        if 'outlierist' in self._sequence:
-            # if outlierist is in the procedure,
-            # Mediator_Outlierist should be in the queue
-            # right after the outlierist
-            self.mediator_outlierist = MediatorOutlierist(self._config)
+        if 'outlier' in self._sequence:
+            # if outlier is in the procedure,
+            # MediatorOutlier should be in the queue
+            # right after the outlier
+            self.mediator_outlier = MediatorOutlier(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('outlierist') + 1,
-                self.mediator_outlierist)
-            logging.info('Mediator_Outlierist is created.')
+                self._fitting_sequence.index('outlier') + 1,
+                self.mediator_outlier)
+            logging.info('MediatorOutlier is created.')
 
         self._detect_edit_global_transformation()
 
@@ -409,7 +409,7 @@ class Processor:
                 ' please remove them.')
 
         for processor in sequence:
-            if processor not in ['missingist', 'outlierist',
+            if processor not in ['missing', 'outlier',
                                  'encoder', 'scaler']:
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
@@ -419,12 +419,12 @@ class Processor:
         Detect whether a processor in the config conducts global transformation.
         If it does, suppress other processors in the config 
             by replacing them to the global one.
-        Only works with Outlierist currently.
+        Only works with Outlier currently.
         """
         is_global_transformation: bool = False
         replaced_class: object = None
 
-        for obj in self._config['outlierist'].values():
+        for obj in self._config['outlier'].values():
             if obj is None:
                 continue
             if obj.IS_GLOBAL_TRANSFORMATION:
@@ -436,8 +436,8 @@ class Processor:
                 break
 
         if is_global_transformation:
-            for col, obj in self._config['outlierist'].items():
-                self._config['outlierist'][col] = replaced_class()
+            for col, obj in self._config['outlier'].items():
+                self._config['outlier'][col] = replaced_class()
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -502,7 +502,7 @@ class Processor:
                                                     _na_percentage_global),
                                                 replace=False).ravel())
 
-        for col, obj in self._config['missingist'].items():
+        for col, obj in self._config['missing'].items():
             if obj is None:
                 continue
             obj.set_imputation_index(index_list)
@@ -526,8 +526,8 @@ class Processor:
 
         # there is no method for restoring outliers
         self._inverse_sequence = self._sequence.copy()
-        if 'outlierist' in self._inverse_sequence:
-            self._inverse_sequence.remove('outlierist')
+        if 'outlier' in self._inverse_sequence:
+            self._inverse_sequence.remove('outlier')
 
         logging.debug(f'Inverse sequence generation completed.')
 

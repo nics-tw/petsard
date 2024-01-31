@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from PETsARD.Error import UnfittedError
+from PETsARD.error import UnfittedError
 
 
 class Encoder:
