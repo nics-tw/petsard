@@ -10,15 +10,15 @@ from typing import (
 
 import yaml
 
-from PETsARD.Loader.Benchmarker import (
+from PETsARD.loader.benchmark import (
     BenchmarkerBoto3,
     BenchmarkerRequests,
 )
-from PETsARD.Loader.LoaderPandas import (
+from PETsARD.loader.loader_pandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
-from PETsARD.Loader.Metadata import Metadata
+from PETsARD.loader.metadata import Metadata
 from PETsARD.util import df_casting
 from PETsARD.util import df_cast_check
 
