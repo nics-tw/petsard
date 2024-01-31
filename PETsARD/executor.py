@@ -23,12 +23,19 @@ class Executor:
 
     def __init__(
         self,
-        Loader:       Dict = None,
-        Splitter:     Dict = None,
-        Preprocessor: Dict = None,
-        Synthesizer:  Dict = None,
-        Evaluator:    Dict = None,
+        Loader:      Dict = None,
+        Splitter:    Dict = None,
+        Processor:   Dict = None,
+        Synthesizer: Dict = None,
+        Evaluator:   Dict = None,
     ):
+        """
+        
+        240130, Processor contains lambda function, but python couldn't pickle it.
+                so Processor .run_parallel() didn't valid after Processor migration.
+        ...
+        
+        """
         self.exectime = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.outputname = f"PETsARD[{self.exectime}]"
 
@@ -37,7 +44,7 @@ class Executor:
         self._para_handle(
             Loader,
             Splitter,
-            Preprocessor,
+            Processor,
             Synthesizer,
             Evaluator
         )
@@ -47,8 +54,8 @@ class Executor:
         Get the PETsARD information within pyproject.toml
         ...
         TODO find the solution for get the version after release.
-        TODO Better handle of toml file,
-             use tomllib when we update to Python 3.11
+        TODO Use tomllib when we update to Python 3.11
+             for better handle of toml file,
              see https://github.com/python-poetry/poetry/issues/273
                  import tomllib
         """
@@ -66,20 +73,14 @@ class Executor:
         self,
         Loader,
         Splitter,
-        Preprocessor,
+        Processor,
         Synthesizer,
         Evaluator
     ):
         """
-        有三種情況：
+        有兩種情況：
 
-        1. 20240111, 棄用『想跑單一種設定的單次執行：module 每個設定都直接表述』
-
-        2. 想跳過這個 module
-            此時 module 必須寫為 False。
-            在 False 情況下，以該 module 打頭的設定全部都會被忽略
-
-        3. 想跑多種設定：多種設定必須以 module 為單位進行字典的打包，例如
+        1. 想跑多種設定：多種設定必須以 module 為單位進行字典的打包，例如
             'Loader' : {
                 'adult' : {
                     'filepath': 'adult.csv',
@@ -104,16 +105,20 @@ class Executor:
             字典鍵值會用作識別，字典內容在輸入變數時可省略 module
             請注意如果 module 字典已經被給定，外圍 module 打頭的設定會被忽略
 
-        # Postprocessor 必跑所以不考慮
+        2. 想跳過這個 module
+            此時 module 必須寫為 False。
+            在 False 情況下，以該 module 打頭的設定全部都會被忽略
+
+        20240111, 棄用『想跑單一種設定的單次執行：module 每個設定都直接表述』
         """
 
         para = {}
         list_module = [
-            ('Loader',       Loader),
-            ('Splitter',     Splitter),
-            ('Preprocessor', Preprocessor),
-            ('Synthesizer',  Synthesizer),
-            ('Evaluator',    Evaluator)
+            ('Loader',      Loader),
+            ('Splitter',    Splitter),
+            ('Processor',   Processor),
+            ('Synthesizer', Synthesizer),
+            ('Evaluator',   Evaluator)
         ]
         for module_name, module in list_module:
             if isinstance(module, dict):
@@ -122,9 +127,6 @@ class Executor:
             else:
                 para[module_name] = False
 
-        if para['Preprocessor']:
-            para['Postprocessor'] = True
-            para['Postprocessor_setting'] = {}
         self.para = para
 
     def para_handle_naming(self, module, subpara):
@@ -149,19 +151,19 @@ class Executor:
                 else 0.8
             )
             trial_name = f"{str(train_split_ratio)}x{str(num_samples)}"
-        elif module == 'Preprocessor':
-            list_preproc = []
+        elif module == 'Processor':
+            list_proc = []
             if 'missing_method' in subpara:
-                list_preproc.append(subpara['missing_method'])
+                list_proc.append(subpara['missing_method'])
             if 'outlier_method' in subpara:
-                list_preproc.append(subpara['outlier_method'])
+                list_proc.append(subpara['outlier_method'])
             if 'encoding_method' in subpara:
-                list_preproc.append(subpara['encoding_method'])
+                list_proc.append(subpara['encoding_method'])
             if 'scaling_method' in subpara:
-                list_preproc.append(subpara['scaling_method'])
+                list_proc.append(subpara['scaling_method'])
             trial_name = (
-                '-'.join(list_preproc)
-                if len(list_preproc) >= 1
+                '-'.join(list_proc)
+                if len(list_proc) >= 1
                 else 'Default'
             )
         elif module == 'Synthesizer':
@@ -195,7 +197,7 @@ class Executor:
 
         load_trial_max = len(self.para['Loader_setting'])
         split_trial_max = len(self.para['Splitter_setting'])
-        preproc_trial_max = len(self.para['Preprocessor_setting'])
+        proc_trial_max = len(self.para['Processor_setting'])
         syn_trial_max = len(self.para['Synthesizer_setting'])
         eval_trial_max = len(self.para['Evaluator_setting'])
 
@@ -216,7 +218,7 @@ class Executor:
 
         self.loader = {}
         self.splitter = {}
-        self.preprocessor = {}
+        self.processor = {}
         self.synthesizer = {}
         self.evaluator = {}
         trials = {}
@@ -255,33 +257,35 @@ class Executor:
                 for split_data_key, split_data in split_result.data.items():
                     trials['split']['data_key'] = split_data_key
 
-                    for preproc_trial, (preproc_trial_name, preproc_para) in \
+                    for proc_trial, (proc_trial_name, proc_para) in \
                             enumerate(
-                                self.para['Preprocessor_setting'].items()
+                                self.para['Processor_setting'].items()
                     ):
                         trials['preproc'] = {
-                            'trial': preproc_trial + 1,
-                            'trial_name': preproc_trial_name,
-                            'trial_max': preproc_trial_max
+                            'trial': proc_trial + 1,
+                            'trial_name': proc_trial_name,
+                            'trial_max': proc_trial_max
                         }
-                        preproc_result = self._run_single_preprocessor(
-                            split_data['train'],
-                            trials['preproc'],
-                            preproc_para
+                        preproc_result, preproc_data = self._run_single_processor(
+                            data=split_data['train'],
+                            trial=trials['preproc'],
+                            para=proc_para,
+                            tag='preprocessing',
+                            metadata=self.loader[load_trial_name].metadata,
                         )
                         trials['preproc']['trial_data_key'] = \
                             self._save_in_submodule(
                                 'Preprocessor',
-                                preproc_result.data,
+                                preproc_data,
                                 trials
                         )
                         self_preprocessor_name = (
                             load_trial_name,
                             split_trial_name,
                             split_data_key,
-                            preproc_trial_name
+                            proc_trial_name
                         )
-                        self.preprocessor[self_preprocessor_name] = preproc_result
+                        self.processor[self_preprocessor_name] = preproc_result
 
                         for syn_trial, (syn_trial_name, syn_para) in \
                                 enumerate(self.para['Synthesizer_setting'].items()):
@@ -291,8 +295,9 @@ class Executor:
                                 'trial_max': syn_trial_max
                             }
                             syn_result = self._run_single_synthesizer(
-                                preproc_result.data, trials['syn'],
-                                syn_para,
+                                data=preproc_data,
+                                trial=trials['syn'],
+                                para=syn_para,
                                 trial_fullname=None
                             )
                             trials['syn']['trial_data_key'] = \
@@ -305,29 +310,24 @@ class Executor:
                                 load_trial_name,
                                 split_trial_name,
                                 split_data_key,
-                                preproc_trial_name,
+                                proc_trial_name,
                                 syn_trial_name
                             )
                             self.synthesizer[self_synthesizer_name] = syn_result
 
-                            # TODO add back missingist when ready
-                            # 'missingist' : preproc_result.missingist',
-                            postproc_para = {
-                                'encoder': preproc_result.encoder,
-                                'scaler': preproc_result.scaler,
-                            }
                             trials['postproc'] = {
-                                'trial_name': preproc_trial_name
+                                'trial_name': proc_trial_name
                             }
-                            postproc_result = self._run_single_postprocessor(
-                                syn_result.data_syn,
-                                trials['postproc'],
-                                postproc_para
+                            postproc_result = self._run_single_processor(
+                                data=(self.processor[self_preprocessor_name], syn_result.data_syn),
+                                trial=trials['postproc'],
+                                para=proc_para,
+                                tag='postprocessing'
                             )
                             trials['postproc']['trial_data_key'] = \
                                 self._save_in_submodule(
                                     'Postprocessor',
-                                    postproc_result.data,
+                                    postproc_result,
                                     trials
                             )
 
@@ -348,7 +348,7 @@ class Executor:
                                         eval_trial_key + 1
                                     eval_result = self._run_single_evaluator(
                                         {'ori': split_data['train'],
-                                         'syn': postproc_result.data,
+                                         'syn': postproc_result,
                                          'control': split_data['validation']
                                          },
                                         trials['eval'],
@@ -359,7 +359,7 @@ class Executor:
                                         load_trial_name,
                                         split_trial_name,
                                         split_data_key,
-                                        preproc_trial_name,
+                                        proc_trial_name,
                                         syn_trial_name,
                                         eval_trial_name,
                                         eval_trial_key + 1
@@ -371,10 +371,10 @@ class Executor:
                                         split_trial_name,
                                         trials['split']['trial_split'],
                                         split_data_key,
-                                        preproc_trial_name.split('-')[0],
-                                        preproc_trial_name.split('-')[1],
-                                        preproc_trial_name.split('-')[2],
-                                        preproc_trial_name.split('-')[3],
+                                        proc_trial_name.split('-')[0],
+                                        proc_trial_name.split('-')[1],
+                                        proc_trial_name.split('-')[2],
+                                        proc_trial_name.split('-')[3],
                                         syn_trial_name.split('-')[0],
                                         '-'.join(syn_trial_name.split('-')
                                                  [1:]),
@@ -423,7 +423,7 @@ class Executor:
 
         load_trial_max = len(self.para['Loader_setting'])
         split_trial_max = len(self.para['Splitter_setting'])
-        preproc_trial_max = len(self.para['Preprocessor_setting'])
+        proc_trial_max = len(self.para['Processor_setting'])
         syn_trial_max = len(self.para['Synthesizer_setting'])
         eval_trial_max = len(self.para['Evaluator_setting'])
 
@@ -445,20 +445,20 @@ class Executor:
 
         self.loader = {}
         self.splitter = {}
-        self.preprocessor = {}
+        self.processor = {}
         self.synthesizer = {}
-        self.postprocessor = {}
+        self.processor = {}
         self.evaluator = {}
 
         trials = {}
         tqdm_load = load_trial_max
         tqdm_split = tqdm_load * split_trial_max
-        tqdm_preproc = tqdm_split * preproc_trial_max
+        tqdm_proc = tqdm_split * proc_trial_max
         with tqdm(total=tqdm_load, desc='Loading: ') as load_pbar, \
                 tqdm(total=tqdm_split, desc='Splitting: ') as split_pbar, \
-                tqdm(total=tqdm_preproc, desc='Preprocessing: ') as preproc_pbar:
+                tqdm(total=tqdm_proc,  desc='Processing: ') as proc_pbar:
             with ProcessPoolExecutor(max_workers=max_workers) as pool_executor:
-                preproc_futures = {}
+                proc_futures = {}
                 for load_trial, (load_trial_name, load_para) in \
                         enumerate(self.para['Loader_setting'].items()):
                     trials['load'] = {
@@ -507,68 +507,70 @@ class Executor:
                         for split_data_key, split_data in split_result.data.items():
                             trials['split']['data_key'] = split_data_key
 
-                            for preproc_trial, (preproc_trial_name,
-                                                preproc_para) in \
+                            for proc_trial, (proc_trial_name,
+                                             proc_para) in \
                                 enumerate(
-                                    self.para['Preprocessor_setting'].items()
+                                    self.para['Processor_setting'].items()
                             ):
                                 trials['preproc'] = {
-                                    'trial': preproc_trial + 1,
-                                    'trial_name': preproc_trial_name,
-                                    'trial_max': preproc_trial_max
+                                    'trial': proc_trial + 1,
+                                    'trial_name': proc_trial_name,
+                                    'trial_max': proc_trial_max
                                 }
-                                preproc_future = pool_executor.submit(
-                                    self._run_single_preprocessor,
-                                    split_data['train'],
-                                    deepcopy(trials['preproc']),
-                                    preproc_para
+                                proc_future = pool_executor.submit(
+                                    self._run_single_processor,
+                                    data=split_data['train'],
+                                    trial=trials['preproc'],
+                                    para=proc_para,
+                                    tag='preprocessing',
+                                    metadata=self.loader[load_trial_name].metadata,
                                 )
-                                preproc_futures_name = (
+                                proc_futures_name = (
                                     load_trial_name,
                                     split_trial_name,
                                     split_data_key,
-                                    preproc_trial_name
+                                    proc_trial_name
                                 )
-                                preproc_futures[preproc_future] = {
-                                    'name': preproc_futures_name,
+                                proc_futures[proc_future] = {
+                                    'name': proc_futures_name,
                                     'trials': deepcopy(trials)
                                 }
 
-                # Should wait all preprocessing done
+                # Should wait all processing done
                 #     due to SDV share same temp file
                 #     '.sample.csv.temp' in synthesizing,
                 #     will cause Permission Error:
                 # PermissionError: [WinError 32]
                 #     程序無法存取檔案，因為檔案正由另一個程序使用。:
                 #     '.sample.csv.temp'
-                trials_till_preproc = {}
-                for preproc_future in as_completed(preproc_futures):
-                    preproc_result = preproc_future.result()
-                    preproc_name = preproc_futures[preproc_future]['name']
-                    self.preprocessor[preproc_name] = preproc_result
-                    trials_preproc = preproc_futures[preproc_future]['trials']
-                    trials_preproc['preproc']['trial_data_key'] = \
+                trials_till_proc = {}
+                for proc_future in as_completed(proc_futures):
+                    proc_result = proc_future.result()
+                    proc_name = proc_futures[proc_future]['name']
+                    self.processor[proc_name] = proc_result
+                    trials_proc = proc_futures[proc_future]['trials']
+                    trials_proc['preproc']['trial_data_key'] = \
                         pool_executor.submit(
                             self._save_in_submodule,
                             'Preprocessor',
-                            preproc_result.data,
-                            deepcopy(trials_preproc)
+                            proc_result.data,
+                            deepcopy(trials_proc)
                     ).result()
-                    trials_till_preproc[preproc_name] = trials_preproc
-                    preproc_pbar.update(1)
+                    trials_till_proc[proc_name] = trials_proc
+                    proc_pbar.update(1)
 
-        tqdm_syn = tqdm_preproc * syn_trial_max
-        tqdm_postproc = tqdm_syn
-        tqdm_eval = tqdm_postproc * eval_trial_evals_sum
+        tqdm_syn = tqdm_proc * syn_trial_max
+        tqdm_proc = tqdm_syn
+        tqdm_eval = tqdm_proc * eval_trial_evals_sum
         with tqdm(total=tqdm_syn, desc='Synthesizing: ') as syn_pbar, \
-                tqdm(total=tqdm_postproc, desc='Postprocessing: ') as postproc_pbar, \
+                tqdm(total=tqdm_proc, desc='Processing: ') as proc_pbar, \
                 tqdm(total=tqdm_eval, desc='Evaluating: ') as eval_pbar:
             with ThreadPoolExecutor(max_workers=max_workers) as thread_executor:
                 syn_futures = {}
-                for trials_name, trials_preproc in trials_till_preproc.items():
+                for trials_name, trials_proc in trials_till_proc.items():
                     for syn_trial, (syn_trial_name, syn_para) in \
                             enumerate(self.para['Synthesizer_setting'].items()):
-                        trials_preproc['syn'] = {
+                        trials_proc['syn'] = {
                             'trial': syn_trial + 1,
                             'trial_name': syn_trial_name,
                             'trial_max': syn_trial_max
@@ -579,8 +581,8 @@ class Executor:
                         # but it shouldn't happen
                         syn_future = thread_executor.submit(
                             self._run_single_synthesizer,
-                            preproc_result.data,
-                            trials_preproc['syn'],
+                            proc_result.data,
+                            trials_proc['syn'],
                             syn_para,
                             trial_fullname=syn_fullname + (
                                 str(random.uniform(0, 99999999)).zfill(8),
@@ -588,7 +590,7 @@ class Executor:
                         )
                         syn_futures[syn_future] = {
                             'name': syn_fullname,
-                            'trials': deepcopy(trials_preproc)
+                            'trials': deepcopy(trials_proc)
                         }
 
                 for syn_future in as_completed(syn_futures):
@@ -604,31 +606,26 @@ class Executor:
 
                     syn_pbar.update(1)
 
-                    trials_syn['postproc'] = {
-                        'trial_name': preproc_trial_name
+                    trials_syn['proc'] = {
+                        'trial_name': proc_trial_name
                     }
-                    # TODO add back missingist when ready
-                    # 'missingist': self.preprocessor[syn_name[0:-1]].missingist,
-                    postproc_para = {
-                        'encoder': self.preprocessor[syn_name[0:-1]].encoder,
-                        'scaler': self.preprocessor[syn_name[0:-1]].scaler,
-                    }
-                    postproc_result = thread_executor.submit(
-                        self._run_single_postprocessor,
-                        syn_result.data_syn,
-                        deepcopy(trials_syn['postproc']),
-                        postproc_para
+                    proc_result = thread_executor.submit(
+                        self._run_single_processor,\
+                        data=(self.processor[proc_name], syn_result.data_syn),
+                        trial=deepcopy(trials_syn['postproc']),
+                        para=proc_para,
+                        tag='postprocessing'
                     ).result()
-                    postproc_name = syn_name
-                    self.postprocessor[postproc_name] = postproc_result
-                    trials_syn['postproc']['trial_data_key'] = \
+                    proc_name = syn_name
+                    self.processor[proc_name] = proc_result
+                    trials_syn['proc']['trial_data_key'] = \
                         self._save_in_submodule(
-                            'Postprocessor',
-                            postproc_result.data,
+                            'Postrocessor',
+                            proc_result.data,
                             deepcopy(trials_syn)
                     )
 
-                    postproc_pbar.update(1)
+                    proc_pbar.update(1)
 
                     for eval_trial, (eval_trial_name, eval_para) in \
                             enumerate(self.para['Evaluator_setting'].items()):
@@ -650,24 +647,24 @@ class Executor:
                             eval_result = thread_executor.submit(
                                 self._run_single_evaluator,
                                 {'ori': dict_syn_data_temp['train'],
-                                 'syn': postproc_result.data,
+                                 'syn': proc_result.data,
                                  'control': dict_syn_data_temp['validation']
                                  },
                                 deepcopy(trials_syn['eval']),
                                 eval_para
                             ).result()
 
-                            eval_name = postproc_name + (
+                            eval_name = proc_name + (
                                 eval_trial_name,
                                 eval_trial_key + 1
                             )
                             # TODO for now trail name execution\
                             #     depends on particular trial name format,
-                            #     > preproc_trial_name
+                            #     > proc_trial_name
                             #     > syn_trial_name
                             #     > eval_trial_evals
                             #     need to be modify for customerized available
-                            #     print(preproc_trial_name)
+                            #     print(proc_trial_name)
                             eval_fullname = (
                                 self.version,
                                 self.exectime,
@@ -675,10 +672,10 @@ class Executor:
                                 split_trial_name,
                                 trials['split']['trial_split'],
                                 split_data_key,
-                                preproc_trial_name.split('-')[0],
-                                preproc_trial_name.split('-')[1],
-                                preproc_trial_name.split('-')[2],
-                                preproc_trial_name.split('-')[3],
+                                proc_trial_name.split('-')[0],
+                                proc_trial_name.split('-')[1],
+                                proc_trial_name.split('-')[2],
+                                proc_trial_name.split('-')[3],
                                 syn_trial_name.split('-')[0],
                                 '-'.join(syn_trial_name.split('-')[1:]),
                                 eval_trial_name.split('-')[0],
@@ -729,15 +726,38 @@ class Executor:
         )
         return splitter
 
-    def _run_single_preprocessor(self, data, trial, para):
+    def _run_single_processor(self, data, trial, para, tag, metadata=None):
         time_start = time.time()
-        preprocessor = Preprocessor(data=data, **para)
+        if tag == 'preprocessing':
+            processor_config = ProcessorConfig(
+                colnames=list(metadata.metadata['col'].keys()),
+                config=para
+            )
+            processor = Processor(metadata=metadata)
+            processor.update_config(processor_config.config_transform)
+            processor.fit(
+                data=data,
+                sequence=None
+            )
+            preproc_data = processor.transform(
+                data=data
+            )
+            result = (processor, preproc_data)
+        elif tag == 'postprocessing':
+            result = data[0].inverse_transform(
+                data=data[1]
+            )
+        else:
+            raise ConfigError(
+                f"Executor - Processor: Invalid config."
+                f"Only 'preprocessing'/'postprocessing' is allowed in tag. "
+            )
         print(
-            f"Executor - Preprocessor: "
-            f"{trial['trial_name']} preprocessing time: "
+            f"Executor - Processor ({tag}): "
+            f"{trial['trial_name']} processing time: "
             f"{round(time.time()-time_start ,4)} sec."
         )
-        return preprocessor
+        return result
 
     def _run_single_synthesizer(self, data, trial, para, trial_fullname):
         time_start = time.time()
@@ -758,16 +778,6 @@ class Executor:
             f"{round(time.time()-time_start ,4)} sec."
         )
         return synthesizer
-
-    def _run_single_postprocessor(self, data, trial, para):
-        time_start = time.time()
-        postprocessor = Postprocessor(data=data, **para)
-        print(
-            f"Executor - Postprocessor: "
-            f"postprocessing time: "
-            f"{round(time.time()-time_start ,4)} sec."
-        )
-        return postprocessor
 
     def _run_single_evaluator(self, data, trial, para):
         time_start = time.time()
@@ -879,15 +889,15 @@ class Executor:
                 trials['split']['trial_data_key'][trials['split']['data_key']]
             str_split_trial_key = split_trial_key_temp[0]
             str_split_trial = split_trial_key_temp[1]
-            preproc_trial_name = trials['preproc']['trial_name']
-            preproc_trial = trials['preproc']['trial']
-            preproc_trial_max = trials['preproc']['trial_max']
-            digit_preproc_trial_max = len(str(preproc_trial_max))
-            str_preproc_trial = \
-                str(preproc_trial).zfill(digit_preproc_trial_max)
+            proc_trial_name = trials['preproc']['trial_name']
+            proc_trial = trials['preproc']['trial']
+            proc_trial_max = trials['preproc']['trial_max']
+            digit_proc_trial_max = len(str(proc_trial_max))
+            str_proc_trial = \
+                str(proc_trial).zfill(digit_proc_trial_max)
 
-            str_trial_key = f"{str_split_trial_key}-{str_preproc_trial}"
-            str_trial = f"{str_split_trial}_Preproc[{preproc_trial_name}]"
+            str_trial_key = f"{str_split_trial_key}-{str_proc_trial}"
+            str_trial = f"{str_split_trial}_Proc[{proc_trial_name}]"
 
             trial_data_key = (str_trial_key, str_trial)
             with open(filename_prog, "a") as prog:
@@ -899,16 +909,16 @@ class Executor:
             return trial_data_key
 
         elif module == 'Synthesizer':
-            str_preproc_trial_key = trials['preproc']['trial_data_key'][0]
-            preproc_trial = trials['preproc']['trial_data_key'][1]
+            str_proc_trial_key = trials['preproc']['trial_data_key'][0]
+            proc_trial = trials['preproc']['trial_data_key'][1]
             syn_trial_name = trials['syn']['trial_name']
             syn_trial = trials['syn']['trial']
             syn_trial_max = trials['syn']['trial_max']
             digit_syn_trial_max = len(str(syn_trial_max))
             str_syn_trial = str(syn_trial).zfill(digit_syn_trial_max)
 
-            str_trial_key = f"{str_preproc_trial_key}-{str_syn_trial}"
-            str_trial = f"{preproc_trial}_Syn[{syn_trial_name}]"
+            str_trial_key = f"{str_proc_trial_key}-{str_syn_trial}"
+            str_trial = f"{proc_trial}_Syn[{syn_trial_name}]"
 
             trial_data_key = (str_trial_key, str_trial)
             with open(filename_prog, "a") as prog:
@@ -927,14 +937,14 @@ class Executor:
             with open(filename_prog, "a") as prog:
                 prog.write(f"Trial {str_trial_key} = {str_trial}.\n")
                 data.to_csv(
-                    f"{self.outputname}_Trial[{str_trial_key}]Postproc.csv",
+                    f"{self.outputname}_Trial[{str_trial_key}]Proc.csv",
                     index=False
                 )
             return trial_data_key
 
         elif module == 'Evaluator':
-            str_postproc_trial_key = trials['postproc']['trial_data_key'][0]
-            postproc_trial = trials['postproc']['trial_data_key'][1]
+            str_proc_trial_key = trials['postproc']['trial_data_key'][0]
+            proc_trial = trials['postproc']['trial_data_key'][1]
             eval_trial_name = trials['eval']['trial_name']
             eval_trial = trials['eval']['trial']
             eval_trial_max = trials['eval']['trial_max']
@@ -948,11 +958,11 @@ class Executor:
                 str(eval_trial_key).zfill(digit_eval_trial_key_max)
 
             str_trial_key = (
-                f"{str_postproc_trial_key}-"
+                f"{str_proc_trial_key}-"
                 f"{str_eval_trial}-{str_eval_trial_key}"
             )
             str_trial = (
-                f"{postproc_trial}_"
+                f"{proc_trial}_"
                 f"Eval[{eval_trial_name}-{str_eval_trial_key}]"
             )
 
@@ -968,10 +978,10 @@ class Executor:
                 'split_ratio',
                 'split_samples',
                 'split_Num',
-                'preproc_missing_method',
-                'preproc_outlier_method',
-                'preproc_encoding_method',
-                'preproc_scaling_method',
+                'proc_missing_method',
+                'proc_outlier_method',
+                'proc_encoding_method',
+                'proc_scaling_method',
                 'syn_method_library',
                 'syn_method',
                 'eval_method_library',

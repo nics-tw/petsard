@@ -1,12 +1,18 @@
 ## History 歷史
 
 - **In Developing 開發階段**
-  - **0.3.0-alpha** (2023-12-29): **PETsARD functional pipeline release.** PETsARD 功能流程釋出
+  - **0.5.0-alpha** (2024-01-30): **Transition to new modules** **新模組轉換**
+    - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html).
+    - 導入 Metadata 與 Processor 兩個新模組，同時下架 Pre/Postprocessor，同時新增 [Anonymeter 手冊](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html)。
+  - **0.4.0-alpha** (2024-01-12): **Enriching README** **充實讀我檔案**
+    - Develop coding standards, improve existing code, create a [demo website](https://matheme-justyn.github.io/PETsARD-Gitbook/) to store and showcase team's markdown format guidelines, and expand support for SDMetrics evaluation.
+    - 建立程式開發規則，並對現有代碼進行提升。並建構[示範網站](https://matheme-justyn.github.io/PETsARD-Gitbook/)以存放並展示團隊的 markdown 格式指引。擴充支援 SDMetrics 評測。
+  - **0.3.0-alpha** (2023-12-29): **PETsARD functional pipeline release.** **PETsARD 功能流程釋出**
     - Following the ver. 1.2 specification which reconstructed on 2023-12-11, the new library is named PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development). The library currently supports three privacy-enhancing technology steps: file reading, data preprocessing, and data synthesizing, coupled with two privacy-enhancing evaluation steps: cross-validation and data evaluation. These are integrated into a unified execution module, providing functionalities for metadata preservation and report output.
     - 依照 2023-12-11 的 ver. 1.2 版規格書進行重構，新程式庫被稱為 PETsARD (隱私強化技術分析、研究與開發) 。程式庫目前可執行讀檔、資料前處理、資料合成三個隱私強化技術步驟，並搭配交叉驗證、資料評測兩個隱私強化評估步驟，並整合在統一的執行模組裡，提供中繼資料保存與報告輸出兩個功能。
-  - **0.2.0-alpha** (2023-11-16): **PETs_Tool release.** PETs_Tool 釋出。
+  - **0.2.0-alpha** (2023-11-16): **PETs_Tool release.** **PETs_Tool 釋出**。
     - Included PETs_Loader/Describer/Desc_Reporter/SD_SDV/util, executable Synthetic data pipeline is ready for programming.
     - 已包含 PETs_Loader、Describer、Desc_Reporter、SD_SDV 及 util，可執行的合成資料流程已準備好進行程式設計。
-  - **0.1.0-alpha** (2023-11-03): **PET_raw_data release.** PET_raw_data 釋出。
+  - **0.1.0-alpha** (2023-11-03): **PET_raw_data release.** **PET_raw_data 釋出**。
     - Defined benchmark datasets and applied SDV as example.
     - 決定經典資料集與 SDV 合成範例。
