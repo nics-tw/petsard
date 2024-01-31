@@ -1,9 +1,9 @@
 import pandas as pd
 
-from PETsARD.Synthesizer.SDV.SDV_SingleTable_CopulaGAN import SDV_SingleTable_CopulaGAN
-from PETsARD.Synthesizer.SDV.SDV_SingleTable_CTGAN import SDV_SingleTable_CTGAN
-from PETsARD.Synthesizer.SDV.SDV_SingleTable_GaussianCopula import SDV_SingleTable_GaussianCopula
-from PETsARD.Synthesizer.SDV.SDV_SingleTable_TVAE import SDV_SingleTable_TVAE
+from PETsARD.synthesizer.sdv.sdv_singletable_copulagan import SDV_SingleTable_CopulaGAN
+from PETsARD.synthesizer.sdv.sdv_singletable_ctgan import SDV_SingleTable_CTGAN
+from PETsARD.synthesizer.sdv.sdv_singletable_gaussiancopula import SDV_SingleTable_GaussianCopula
+from PETsARD.synthesizer.sdv.sdv_singletable_tvae import SDV_SingleTable_TVAE
 
 
 class SDV_SingleTableFactory:
