@@ -1,0 +1,7 @@
+SchemaVersion: '1.0'
+SageMaker:
+  PythonSDK:
+    Modules:
+      RemoteFunction:
+        Dependencies: ./requirements.txt
+        InstanceType: ml.m5.xlarge

@@ -2,6 +2,9 @@
 # PETsARD
 ###### ###### ###### ###### ###### ######
 
+# benchmark datasets
+demo/benchmark/
+
 # temporary
 **/*.csv
 **/PETsARD*Executor.txt
