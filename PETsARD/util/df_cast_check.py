@@ -83,7 +83,7 @@ def df_cast_check(
                 if min < col_min <= col_max < max:
                     return dtype
         elif is_float_dtype(col_data) or force_type.startswith('float'):
-            for dtype, (_min, _max) in type_float_ranges.items():
+            for dtype, (min, max) in type_float_ranges.items():
                 if min < col_min <= col_max < max:
                     return dtype
         else:

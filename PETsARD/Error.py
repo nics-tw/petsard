@@ -15,3 +15,9 @@ TODO:
 
 class UnfittedError(Exception):
     pass
+
+class NoConfigError(Exception):
+    pass
+
+class ConfigError(Exception):
+    pass
