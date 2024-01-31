@@ -1,6 +1,6 @@
 import pandas as pd
 
-from PETsARD.Synthesizer.SynthesizerFactory import SynthesizerFactory
+from PETsARD.synthesizer.synthesizer_factory import SynthesizerFactory
 
 
 class Synthesizer:

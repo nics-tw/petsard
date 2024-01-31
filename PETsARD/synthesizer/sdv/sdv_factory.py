@@ -1,6 +1,6 @@
 import pandas as pd
 
-from PETsARD.Synthesizer.SDV.SDV_SingleTableFactory import SDV_SingleTableFactory
+from PETsARD.synthesizer.sdv.sdv_singletable_factory import SDV_SingleTableFactory
 
 
 class SDVFactory:
