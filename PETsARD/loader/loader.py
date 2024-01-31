@@ -133,7 +133,7 @@ class Loader:
             ('benchmark_datasets.yaml', 'benchmark_datasets')
         ]
         for yaml_name, config_name in LIST_YAML:
-            with resources.open_text('PETsARD.Loader', yaml_name) as file:
+            with resources.open_text('PETsARD.loader', yaml_name) as file:
                 PETSARD_CONFIG[config_name] = yaml.safe_load(file)
 
         # Compling PETSARD_CONFIG
