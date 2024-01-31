@@ -1,6 +1,6 @@
-from PETsARD.Evaluator.Anonymeter import Anonymeter_SinglingOut_Univariate
-from PETsARD.Evaluator.Anonymeter import Anonymeter_Linkability
-from PETsARD.Evaluator.Anonymeter import Anonymeter_Inference
+from PETsARD.evaluator.anonymeter import Anonymeter_SinglingOut_Univariate
+from PETsARD.evaluator.anonymeter import Anonymeter_Linkability
+from PETsARD.evaluator.anonymeter import Anonymeter_Inference
 
 
 class AnonymeterFactory:

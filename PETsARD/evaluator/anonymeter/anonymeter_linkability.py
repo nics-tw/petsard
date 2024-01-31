@@ -2,7 +2,7 @@ import time
 
 from anonymeter.evaluators import LinkabilityEvaluator
 
-from PETsARD.Evaluator.Anonymeter import Anonymeter
+from PETsARD.evaluator.anonymeter import Anonymeter
 
 
 class Anonymeter_Linkability(Anonymeter):
