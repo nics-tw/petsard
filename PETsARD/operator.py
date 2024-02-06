@@ -22,7 +22,7 @@ class Operator:
         """
         Retrieve the result of the module's operation,
             as data storage varies between modules.
-        ...
+
         Args
             tag (str)
                 tag will specifiy some Operator return result.
@@ -40,7 +40,7 @@ class LoaderOperator(Operator):
         Args:
             config (dict):
                 A dictionary containing configuration parameters for the Loader.
-        ...
+
         Attributes:
             loader (Loader):
                 An instance of the Loader class initialized with the provided configuration.
