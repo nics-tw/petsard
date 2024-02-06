@@ -22,8 +22,8 @@ class Operator:
             as data storage varies between modules.
 
         Args
-            tag (str)
-                tag will specifiy some Operator return result.
+            tag (str):
+                Specify (return) items of result.
         """
         raise NotImplementedError
 
