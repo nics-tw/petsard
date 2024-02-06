@@ -122,8 +122,11 @@ class Processor:
         self.rng = np.random.default_rng()
 
         # initialise the dict
+        col_dict = {
+            col: None for col in self._metadata['col'].keys()
+        }
         self._config: dict = {
-            processor: {} for processor in self._default_processor.keys()
+            processor: deepcopy(col_dict) for processor in self._default_processor.keys()
         }
 
         self.set_config(config=config)
