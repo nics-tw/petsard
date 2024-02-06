@@ -20,7 +20,12 @@ class Operator:
 
     def get_result(self, tag: str = None):
         """
-        Retrieve the result of the module's operation, as data storage varies between modules.
+        Retrieve the result of the module's operation,
+            as data storage varies between modules.
+        ...
+        Args
+            tag (str)
+                tag will specifiy some Operator return result.
         """
         raise NotImplementedError
 
