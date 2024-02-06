@@ -1,6 +1,11 @@
+from typing import (
+    Dict, List, Optional
+)
+
 import pandas as pd
 
-from PETsARD.loader import Loader
+from PETsARD.loader import Loader, Splitter
+from PETsARD.error import ConfigError
 
 
 class Operator:
@@ -58,3 +63,34 @@ class LoaderOperator(Operator):
                 Inherited from Operator. Not applicable.
         """
         return self.loader.data
+    
+
+class SplitterOperator(Operator):
+    """
+    SplitterOperator is responsible for splitting data
+        using the configured Loader instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.splitter = Splitter(**config)
+
+    def run(self, data: pd.DataFrame, exclude_index: Optional[Dict[int, List[int]]] = None):
+        """
+        Executes the data splitting process using the Splitter instance.
+        """
+        self.splitter.split(data, exclude_index)
+
+    def get_result(self, tag: str) -> pd.DataFrame:
+        """
+        Retrieve the splitting result.
+        Due to Config force num_samples = 1, return 1st dataset is fine.
+        ...
+        Args
+            tag (str)
+                Get whether train or validation data.
+        """
+        if tag in ['train','validation']:
+            return self.splitter.data[1][tag]
+        else:
+            raise ConfigError
