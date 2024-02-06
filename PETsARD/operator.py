@@ -5,9 +5,7 @@ from PETsARD.loader import Loader
 
 class Operator:
     """
-    Operator is the parent class for every module's decorator:
-        {module_name}Operato,
-        unifying the method name as .run(), and .get_result().
+    Operator is the parent class for every module's decorator.
     """
     def __init__(self, config: dict):
         pass
