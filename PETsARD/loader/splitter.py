@@ -39,7 +39,7 @@ class Splitter:
         self.train_split_ratio = train_split_ratio
         self.random_state = random_state
 
-    def split(self, data: pd.DataFrame, exclude_index: Optional[Dict[int, List[int]]] = None):
+    def split(self, data: pd.DataFrame, exclude_index: List[int] = None):
         """
         Initialize the Splitter with data and perform index bootstrapping.
         than split the input data into train and validation sets
@@ -69,7 +69,7 @@ class Splitter:
     def _index_bootstrapping(
         self,
         index: list,
-        exclude_index: Dict[int, List[int]] = None
+        exclude_index: List[int] = None
     ) -> Dict[int, List[int]]:
         """
         Generate randomized index samples for splitting data.
@@ -86,10 +86,8 @@ class Splitter:
         sample_size = int(len(index) * self.train_split_ratio)
 
         sampled_seen = set()
-        if exclude_index:  # external samples seen
-            for value in exclude_index.values():
-                if 'train' in value:
-                    sampled_seen.add(tuple(value['train']))
+        if exclude_index:  # external samples seen\
+            sampled_seen.add(tuple(exclude_index))
 
         sampled_index = {}
         # assume max sampling time as num_sample.
