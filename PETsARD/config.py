@@ -30,7 +30,7 @@ class Config:
         """
         self.config:      queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
-        self.expt_flow:    queue.Queue = queue.Queue()
+        self.expt_flow:   queue.Queue = queue.Queue()
         self.filename = filename
         self.yaml: dict = {}
 
@@ -88,9 +88,8 @@ class Config:
 
     def _splitter_handler(self, config: dict) -> dict:
         """
-        Transform and expand the Splitter configuration based on the 'num_samples' parameter,
-        creating unique configuration entries for each specified number of samples.
-        New experiment name format will be '{expt_name}_0n|NN}
+        Transforms and expands the Splitter configuration for each specified 'num_samples',
+            creating unique entries with a new experiment name format '{expt_name}_0n|NN}."
 
         Args:
             config (dict):
