@@ -8,7 +8,6 @@ from typing import (
     Union
 )
 
-import pandas as pd
 import yaml
 
 from PETsARD.loader.benchmark import (
@@ -126,12 +125,8 @@ class Loader:
         sheet_name: Union[str, int] = 0,
         colnames_discrete: Optional[List[str]] = None,
         colnames_datetime: Optional[List[str]] = None,
-        dtype: Optional[Dict[str, Any]] = {},
+        dtype: Optional[Dict[str, Any]] = None,
     ):
-        self.config: dict = None
-        self.Loader = None
-        self.dtype = dtype
-
         # organized yaml
         PETSARD_CONFIG = {}
         LIST_YAML = [
@@ -163,13 +158,26 @@ class Loader:
             for key, value in PETSARD_CONFIG['benchmark_datasets']['datasets'].items()
         }
 
+        self.para = {}
         # Check if file exist
-        self.config = self._handle_filepath(
+        self.para['Loader'] = self._handle_filepath(
             filepath,
             map_benchmark=PETSARD_CONFIG['benchmark_datasets']['datasets']
         )
+        # If benchmark, download benchmark dataset, and execute as local file.
+        if self.para['Loader']['benchmark']:
+            benchmark_access = self.para['Loader']['benchmark_access']
+            if benchmark_access == 'public':
+                BenchmarkerRequests(self.para['Loader']).download()
+            elif benchmark_access == 'private':
+                BenchmarkerBoto3(self.para['Loader']).download()
+            else:
+                raise ValueError(
+                    f"Loader - Unsupported benchmark access type, "
+                    f"now is {benchmark_access}."
+                )
         # Force define the discrete and date/datetime dtype
-        self.config.update(
+        self.para['Loader'].update(
             self._specify_str_dtype(
                 colnames_discrete,
                 colnames_datetime
@@ -177,7 +185,7 @@ class Loader:
         )
         # recoded remain parameter
         # TODO sunset colnames_discrete/datetime, it is duplicated to dtype
-        self.config.update({
+        self.para['Loader'].update({
             'header_exist': header_exist,
             'header_names': header_names,
             'sep':          sep,
@@ -185,41 +193,25 @@ class Loader:
             'na_values':    na_values
         })
 
-    def load(self):
-        """
-        load
-            load data, dtype confirm and casting, and build metadata
-        """
-        # If benchmark, download benchmark dataset, and execute as local file.
-        if self.config['benchmark']:
-            benchmark_access = self.config['benchmark_access']
-            if benchmark_access == 'public':
-                BenchmarkerRequests(self.config).download()
-            elif benchmark_access == 'private':
-                BenchmarkerBoto3(self.config).download()
-            else:
-                raise ValueError(
-                    f"Loader - Unsupported benchmark access type, "
-                    f"now is {benchmark_access}."
-                )
-
         # Factory method for implementing the specified Loader class
-        file_ext = self.config['file_ext'].lower()
+        file_ext = self.para['Loader']['file_ext'].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
-            self.Loader = LoaderPandasCsv(self.config)
+            self.Loader = LoaderPandasCsv(self.para['Loader'])
         elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
-            self.Loader = LoaderPandasExcel(self.config)
+            self.Loader = LoaderPandasExcel(self.para['Loader'])
         else:
             raise ValueError(
                 f"Loader: Unsupported file type, now is {file_ext}."
             )
 
-        self.data: pd.DataFrame = self.Loader.load()
+        self.data = self.Loader.load()
 
         # Define dtype
         # TODO Still consider how to extract dtype from pd.dateframe directly.
         #      Consider to combind to Metadata
-        self.dtype.update(df_cast_check(self.data, self.dtype))
+        if not dtype:
+            self.dtype = {}
+        self.dtype.update(df_cast_check(self.data, dtype))
 
         # Casting data for more efficient storage space
         self.data = df_casting(self.data, self.dtype)
@@ -227,7 +219,7 @@ class Loader:
         # metadata
         metadata = Metadata()
         metadata.build_metadata(data=self.data)
-        self.metadata: Metadata = metadata
+        self.metadata = metadata
 
     @staticmethod
     def _handle_filepath(
