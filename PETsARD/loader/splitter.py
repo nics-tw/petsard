@@ -25,14 +25,10 @@ class Splitter:
         random_state:      Optional[Union[int, float, str]] = None
     ):
         """
-        Args
-            num_samples (int)
-                Number of times to resample the data. Default is 1.
-            train_split_ratio (float)
-                Ratio of data to assign to the training set,
-                must be a float between 0 ~ 1. Default is 0.8.
-            random_state (int, float, str. Optional)
-                Seed for random number generation. Default is None.
+        Args:
+            num_samples (int): Number of times to resample the data. Default is 1.
+            train_split_ratio (float): Ratio of data to assign to the training set, must between 0 ~ 1. Default is 0.8.
+            random_state (int | float | str): Seed for random number generation. Default is None.
         """
         if not (0 <= train_split_ratio <= 1):
             raise ConfigError(
