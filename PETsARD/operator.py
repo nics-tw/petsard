@@ -21,9 +21,14 @@ class Operator:
         """
         pass
 
-    def run(self):
+    def run(self, input: dict):
         """
         Execute the module's functionality.
+
+        Args:
+            input (dict):
+                A input dictionary contains module required input from Status.
+                See Status.get_input_from_prev(module) for more details.
         """
         raise NotImplementedError
 
@@ -52,9 +57,12 @@ class LoaderOperator(Operator):
         super().__init__(config)
         self.loader = Loader(**config)
 
-    def run(self):
+    def run(self, input: dict):
         """
         Executes the data loading process using the Loader instance.
+
+        Args:
+            input (dict): Loader input should contains nothing ({}).
         """
         self.loader.load()
 
@@ -75,11 +83,14 @@ class SplitterOperator(Operator):
         super().__init__(config)
         self.splitter = Splitter(**config)
 
-    def run(self, data: pd.DataFrame, exclude_index: Optional[Dict[int, List[int]]] = None):
+    def run(self, input: dict):
         """
         Executes the data splitting process using the Splitter instance.
+
+        Args:
+            input (dict): Splitter input should contains data (pd.DataFrame) and exclude_index (list).
         """
-        self.splitter.split(data, exclude_index)
+        self.splitter.split(**input)
 
     def get_result(self) -> pd.DataFrame:
         """
