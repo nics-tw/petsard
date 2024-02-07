@@ -15,7 +15,7 @@ from anonymeter.evaluators import (
     InferenceEvaluator
 )
 import numpy as np
-import pandas as pandas
+import pandas as pd
 
 
 
