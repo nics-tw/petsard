@@ -61,10 +61,7 @@ class Splitter:
             }
 
     def _index_bootstrapping(
-        self,
-        index: list,
-        exclude_index: List[int] = None
-    ) -> Dict[int, List[int]]:
+        self, index: list, exclude_index: List[int] = None) -> Dict[int, List[int]]:
         """
         Generate randomized index samples for splitting data.
         ...
