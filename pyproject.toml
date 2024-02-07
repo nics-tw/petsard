@@ -1,7 +1,7 @@
 # ...
 # Methods:
 #
-#    poetry add pyyaml requests toml urllib3@~1.25.0 boto3 tqdm sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^0.0.2
+#    poetry add sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^1.0.0 pyyaml toml requests boto3 urllib3@~1.25.0 tqdm pywin32
 #   
 #          ydata-synthetic@^1.3.2 conflict on pandas w/ anonymeter
 #   
@@ -9,6 +9,8 @@
 #           to verify and install them.
 #         添加所需依賴項並讓 Poetry 檢查並安裝這些依賴。
 #
+#           - pywin32
+#               - 不手動指定會導致 poetry upgrade 失敗
 #           - boto3
 #           - pyyaml
 #           - boto3
@@ -24,9 +26,9 @@
 #           - SDMetrics: 0.13 above
 #               - https://github.com/sdv-dev/SDMetrics
 #               - Latest 0.13.0 update: 2023/12/04
-#           - anonymeter: 0.0.2 above
+#           - anonymeter: 1.0.0 above
 #               - https://github.com/statice/anonymeter
-#               - Latest 0.0.2 update: 2023/07/15
+#               - Latest 1.0.0 update: 2024/02/02
 #   
 #           - ydata-synthetic: conflict to anonymeter
 #               - Because no versions of ydata-synthetic match >1.3.2,<2.0.0
@@ -91,16 +93,17 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
-pyyaml = "^6.0.1"
-requests = "^2.31.0"
-toml = "^0.10.2"
-urllib3 = "~1.25.0"
-tqdm = "^4.66.1"
-boto3 = "^1.34.16"
+python = ">=3.10,<3.12"
 sdv = "^1.8.0"
 sdmetrics = "^0.13.0"
-anonymeter = "^0.0.2"
+anonymeter = "^1.0.0"
+pyyaml = "^6.0.1"
+toml = "^0.10.2"
+requests = "^2.31.0"
+boto3 = "^1.34.16"
+urllib3 = "~1.25.0"
+tqdm = "^4.66.1"
+pywin32 = "^306"
 
 
 [tool.poetry.group.dev.dependencies]
