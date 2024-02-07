@@ -8,7 +8,9 @@ from PETsARD.error import ConfigError
 
 class Splitter:
     """
-    Splitter is an independent module for Executor use. Included:
+    Splitter is an independent module for Executor use.
+    
+    Included:
     a.) split input data via assigned ratio (train_split_ratio)
     b.) resampling assigned times (num_samples)
     c.) output their train/validation indexes (self.index_samples) and pd.DataFrame data (self.data)
