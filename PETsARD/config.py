@@ -19,7 +19,7 @@ class Sequence:
         """  
         Args:
             sequence (list, optional):
-                The user defined sequence of modules.
+                The user defined sequence of modules in the experiment.
 
         Attributes:
             default_sequence (list):
@@ -52,6 +52,8 @@ class Config:
         Args:
             filename (str)
                 The filename of config file.
+            sequence (list. Optional):
+                The user defined sequence of modules in the experiment.
         """
         self.config:      queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
@@ -160,7 +162,7 @@ class Status:
         """
         Args:
             sequence (list. Optional):
-                The sequence of modules in the experiment.
+                The user defined sequence of modules in the experiment.
 
         Attributes:
             sequence (list):
