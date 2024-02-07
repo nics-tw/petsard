@@ -5,7 +5,6 @@ from typing import (
 import pandas as pd
 
 from PETsARD.loader import Loader, Splitter
-from PETsARD.error import ConfigError
 
 
 class Operator:
@@ -15,6 +14,11 @@ class Operator:
         unifying the method name as .run(), .get_result().
     """
     def __init__(self, config: dict):
+        """
+        Args:
+            config (dict):
+                A dictionary containing configuration parameters.
+        """
         pass
 
     def run(self):
@@ -23,7 +27,7 @@ class Operator:
         """
         raise NotImplementedError
 
-    def get_result(self, tag: str = None):
+    def get_result(self):
         """
         Retrieve the result of the module's operation, as data storage varies between modules.
         """
@@ -54,13 +58,9 @@ class LoaderOperator(Operator):
         """
         self.loader.load()
 
-    def get_result(self, tag: str=None) -> pd.DataFrame:
+    def get_result(self) -> pd.DataFrame:
         """
         Retrieve the loading result.
-
-        Args
-            tag (str)
-                Inherited from Operator. Not applicable.
         """
         return self.loader.data
     
@@ -81,16 +81,9 @@ class SplitterOperator(Operator):
         """
         self.splitter.split(data, exclude_index)
 
-    def get_result(self, tag: str) -> pd.DataFrame:
+    def get_result(self) -> pd.DataFrame:
         """
         Retrieve the splitting result.
-        Due to Config force num_samples = 1, return 1st dataset is fine.
-
-        Args
-            tag (str)
-                Get whether train or validation data.
+            Due to Config force num_samples = 1, return 1st dataset is fine.
         """
-        if tag in ['train','validation']:
-            return self.splitter.data[1][tag]
-        else:
-            raise ConfigError
+        return self.splitter.data[1]
