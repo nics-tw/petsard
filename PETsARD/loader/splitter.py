@@ -99,8 +99,8 @@ class Splitter:
                 else:
                     sampled_seen.add(sampled_indices)
                     sampled_index[n+1] = {
-                        'train':      list(sampled_indices),
-                        'validation': list(set(index) - set(sampled_indices))
+                        'train': list(sampled_indices),
+                        'validation': list(set(index) - set(sampled_indices)),
                     }
                     break
                 if attempts == maxattempts:
