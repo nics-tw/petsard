@@ -1,60 +1,77 @@
 # ...
 # Methods:
 #
-# poetry add ipykernel pyyaml requests toml urllib3@~1.25.0 boto3 tqdm sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^0.0.2
+#    poetry add pyyaml requests toml urllib3@~1.25.0 boto3 tqdm sdv@^1.8.0 sdmetrics@^0.13.0 anonymeter@^0.0.2
+#   
+#          ydata-synthetic@^1.3.2 conflict on pandas w/ anonymeter
+#   
+#       - Add the necessary dependencies and allow Poetry
+#           to verify and install them.
+#         添加所需依賴項並讓 Poetry 檢查並安裝這些依賴。
 #
-#       ydata-synthetic@^1.3.2 conflict on pandas w/ anonymeter
+#           - boto3
+#           - pyyaml
+#           - boto3
+#           - requests
+#               - urllib3: 1.25
+#                   requests need urllib3 to be >= 1.21.1, <= 1.26
+#           - toml
+#           - tqdm
+#           - SDV: 1.8 above
+#               - https://github.com/sdv-dev/SDV
+#               - 1.8 update: 2023/12/05
+#               - Latest 1.9 update: 2024/01/11
+#           - SDMetrics: 0.13 above
+#               - https://github.com/sdv-dev/SDMetrics
+#               - Latest 0.13.0 update: 2023/12/04
+#           - anonymeter: 0.0.2 above
+#               - https://github.com/statice/anonymeter
+#               - Latest 0.0.2 update: 2023/07/15
+#   
+#           - ydata-synthetic: conflict to anonymeter
+#               - Because no versions of ydata-synthetic match >1.3.2,<2.0.0
+#                   and ydata-synthetic (1.3.2) depends on pandas (==2.0.*), ydata-synthetic (>=1.3.2,<2.0.0) requires pandas (==2.0.*).
+#                 And because anonymeter (0.0.2) depends on pandas (>=1.4,<2.0)
+#                   and no versions of anonymeter match >0.0.2,<0.0.3, ydata-synthetic (>=1.3.2,<2.0.0) is incompatible with anonymeter (>=0.0.2,<0.0.3).
+#                 So, because petsard depends on both anonymeter (^0.0.2) and ydata-synthetic (^1.3.2), version solving failed.
+#   
+#    poetry add ipykernel pytest sagemaker --group dev
+#   
+#       - Add the dependencies for development environment in dev-dependencies.
+#         添加開發環境所需要的依賴項到 dev-dependencies 中。
 #
-#   - Add the necessary dependencies and allow Poetry
-#       to verify and install them.
-#     添加所需依賴項並讓 Poetry 檢查並安裝這些依賴。
+#           - ipykernel
+#           - pytest
+#           - sagemaker
+#   
+#    poetry export -f requirements.txt -o requirements.txt
+#   
+#       - Export to requirements.txt.
+#         輸出 requirements.txt。
+#       - You can add the --without-hashes option for easier visual inspection.
+#         可添加 --without-hashes 方便肉眼檢查
+#   
+#    poetry export -f requirements.txt -o requirements-dev.txt --with dev
+#   
+#       - Export development environment to requirements-dev.txt.
+#         輸出開發環境的 requirements.txt。
 #
-#       - ipykernel
-#       - boto3
-#       - pyyaml
-#       - boto3
-#       - requests
-#           - urllib3: 1.25
-#               requests need urllib3 to be >= 1.21.1, <= 1.26
-#       - toml
-#       - tqdm
-#       - SDV: 1.8 above
-#           - https://github.com/sdv-dev/SDV
-#           - 1.8 update: 2023/12/05
-#           - Latest 1.9 update: 2024/01/11
-#       - SDMetrics: 0.13 above
-#           - https://github.com/sdv-dev/SDMetrics
-#           - Latest 0.13.0 update: 2023/12/04
-#       - anonymeter: 0.0.2 above
-#           - https://github.com/statice/anonymeter
-#           - Latest 0.0.2 update: 2023/07/15
+# ...
+# reset vitural environment
+# 重設虛擬環境
 #
-#       - ydata-synthetic: conflict to anonymeter
-#           - Because no versions of ydata-synthetic match >1.3.2,<2.0.0
-#               and ydata-synthetic (1.3.2) depends on pandas (==2.0.*), ydata-synthetic (>=1.3.2,<2.0.0) requires pandas (==2.0.*).
-#             And because anonymeter (0.0.2) depends on pandas (>=1.4,<2.0)
-#               and no versions of anonymeter match >0.0.2,<0.0.3, ydata-synthetic (>=1.3.2,<2.0.0) is incompatible with anonymeter (>=0.0.2,<0.0.3).
-#             So, because petsard depends on both anonymeter (^0.0.2) and ydata-synthetic (^1.3.2), version solving failed.
+# recommendation: use poetry
 #
-# poetry add pytest sagemaker --group dev
-#
-#   - Add the dependencies for development environment in dev-dependencies.
-#     添加開發環境所需要的依賴項到 dev-dependencies 中。
-#
-#       - pytest
-#       - sagemaker
-#
-# poetry export -f requirements.txt -o requirements.txt
-#
-#   - Export to requirements.txt.
-#     輸出 requirements.txt。
-#   - You can add the --without-hashes option for easier visual inspection.
-#     可添加 --without-hashes 方便肉眼檢查
-#
-# poetry export -f requirements.txt -o requirements-dev.txt --with dev
-#
-#   - Export development environment to requirements-dev.txt.
-#     輸出開發環境的 requirements.txt。
+#    poetry self add poetry-core@latest
+#       - upgrade poetry to latest
+#    poetry self add poetry-plugin-export
+#       - install poetry-plugin-export for forward-compatible
+#    poetry config virtualenvs.in-project true
+#       - limit vitural environment not adding random string
+#    poetry env use python
+#        - make sure your python link to valid python version
+#    poetry lock
+#        - install requirements in pyproject.toml
 #
 # """
 # 240122, Justyn: remove pip@^23.0.0 due to error
@@ -64,7 +81,7 @@
 
 [tool.poetry]
 name = "petsard"
-version = "0.5.0-alpha"
+version = "0.6.0-alpha"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     "alexchen830 <alexchen830@gmail.com>",
@@ -75,7 +92,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-ipykernel = "^6.28.0"
 pyyaml = "^6.0.1"
 requests = "^2.31.0"
 toml = "^0.10.2"
@@ -90,6 +106,7 @@ anonymeter = "^0.0.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
 sagemaker = "^2.203.1"
+ipykernel = "^6.29.0"
 
 
 [build-system]

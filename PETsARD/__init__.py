@@ -18,23 +18,23 @@
     TODO 抗偏態的IQR：statsmodels.medcouple
 """
 
-from PETsARD.Loader import *
-from PETsARD.Loader.Metadata import Metadata
-from PETsARD.Processor import *
-from PETsARD.Synthesizer import *
-from PETsARD.Evaluator import *
+from PETsARD.loader import *
+from PETsARD.loader.metadata import Metadata
+from PETsARD.processor import *
+from PETsARD.synthesizer import *
+from PETsARD.evaluator import *
 from PETsARD.util import *
-from PETsARD.Executor import Executor
-from PETsARD.Config import *
+from PETsARD.executor import Executor
+from PETsARD.config import *
 
 
 __all__ = [
-    'Loader',
-    'Metadata',
-    'Splitter',
-    'Processor',
-    'Synthesizer',
-    'Evaluator',
+    'loader',
+    'processor',
+    'synthesizer',
+    'evaluator',
     'Executor',
-    'Config',
+    'util',
+    'Metadata',
+    'Config'
 ]
