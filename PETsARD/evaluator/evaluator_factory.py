@@ -1,6 +1,6 @@
 import re
 
-from PETsARD.evaluator.anonymeter.anonymeter_factory import AnonymeterFactory
+from PETsARD.evaluator.anonymeter import AnonymeterFactory
 from PETsARD.evaluator.sdmetrics import SDMetrics
 
 
