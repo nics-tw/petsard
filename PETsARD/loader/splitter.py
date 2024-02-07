@@ -38,16 +38,15 @@ class Splitter:
         self.random_state = random_state
 
     def split(self, data: pd.DataFrame, exclude_index: List[int] = None):
-        """
+        """Your one-line summary
+        
         Initialize the Splitter with data and perform index bootstrapping.
         than split the input data into train and validation sets
         based on the initialized index samples.
-        ...
-        Args
-            data (pd.DataFrame)
-                The dataset which wait for split.
-            exclude_index (Dict[int, List[int]])
-                The exist index we want to exclude them from our sampling.
+        
+        Args:
+            data (pd.DataFrame): The dataset which wait for split.
+            exclude_index (Dict[int, List[int]]): The exist index we want to exclude them from our sampling.
                 Just send the index from other Splitter is fine.
         """
         data.reset_index(drop=True, inplace=True)  # avoid unexpected index
