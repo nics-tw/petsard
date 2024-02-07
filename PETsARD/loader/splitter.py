@@ -15,13 +15,11 @@ class Splitter:
     b.) resampling assigned times (num_samples)
     c.) output their train/validation indexes (self.index_samples) and pd.DataFrame data (self.data)
     """
-    DEFAULT_NUM_SAMPLES = 1
-    DEFAULT_TRAIN_SPLIT_RATIO = 0.8
 
     def __init__(
         self,
-        num_samples:       int = DEFAULT_NUM_SAMPLES,
-        train_split_ratio: float = DEFAULT_TRAIN_SPLIT_RATIO,
+        num_samples:       int = 1,
+        train_split_ratio: float = 0.8,
         random_state:      Optional[Union[int, float, str]] = None
     ):
         """
