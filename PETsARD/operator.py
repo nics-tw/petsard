@@ -40,7 +40,7 @@ class LoaderOperator(Operator):
         Args:
             config (dict):
                 A dictionary containing configuration parameters for the Loader.
-        ...
+
         Attributes:
             loader (Loader):
                 An instance of the Loader class initialized with the provided configuration.
@@ -57,7 +57,7 @@ class LoaderOperator(Operator):
     def get_result(self, tag: str=None) -> pd.DataFrame:
         """
         Retrieve the loading result.
-        ...
+
         Args
             tag (str)
                 Inherited from Operator. Not applicable.
@@ -85,7 +85,7 @@ class SplitterOperator(Operator):
         """
         Retrieve the splitting result.
         Due to Config force num_samples = 1, return 1st dataset is fine.
-        ...
+
         Args
             tag (str)
                 Get whether train or validation data.
