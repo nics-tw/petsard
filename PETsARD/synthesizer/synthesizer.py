@@ -26,12 +26,14 @@ class Synthesizer:
         self,
         data: pd.DataFrame,
         synthesizing_method: str,
+        epsilon: float = 5.0,
         **kwargs
     ) -> None:
 
         self.para: dict = {}
         self.para['Synthesizer']: dict = {
-            'synthesizing_method': synthesizing_method.lower()
+            'synthesizing_method': synthesizing_method.lower(),
+            'epsilon': epsilon
         }
 
         Synthesizer = SynthesizerFactory(
