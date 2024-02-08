@@ -70,6 +70,8 @@ class EvaluatorFactory:
             raise ValueError(
                 f"Evaluator - EvaluatorFactory: evaluating_method {evaluating_method} didn't support.")
 
+        self.Evaluator = _Evaluator
+
     def create_evaluator(self):
         """
         Factory method to designated the selected evaluator.
