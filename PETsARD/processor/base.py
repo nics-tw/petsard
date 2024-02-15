@@ -7,6 +7,7 @@ from PETsARD.processor.missing import *
 from PETsARD.processor.outlier import *
 from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
+from PETsARD.processor.discretizing import *
 from PETsARD.error import *
 from PETsARD.loader.metadata import Metadata
 
@@ -14,7 +15,6 @@ from PETsARD.loader.metadata import Metadata
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
-
 
 class Processor:
     """
@@ -74,6 +74,12 @@ class Processor:
                 'categorical': lambda: None,
                 'datetime': ScalerStandard,
                 'object': lambda: None
+            },
+            'cube': {
+                'numerical': DiscretizingKBins,
+                'categorical': EncoderLabel,
+                'datetime': DiscretizingKBins,
+                'object': EncoderLabel
             }
         }
 
@@ -98,7 +104,8 @@ class Processor:
             'scaler_standard': ScalerStandard,
             'scaler_zerocenter': ScalerZeroCenter,
             'scaler_minmax': ScalerMinMax,
-            'scaler_log': ScalerLog
+            'scaler_log': ScalerLog,
+            'discretizing_kbins': DiscretizingKBins,
         }
 
         metadata: dict = metadata.metadata
