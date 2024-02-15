@@ -11,6 +11,7 @@ from PETsARD.processor import Processor
 class MinMetadata:
     """
     Initializes an instance of the minimum available Metadata class for Operator use.
+    TODO: column names free Metadata: require user to set all column names in config now.
     """
 
     def __init__(self, config: dict):
