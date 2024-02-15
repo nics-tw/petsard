@@ -25,19 +25,18 @@ class Synthesizer:
     def __init__(
         self,
         data: pd.DataFrame,
-        synthesizing_method: str,
+        method: str,
         epsilon: float = 5.0,
         **kwargs
     ) -> None:
 
-        self.para: dict = {}
-        self.para['Synthesizer']: dict = {
-            'synthesizing_method': synthesizing_method.lower(),
+        self.config: dict = {
+            'method': method.lower(),
             'epsilon': epsilon
         }
 
         Synthesizer = SynthesizerFactory(
-            data=data, **self.para['Synthesizer']
+            data=data, **self.config
         ).create_synthesizer()
 
         self.data_ori = data
