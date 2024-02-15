@@ -58,9 +58,9 @@ class DiscretizingHandler:
 
         return self._inverse_transform(data)
     
-class DiscretizerKBins(DiscretizingHandler):
+class DiscretizingKBins(DiscretizingHandler):
     """
-    Implement a K-bins discretizer.
+    Implement a K-bins discretizing method.
     """
 
     def __init__(self, n_bins: int = 5) -> None:
