@@ -93,6 +93,7 @@ class Processor:
         self._processor_map: dict = {
             'encoder_uniform': EncoderUniform,
             'encoder_label': EncoderLabel,
+            'encoder_onehot': EncoderOneHot,
             'missing_mean': MissingMean,
             'missing_median': MissingMedian,
             'missing_simple': MissingSimple,
