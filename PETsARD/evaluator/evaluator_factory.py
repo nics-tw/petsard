@@ -1,6 +1,6 @@
 import re
 
-from PETsARD.evaluator.anonymeter.anonymeter_factory import AnonymeterFactory
+from PETsARD.evaluator.anonymeter import AnonymeterFactory
 from PETsARD.evaluator.sdmetrics import SDMetrics
 
 
@@ -69,6 +69,8 @@ class EvaluatorFactory:
         else:
             raise ValueError(
                 f"Evaluator - EvaluatorFactory: evaluating_method {evaluating_method} didn't support.")
+
+        self.Evaluator = _Evaluator
 
     def create_evaluator(self):
         """

@@ -8,58 +8,104 @@ from typing import (
 )
 import warnings
 
+
+from anonymeter.evaluators import (
+    SinglingOutEvaluator,
+    LinkabilityEvaluator,
+    InferenceEvaluator
+)
 import numpy as np
 import pandas as pd
+
+
+
+class AnonymeterFactory:
+    """
+    Factory for "Anonymeter" Evaluator.
+
+    AnonymeterFactory defines which module to use within Anonymeter.
+
+    ...
+    TODO As AnonymeterMethodMap,
+            use a class to define mappings of string and int,
+            avoiding string conditions.
+
+    """
+
+    def __init__(self, **kwargs):
+        evaluating_method: str = kwargs.get('evaluating_method', None)
+
+        if evaluating_method.startswith('anonymeter-singlingout-univariate'):
+            self.Evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
+        elif evaluating_method.startswith('anonymeter-linkability'):
+            self.Evaluator = AnonymeterLinkability(**kwargs)
+        elif evaluating_method.startswith('anonymeter-inference'):
+            self.Evaluator = AnonymeterInference(**kwargs)
+        else:
+            raise ValueError(
+                f"Evaluator (Anonymeter - AnonymeterFactory): "
+                f"evaluating_method {evaluating_method} didn't support."
+            )
+
+    def create_evaluator(self):
+        """
+        create_evaluator()
+            return the Evaluator which selected by Factory.
+        """
+        return self.Evaluator
+
+
+class AnonymeterMethodMap():
+    """
+    map of Anonymeter
+    """
+    method_map = {
+        'singlingout - univariate':   0,
+        'singlingout - multivariate': 1,
+        'linkability':                2,
+        'inference':                  3
+    }
+
+    @classmethod
+    def map(cls, method_name: str) -> int:
+        """
+        mapping method and handle exception
+        """
+        try:
+            return cls.method_map[method_name.lower()]
+        except KeyError as ex:
+            print(
+                f"Evaluator (Anonymeter): Method "
+                f"{method_name} not recognized.\n"
+                f"{ex}"
+            )
 
 
 class Anonymeter():
     """
     Base class for all "Anonymeter".
-
-    The "Anonymeter" class defines the common API
-    that all the "Anonymeter" need to implement, as well as common functionality.
-
-    ...
+        The "Anonymeter" class defines the common API
+        that all the "Anonymeter" need to implement, as well as common functionality.
 
     Args:
-        data (dict)
-            Following data logic defined in Evaluator.
-
-        anonymeter_n_attacks (int):
-            The number of attack attempts using the specified attack method.
-            Default is 2,000.
-
-        anonymeter_n_neighbors (int):
-            Specifies the number of jobs Anonymeter will use.
-            -1 means all threads except one.
-            -2 means every thread.
-            Default is -2.
-
+        data (dict): Following data logic defined in Evaluator.
+        anonymeter_n_attacks (int): The number of attack attempts using the specified attack method. Default is 2,000.
+        anonymeter_n_neighbors (int): Specifies the number of jobs Anonymeter will use.
+            -1 means all threads except one. -2 means every thread. Default is -2.
         anonymeter_n_neighbors (int):
             Sets the number of nearest neighbors to consider for each entry in the search.
-            Default is 1. Indicating a successful linkability attack
-                only if the closest synthetic record matches
-                for both split original records.
-
-        anonymeter_aux_cols (Tuple[List[str], List[str]]):
-            Tuple of two lists of strings.
-            Features of the records that are given to
-                the attacker as auxiliary information.
-            Optional.
+            Indicating a successful linkability attack
+            only if the closest synthetic record matches for both split original records.
+            Default is 1.
+        anonymeter_aux_cols (Tuple[List[str], List[str]], Optional):
+            Features of the records that are given to the attacker as auxiliary information.
             The Anonymeter documentation states it supports 'tuple of int',
                 but this is not reflected in their type annotations,
                 so we will omit it here and only mention this for reference.
-
-        anonymeter_secret (str | List[str]]):
+        anonymeter_secret (str | List[str]], Optional):
             The secret attribute(s) of the target records, unknown to the attacker.
                 This is what the attacker will try to guess.
-            Optional.
 
-    ...
-    Returns:
-        None
-
-    ...
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
@@ -88,13 +134,10 @@ class Anonymeter():
 
     def eval(self):
         """
-        eval() of Anonymeter.
-            Defines the sub-evaluator and suppresses specific warnings
-            due to known reasons from the Anonymeter library
+        Evaluates the privacy risk of the synthetic dataset.
 
-        ...
-
-        Exception:
+        Defines the sub-evaluator and suppresses specific warnings
+            due to known reasons from the Anonymeter library:
 
             FutureWarning:
                 anonymeter\evaluators\singling_out_evaluator.py:97:
@@ -159,7 +202,6 @@ class Anonymeter():
             Uses .risk()/.results() method in Anonymeter
             to extract result from self._Evaluator into the designated dictionary.
 
-        ...
         Return
             (dict)
                 Contains the following key-value pairs
@@ -201,8 +243,6 @@ class Anonymeter():
                     A value of 0 indicates none of success attack,
                         and 1 indicates totally success attack.
                     Includes _err for its error rate.
-
-        ...
 
         TODO  Consider using alternative methods to extract results
                 and evaluate migrating this functionality to the Reporter.
@@ -256,29 +296,110 @@ class Anonymeter():
         return dict_result
 
 
-class AnonymeterMethodMap():
+class AnonymeterSinglingOutUnivariate(Anonymeter):
     """
-    map of Anonymeter
-    ...
-    TODO Consider YAML
-    """
-    method_map = {
-        'singlingout - univariate':   0,
-        'singlingout - multivariate': 1,
-        'linkability':                2,
-        'inference':                  3
-    }
+    Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
 
-    @classmethod
-    def map(cls, method_name: str) -> int:
-        """
-        mapping method and handle exception
-        """
-        try:
-            return cls.method_map[method_name.lower()]
-        except KeyError as ex:
-            print(
-                f"Evaluator (Anonymeter): Method "
-                f"{method_name} not recognized.\n"
-                f"{ex}"
-            )
+    Returns:
+        None. Stores the result in self._Evaluator.evaluation.
+
+    TODO SinglingOut attacks of Multi-variate.
+    """
+
+    def __init__(self,   **kwargs):
+        super().__init__(**kwargs)
+        self.eval_method: str = 'SinglingOut - Univariate'
+
+        _time_start = time.time()
+        print(
+            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
+            f"Now is SinglingOut - Univariate Evaluator"
+        )
+
+        self._Evaluator = SinglingOutEvaluator(
+            ori=self.data_ori,
+            syn=self.data_syn,
+            control=self.data_control,
+            n_attacks=self.n_attacks
+        )
+        print(
+            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
+            f"Evaluator time: {round(time.time()-_time_start ,4)} sec."
+        )
+
+
+class AnonymeterLinkability(Anonymeter):
+    """
+    Estimation of the Linkability attacks in the Anonymeter library.
+
+    Returns:
+        None. Stores the result in self._Evaluator.evaluation.
+    """
+
+    def __init__(self,   **kwargs):
+        super().__init__(**kwargs)
+        self.eval_method: str = 'Linkability'
+
+        _time_start = time.time()
+        print(
+            f"Evaluator (Anonymeter - Linkability): "
+            f"Now is Linkability Evaluator"
+        )
+
+        _str_aux_cols = (
+            f"\n                                      and "
+            .join(f"[{', '.join(row)}]" for row in self.aux_cols)
+        )
+        print(
+            f"Evaluator (Anonymeter - Linkability): "
+            f"aux_cols are {_str_aux_cols}."
+        )
+
+        self._Evaluator = LinkabilityEvaluator(
+            ori=self.data_ori,
+            syn=self.data_syn,
+            control=self.data_control,
+            n_attacks=self.n_attacks,
+            n_neighbors=self.n_neighbors,
+            aux_cols=self.aux_cols
+        )
+        print(
+            f"Evaluator (Anonymeter - Linkability): Evaluator time: "
+            f"{round(time.time()-_time_start ,4)} sec."
+        )
+
+
+class AnonymeterInference(Anonymeter):
+    """
+    Estimation of the Inference attacks in the Anonymeter library.
+
+    Returns:
+        None. Stores the result in self._Evaluator.evaluation.
+
+    TODO Currently, it calculates a single column as the secret.
+            According to the paper, consider handling multiple secrets.
+    """
+
+    def __init__(self,   **kwargs):
+        super().__init__(**kwargs)
+        self.eval_method: str = 'Inference'
+
+        _time_start = time.time()
+        print('Evaluator (Anonymeter - Inference): Now is Inference Evaluator')
+
+        _aux_cols = [
+            col for col in self.data_syn.columns if col != self.secret
+        ]
+
+        self._Evaluator = InferenceEvaluator(
+            ori=self.data_ori,
+            syn=self.data_syn,
+            control=self.data_control,
+            aux_cols=_aux_cols,
+            secret=self.secret
+        )
+
+        print(
+            f"Evaluator (Anonymeter - Inference): Evaluator time: "
+            f"{round(time.time()-_time_start ,4)} sec."
+        )
