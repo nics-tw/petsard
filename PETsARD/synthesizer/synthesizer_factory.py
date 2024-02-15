@@ -1,27 +1,23 @@
 from PETsARD.synthesizer.sdv import SDVFactory
 from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
+from PETsARD.error import UnsupportSynthesizingMethodError
 
 
 class SynthesizerFactory:
     def __init__(self, data, **kwargs):
-        synthesizing_method = kwargs.get('synthesizing_method', None)
+        method = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
 
-        if synthesizing_method.startswith('sdv'):
-            _Synthesizer = SDVFactory(data=data, 
-                                      synthesizing_method=synthesizing_method
-                                      ).create_synthesizer()
-        elif synthesizing_method.startswith('smartnoise'):
+        if method.startswith('sdv'):
+            _Synthesizer = SDVFactory(
+                data=data, method=method).create_synthesizer()
+        elif method.startswith('smartnoise'):
             _Synthesizer = SmartNoiseFactory(data=data,
-                                synthesizing_method=synthesizing_method,
-                                epsilon=epsilon
-                                ).create_synthesizer()
+                                             method=method,
+                                             epsilon=epsilon
+                                             ).create_synthesizer()
         else:
-            raise ValueError(
-                f"Synthesizer - SynthesizerFactory: "
-                f"synthesizing_method {synthesizing_method} "
-                f"didn't support."
-            )
+            raise UnsupportSynthesizingMethodError
 
         self.Synthesizer = _Synthesizer
 

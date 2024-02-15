@@ -3,6 +3,37 @@ import pandas as pd
 from PETsARD.synthesizer.synthesizer_factory import SynthesizerFactory
 
 
+class SynthesizerMethod():
+    """
+    Mapping of Method.
+    """
+    SDV: int = 1
+    SMARTNOISE: int = 2
+
+    CSV:  int = 10
+    XLS:  int = 20
+    XLSX: int = 21
+    XLSM: int = 22
+    XLSB: int = 23
+    ODF:  int = 24
+    ODS:  int = 25
+    ODT:  int = 26
+
+    @classmethod
+    def getmethod(cls, method: str) -> int:
+        """
+        Get method mapping int value,
+            uses division by ten to obtain
+            a corresponding higher level of abstraction
+            and returns it.
+        ...
+        Args:
+            method (str):
+                Synthesizing method.
+        """
+        return cls.__dict__[file_ext[1:].upper()] // 10
+
+
 class Synthesizer:
     """
     Base class for all "Synthesizer".
@@ -25,19 +56,18 @@ class Synthesizer:
     def __init__(
         self,
         data: pd.DataFrame,
-        synthesizing_method: str,
+        method: str,
         epsilon: float = 5.0,
         **kwargs
     ) -> None:
 
-        self.para: dict = {}
-        self.para['Synthesizer']: dict = {
-            'synthesizing_method': synthesizing_method.lower(),
+        self.config: dict = {
+            'method': method.lower(),
             'epsilon': epsilon
         }
 
         Synthesizer = SynthesizerFactory(
-            data=data, **self.para['Synthesizer']
+            data=data, **self.config
         ).create_synthesizer()
 
         self.data_ori = data

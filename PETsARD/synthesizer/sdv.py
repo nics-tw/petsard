@@ -9,6 +9,8 @@ from sdv.single_table import (
     TVAESynthesizer
 )
 
+from PETsARD.error import UnsupportSynthesizingMethodError
+
 
 class SDVFactory:
     """
@@ -24,19 +26,15 @@ class SDVFactory:
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        synthesizing_method: str = kwargs.get('synthesizing_method', None)
+        method: str = kwargs.get('method', None)
 
-        if synthesizing_method.startswith('sdv-singletable'):
+        if method.startswith('sdv-singletable'):
             self.Synthesizer = SDVSingleTableFactory(
                 data=data,
-                synthesizing_method=synthesizing_method
+                method=method
             ).create_synthesizer()
         else:
-            raise ValueError(
-                f"Synthesizer (SDV - SDVFactory): "
-                f"synthesizing_method {synthesizing_method} "
-                f"didn't support."
-            )
+            raise UnsupportSynthesizingMethodError
 
     def create_synthesizer(self):
         """
@@ -67,22 +65,19 @@ class SDVSingleTableFactory:
         TODO As AnonymeterMethodMap, use class define mapping of string and int,
              don't use string condition.
         """
-        synthesizing_method: str = kwargs.get('synthesizing_method', None)
+        method: str = kwargs.get('method', None)
 
-        if synthesizing_method == 'sdv-singletable-copulagan':
+        if method == 'sdv-singletable-copulagan':
             self.Synthesizer = SDVSingleTableCopulaGAN(data=data)
-        elif synthesizing_method == 'sdv-singletable-ctgan':
+        elif method == 'sdv-singletable-ctgan':
             self.Synthesizer = SDVSingleTableCTGAN(data=data)
-        elif synthesizing_method == 'sdv-singletable-gaussiancopula':
+        elif method == 'sdv-singletable-gaussiancopula':
             self.Synthesizer = SDVSingleTableGaussianCopula(data=data)
-        elif synthesizing_method == 'sdv-singletable-tvae':
+        elif method == 'sdv-singletable-tvae':
             self.Synthesizer = SDVSingleTableTVAE(data=data)
 
         else:
-            raise ValueError(
-                f"Synthesizer (SDV - SDV_SingleTableFactory): "
-                f"synthesizing_method {synthesizing_method} didn't support."
-            )
+            raise UnsupportSynthesizingMethodError
 
     def create_synthesizer(self):
         """
