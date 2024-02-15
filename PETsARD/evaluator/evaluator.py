@@ -40,15 +40,12 @@ class Evaluator:
     def __init__(self, data: dict, evaluating_method: str, **kwargs):
 
         _para_Evaluator = {
-            'evaluating_method': evaluating_method.lower(),
-            # Anonymeter
-            'anonymeter_n_attacks': kwargs.get('anonymeter_n_attacks', 2000),
-            'anonymeter_n_jobs': kwargs.get('anonymeter_n_jobs', -2),
-            'anonymeter_n_neighbors': kwargs.get('anonymeter_n_neighbors', 10),
-            'anonymeter_aux_cols': kwargs.get('anonymeter_aux_cols', None),
-            'anonymeter_secret': kwargs.get('anonymeter_secret', None)
+            'evaluating_method': evaluating_method.lower()            # Anonymeter
+            , 'anonymeter_n_attacks': kwargs.get('anonymeter_n_attacks', 2000), 'anonymeter_n_jobs': kwargs.get('anonymeter_n_jobs', -2), 'anonymeter_n_neighbors': kwargs.get('anonymeter_n_neighbors', 10), 'anonymeter_aux_cols': kwargs.get('anonymeter_aux_cols', None), 'anonymeter_secret': kwargs.get('anonymeter_secret', None)
         }
-        self.Evaluator = EvaluatorFactory(data=data, **_para_Evaluator)\
+
+        from .EvaluatorFactory import EvaluatorFactory
+        Evaluator = EvaluatorFactory(data=data, **_para_Evaluator)\
             .create_evaluator()
 
     def eval(self) -> None:

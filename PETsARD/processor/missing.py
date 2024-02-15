@@ -166,6 +166,9 @@ class MissingMean(MissingHandler):
 
         return data.fillna(self.data_mean)
 
+    def _inverse_transform(self, data: None) -> None:
+        pass  # Redundant
+
 
 class MissingMedian(MissingHandler):
     """
@@ -199,6 +202,9 @@ class MissingMedian(MissingHandler):
 
         return data.fillna(self.data_median)
 
+    def _inverse_transform(self, data: None) -> None:
+        pass  # Redundant
+
 
 class MissingSimple(MissingHandler):
     """
@@ -229,6 +235,9 @@ class MissingSimple(MissingHandler):
 
         return data.fillna(self.data_value)
 
+    def _inverse_transform(self, data: None) -> None:
+        pass  # Redundant
+
 
 class MissingDrop(MissingHandler):
     """
@@ -255,3 +264,6 @@ class MissingDrop(MissingHandler):
         self.data_backup = data
 
         return data.isna().values.ravel()
+
+    def _inverse_transform(self, data: None) -> None:
+        pass  # Redundant
