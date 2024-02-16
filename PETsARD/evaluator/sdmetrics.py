@@ -11,6 +11,8 @@ from sdmetrics.reports.single_table import (
 )
 from sdv.metadata import SingleTableMetadata
 
+from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+
 
 class SDMetricsMethodMap():
     """
@@ -20,12 +22,12 @@ class SDMetricsMethodMap():
     QUALITYREPORT: int = 2
 
     @classmethod
-    def getext(cls, evaluating_method: str) -> int:
+    def getext(cls, method: str) -> int:
         """
         Get suffixes mapping int value
-        ...
+
         Args:
-            evaluating_method (str):
+            method (str):
                 evaluating method
         """
         try:
@@ -34,79 +36,59 @@ class SDMetricsMethodMap():
                 re.sub(
                     r"^(sdmetrics-single_table-|sdmetrics-)",
                     "",
-                    evaluating_method
+                    method
                 ).upper()
             ]
-        except KeyError as ex:
-            print(
-                f"Evaluator (SDMetrics): Method "
-                f"{evaluating_method} not recognized.\n"
-                f"{ex}"
-            )
+        except KeyError:
+            raise UnsupportedSynMethodError
 
 
 class SDMetrics:
     """
     Factory for "SDMetrics" Evaluator.
-
-    SDMetricsFactory defines which module to use within SDMetrics.
-
+        SDMetricsFactory defines which module to use within SDMetrics.
     """
 
     def __init__(
         self,
         data: Dict[str, pd.DataFrame],
-        evaluating_method: str = None,
+        method: str = None,
         **kwargs
     ):
         # Factory method for implementing the specified Loader class
-        if SDMetricsMethodMap.getext(evaluating_method) == SDMetricsMethodMap.DIAGNOSTICREPORT:
-            self.Evaluator = SDMetricsDiagnosticReport(
-                evaluating_method=evaluating_method,
-                data=data
-            )
-        elif SDMetricsMethodMap.getext(evaluating_method) == SDMetricsMethodMap.QUALITYREPORT:
-            self.Evaluator = SDMetricsQualityReport(
-                evaluating_method=evaluating_method,
-                data=data
-            )
+        if SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.DIAGNOSTICREPORT:
+            self.evaluator = SDMetricsDiagnosticReport(method=method, data=data)
+        elif SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.QUALITYREPORT:
+            self.evaluator = SDMetricsQualityReport(method=method, data=data)
         else:
-            raise ValueError(
-                f"Evaluator (SDMetrics): "
-                f"evaluating_method {evaluating_method} didn't support."
-            )
+            raise UnsupportedSynMethodError
 
-    def create_evaluator(self):
+    def create(self):
         """
-        create_evaluator()
+        create()
             return the Evaluator which selected by Factory.
         """
-        return self.Evaluator
+        return self.evaluator
 
 
 class SDMetricsBase():
     """
     Base class for all "SDMetrics".
 
-    ...
-
     Args:
         data (dict)
             Following data logic defined in Evaluator.
 
-    ...
     Returns:
         None
 
-    ...
     TODO Consider use nametupled to replace "data" dict for more certain requirement
-
     """
 
     def __init__(
         self,
         data: Dict[str, pd.DataFrame],
-        evaluating_method: str = None,
+        method: str = None,
         **kwargs
     ):
         self.data_ori = data['ori']
@@ -123,13 +105,13 @@ class SDMetricsBase():
             Defines the sub-evaluator from the SDMetrics library
 
         """
-        if self._Evaluator:
+        if self._evaluator:
             time_start = time.time()
             print(
                 f"Evaluator (SDMetrics): Evaluating {self.eval_method}."
             )
 
-            self._Evaluator.generate(
+            self._evaluator.generate(
                 real_data=self.data_ori,
                 synthetic_data=self.data_syn,
                 metadata=self.data_ori_metadata
@@ -142,21 +124,15 @@ class SDMetricsBase():
             )
             self.evaluation = self._extract_result()
         else:
-            raise ValueError(
-                f"Evaluator (SDMetrics): .eval() "
-                f"while _Evaluator didn't ready."
-            )
+            raise UnfittedError
 
     def _extract_result(self) -> dict:
         """
         _extract_result of SDMetrics.
 
-        ...
         Return
             (dict)
                 Contains the following key-value pairs
-
-        ...
 
         TODO  Consider using alternative methods to extract results
                 and evaluate migrating this functionality to the Reporter.
@@ -164,14 +140,14 @@ class SDMetricsBase():
         """
         dict_result = {}
 
-        dict_result['score'] = self._Evaluator.get_score()
+        dict_result['score'] = self._evaluator.get_score()
 
         # Tranfer pandas to desired dict format:
         #     {'properties name': {'Score': ...},
         #      'properties name': {'Score': ...}
         #     }
         dict_result['properties'] = (
-            self._Evaluator.get_properties()
+            self._evaluator.get_properties()
                 .set_index('Property').rename_axis(None)
                 .to_dict('index')
         )
@@ -179,7 +155,7 @@ class SDMetricsBase():
         dict_result['details'] = {}
         for property in dict_result['properties'].keys():
             dict_result['details'][property] =\
-                self._Evaluator.get_details(property_name=property)
+                self._evaluator.get_details(property_name=property)
 
         return dict_result
 
@@ -192,15 +168,14 @@ class SDMetricsDiagnosticReport(SDMetricsBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.eval_method: str = 'DiagnosticReport'
-        self._Evaluator = DiagnosticReport()
+        self._evaluator = DiagnosticReport()
 
 
 class SDMetricsQualityReport(SDMetricsBase):
     """
     Estimation of the QualityReport in the SDMetrics library.
     """
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.eval_method: str = 'QualityReport'
-        self._Evaluator = QualityReport()
+        self._evaluator = QualityReport()
