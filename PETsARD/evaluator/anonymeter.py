@@ -33,18 +33,18 @@ class AnonymeterFactory:
     """
 
     def __init__(self, **kwargs):
-        evaluating_method: str = kwargs.get('evaluating_method', None)
+        method: str = kwargs.get('method', None)
 
-        if evaluating_method.startswith('anonymeter-singlingout-univariate'):
+        if method.startswith('anonymeter-singlingout-univariate'):
             self.Evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
-        elif evaluating_method.startswith('anonymeter-linkability'):
+        elif method.startswith('anonymeter-linkability'):
             self.Evaluator = AnonymeterLinkability(**kwargs)
-        elif evaluating_method.startswith('anonymeter-inference'):
+        elif method.startswith('anonymeter-inference'):
             self.Evaluator = AnonymeterInference(**kwargs)
         else:
             raise ValueError(
                 f"Evaluator (Anonymeter - AnonymeterFactory): "
-                f"evaluating_method {evaluating_method} didn't support."
+                f"method {method} didn't support."
             )
 
     def create_evaluator(self):
