@@ -136,18 +136,20 @@ class ProcessorOperator(Operator):
 
     def __init__(self, config: dict):
         super().__init__(config)
-        self.processor = Processor(
-            metadata=MinMetadata(config=config),
-            config=config
-        )
+        self._processor = None
+        self._config = config
 
     def run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
         """
-        self.processor.fit(**input)
-        self.processor.data_preproc: pd.DataFrame = \
-            self.processor.transform(**input)
+        self._processor = Processor(
+            metadata=input['metadata'],
+            config=self._config
+        )
+        self._processor.fit(**input)
+        self._processor.data_preproc: pd.DataFrame = \
+            self._processor.transform(**input)
 
     def get_result(self) -> pd.DataFrame:
         """
