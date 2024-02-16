@@ -10,7 +10,7 @@ class DiscretizingHandler:
     Base class for all Discretizer.
     """
 
-    PROC_TYPE = ('discretizer', 'cube')
+    PROC_TYPE = ('discretizing',)
 
     def __init__(self) -> None:
         self._is_fitted = False

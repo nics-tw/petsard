@@ -75,7 +75,7 @@ class Processor:
                 'datetime': ScalerStandard,
                 'object': lambda: None
             },
-            'cube': {
+            'discretizing': {
                 'numerical': DiscretizingKBins,
                 'categorical': EncoderLabel,
                 'datetime': DiscretizingKBins,
@@ -339,7 +339,7 @@ class Processor:
             data (pd.DataFrame): The data to be fitted.
             sequence (list): The processing sequence. 
                 Avaliable procedures: 'missing', 'outlier', 
-                    'encoder', 'scaler', and 'cube'.
+                    'encoder', 'scaler', and 'discretizing'.
                     ['missing', 'outlier', 'encoder', 'scaler'] 
                     is the default sequence.
         """
@@ -443,12 +443,12 @@ class Processor:
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
             
-        if 'cube' in sequence:
+        if 'discretizing' in sequence:
             if 'encoder' in sequence:
-                raise ValueError("'cube' and 'encoder' processor" + \
+                raise ValueError("'discretizing' and 'encoder' processor" + \
                                  " cannot coexist.")
-            if sequence[-1] != 'cube':
-                raise ValueError("'cube' processor must be the last processor.")
+            if sequence[-1] != 'discretizing':
+                raise ValueError("'discretizing' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """

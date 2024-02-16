@@ -195,7 +195,7 @@ class EncoderLabel(Encoder):
     Implement a label encoder.
     """
 
-    PROC_TYPE = ('encoder', 'cube')
+    PROC_TYPE = ('encoder', 'discretizing')
 
     def __init__(self) -> None:
         super().__init__()
