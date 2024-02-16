@@ -9,7 +9,7 @@ from sdv.single_table import (
     TVAESynthesizer
 )
 
-from PETsARD.error import UnsupportSynthesizingMethodError
+from PETsARD.error import UnfittedError, UnsupportedSynMethodError
 
 
 class SDVFactory:
@@ -32,11 +32,11 @@ class SDVFactory:
             self.Synthesizer = SDVSingleTableFactory(
                 data=data,
                 method=method
-            ).create_synthesizer()
+            ).create()
         else:
-            raise UnsupportSynthesizingMethodError
+            raise UnsupportedSynMethodError
 
-    def create_synthesizer(self):
+    def create(self):
         """
         Create synthesizer instance.
 
@@ -77,9 +77,9 @@ class SDVSingleTableFactory:
             self.Synthesizer = SDVSingleTableTVAE(data=data)
 
         else:
-            raise UnsupportSynthesizingMethodError
+            raise UnsupportedSynMethodError
 
-    def create_synthesizer(self):
+    def create(self):
         """
         Create synthesizer instance.
 
@@ -112,9 +112,6 @@ class SDVSingleTable(SDV):
     Args:
         data (pd.DataFrame): The data to be synthesized.
         **kwargs: The other parameters.
-
-    TODO - Put all SDV related class together
-    TODO - Nice to have - Simplify the code (Factory part)
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
@@ -157,10 +154,7 @@ class SDVSingleTable(SDV):
                 f"{round(time.time()-time_start ,4)} sec."
             )
         else:
-            raise ValueError(
-                f"Synthesizer (SDV - SingleTable): "
-                f".fit() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def sample(self,
                sample_num_rows:  int = None,
@@ -223,16 +217,9 @@ class SDVSingleTable(SDV):
                 )
                 return data_syn
             except Exception as ex:
-                raise NotImplementedError(
-                    f"Synthesizer (SDV - SingleTable): "
-                    f".sample() while _Synthesizer didn't fitted, "
-                    f"run .fit() before sampling."
-                )
+                raise UnfittedError
         else:
-            raise NotImplementedError(
-                f"Synthesizer (SDV - SingleTable): "
-                f".sample() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def fit_sample(
             self,
