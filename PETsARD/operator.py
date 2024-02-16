@@ -5,6 +5,7 @@ import pandas as pd
 from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
 from PETsARD.synthesizer import Synthesizer
+from PETsARD.evaluator import Evaluator
 
 
 class Operator:
@@ -137,7 +138,7 @@ class PreprocessorOperator(Operator):
             _config (dict): The configuration parameters for the Operator.
         """
         super().__init__(config)
-        self._processor = None
+        self.processor = None
         self._config = config
 
     def run(self, input: dict):
@@ -147,14 +148,16 @@ class PreprocessorOperator(Operator):
         Attributes:
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
+        
+        TODO consider use update_config() when #247 is done
         """
-        self._processor = Processor(
+        self.processor = Processor(
             metadata=input['metadata'],
             config=self._config
         )
-        self._processor.fit(**input)
-        self._processor.data_preproc: pd.DataFrame = \
-            self._processor.transform(**input)
+        self.processor.fit(data=input['data'])
+        self.processor.data_preproc: pd.DataFrame = \
+            self.processor.transform(data=input['data'])
 
     def get_result(self) -> pd.DataFrame:
         """
@@ -198,9 +201,6 @@ class SynthesizerOperator(Operator):
         """
         return self.synthesizer.data_syn
 
-
-    
-
 class PostprocessorOperator(Operator):
     """
     PostprocessorOperator is responsible for post-processing data
@@ -217,7 +217,7 @@ class PostprocessorOperator(Operator):
             _config (dict): The configuration parameters for the Operator.
         """
         super().__init__(config)
-        self._processor = None
+        self.processor = None
         self._config = config
 
     def run(self, input: dict):
@@ -228,12 +228,50 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self._processor = deepcopy(input['preprocessor'])
-        self._processor.data_postproc: pd.DataFrame = \
-            self._processor.inverse_transform(data=input['data'])
+        self.processor = deepcopy(input['preprocessor'])
+        self.processor.data_postproc: pd.DataFrame = \
+            self.processor.inverse_transform(data=input['data'])
 
     def get_result(self) -> pd.DataFrame:
         """
         Retrieve the pre-processing result.
         """
         return self.processor.data_postproc
+    
+
+class EvaluatorOperator(Operator):
+    """
+    EvaluatorOperator is responsible for evaluating data
+        using the configured Evaluator instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Attributes:
+            evaluator (Evaluator):
+                An instance of the Evaluator class initialized with the provided configuration.
+        """
+        super().__init__(config)
+        self.evaluator = Evaluator(**config)
+
+    def run(self, input: dict):
+        """
+        Executes the data synthesizing using the Evaluator instance.
+
+        Args:
+            input (dict): Evaluator input should contains data (dict).
+
+        Attributes:
+            evaluator.data_syn (pd.DataFrame):
+                An synthesizing result data.
+        """
+        self.evaluator.create(**input)
+        self.evaluator.eval()
+
+        self.evaluator.evaluation = self.evaluator.evaluator.evaluation
+
+    def get_result(self):
+        """
+        Retrieve the pre-processing result.
+        """
+        return self.evaluator.evaluation
