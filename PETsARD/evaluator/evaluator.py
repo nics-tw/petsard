@@ -1,5 +1,39 @@
-from PETsARD.evaluator.evaluator_factory import EvaluatorFactory
+import re
 
+from PETsARD.evaluator.anonymeter import AnonymeterFactory
+from PETsARD.evaluator.sdmetrics import SDMetrics
+
+from PETsARD.error import UnsupportedSynMethodError
+
+
+class EvaluatorMethodMap():
+    """
+    Mapping of SDMetrics.
+    """
+    ANONYMETER: int = 1
+    SDMETRICS: int = 2
+
+    @classmethod
+    def getext(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value before 1st dash (-)
+
+        Args:
+            method (str):
+                evaluating method
+        """
+        try:
+            # Get the string before 1st dash, if not exist, get emply ('').
+            method_1st_match = re.match(
+                r'^[^-]*', method)
+            method_1st = (
+                method_1st_match.group()
+                if method_1st_match
+                else ''
+            )
+            return cls.__dict__[method_1st.upper()]
+        except KeyError:
+            raise UnsupportedSynMethodError
 
 class Evaluator:
     """
@@ -7,8 +41,6 @@ class Evaluator:
 
     The "Evaluator" class defines the common API
     that all "Evaluators" need to implement, as well as common functionality.
-
-    ...
 
     Args:
         data (dict)
@@ -28,29 +60,41 @@ class Evaluator:
                 The format should be: {library name}{function name},
                 e.g., 'anonymeter_singlingout_univariate'.
 
-    ...
     Returns:
         None
 
-    ...
     TODO Extract and process the result.
 
     """
 
-    def __init__(self, data: dict, method: str, **kwargs):
+    def __init__(self, method: str, **kwargs):
 
         self.config = {
-            'data': data,
             'method': method.lower(),
-            # Anonymeter
-            'anonymeter_n_attacks': kwargs.get('anonymeter_n_attacks', 2000),
-            'anonymeter_n_jobs': kwargs.get('anonymeter_n_jobs', -2),
-            'anonymeter_n_neighbors': kwargs.get('anonymeter_n_neighbors', 10),
-            'anonymeter_aux_cols': kwargs.get('anonymeter_aux_cols', None),
-            'anonymeter_secret': kwargs.get('anonymeter_secret', None)
+            'n_attacks': kwargs.get('n_attacks', 2000),
+            'n_jobs': kwargs.get('n_jobs', -2),
+            'n_neighbors': kwargs.get('n_neighbors', 10),
+            'aux_cols': kwargs.get('aux_cols', None),
+            'secret': kwargs.get('secret', None)
         }
 
-        self.evaluator = EvaluatorFactory(**self.config).create_evaluator()
+    def create(self, data: dict) -> None:
+        """
+        Create a Evaluator object with the given data.
+
+        Args:
+            data (dict): The input data for evaluating.
+        """
+        self.config['data'] = data
+
+        # TODO: verify method in __init__
+        method = self.config['method']
+        if EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.ANONYMETER:
+            self.evaluator = AnonymeterFactory(**self.config).create()
+        elif EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.SDMETRICS:
+            self.evaluator = SDMetrics(**self.config).create()
+        else:
+            raise UnsupportedSynMethodError
 
     def eval(self) -> None:
         """

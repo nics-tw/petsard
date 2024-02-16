@@ -8,7 +8,6 @@ from typing import (
 )
 import warnings
 
-
 from anonymeter.evaluators import (
     SinglingOutEvaluator,
     LinkabilityEvaluator,
@@ -17,6 +16,7 @@ from anonymeter.evaluators import (
 import numpy as np
 import pandas as pd
 
+from PETsARD.error import UnfittedError, UnsupportedSynMethodError
 
 
 class AnonymeterFactory:
@@ -25,7 +25,6 @@ class AnonymeterFactory:
 
     AnonymeterFactory defines which module to use within Anonymeter.
 
-    ...
     TODO As AnonymeterMethodMap,
             use a class to define mappings of string and int,
             avoiding string conditions.
@@ -36,23 +35,20 @@ class AnonymeterFactory:
         method: str = kwargs.get('method', None)
 
         if method.startswith('anonymeter-singlingout-univariate'):
-            self.Evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
+            self.evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
         elif method.startswith('anonymeter-linkability'):
-            self.Evaluator = AnonymeterLinkability(**kwargs)
+            self.evaluator = AnonymeterLinkability(**kwargs)
         elif method.startswith('anonymeter-inference'):
-            self.Evaluator = AnonymeterInference(**kwargs)
+            self.evaluator = AnonymeterInference(**kwargs)
         else:
-            raise ValueError(
-                f"Evaluator (Anonymeter - AnonymeterFactory): "
-                f"method {method} didn't support."
-            )
+            raise UnsupportedSynMethodError
 
-    def create_evaluator(self):
+    def create(self):
         """
-        create_evaluator()
+        create()
             return the Evaluator which selected by Factory.
         """
-        return self.Evaluator
+        return self.evaluator
 
 
 class AnonymeterMethodMap():
@@ -73,12 +69,8 @@ class AnonymeterMethodMap():
         """
         try:
             return cls.method_map[method_name.lower()]
-        except KeyError as ex:
-            print(
-                f"Evaluator (Anonymeter): Method "
-                f"{method_name} not recognized.\n"
-                f"{ex}"
-            )
+        except KeyError:
+            raise UnsupportedSynMethodError
 
 
 class Anonymeter():
@@ -158,7 +150,7 @@ class Anonymeter():
             warnings.simplefilter("ignore", category=FutureWarning)
             warnings.simplefilter("ignore", category=UserWarning)
 
-            if self._Evaluator:
+            if self._evaluator:
                 time_start = time.time()
 
                 print(
@@ -172,7 +164,7 @@ class Anonymeter():
                         else 'multivariate'
                     )
                     try:
-                        self._Evaluator.evaluate(mode=_mode)
+                        self._evaluator.evaluate(mode=_mode)
                     except RuntimeError as ex:
                         print(
                             f"Evaluator (Anonymeter): Singling out "
@@ -183,7 +175,7 @@ class Anonymeter():
                             f"Note that this will make the evaluation slower."
                         )
                 else:
-                    self._Evaluator.evaluate(n_jobs=self.n_jobs)
+                    self._evaluator.evaluate(n_jobs=self.n_jobs)
                     print(
                         f"Evaluator (Anonymeter): "
                         f"Evaluating {self.eval_method} spent "
@@ -191,16 +183,13 @@ class Anonymeter():
                     )
                 self.evaluation = self._extract_result()
             else:
-                raise ValueError(
-                    f"Evaluator (Anonymeter): .eval() "
-                    f"while _Evaluator didn't ready."
-                )
+                raise UnfittedError
 
     def _extract_result(self) -> dict:
         """
         _extract_result of Anonymeter.
             Uses .risk()/.results() method in Anonymeter
-            to extract result from self._Evaluator into the designated dictionary.
+            to extract result from self._evaluator into the designated dictionary.
 
         Return
             (dict)
@@ -264,7 +253,7 @@ class Anonymeter():
         for key, evals in para_to_handle:
             dict_result[key] = np.nan
             try:
-                eval_instance = self._Evaluator
+                eval_instance = self._evaluator
                 for eval_command in evals:
                     if '()' in eval_command:
                         method_name = eval_command.split('(')[0]
@@ -301,7 +290,7 @@ class AnonymeterSinglingOutUnivariate(Anonymeter):
     Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
 
     Returns:
-        None. Stores the result in self._Evaluator.evaluation.
+        None. Stores the result in self._evaluator.evaluation.
 
     TODO SinglingOut attacks of Multi-variate.
     """
@@ -316,7 +305,7 @@ class AnonymeterSinglingOutUnivariate(Anonymeter):
             f"Now is SinglingOut - Univariate Evaluator"
         )
 
-        self._Evaluator = SinglingOutEvaluator(
+        self._evaluator = SinglingOutEvaluator(
             ori=self.data_ori,
             syn=self.data_syn,
             control=self.data_control,
@@ -333,7 +322,7 @@ class AnonymeterLinkability(Anonymeter):
     Estimation of the Linkability attacks in the Anonymeter library.
 
     Returns:
-        None. Stores the result in self._Evaluator.evaluation.
+        None. Stores the result in self._evaluator.evaluation.
     """
 
     def __init__(self,   **kwargs):
@@ -355,7 +344,7 @@ class AnonymeterLinkability(Anonymeter):
             f"aux_cols are {_str_aux_cols}."
         )
 
-        self._Evaluator = LinkabilityEvaluator(
+        self._evaluator = LinkabilityEvaluator(
             ori=self.data_ori,
             syn=self.data_syn,
             control=self.data_control,
@@ -374,7 +363,7 @@ class AnonymeterInference(Anonymeter):
     Estimation of the Inference attacks in the Anonymeter library.
 
     Returns:
-        None. Stores the result in self._Evaluator.evaluation.
+        None. Stores the result in self._evaluator.evaluation.
 
     TODO Currently, it calculates a single column as the secret.
             According to the paper, consider handling multiple secrets.
@@ -391,7 +380,7 @@ class AnonymeterInference(Anonymeter):
             col for col in self.data_syn.columns if col != self.secret
         ]
 
-        self._Evaluator = InferenceEvaluator(
+        self._evaluator = InferenceEvaluator(
             ori=self.data_ori,
             syn=self.data_syn,
             control=self.data_control,
