@@ -5,7 +5,7 @@ from snsynth.transform import NoTransformer, TableTransformer
 from snsynth.transform.identity import IdentityTransformer
 from snsynth import Synthesizer as SNSyn
 
-from PETsARD.error import UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedSynMethodError
 
 
 class SmartNoise:
@@ -51,10 +51,7 @@ class SmartNoise:
                 f"{round(time.time()-time_start ,4)} sec."
             )
         else:
-            raise ValueError(
-                f"Synthesizer (SmartNoise): "
-                f".fit() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def sample(self,
                sample_num_rows:  int = None,
@@ -106,19 +103,10 @@ class SmartNoise:
                     f"in {round(time.time()-time_start ,4)} sec."
                 )
                 return data_syn
-            
-            # TODO - Make Exception more precise
             except Exception as ex:
-                raise NotImplementedError(
-                    f"Synthesizer (SmartNoise): "
-                    f".sample() while _Synthesizer didn't fitted, "
-                    f"run .fit() before sampling."
-                )
+                raise UnfittedError
         else:
-            raise NotImplementedError(
-                f"Synthesizer (SmartNoise): "
-                f".sample() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def fit_sample(
             self,
@@ -168,7 +156,7 @@ class SmartNoiseFactory:
         else:
             raise UnsupportedSynMethodError
 
-    def create_synthesizer(self):
+    def create(self):
         """
         Create synthesizer instance.
         Return:
@@ -194,5 +182,4 @@ class SmartNoiseCreator(SmartNoise):
         super().__init__(data, **kwargs)
         self.syn_method: str = method
 
-        self._Synthesizer = SNSyn.\
-                create(method, epsilon=epsilon)
+        self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
