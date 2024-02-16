@@ -1,35 +1,7 @@
-from typing import (
-    Dict, List, Optional
-)
-
 import pandas as pd
 
 from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
-
-
-class MinMetadata:
-    """
-    Initializes an instance of the minimum available Metadata class for Operator use.
-    TODO: column names free Metadata: require user to set all column names in config now.
-    """
-
-    def __init__(self, config: dict):
-        """
-        Args:
-            config (dict): A dictionary containing configuration information for various modules.
-
-        Attributes:
-            metadata (dict): A dictionary containing metadata information.
-        """
-        col = set()
-        for module in ['encoder', 'missing', 'outlier', 'scaler']:
-            if module in config:
-                col.update(list(config[module].keys()))
-        self.metadata = {
-            'col': {key: {} for key in col},
-            'global': {}
-        }
 
 
 class Operator:
@@ -75,8 +47,7 @@ class LoaderOperator(Operator):
     def __init__(self, config: dict):
         """
         Args:
-            config (dict):
-                A dictionary containing configuration parameters for the Loader.
+            config (dict): Configuration parameters for the Loader.
 
         Attributes:
             loader (Loader):
@@ -91,6 +62,10 @@ class LoaderOperator(Operator):
 
         Args:
             input (dict): Loader input should contains nothing ({}).
+
+        Attributes:
+            loader.data (pd.DataFrame):
+                An loading result data.
         """
         self.loader.load()
 
@@ -108,6 +83,14 @@ class SplitterOperator(Operator):
     """
 
     def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): Configuration parameters for the Splitter.
+
+        Attributes:
+            splitter (Splitter):
+                An instance of the Splitter class initialized with the provided configuration.
+        """
         super().__init__(config)
         self.splitter = Splitter(**config)
 
@@ -117,6 +100,13 @@ class SplitterOperator(Operator):
 
         Args:
             input (dict): Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+
+        Attributes:
+            splitter.data (Dict[int, Dict[str, pd.DataFrame]]):
+                An splitting result data.
+                    First layer is the splitting index, key as int, value as dictionary.
+                    Second layer is the splitting result of specific splitting,
+                    key as str: 'train' and 'validation', value as pd.DataFrame.
         """
         self.splitter.split(**input)
 
@@ -135,6 +125,14 @@ class ProcessorOperator(Operator):
     """
 
     def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): Configuration parameters for the Processor.
+
+        Attributes:
+            _processor (Processor): The processor object used by the Operator.
+            _config (dict): The configuration parameters for the Operator.
+        """
         super().__init__(config)
         self._processor = None
         self._config = config
@@ -142,6 +140,10 @@ class ProcessorOperator(Operator):
     def run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
+
+        Attributes:
+            processor (Processor):
+                An instance of the Processor class initialized with the provided configuration.
         """
         self._processor = Processor(
             metadata=input['metadata'],
