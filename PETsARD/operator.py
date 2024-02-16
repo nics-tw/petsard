@@ -2,7 +2,6 @@ import pandas as pd
 
 from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
-from PETsARD.synthesizer import Synthesizer
 
 
 class Operator:
@@ -159,39 +158,3 @@ class ProcessorOperator(Operator):
         Retrieve the pre-processing result.
         """
         return self.processor.data_preproc
-
-
-class SynthesizerOperator(Operator):
-    """
-    SynthesizerOperator is responsible for synthesizing data
-        using the configured Synthesizer instance as a decorator.
-    """
-
-    def __init__(self, config: dict):
-        """
-        Attributes:
-            synthesizer (Synthesizer):
-                An instance of the Synthesizer class initialized with the provided configuration.
-        """
-        super().__init__(config)
-        self.synthesizer = Synthesizer(**config)
-
-    def run(self, input: dict):
-        """
-        Executes the data synthesizing using the Synthesizer instance.
-
-        Args:
-            input (dict): Synthesizer input should contains data (pd.DataFrame).
-
-        Attributes:
-            synthesizer.data_syn (pd.DataFrame):
-                An synthesizing result data.
-        """
-        self.synthesizer.create(**input)
-        self.synthesizer.fit_sample()
-
-    def get_result(self) -> pd.DataFrame:
-        """
-        Retrieve the synthesizing result.
-        """
-        return self.synthesizer.data_syn
