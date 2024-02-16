@@ -226,9 +226,9 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self._processor = input['preprocessor']
-        self._processor.data_postproc: pd.DataFrame = \
-            self._processor.inverse_transform(data=input['data'])
+        self.processor = input['preprocessor']
+        self.processor.data_postproc: pd.DataFrame = \
+            self.processor.inverse_transform(data=input['data'])
 
     def get_result(self) -> pd.DataFrame:
         """
