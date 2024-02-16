@@ -20,12 +20,12 @@ class SDMetricsMethodMap():
     QUALITYREPORT: int = 2
 
     @classmethod
-    def getext(cls, evaluating_method: str) -> int:
+    def getext(cls, method: str) -> int:
         """
         Get suffixes mapping int value
         ...
         Args:
-            evaluating_method (str):
+            method (str):
                 evaluating method
         """
         try:
@@ -34,13 +34,13 @@ class SDMetricsMethodMap():
                 re.sub(
                     r"^(sdmetrics-single_table-|sdmetrics-)",
                     "",
-                    evaluating_method
+                    method
                 ).upper()
             ]
         except KeyError as ex:
             print(
                 f"Evaluator (SDMetrics): Method "
-                f"{evaluating_method} not recognized.\n"
+                f"{method} not recognized.\n"
                 f"{ex}"
             )
 
@@ -56,24 +56,24 @@ class SDMetrics:
     def __init__(
         self,
         data: Dict[str, pd.DataFrame],
-        evaluating_method: str = None,
+        method: str = None,
         **kwargs
     ):
         # Factory method for implementing the specified Loader class
-        if SDMetricsMethodMap.getext(evaluating_method) == SDMetricsMethodMap.DIAGNOSTICREPORT:
+        if SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.DIAGNOSTICREPORT:
             self.Evaluator = SDMetricsDiagnosticReport(
-                evaluating_method=evaluating_method,
+                method=method,
                 data=data
             )
-        elif SDMetricsMethodMap.getext(evaluating_method) == SDMetricsMethodMap.QUALITYREPORT:
+        elif SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.QUALITYREPORT:
             self.Evaluator = SDMetricsQualityReport(
-                evaluating_method=evaluating_method,
+                method=method,
                 data=data
             )
         else:
             raise ValueError(
                 f"Evaluator (SDMetrics): "
-                f"evaluating_method {evaluating_method} didn't support."
+                f"method {method} didn't support."
             )
 
     def create_evaluator(self):
@@ -106,7 +106,7 @@ class SDMetricsBase():
     def __init__(
         self,
         data: Dict[str, pd.DataFrame],
-        evaluating_method: str = None,
+        method: str = None,
         **kwargs
     ):
         self.data_ori = data['ori']

@@ -12,28 +12,28 @@ class EvaluatorMethodMap():
     SDMETRICS: int = 2
 
     @classmethod
-    def getext(cls, evaluating_method: str) -> int:
+    def getext(cls, method: str) -> int:
         """
         Get suffixes mapping int value before 1st dash (-)
         ...
         Args:
-            evaluating_method (str):
+            method (str):
                 evaluating method
         """
         try:
             # Get the string before 1st dash, if not exist, get emply ('').
-            evaluating_method_1st_match = re.match(
-                r'^[^-]*', evaluating_method)
-            evaluating_method_1st = (
-                evaluating_method_1st_match.group()
-                if evaluating_method_1st_match
+            method_1st_match = re.match(
+                r'^[^-]*', method)
+            method_1st = (
+                method_1st_match.group()
+                if method_1st_match
                 else ''
             )
-            return cls.__dict__[evaluating_method_1st.upper()]
+            return cls.__dict__[method_1st.upper()]
         except KeyError as ex:
             print(
                 f"Evaluator (SDMetrics): Method "
-                f"{evaluating_method} not recognized.\n"
+                f"{method} not recognized.\n"
                 f"{ex}"
             )
 
@@ -48,8 +48,8 @@ class EvaluatorFactory:
     ...
 
     Args:
-        evaluating_method (str):
-            Follow the 'evaluating_method' logic defined in Evaluator.
+        method (str):
+            Follow the 'method' logic defined in Evaluator.
 
     ...
     Returns:
@@ -59,16 +59,16 @@ class EvaluatorFactory:
 
     def __init__(self, **kwargs):
         # TODO don't use kwargs
-        evaluating_method = kwargs.get('evaluating_method', None)
+        method = kwargs.get('method', None)
 
         # Factory method for implementing the specified Loader class
-        if EvaluatorMethodMap.getext(evaluating_method) == EvaluatorMethodMap.ANONYMETER:
+        if EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.ANONYMETER:
             self.Evaluator = AnonymeterFactory(**kwargs).create_evaluator()
-        elif EvaluatorMethodMap.getext(evaluating_method) == EvaluatorMethodMap.SDMETRICS:
+        elif EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.SDMETRICS:
             self.Evaluator = SDMetrics(**kwargs).create_evaluator()
         else:
             raise ValueError(
-                f"Evaluator - EvaluatorFactory: evaluating_method {evaluating_method} didn't support.")
+                f"Evaluator - EvaluatorFactory: method {method} didn't support.")
 
         self.Evaluator = _Evaluator
 
