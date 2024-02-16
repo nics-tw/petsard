@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import pandas as pd
 
 from PETsARD.loader import Loader, Splitter
@@ -228,7 +226,7 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self._processor = deepcopy(input['preprocessor'])
+        self._processor = input['preprocessor']
         self._processor.data_postproc: pd.DataFrame = \
             self._processor.inverse_transform(data=input['data'])
 
