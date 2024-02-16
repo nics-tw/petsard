@@ -1,10 +1,12 @@
 import time
 
 import pandas as pd
-
 from snsynth.transform import NoTransformer, TableTransformer
 from snsynth.transform.identity import IdentityTransformer
 from snsynth import Synthesizer as SNSyn
+
+from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+
 
 class SmartNoise:
     """
@@ -49,10 +51,7 @@ class SmartNoise:
                 f"{round(time.time()-time_start ,4)} sec."
             )
         else:
-            raise ValueError(
-                f"Synthesizer (SmartNoise): "
-                f".fit() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def sample(self,
                sample_num_rows:  int = None,
@@ -104,19 +103,10 @@ class SmartNoise:
                     f"in {round(time.time()-time_start ,4)} sec."
                 )
                 return data_syn
-            
-            # TODO - Make Exception more precise
             except Exception as ex:
-                raise NotImplementedError(
-                    f"Synthesizer (SmartNoise): "
-                    f".sample() while _Synthesizer didn't fitted, "
-                    f"run .fit() before sampling."
-                )
+                raise UnfittedError
         else:
-            raise NotImplementedError(
-                f"Synthesizer (SmartNoise): "
-                f".sample() while _Synthesizer didn't ready."
-            )
+            raise UnfittedError
 
     def fit_sample(
             self,
@@ -154,23 +144,19 @@ class SmartNoiseFactory:
             data (pd.DataFrame): The data to be synthesized.
             **kwargs: The other parameters.
         """
-        synthesizing_method: str = kwargs.get('synthesizing_method', None)
+        method: str = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
 
-        if synthesizing_method.startswith('smartnoise-'):
+        if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
                 data,
-                synthesizing_method=synthesizing_method.split('-')[1], 
+                method=method.split('-')[1], 
                 epsilon=epsilon
             )
         else:
-            raise ValueError(
-                f"Synthesizer (SmartNoise - SmartNoiseFactory): "
-                f"synthesizing_method {synthesizing_method} "
-                f"didn't support."
-            )
+            raise UnsupportedSynMethodError
 
-    def create_synthesizer(self):
+    def create(self):
         """
         Create synthesizer instance.
         Return:
@@ -185,16 +171,15 @@ class SmartNoiseCreator(SmartNoise):
     """
 
     def __init__(self, data: pd.DataFrame, 
-                 synthesizing_method: str, epsilon: float = 5.0, **kwargs):
+                 method: str, epsilon: float = 5.0, **kwargs):
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
-            synthesizing_method (str): The synthesizing method to be applied.
+            method (str): The synthesizing method to be applied.
             epsilon (float, default = 5.0): The privacy budget.
             **kwargs: The other parameters.
         """
         super().__init__(data, **kwargs)
-        self.syn_method: str = synthesizing_method
+        self.syn_method: str = method
 
-        self._Synthesizer = SNSyn.\
-                create(synthesizing_method, epsilon=epsilon)
+        self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
