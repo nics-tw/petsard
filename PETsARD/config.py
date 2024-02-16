@@ -196,12 +196,7 @@ class Status:
         temp['operator'] = operator
         self.status[module] = deepcopy(temp)
 
-        if module == 'Splitter':
-            curr_exist_index: list = [
-                idx for value in operator.splitter.index.values()
-                for idx in value['train']
-            ]
-            self.exist_index = list(set(self.exist_index + curr_exist_index))
+        # TODO remove exist_index from previous Splitter
 
     def get_input_from_prev(self, module: str) -> dict:
         """
