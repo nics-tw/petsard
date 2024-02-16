@@ -1,7 +1,10 @@
+from copy import deepcopy
+
 import pandas as pd
 
 from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
+from PETsARD.synthesizer import Synthesizer
 
 
 class Operator:
@@ -116,11 +119,11 @@ class SplitterOperator(Operator):
             Due to Config force num_samples = 1, return 1st dataset is fine.
         """
         return self.splitter.data[1]
-    
 
-class ProcessorOperator(Operator):
+
+class PreprocessorOperator(Operator):
     """
-    ProcessorOperator is responsible for pre-processing data
+    PreprocessorOperator is responsible for pre-processing data
         using the configured Processor instance as a decorator.
     """
 
@@ -158,3 +161,79 @@ class ProcessorOperator(Operator):
         Retrieve the pre-processing result.
         """
         return self.processor.data_preproc
+
+
+class SynthesizerOperator(Operator):
+    """
+    SynthesizerOperator is responsible for synthesizing data
+        using the configured Synthesizer instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Attributes:
+            synthesizer (Synthesizer):
+                An instance of the Synthesizer class initialized with the provided configuration.
+        """
+        super().__init__(config)
+        self.synthesizer = Synthesizer(**config)
+
+    def run(self, input: dict):
+        """
+        Executes the data synthesizing using the Synthesizer instance.
+
+        Args:
+            input (dict): Synthesizer input should contains data (pd.DataFrame).
+
+        Attributes:
+            synthesizer.data_syn (pd.DataFrame):
+                An synthesizing result data.
+        """
+        self.synthesizer.create(**input)
+        self.synthesizer.fit_sample()
+
+    def get_result(self) -> pd.DataFrame:
+        """
+        Retrieve the synthesizing result.
+        """
+        return self.synthesizer.data_syn
+
+
+    
+
+class PostprocessorOperator(Operator):
+    """
+    PostprocessorOperator is responsible for post-processing data
+        using the configured Processor instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): Configuration parameters for the Processor.
+
+        Attributes:
+            _processor (Processor): The processor object used by the Operator.
+            _config (dict): The configuration parameters for the Operator.
+        """
+        super().__init__(config)
+        self._processor = None
+        self._config = config
+
+    def run(self, input: dict):
+        """
+        Executes the data pre-process using the Processor instance.
+
+        Attributes:
+            processor (Processor):
+                An instance of the Processor class initialized with the provided configuration.
+        """
+        self._processor = deepcopy(input['preprocessor'])
+        self._processor.data_postproc: pd.DataFrame = \
+            self._processor.inverse_transform(data=input['data'])
+
+    def get_result(self) -> pd.DataFrame:
+        """
+        Retrieve the pre-processing result.
+        """
+        return self.processor.data_postproc

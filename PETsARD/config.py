@@ -6,7 +6,10 @@ import yaml
 from PETsARD.operator import (
     Operator,
     LoaderOperator,
-    SplitterOperator
+    SplitterOperator,
+    PreprocessorOperator,
+    SynthesizerOperator,
+    PostprocessorOperator
 )
 
 
@@ -28,7 +31,7 @@ class Sequence:
                 The sequence of modules for the experiment.
         """
         self.default_sequence: list = [
-            'Loader', 'Splitter'
+            'Loader', 'Splitter', 'Preprocessor', 'Synthesizer', 'Postprocessor'
         ]
 
         self.sequence: list = self.default_sequence if sequence is None else sequence
