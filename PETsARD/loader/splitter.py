@@ -8,9 +8,7 @@ from PETsARD.error import ConfigError
 
 class Splitter:
     """
-    Splitter is an independent module for Executor use.
-    
-    Included:
+    Splitter is an independent module for Executor use. Included:
     a.) split input data via assigned ratio (train_split_ratio)
     b.) resampling assigned times (num_samples)
     c.) output their train/validation indexes (self.index_samples) and pd.DataFrame data (self.data)
@@ -94,8 +92,8 @@ class Splitter:
                 else:
                     sampled_seen.add(sampled_indices)
                     sampled_index[n+1] = {
-                        'train': list(sampled_indices),
-                        'validation': list(set(index) - set(sampled_indices)),
+                        'train':      list(sampled_indices),
+                        'validation': list(set(index) - set(sampled_indices))
                     }
                     break
                 if attempts == maxattempts:
