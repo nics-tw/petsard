@@ -1,5 +1,6 @@
 from copy import deepcopy
 import logging
+from types import NoneType
 import warnings
 
 from PETsARD.processor.encoder import *
@@ -627,23 +628,19 @@ class Processor:
         }
 
         for processor, default_class in self._default_processor.items():
-            for col, obj in self._config[processor].items():
-                if default_class[self._metadata['col']
-                                 [col]['infer_dtype']]() is None:
-                    if obj is not None:
-                        changes_dict['processor'].append(processor)
-                        changes_dict['col'].append(col)
-                        changes_dict['current'].append(type(obj).__name__)
-                        changes_dict['default'].append('NoneType')
-                elif not isinstance(obj, default_class
-                                    [self._metadata['col'][col]
-                                     ['infer_dtype']]):
+            for col in self._metadata['col'].keys():
+                obj = self._config[processor][col]
+                default_obj = default_class[self._metadata['col']
+                                            [col]['infer_dtype']]
+
+                if default_obj() is None:
+                    default_obj = NoneType
+
+                if not isinstance(obj, default_obj):
                     changes_dict['processor'].append(processor)
                     changes_dict['col'].append(col)
                     changes_dict['current'].append(type(obj).__name__)
-                    changes_dict['default'].append(
-                        default_class[self._metadata['col'][col]
-                                      ['infer_dtype']].__name__)
+                    changes_dict['default'].append(default_obj.__name__)
 
         return pd.DataFrame(changes_dict)
     
