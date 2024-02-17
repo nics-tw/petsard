@@ -642,3 +642,153 @@ The `PETsARD` development team, which belongs to the [National Institute for Cyb
 基準資料集儲存在 `PETsARD` 開發團隊所屬的臺灣[國家資通安全研究院 (NICS)](https://www.nics.nat.gov.tw/)雲端空間，分成**公開**與**私有訪問**兩種。兩者的呼叫方式完全一樣。
 
 **公開資料集**皆是確認過其授權後，由團隊保存之雲端備份，使用 `request.get()` 下載。而**私有資料集**，包含了資料集本身授權的限制、或是資料提供方的考量等原因，僅供團隊與合作方內部使用。目前私有資料集使用 `boto3` 連線，需要預先設定雲端權限，相關問題請聯絡開發團隊。
+
+## Dataset Lists
+
+* Name: Dataset name
+* Filename: Name used in Benchmark Datasets
+* Access: Whether the dataset is public or private
+* Columns: Number of columns
+* Rows: Number of rows
+* File Size: File size. If it is less than 1MB, it will be denoted as "<1MB"
+* License: License of the dataset
+* Hash: Hash value in Benchmark Datasets
+* Too Few Samples: Less than 5,000 rows
+* Categorical-dominant: Over 75% columns are categorical
+* Numerical-dominant: Over 75% columns are numerical
+* Non-dominant: Neither categorical nor numerical columns are over 75%
+* Extreme Values: $|\text{skewness}|\geq 3$ for any column. The number of columns meeting the requirement is shown in the table
+* High Cardinality: Categories $\geq 10$ for any categorical column
+
+### Demographic
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Adult | adult_uci.csv | Public | 15 | 32,561 | 3.6 MB | CC BY 4.0 |  |  |  | ✅ | ✅2 | ✅3 |
+| Adult income dataset  | adult.csv | Public | 15 | 48,842 | 5.1 MB | Unknown |  |  |  | ✅ | ✅2 | ✅3 |
+| Census-Income (KDD) | census_kdd.csv | Public | 45 | 199,523 | 97.4 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅11 |
+| The NIST Diverse Communities Data Excerpts: Massachusetts (2018) | ma2018.csv | Public | 24 | 7244 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |
+| The NIST Diverse Communities Data Excerpts: Massachusetts (2019) | ma2019.csv | Public | 24 | 7634 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |
+| The NIST Diverse Communities Data Excerpts: National (2018) | national2018.csv | Public | 24 | 27111 | 1.9 MB | Unknown |  |  | ✅ |  | ✅7 | ✅1 |
+| The NIST Diverse Communities Data Excerpts: National (2019) | national2019.csv | Public | 24 | 27253 | 1.9 MB | Unknown |  |  | ✅ |  | ✅9 | ✅1 |
+| The NIST Diverse Communities Data Excerpts: Texas (2018) | tx2018.csv | Public | 24 | 8,775 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |
+| The NIST Diverse Communities Data Excerpts: Texas (2019) | tx2019.csv | Public | 24 | 9,276 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |
+| American Community Survey: Person-level | ss15pusab.csv | Public | 284 | 3,147,005 | 2.2 GB | CC0 |  |  | ✅ |  | ✅95 | ✅2 |
+| American Community Survey: Household-level | ss15husab.csv | Public | 235 | 1,496,678 | 1.1 GB | CC0 |  |  | ✅ |  | ✅75 |  |
+| CPS Youth Voter Data: Family-level | ffpub23.csv | Public | 85 | 65,767 | 14.0 MB | Unknown |  |  | ✅ |  | ✅53 |  |
+| CPS Youth Voter Data: Household-level | hhpub23.csv | Public | 140 | 88,978 | 28.9 MB | Unknown |  |  | ✅ |  | ✅58 | ✅1 |
+| CPS Youth Voter Data: Person-level | pppub23.csv | Public | 829 | 146,133 | 268.0 MB | Unknown |  |  | ✅ |  | ✅513 | ✅1 |
+
+</div>
+
+### Business
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| insurance_synthetic_data | insurance_synthetic.csv | Public | 10 | 700 | < 1 MB | Unknown | ✅ |  |  | ✅ |  | ✅4 |
+| Insurance Company Benchmark (COIL 2000) | ticdata.csv | Public | 86 | 9,822 | 1.6 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |
+| Bank Marketing (01) | bank_full.csv | Public | 17 | 45,211 | 3.5 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |
+| Bank Marketing (02) | bank_additional__full.csv | Public | 21 | 41,188 | 4.7 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |
+| Credit score classification | credit_score.csv | Public | 28 | 100,000 | 29.7 MB | CC0 |  |  |  | ✅ | ✅5 | ✅15 |
+| Credict Card Fraud Detection | creditcard.csv | Public | 31 | 284,807 | 143.8 MB | DbCL v1.0 |  |  | ✅ |  | ✅9 |  |
+| Bank_Loan_modelling | bank_loan.csv | Public | 13 | 5,000 | < 1 MB | CC0 |  |  | ✅ |  | ✅2 |  |
+| Netflix Prize data | netflix_prize.csv | Private | 4 | 100,480,507 | 2.6 GB | Restricted |  | ✅ |  |  |  | ✅3 |
+| Bike Sales in Europe | sales.csv | Public | 18 | 113,036 | 14.4 MB | Unknown |  |  |  | ✅ | ✅3 | ✅5 |
+| Brazilian E-Commerce Public Dataset by Olist | olist.csv | Public | 22 | 117,601 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  |  | ✅ | ✅5 | ✅13 |
+| Telco_Customer_Churn | telco.csv | Public | 21 | 7,043 | < 1 MB | Unknown |  | ✅ |  |  |  | ✅2 |
+
+</div>
+
+### Biology
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Covertype | covertype.csv | Public | 55 | 581,012 | 71.7 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |
+| Palmer Archipelago (Antarctica) penguin data | penguins_size.csv | Public | 7 | 344 | < 1 MB | CC0 | ✅ |  |  | ✅ |  |  |
+| Iris dataset | iris.csv | Public | 5 | 150 | < 1 MB | CC0 | ✅ |  | ✅ |  |  |  |
+
+</div>
+
+### Human Resource
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Data Science Jobs Salaries Dataset | ds_salary.csv | Public | 11 | 245 | < 1 MB | CC0 | ✅ |  |  | ✅ | ✅1 | ✅4 |
+| Candidates_list | candidates.csv | Public | 24 | 392 | < 1 MB | Unknown | ✅ |  |  | ✅ | ✅3 | ✅9 |
+| IBM HR Analytics Employee Attrition & Performance | attrition.csv | Public | 35 | 1,470 | < 1 MB | DbCL v1.0 | ✅ |  |  | ✅ |  |  |
+
+</div>
+
+### Medical
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| NHANES diabetes | [NHANES] B.csv | Public | 12 | 4,189 | < 1 MB | Unknown | ✅ |  |  | ✅ |  |  |
+| Smoking and Drinking Dataset with body signal | smokingdrinking.csv | Public | 24 | 991,346 | 103.5 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅14 |  |
+| Cervical Cancer | cervical_cancer.csv | Public | 36 | 835 | < 1 MB | Apache 2.0 | ✅ |  | ✅ |  | ✅23 |  |
+| Heart Disease Cleveland UCI | heart_cleveland.csv | Public | 14 | 297 | < 1 MB | Unknown | ✅ |  | ✅ |  |  |  |
+| Breast Cancer Wisconsin (Original) (01) | breast_cancer.csv | Public | 11 | 699 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 | ✅1 |
+| Breast Cancer Wisconsin (Original) (02) | wdbc.csv | Public | 32 | 569 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅6 |  |
+| Breast Cancer Wisconsin (Original) (03) | wpbc.csv | Public | 35 | 198 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 | ✅1 |
+| MIMIC3c aggregated data | mimic3c.csv | Public | 28 | 58,976 | 11.3 MB | Unknown |  |  |  | ✅ | ✅15 | ✅4 |
+
+</div>
+
+### Computer Science
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| ISOLET | isolet.csv | Public | 618 | 7,797 | 31.2 MB | CC BY 4.0 |  |  | ✅ |  | ✅50 |  |
+| KDD Cup 1999 | kddcup.csv | Public | 42 | 4,898,431 | 644.2 MB | Unknown |  |  | ✅ |  | ✅25 | ✅3 |
+| NSL-KDD | nslkdd.csv | Public | 43 | 148,517 | 19.8 MB | Conditional |  |  | ✅ |  | ✅21 | ✅3 |
+| UNSW-NB15 | unswnb15.csv | Public | 36 | 257,673 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅24 | ✅4 |
+| RT-IoT2022 | rt_iot.csv | Public | 84 | 123,117 | 50.0 MB | CC BY 4.0 |  |  | ✅ |  | ✅65 | ✅2 |
+
+</div>
+
+### Social Science
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Dow Jones Index | dowjones.csv | Public | 16 | 750 | < 1 MB | CC BY 4.0 | ✅ |  |  | ✅ | ✅3 | ✅8 |
+| Real Time Election Results: Portugal 2019 Data Set | election.csv | Public | 28 | 21,643 | 3.0 MB | ODbL v1.0 |  |  | ✅ |  | ✅16 | ✅3 |
+
+</div>
+
+### Transportation
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| PEMS-SF | pems_sf.csv | Public | 137,710 | 440 | 401.3 MB | CC BY 4.0 | ✅ |  | ✅ |  |  |  |
+
+</div>
+
+### Others
+
+<div class="table-wrapper" markdown="block">
+
+| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| wine (red wine) | winequality_red.csv | Public | 12 | 1,599 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 |  |
+| wine (white wine) | winequality_white.csv | Public | 12 | 4898 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 |  |
+| Car Evaluation | car.csv | Public | 7 | 1,728 | < 1 MB | CC BY 4.0 | ✅ | ✅ |  |  |  |  |
+| Poker Hand | poker_hand.csv | Public | 11 | 1,025,010 | 23.0 MB | CC BY 4.0 |  | ✅ |  |  |  | ✅6 |
+
+</div>
+
