@@ -56,7 +56,7 @@ jobs:
         # Automatically uploads an artifact from the './_site' directory by default
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '/home/runner/work/_temp/artifact.tar'
+          path: '.'
 
   # Deployment job
   deploy:
