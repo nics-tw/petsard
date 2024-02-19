@@ -1,5 +1,6 @@
 from copy import deepcopy
 import logging
+from types import NoneType
 import warnings
 
 from PETsARD.processor.encoder import *
@@ -7,6 +8,7 @@ from PETsARD.processor.missing import *
 from PETsARD.processor.outlier import *
 from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
+from PETsARD.processor.discretizing import *
 from PETsARD.error import *
 from PETsARD.loader.metadata import Metadata
 
@@ -14,7 +16,6 @@ from PETsARD.loader.metadata import Metadata
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
-
 
 class Processor:
     """
@@ -74,6 +75,12 @@ class Processor:
                 'categorical': lambda: None,
                 'datetime': ScalerStandard,
                 'object': lambda: None
+            },
+            'discretizing': {
+                'numerical': DiscretizingKBins,
+                'categorical': EncoderLabel,
+                'datetime': DiscretizingKBins,
+                'object': EncoderLabel
             }
         }
 
@@ -87,6 +94,7 @@ class Processor:
         self._processor_map: dict = {
             'encoder_uniform': EncoderUniform,
             'encoder_label': EncoderLabel,
+            'encoder_onehot': EncoderOneHot,
             'missing_mean': MissingMean,
             'missing_median': MissingMedian,
             'missing_simple': MissingSimple,
@@ -98,7 +106,8 @@ class Processor:
             'scaler_standard': ScalerStandard,
             'scaler_zerocenter': ScalerZeroCenter,
             'scaler_minmax': ScalerMinMax,
-            'scaler_log': ScalerLog
+            'scaler_log': ScalerLog,
+            'discretizing_kbins': DiscretizingKBins,
         }
 
         self._metadata: dict = metadata.metadata
@@ -113,6 +122,7 @@ class Processor:
         # deal with global transformation of missinghandler and outlierhandler
         self.mediator_missing: MediatorMissing | None = None
         self.mediator_outlier: MediatorOutlier | None = None
+        self.mediator_encoder: MediatorEncoder | None = None
 
         # global NA values imputation
         self._na_percentage_global: float = self._metadata['global'].\
@@ -123,6 +133,9 @@ class Processor:
 
         if config is not None:
             self.update_config(config=config)
+
+        # the temp config records the config from in-process/expanded column 
+        self._working_config: dict = {}
 
         logging.debug(f'Config loaded.')
 
@@ -215,8 +228,9 @@ class Processor:
             data (pd.DataFrame): The data to be fitted.
             sequence (list): The processing sequence. 
                 Avaliable procedures: 'missing', 'outlier', 
-                    'encoder', 'scaler'.
-                This is the default sequence.
+                    'encoder', 'scaler', and 'discretizing'.
+                    ['missing', 'outlier', 'encoder', 'scaler'] 
+                    is the default sequence.
         """
 
         if sequence is None:
@@ -247,6 +261,16 @@ class Processor:
                 self.mediator_outlier)
             logging.info('MediatorOutlier is created.')
 
+        if 'encoder' in self._sequence:
+            # if encoder is in the procedure,
+            # MediatorEncoder should be in the queue
+            # right after the encoder
+            self.mediator_encoder = MediatorEncoder(self._config)
+            self._fitting_sequence.insert(
+                self._fitting_sequence.index('encoder') + 1,
+                self.mediator_encoder)
+            logging.info('MediatorEncoder is created.')
+
         self._detect_edit_global_transformation()
 
         logging.debug(f'Fitting sequence generation completed.')
@@ -261,7 +285,7 @@ class Processor:
                     if obj is None:
                         continue
 
-                    if obj.PROC_TYPE != processor:
+                    if processor not in obj.PROC_TYPE:
                         raise ValueError(
                             f'Invalid processor from {col} in {processor}')
 
@@ -276,6 +300,9 @@ class Processor:
                 processor.fit(data)
                 logging.info(f'{processor} fitting done.')
 
+        # it is a shallow copy
+        self._working_config = self._config.copy()
+        
         self._is_fitted = True
 
     def _check_sequence_valid(self, sequence: list) -> None:
@@ -301,10 +328,16 @@ class Processor:
                 ' please remove them.')
 
         for processor in sequence:
-            if processor not in ['missing', 'outlier',
-                                 'encoder', 'scaler']:
+            if processor not in self._default_processor.keys():
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
+            
+        if 'discretizing' in sequence:
+            if 'encoder' in sequence:
+                raise ValueError("'discretizing' and 'encoder' processor" + \
+                                 " cannot coexist.")
+            if sequence[-1] != 'discretizing':
+                raise ValueError("'discretizing' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """
@@ -367,6 +400,7 @@ class Processor:
                 logging.debug(
                     f'before transformation: data shape: {transformed.shape}')
                 transformed = processor.transform(transformed)
+                self._adjust_working_config(processor, self._fitting_sequence)
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
@@ -418,32 +452,53 @@ class Processor:
 
         # there is no method for restoring outliers
         self._inverse_sequence = self._sequence.copy()
+        self._inverse_sequence.reverse()
         if 'outlier' in self._inverse_sequence:
             self._inverse_sequence.remove('outlier')
+
+        if 'encoder' in self._inverse_sequence:
+            # if encoder is in the procedure,
+            # MediatorEncoder should be in the queue
+            # right after the encoder
+            self._inverse_sequence.insert(
+                self._inverse_sequence.index('encoder'),
+                self.mediator_encoder)
+            logging.info('MediatorEncoder is created.')
 
         logging.debug(f'Inverse sequence generation completed.')
 
         transformed: pd.DataFrame = deepcopy(data)
 
-        # mediators are not involved in the inverse_transform process.
         for processor in self._inverse_sequence:
-            for col, obj in self._config[processor].items():
+            if type(processor) == str:
+                for col, obj in self._config[processor].items():
 
+                    logging.debug(
+                        f'{processor}: {obj} from {col} start',
+                        ' inverse transforming.')
+
+                    if obj is None:
+                        continue
+
+                    transformed[col] = obj.inverse_transform(transformed[col])
+
+                logging.info(f'{processor} inverse transformation done.')
+            else:
+                # if the processor is not a string,
+                # it should be a mediator, which transforms the data directly.
                 logging.debug(
-                    f'{processor}: {obj} from {col} start',
-                    ' inverse transforming.')
-
-                if obj is None:
-                    continue
-
-                transformed[col] = obj.inverse_transform(transformed[col])
-
-            logging.info(f'{processor} inverse transformation done.')
+                    f'mediator: {processor} start inverse transforming.'
+                )
+                logging.debug(
+                    f'before transformation: data shape: {transformed.shape}')
+                transformed = processor.inverse_transform(transformed)
+                logging.debug(
+                    f'after transformation: data shape: {transformed.shape}')
+                logging.info(f'{processor} transformation done.')  
 
         return transformed
 
     # determine whether the processors are not default settings
-
     def get_changes(self) -> dict:
         """
         Compare the differences between the current config 
@@ -461,22 +516,59 @@ class Processor:
         }
 
         for processor, default_class in self._default_processor.items():
-            for col, obj in self._config[processor].items():
-                if default_class[self._metadata['col']
-                                 [col]['infer_dtype']]() is None:
-                    if obj is not None:
-                        changes_dict['processor'].append(processor)
-                        changes_dict['col'].append(col)
-                        changes_dict['current'].append(type(obj).__name__)
-                        changes_dict['default'].append('NoneType')
-                elif not isinstance(obj, default_class
-                                    [self._metadata['col'][col]
-                                     ['infer_dtype']]):
+            for col in self._metadata['col'].keys():
+                obj = self._config[processor][col]
+                default_obj = default_class[self._metadata['col']
+                                            [col]['infer_dtype']]
+
+                if default_obj() is None:
+                    default_obj = NoneType
+
+                if not isinstance(obj, default_obj):
                     changes_dict['processor'].append(processor)
                     changes_dict['col'].append(col)
                     changes_dict['current'].append(type(obj).__name__)
-                    changes_dict['default'].append(
-                        default_class[self._metadata['col'][col]
-                                      ['infer_dtype']].__name__)
+                    changes_dict['default'].append(default_obj.__name__)
 
         return pd.DataFrame(changes_dict)
+    
+    def _adjust_working_config(self, mediator: Mediator, 
+                               sequence: list) -> None:
+        """
+        Adjust the working config for the downstream tasks.
+
+        For example, after one-hot encoding, some columns will be created
+        and some will be removed. This method aims to correct the config
+        to fit the current state and make all tasks done at ease.
+
+        Specifically, it tracks the difference between old and new data through
+        Mediator.map, creates the new config for the new data by inheriting
+        the old one, and removes the old config. All changes will be applied
+        to the procedures after the current one.
+
+        Args:
+            mediator (Mediator): The Mediator instance for checking the
+                difference.
+            sequence (list): Read the fitting sequence to determine the scope
+                of the adjustment.
+
+        Return:
+            None: It will adjust the working config directly.
+        """
+        if len(mediator.map) == 0:
+            pass
+        else:
+            # locate the current stage
+            current_index = sequence.index(mediator)
+
+            for i in range(current_index + 1, len(sequence)):
+                if type(sequence[i]) is not str:
+                    # it is a mediator
+                    continue
+                else:
+                    processor = sequence[i]
+
+                    for ori_col, new_col in mediator.map.items():
+                        for col in new_col:
+                            self._working_config[processor][col] = \
+                                deepcopy(self._config[processor][ori_col])
