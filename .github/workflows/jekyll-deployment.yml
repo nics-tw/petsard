@@ -24,6 +24,8 @@ jobs:
       - uses: jeffreytse/jekyll-deploy-action@v0.5.1
         with:
           provider: 'github'         # Default is github
+          token: ${{ secrets.GITHUB_TOKEN }} # It's your Personal Access Token(PAT)
+          ssh_private_key: ''        # It's your SSH private key (SSH approach)
           repository: ''             # Default is current repository
           branch: '257-readme-update'         # Default is gh-pages for github provider
           jekyll_src: './docs'           # Default is root directory
