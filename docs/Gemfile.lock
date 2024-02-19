@@ -272,12 +272,12 @@ PLATFORMS
   x64-mingw-ucrt
 
 DEPENDENCIES
-  github-pages
-  jekyll
-  jekyll-feed
-  jekyll-readme-index
+  github-pages (~> 231)
+  jekyll (~> 3.9.5)
+  jekyll-feed (~> 0.17.0)
+  jekyll-readme-index (~> 0.3.0)
   jekyll-remote-theme
-  jemoji
+  jemoji (~> 0.13.0)
   webrick
 
 BUNDLED WITH
