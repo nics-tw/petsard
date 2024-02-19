@@ -70,7 +70,7 @@ jobs:
         uses: actions/upload-pages-artifact@v2
         with:
           # upload entire directory
-          path: './docs'
+          path: '/home/runner/work/_temp/artifact.tar'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v3
