@@ -18,9 +18,9 @@ inverse_transformed_data = processor.inverse_transform(synthetic_data)
 
 # `Processor`
 
-Once you have an instance of metadata built from the `Metadata` class, you can create a `Processor`. The `config` parameter is optional, allowing you to customise procedures. Upon creation, the processor analyses the metadata to determine the necessary preprocessing and postprocessing procedures. If a `config` is passed, the processor will overwrite default settings and follow the procedures specified in the `config`.
+Once you have an instance of metadata built from the `Loader` class, you can create a `Processor`. The `config` parameter is optional, allowing you to customise procedures. Upon creation, the processor analyses the metadata to determine the necessary preprocessing and postprocessing procedures. If a `config` is passed, the processor will overwrite default settings and follow the procedures specified in the `config`.
 
-創建 `Processor` 類別的物件之前，必須要有利用 `Metadata` 建立的 metadata 物件。在 `Processor` 參數中，`config` 參數不是必須的，其功能為自訂處理流程。此物件會分析 metadata 以確定所需的前處理和後處理流程。如果有給予 `config`，物件會覆寫預設值，並依照 `config` 中自訂的流程執行。
+創建 `Processor` 類別的物件之前，必須要有利用 `Loader` 建立的 metadata 物件。在 `Processor` 參數中，`config` 參數不是必須的，其功能為自訂處理流程。此物件會分析 metadata 以確定所需的前處理和後處理流程。如果有給予 `config`，物件會覆寫預設值，並依照 `config` 中自訂的流程執行。
 
 ```python
 processor = Processor(
