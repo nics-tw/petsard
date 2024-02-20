@@ -22,7 +22,7 @@ evaluator = Evaluator(
     data = {'ori': df_ori, 
             'syn': df_syn, 
             'control': df_control}, 
-    evaluating_method = 'anonymeter_singlingout_univariate',
+    evaluating_method,
     **kwargs
 )
 ```
