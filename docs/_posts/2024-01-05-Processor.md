@@ -16,7 +16,7 @@ inverse_transformed_data = processor.inverse_transform(synthetic_data)
 
 
 
-# `Processor` Creation
+# `Processor`
 
 Once you have an instance of metadata built from the `Metadata` class, you can create a `Processor`. The `config` parameter is optional, allowing you to customise procedures. Upon creation, the processor analyses the metadata to determine the necessary preprocessing and postprocessing procedures. If a `config` is passed, the processor will overwrite default settings and follow the procedures specified in the `config`.
 
@@ -126,8 +126,6 @@ processor.get_changes()
 **Outputs**
 
 (`pandas.DataFrame`): A dataframe recording the differences bewteen the current config and the default config. 記錄兩者差異的資料表。
-
-# Data Processing
 
 ## `fit()`
 
