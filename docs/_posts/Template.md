@@ -1,4 +1,4 @@
-# Module Name
+Module Name should be in Title
 
 Concise introduction.
 
@@ -10,7 +10,7 @@ Short demo # if any, only for interface
 
 
 
-## Step (What does the module/class do?)
+# Step (What does the module/class do?)
 
 Description.
 
@@ -23,14 +23,11 @@ processor = Processor(
 )
 ```
 
-### Parameters
+**Parameters**
 
-`parameter_name` (`expected type (if any)`, default=False): Description.
+`parameter_name` (`expected type (if any)`, default=False): Description. 中文。
 
----
-`parameter_name` (`expected type (if any)`, default=False): 中文。
-
-### `API in the class 1 (with inputs and outputs)`
+## `method()`
 
 Description.
 
@@ -48,19 +45,15 @@ processor.get_config(
 'Hello World!'
 ```
 
-#### Parameters
-`parameter_name` (`expected type (if any)`): Description.
+**Parameters**
 
----
-`parameter_name` (`expected type (if any)`): 中文。
+`parameter_name` (`expected type (if any)`): Description. 中文。
 
-#### Outputs
-(`expected type (if any)`): Description.
+**Outputs**
 
----
-(`expected type (if any)`): 中文。
+(`expected type (if any)`): Description. 中文。
 
-### `API in the class 2 (with inputs only)`
+## `method2()`
 
 Description.
 
@@ -73,13 +66,11 @@ processor.get_config(
 )
 ```
 
-#### Parameters
-`parameter_name` (`expected type (if any)`): Description.
+**Parameters**
 
----
-`parameter_name` (`expected type (if any)`): 中文。
+`parameter_name` (`expected type (if any)`): Description. 中文。
 
-### `API in the class 3 (with outputs only)`
+## `method3()`
 
 Description.
 
@@ -90,13 +81,11 @@ Description.
 processor.get_config()
 ```
 
-#### Outputs
-(`expected type (if any)`): Description.
+**Outputs**
 
----
-(`expected type (if any)`): 中文。
+(`expected type (if any)`): Description. 中文。
 
-### `API in the class 4 (no inputs and outputs)`
+## `method4()`
 
 Description.
 
