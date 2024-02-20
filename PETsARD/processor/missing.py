@@ -11,7 +11,7 @@ class MissingHandler:
     Base class for all MissingHandler classes.
     """
 
-    PROC_TYPE = 'missing'
+    PROC_TYPE = ('missing',)
 
     def __init__(self) -> None:
         self._is_fitted: True = False
