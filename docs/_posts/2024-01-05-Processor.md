@@ -125,7 +125,7 @@ processor.get_changes()
 
 **Outputs**
 
-(`pandas.DataFrame`): A dataframe recording the differences bewteen the current config and the default config. 記錄兩者差異的資料表。
+(`pandas.DataFrame`): A dataframe recording the differences bewteen the current config and the default config. 記錄當前設定檔與預設設定檔兩者差異的資料表。
 
 ## `fit()`
 
