@@ -33,7 +33,7 @@ processor = Processor(
 
 `metadata`: The data schema used for creating the processor and inferring appropriate data processing procedures. 用於推論前處理及後處理流程的數據架構。
 
-`config` (`dict`): User-defined procedures containing information about the components to be used in each column. 針對每個欄位的自定義處理流程。
+`config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column. 針對每個欄位的自定義處理流程。
 
 ## `config`
 
@@ -91,9 +91,9 @@ processor.get_config(
 
 **Parameters**
 
-`col` (`list`): The columns the user wants to get the config from. If the list is empty, all columns from the metadata will be selected. 欲取用的欄位。若沒有輸入則視為選擇所有的欄位。
+`col` (`list`, default=`None`): The columns the user wants to get the config from. If the list is empty, all columns from the metadata will be selected. 欲取用的欄位。若沒有輸入則視為選擇所有的欄位。
 
-`print_config()` (`bool`, default=False): Whether the result should be printed. 是否需列印結果。
+`print_config()` (`bool`, default=`False`): Whether the result should be printed. 是否需列印結果。
 
 **Outputs**
 
@@ -144,7 +144,7 @@ processor.fit(
 
 `data` (`pandas.DataFrame`): The data to be fitted. 用來學習的資料。
 
-`sequence` (`list`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: 'missingist', 'outlierist', 'encoder', 'scaler', 'discretizing'. ['missingist', 'outlierist', 'encoder', 'scaler'] is the default sequence if the user doesn't pass a sequence to the method. Noted that 'discretizing' and 'encoder' cannot be used in a sequence at the same time, and 'discretizing' must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： 'missingist'、'outlierist'、'encoder'、'scaler'、'discretizing'。若用戶未指定流程，則使用 ['missingist', 'outlierist', 'encoder', 'scaler'] 作為預設序列。此外，'discretizing' 與 'encoder' 不能在序列中同時存在，且如果 'discretizing' 存在，其必須為最後一個元素。
+`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: 'missingist', 'outlierist', 'encoder', 'scaler', 'discretizing'. ['missingist', 'outlierist', 'encoder', 'scaler'] is the default sequence if the user doesn't pass a sequence to the method. Noted that 'discretizing' and 'encoder' cannot be used in a sequence at the same time, and 'discretizing' must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： 'missingist'、'outlierist'、'encoder'、'scaler'、'discretizing'。若用戶未指定流程，則使用 ['missingist', 'outlierist', 'encoder', 'scaler'] 作為預設序列。此外，'discretizing' 與 'encoder' 不能在序列中同時存在，且如果 'discretizing' 存在，其必須為最後一個元素。
 
 ## `transform()`
 
@@ -303,7 +303,7 @@ Missing values are filled with a predefined value for the corresponding column.
 
 **Parameters**
 
-`value` (`float`): The value to be imputed. 要填入的自訂值。
+`value` (`float`, default=`0.0`): The value to be imputed. 要填入的自訂值。
 
 ## OutlierHandler
 
@@ -379,4 +379,4 @@ Discretize continuous data into k bins (k intervals).
 
 **Parameters**
 
-`n_bins` (`int`): The value k, the number of bins. k 值，即為類別數。
+`n_bins` (`int`, default=`5`): The value k, the number of bins. k 值，即為類別數。
