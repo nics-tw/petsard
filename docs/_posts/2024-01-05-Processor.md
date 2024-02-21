@@ -295,7 +295,7 @@ Missing values are filled with the median value of the corresponding column.
 
 將缺失值用該欄的中位數填入。
 
-### `Missingist_Simple`
+### `MissingSimple`
 
 Missing values are filled with a predefined value for the corresponding column.
 
