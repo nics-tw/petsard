@@ -10,7 +10,7 @@ class OutlierHandler:
     Base class for all OutlierHandler classes.
     """
 
-    PROC_TYPE = 'outlier'
+    PROC_TYPE = ('outlier',)
 
     def __init__(self) -> None:
         self._is_fitted = False
