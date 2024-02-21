@@ -20,3 +20,6 @@ class ConfigError(Exception):
 
 class UnsupportedSynMethodError(Exception):
     pass
+
+class UnexecutedError(Exception):
+    pass
