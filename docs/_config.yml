@@ -10,10 +10,11 @@ version:          1.0
 gitbook_version:  3.2.3
 
 url:              'https://nics-tw.github.io'
-baseurl:          '/PETsARD-Gitbook'
+baseurl:          ''
 rss:              RSS
 
 # bootstrap: use the remote theme for the site itself
+# remote_theme: rundocs/jekyll-rtd-theme
 remote_theme: sighingnow/jekyll-gitbook
 
 toc:
