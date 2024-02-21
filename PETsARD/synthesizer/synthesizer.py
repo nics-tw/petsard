@@ -1,52 +1,62 @@
 import pandas as pd
 
-from PETsARD.synthesizer.synthesizer_factory import SynthesizerFactory
+from PETsARD.synthesizer.sdv import SDVFactory
+from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
+from PETsARD.error import UnsupportedSynMethodError
 
 
 class Synthesizer:
     """
-    Base class for all "Synthesizer".
-
-    The "Synthesizer" class defines the common API
-    that all the "Synthesizer" need to implement,
-    as well as common functionality.
-
-    ...
-    Methods:
-        Synthesizer(DataFrame): Synthesizing specified DataFrame.
-        Returns:
-            DataFrame: A pandas DataFrame that input data after synthesizing
-    ...
-
-    Args:
-
+    The Synthesizer class is responsible for creating and fitting a synthesizer model,
+    as well as generating synthetic data based on the fitted model.
     """
 
-    def __init__(
-        self,
-        data: pd.DataFrame,
-        synthesizing_method: str,
-        epsilon: float = 5.0,
-        **kwargs
-    ) -> None:
+    def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
+        """
+        Attributes:
+            config (dict):
+                A dictionary containing the configuration parameters for the synthesizer.
 
-        self.para: dict = {}
-        self.para['Synthesizer']: dict = {
-            'synthesizing_method': synthesizing_method.lower(),
+        Args:
+            method (str): The method to be used for synthesizing the data.
+            epsilon (float): The privacy parameter for the synthesizer. Default: 5.0.
+        """
+        self.config: dict = {
+            'method': method.lower(),
             'epsilon': epsilon
         }
 
-        Synthesizer = SynthesizerFactory(
-            data=data, **self.para['Synthesizer']
-        ).create_synthesizer()
+    def create(self, data: pd.DataFrame) -> None:
+        """
+        Create a synthesizer object with the given data.
 
-        self.data_ori = data
-        self.Synthesizer = Synthesizer
+        Args:
+            data (pd.DataFrame): The input data for synthesizing.
+        """
+        self.config['data'] = data
 
-    def fit(self, **kwargs):
+        # TODO: Map as Loader
+        # TODO: verify method in __init__
+        if self.config['method'].startswith('sdv'):
+            self.Synthesizer = SDVFactory(**self.config).create()
+        elif self.config['method'].startswith('smartnoise'):
+            self.Synthesizer = SmartNoiseFactory(**self.config).create()
+        else:
+            raise UnsupportedSynMethodError
+
+    def fit(self, **kwargs) -> None:
+        """
+        Fits the synthesizer model with the given parameters.
+        """
         self.Synthesizer.fit(**kwargs)
 
-    def sample(self, **kwargs):
+    def sample(self, **kwargs) -> None:
+        """
+        This method generates a sample using the Synthesizer object.
+
+        Return:
+            None. The synthesized data is stored in the `data_syn` attribute.
+        """
         self.data_syn = self.Synthesizer.sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
@@ -54,10 +64,7 @@ class Synthesizer:
         Fit and sample from the synthesizer.
         The combination of the methods `fit()` and `sample()`.
 
-        Args:
-            **kwargs: The fitting/sampling parameters.
-
         Return:
-            None
+            None. The synthesized data is stored in the `data_syn` attribute.
         """
         self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
