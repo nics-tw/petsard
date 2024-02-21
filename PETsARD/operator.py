@@ -4,18 +4,21 @@ from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
 from PETsARD.synthesizer import Synthesizer
 from PETsARD.evaluator import Evaluator
+from PETsARD.error import ConfigError
 
 
 class Operator:
     """
     The interface of the objects used by Executor.run()
     """
+
     def __init__(self, config: dict):
         """
         Args:
             config (dict):
                 A dictionary containing configuration parameters.
         """
+        self.input: dict = {}
         pass
 
     def run(self, input: dict):
@@ -23,9 +26,17 @@ class Operator:
         Execute the module's functionality.
 
         Args:
-            input (dict):
-                A input dictionary contains module required input from Status.
-                See Status.get_input_from_prev(module) for more details.
+            input (dict): A input dictionary contains module required input from Status.
+                See self.set_input() for more details.
+        """
+        raise NotImplementedError
+
+    def set_input(self, status) -> dict:
+        """
+        Set the input for the module.
+
+        Args:
+            status (Status): The current status object.
         """
         raise NotImplementedError
 
@@ -58,7 +69,7 @@ class LoaderOperator(Operator):
         super().__init__(config)
         self.loader = Loader(**config)
 
-    def run(self, input: dict=None):
+    def run(self, input: dict):
         """
         Executes the data loading process using the Loader instance.
 
@@ -71,12 +82,24 @@ class LoaderOperator(Operator):
         """
         self.loader.load()
 
-    def get_result(self) -> pd.DataFrame:
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict: An empty dictionary.
+        """
+        return self.input
+
+    def get_result(self):
         """
         Retrieve the loading result.
         """
         return self.loader.data
-    
+
 
 class SplitterOperator(Operator):
     """
@@ -101,7 +124,8 @@ class SplitterOperator(Operator):
         Executes the data splitting process using the Splitter instance.
 
         Args:
-            input (dict): Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+            input (dict):
+                Splitter input should contains data (pd.DataFrame) and exclude_index (list).
 
         Attributes:
             splitter.data (Dict[int, Dict[str, pd.DataFrame]]):
@@ -112,7 +136,26 @@ class SplitterOperator(Operator):
         """
         self.splitter.split(**input)
 
-    def get_result(self) -> pd.DataFrame:
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+        """
+        try:
+            self.input['data'] = status.get_result(status.pre_module)
+            self.input['exclude_index'] = status.get_exist_index()
+        except:
+            raise ConfigError
+
+        return self.input
+
+
+    def get_result(self):
         """
         Retrieve the splitting result.
             Due to Config force num_samples = 1, return 1st dataset is fine.
@@ -143,21 +186,48 @@ class PreprocessorOperator(Operator):
         """
         Executes the data pre-process using the Processor instance.
 
+        Args:
+            input (dict):
+                Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
+
         Attributes:
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
-        
+
         TODO consider use update_config() when #247 is done
         """
-        self.processor = Processor(
-            metadata=input['metadata'],
-            config=self._config
-        )
-        self.processor.fit(data=input['data'])
-        self.processor.data_preproc: pd.DataFrame = \
-            self.processor.transform(data=input['data'])
 
-    def get_result(self) -> pd.DataFrame:
+        self.processor = Processor(
+            metadata=input['metadata']
+        )
+        # for keep default but update manual only
+        self.processor.update_config(self._config)
+        self.processor.fit(data=input['data'])
+        self.processor.data_preproc = self.processor.transform(data=input['data'])
+
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict:
+                Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
+        """
+        try:
+            if status.pre_module == 'Splitter':
+                self.input['data'] = status.get_result(status.pre_module)['train']
+            else:  # Loader only
+                self.input['data'] = status.get_result(status.pre_module)
+            self.input['metadata'] = status.get_metadata()
+        except:
+            raise ConfigError
+            
+        return self.input
+
+    def get_result(self):
         """
         Retrieve the pre-processing result.
         """
@@ -193,11 +263,31 @@ class SynthesizerOperator(Operator):
         self.synthesizer.create(**input)
         self.synthesizer.fit_sample()
 
-    def get_result(self) -> pd.DataFrame:
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict:
+                Synthesizer input should contains data (pd.DataFrame).
+        """
+        try:
+            self.input['data'] = status.get_result(status.pre_module)
+        except:
+            raise ConfigError
+        
+        return self.input
+
+        
+    def get_result(self):
         """
         Retrieve the synthesizing result.
         """
         return self.synthesizer.data_syn
+
 
 class PostprocessorOperator(Operator):
     """
@@ -222,20 +312,42 @@ class PostprocessorOperator(Operator):
         """
         Executes the data pre-process using the Processor instance.
 
+        Args:
+            input (dict):
+                Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
+
         Attributes:
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self.processor = input['preprocessor']
-        self.processor.data_postproc: pd.DataFrame = \
-            self.processor.inverse_transform(data=input['data'])
+        self.processor.data_postproc = self.processor.inverse_transform(data=input['data'])
 
-    def get_result(self) -> pd.DataFrame:
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict:
+                Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
+        """
+        try:
+            self.input['data'] = status.get_result(status.pre_module)
+            self.input['preprocessor'] = status.get_processor()
+        except:
+            raise ConfigError
+
+        return self.input
+
+    def get_result(self):
         """
         Retrieve the pre-processing result.
         """
         return self.processor.data_postproc
-    
+
 
 class EvaluatorOperator(Operator):
     """
@@ -260,14 +372,41 @@ class EvaluatorOperator(Operator):
             input (dict): Evaluator input should contains data (dict).
 
         Attributes:
-            evaluator.data_syn (pd.DataFrame):
-                An synthesizing result data.
+            evaluator.data_syn (pd.DataFrame): An synthesizing result data.
         """
         self.evaluator.create(**input)
         self.evaluator.eval()
 
         self.evaluator.evaluation = self.evaluator.evaluator.evaluation
 
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the LoaderOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict:
+                Evaluator input should contains data (dict).
+        """
+        try:
+            if 'Splitter' in status.status:
+                self.input['data'] = {
+                    'ori':     status.get_result('Splitter')['train'],
+                    'syn':     status.get_result(status.pre_module),
+                    'control': status.get_result('Splitter')['validation']
+                }
+            else:  # Loader only
+                self.input['data'] = {
+                    'ori': status.get_result('Loader'),
+                    'syn': status.get_result(status.pre_module),
+                }
+        except:
+            raise ConfigError
+
+        return self.input
+    
     def get_result(self):
         """
         Retrieve the pre-processing result.
