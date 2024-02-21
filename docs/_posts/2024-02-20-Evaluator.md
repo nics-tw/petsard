@@ -81,7 +81,7 @@ The paper on `Anonymeter` specifically mentions: "It's important to note that si
 
 **Parameters**
 
-`n_attacks` (`int`, default=2000): Number of times this particular attack will be executed. In this case, it is the number of distinct `queries`. A `query` is a specific condition-based searching command matching only one record in a certain field, achieving Singling Out. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指不重複搜索語句 (`queries`)的數量。搜索語句是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到指認性。較高的數量會降低結果的統計不確定性，但會增加運算時間。
+`n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of distinct `queries`. A `query` is a specific condition-based searching command matching only one record in a certain field, achieving Singling Out. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指不重複搜索語句 (`queries`)的數量。搜索語句是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到指認性。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
 ### `'anonymeter-linkability'`
 
@@ -91,7 +91,7 @@ Linkability risk represents the possibility that, even after Privacy-Enhancing T
 
 **Parameters**
 
-`n_attacks` (`int`, default=2000): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
+`n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
 `aux_cols` (`Tuple[List[str], List[str]]`): Columns of the auxiliary information. 輔助資訊欄位。
 
@@ -111,7 +111,7 @@ aux_cols = [
     ['age', 'heart_attack_times'] # private
 ]
 ```
-`n_neighbors` (`int`, default=10): The N closest neighbors considered for the link search. 連結搜索時考慮的前 N 個最近鄰居數量。
+`n_neighbors` (`int`, default=`10`): The N closest neighbors considered for the link search. 連結搜索時考慮的前 N 個最近鄰居數量。
 
 > To handle mixed data types, `Anonymeter` uses Gower's Distance/Similarity:
 > - Numeric  variables: Gower's Distance is the absolute difference between the normalized values.
@@ -131,7 +131,7 @@ Inference risk represents the possibility that, even after Privacy-Enhancing Tec
 
 **Parameters**
 
-`n_attacks` (`int`, default=2000): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
+`n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
 `secret` (`str`) Column(s) of secret information. 秘密資訊欄位。
 
