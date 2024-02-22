@@ -14,7 +14,7 @@ from sdv.metadata import SingleTableMetadata
 from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
 
 
-class SDMetricsMethodMap():
+class SDMetricsMap():
     """
     Mapping of SDMetrics.
     """
@@ -22,19 +22,18 @@ class SDMetricsMethodMap():
     QUALITYREPORT: int = 2
 
     @classmethod
-    def getext(cls, method: str) -> int:
+    def map(cls, method: str) -> int:
         """
         Get suffixes mapping int value
 
         Args:
-            method (str):
-                evaluating method
+            method (str): evaluating method
         """
         try:
-            # accept both of "sdmetrics-single_table-" or "sdmetrics-" prefix
+            # accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
             return cls.__dict__[
                 re.sub(
-                    r"^(sdmetrics-single_table-|sdmetrics-)",
+                    r"^(sdmetrics-|sdmetrics-single_table-)",
                     "",
                     method
                 ).upper()
@@ -55,11 +54,11 @@ class SDMetrics:
         method: str = None,
         **kwargs
     ):
-        # Factory method for implementing the specified Loader class
-        if SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.DIAGNOSTICREPORT:
-            self.evaluator = SDMetricsDiagnosticReport(method=method, data=data)
-        elif SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.QUALITYREPORT:
-            self.evaluator = SDMetricsQualityReport(method=method, data=data)
+        method_code = SDMetricsMap(method) # self.config['method']
+        if method_code == SDMetricsMap.DIAGNOSTICREPORT:
+            self.evaluator = SDMetricsDiagnosticReport()
+        elif method_code == SDMetricsMap.QUALITYREPORT:
+            self.evaluator = SDMetricsQualityReport()
         else:
             raise UnsupportedEvalMethodError
 
