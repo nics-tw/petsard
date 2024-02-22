@@ -129,7 +129,7 @@ class SmartNoise:
         """
         self.fit()
         return self.sample(sample_num_rows, reset_sampling, output_file_path)
-    
+
 class SmartNoiseFactory:
     """
     Base class for all "SmartNoise".
@@ -170,7 +170,7 @@ class SmartNoiseCreator(SmartNoise):
     Implement synthesize methods from SmartNoise library.
     """
 
-    def __init__(self, data: pd.DataFrame, 
+    def __init__(self, data: pd.DataFrame,
                  method: str, epsilon: float = 5.0, **kwargs):
         """
         Args:
