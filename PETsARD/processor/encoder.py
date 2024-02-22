@@ -129,7 +129,9 @@ class EncoderUniform(Encoder):
         Args:
             data (pd.Series): The categorical data needed to be transformed.
         """
-        normalize_value_counts = data.value_counts(normalize=True)
+        # Filter the counts > 0
+        normalize_value_counts = data.value_counts(normalize=True)\
+            .loc[lambda x: x > 0]
         # Get keys (original labels)
         self.labels = normalize_value_counts.index.get_level_values(
             0).to_list()
