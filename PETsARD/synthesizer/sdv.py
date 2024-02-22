@@ -37,7 +37,7 @@ class SDVMap():
             # accept both of "sdv-" or "sdv-single_table-" prefix
             return cls.__dict__[
                 re.sub(
-                    r"^(sdv-|sdv-single_table-)",
+                    r"^(sdv-single_table-|sdv-)",
                     "",
                     method
                 ).upper()
@@ -58,7 +58,7 @@ class SDVFactory:
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         method: str = kwargs.get('method', None)
-        method_code = SDVMap(method)  # self.config['method']
+        method_code = SDVMap.map(method)  # self.config['method']
 
         if method_code == SDVMap.COPULAGAN:
             self.Synthesizer = SDVSingleTableCopulaGAN(data=data)

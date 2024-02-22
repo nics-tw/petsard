@@ -57,16 +57,17 @@ class AnonymeterFactory:
 
     def __init__(self, **kwargs):
         method: str = kwargs.get('method', None)
-        method_code = AnonymeterMap(method) # self.config['method']
+        method_code = AnonymeterMap.map(method) # self.config['method']
+        data: dict = kwargs.get('data', None)
 
         if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.evaluator = AnonymeterSinglingOutUnivariate()
+            self.evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
         # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.evaluator = AnonymeterSinglingOutMultivariate()
+        #     self.evaluator = AnonymeterSinglingOutMultivariate(**kwargs)
         elif method_code == AnonymeterMap.LINKABILITY:
-            self.evaluator = AnonymeterLinkability()
+            self.evaluator = AnonymeterLinkability(**kwargs)
         elif method_code == AnonymeterMap.INFERENCE:
-            self.evaluator = AnonymeterInference()
+            self.evaluator = AnonymeterInference(**kwargs)
         else:
             raise UnsupportedEvalMethodError
 
@@ -117,6 +118,8 @@ class Anonymeter():
                                                         List[str]]] = None,
                  **kwargs
                  ):
+        self.method: str = kwargs.get('method', None)
+
         self.data_ori = data['ori']
         self.data_syn = data['syn']
         self.data_control = data['control']
@@ -162,7 +165,7 @@ class Anonymeter():
                     f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
                 )
 
-                _eval_method_num = AnonymeterMap.map(self.config['method'])
+                _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
                 if _eval_method_num in [0, 1]:
                     _mode = (
                         'univariate' if _eval_method_num == 0
