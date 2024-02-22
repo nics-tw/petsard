@@ -1,3 +1,4 @@
+import re
 import time
 from typing import (
     Dict,
@@ -16,7 +17,35 @@ from anonymeter.evaluators import (
 import numpy as np
 import pandas as pd
 
-from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
+
+
+class AnonymeterMap():
+    """
+    map of Anonymeter
+    """
+    SINGLINGOUT_UNIVARIATE:   int = 1
+    # SINGLINGOUT_MULTIVARIATE: int = 2
+    LINKABILITY:              int = 3
+    INFERENCE:                int = 4
+
+    @classmethod
+    def map(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value
+
+        Args:
+            method (str): evaluating method
+
+        Return:
+            (int): The method code.
+        """
+        try:
+            return cls.__dict__[
+                re.sub(r"^anonymeter-", "", method).upper()
+            ]
+        except KeyError:
+            raise UnsupportedEvalMethodError
 
 
 class AnonymeterFactory:
@@ -24,24 +53,23 @@ class AnonymeterFactory:
     Factory for "Anonymeter" Evaluator.
 
     AnonymeterFactory defines which module to use within Anonymeter.
-
-    TODO As AnonymeterMethodMap,
-            use a class to define mappings of string and int,
-            avoiding string conditions.
-
     """
 
     def __init__(self, **kwargs):
         method: str = kwargs.get('method', None)
+        method_code = AnonymeterMap.map(method) # self.config['method']
+        data: dict = kwargs.get('data', None)
 
-        if method.startswith('anonymeter-singlingout-univariate'):
+        if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
             self.evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
-        elif method.startswith('anonymeter-linkability'):
+        # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
+        #     self.evaluator = AnonymeterSinglingOutMultivariate(**kwargs)
+        elif method_code == AnonymeterMap.LINKABILITY:
             self.evaluator = AnonymeterLinkability(**kwargs)
-        elif method.startswith('anonymeter-inference'):
+        elif method_code == AnonymeterMap.INFERENCE:
             self.evaluator = AnonymeterInference(**kwargs)
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
     def create(self):
         """
@@ -49,28 +77,6 @@ class AnonymeterFactory:
             return the Evaluator which selected by Factory.
         """
         return self.evaluator
-
-
-class AnonymeterMethodMap():
-    """
-    map of Anonymeter
-    """
-    method_map = {
-        'singlingout - univariate':   0,
-        'singlingout - multivariate': 1,
-        'linkability':                2,
-        'inference':                  3
-    }
-
-    @classmethod
-    def map(cls, method_name: str) -> int:
-        """
-        mapping method and handle exception
-        """
-        try:
-            return cls.method_map[method_name.lower()]
-        except KeyError:
-            raise UnsupportedSynMethodError
 
 
 class Anonymeter():
@@ -112,6 +118,8 @@ class Anonymeter():
                                                         List[str]]] = None,
                  **kwargs
                  ):
+        self.method: str = kwargs.get('method', None)
+
         self.data_ori = data['ori']
         self.data_syn = data['syn']
         self.data_control = data['control']
@@ -157,7 +165,7 @@ class Anonymeter():
                     f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
                 )
 
-                _eval_method_num = AnonymeterMethodMap.map(self.eval_method)
+                _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
                 if _eval_method_num in [0, 1]:
                     _mode = (
                         'univariate' if _eval_method_num == 0

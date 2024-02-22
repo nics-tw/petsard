@@ -2,38 +2,32 @@ import re
 
 from PETsARD.evaluator.anonymeter import AnonymeterFactory
 from PETsARD.evaluator.sdmetrics import SDMetrics
+from PETsARD.error import UnsupportedEvalMethodError
 
-from PETsARD.error import UnsupportedSynMethodError
 
-
-class EvaluatorMethodMap():
+class EvaluatorMap():
     """
-    Mapping of SDMetrics.
+    Mapping of Evaluator.
     """
     ANONYMETER: int = 1
-    SDMETRICS: int = 2
+    SDMETRICS:  int = 2
 
     @classmethod
-    def getext(cls, method: str) -> int:
+    def map(cls, method: str) -> int:
         """
         Get suffixes mapping int value before 1st dash (-)
 
         Args:
-            method (str):
-                evaluating method
+            method (str): evaluating method
         """
         try:
             # Get the string before 1st dash, if not exist, get emply ('').
-            method_1st_match = re.match(
-                r'^[^-]*', method)
-            method_1st = (
-                method_1st_match.group()
-                if method_1st_match
-                else ''
-            )
-            return cls.__dict__[method_1st.upper()]
+            libname_match = re.match(r'^[^-]*', method)
+            libname = libname_match.group() if libname_match else ''
+            return cls.__dict__[libname.upper()]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
+
 
 class Evaluator:
     """
@@ -60,9 +54,6 @@ class Evaluator:
                 The format should be: {library name}{function name},
                 e.g., 'anonymeter_singlingout_univariate'.
 
-    Returns:
-        None
-
     TODO Extract and process the result.
 
     """
@@ -88,13 +79,13 @@ class Evaluator:
         self.config['data'] = data
 
         # TODO: verify method in __init__
-        method = self.config['method']
-        if EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.ANONYMETER:
+        method_code = EvaluatorMap.map(self.config['method'])
+        if method_code == EvaluatorMap.ANONYMETER:
             self.evaluator = AnonymeterFactory(**self.config).create()
-        elif EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.SDMETRICS:
+        elif method_code == EvaluatorMap.SDMETRICS:
             self.evaluator = SDMetrics(**self.config).create()
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
     def eval(self) -> None:
         """
