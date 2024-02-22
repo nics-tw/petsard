@@ -1,8 +1,34 @@
+import re
+
 import pandas as pd
 
 from PETsARD.synthesizer.sdv import SDVFactory
 from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
 from PETsARD.error import UnsupportedSynMethodError
+
+
+class SynthesizerMap():
+    """
+    Mapping of Synthesizer.
+    """
+    SDV:        int = 1
+    SMARTNOISE: int = 2
+
+    @classmethod
+    def map(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value before 1st dash (-)
+
+        Args:
+            method (str): synthesizing method
+        """
+        try:
+            # Get the string before 1st dash, if not exist, get emply ('').
+            libname_match = re.match(r'^[^-]*', method)
+            libname = libname_match.group() if libname_match else ''
+            return cls.__dict__[libname.upper()]
+        except KeyError:
+            raise UnsupportedSynMethodError
 
 
 class Synthesizer:
@@ -35,11 +61,11 @@ class Synthesizer:
         """
         self.config['data'] = data
 
-        # TODO: Map as Loader
         # TODO: verify method in __init__
-        if self.config['method'].startswith('sdv'):
+        method_code = Synthesizer.map(self.config['method'])
+        if method_code == SynthesizerMap.SDV:
             self.Synthesizer = SDVFactory(**self.config).create()
-        elif self.config['method'].startswith('smartnoise'):
+        elif method_code == SynthesizerMap.SMARTNOISE:
             self.Synthesizer = SmartNoiseFactory(**self.config).create()
         else:
             raise UnsupportedSynMethodError
