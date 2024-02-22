@@ -62,7 +62,7 @@ class Synthesizer:
         self.config['data'] = data
 
         # TODO: verify method in __init__
-        method_code = Synthesizer.map(self.config['method'])
+        method_code = SynthesizerMap.map(self.config['method'])
         if method_code == SynthesizerMap.SDV:
             self.Synthesizer = SDVFactory(**self.config).create()
         elif method_code == SynthesizerMap.SMARTNOISE:
