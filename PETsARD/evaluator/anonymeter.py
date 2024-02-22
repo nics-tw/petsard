@@ -16,7 +16,7 @@ from anonymeter.evaluators import (
 import numpy as np
 import pandas as pd
 
-from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
 
 
 class AnonymeterFactory:
@@ -41,7 +41,7 @@ class AnonymeterFactory:
         elif method.startswith('anonymeter-inference'):
             self.evaluator = AnonymeterInference(**kwargs)
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
     def create(self):
         """
@@ -70,7 +70,7 @@ class AnonymeterMethodMap():
         try:
             return cls.method_map[method_name.lower()]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
 
 class Anonymeter():

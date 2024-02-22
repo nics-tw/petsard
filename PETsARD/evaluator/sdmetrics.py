@@ -11,7 +11,7 @@ from sdmetrics.reports.single_table import (
 )
 from sdv.metadata import SingleTableMetadata
 
-from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
 
 
 class SDMetricsMethodMap():
@@ -40,7 +40,7 @@ class SDMetricsMethodMap():
                 ).upper()
             ]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
 
 class SDMetrics:
@@ -61,7 +61,7 @@ class SDMetrics:
         elif SDMetricsMethodMap.getext(method) == SDMetricsMethodMap.QUALITYREPORT:
             self.evaluator = SDMetricsQualityReport(method=method, data=data)
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
     def create(self):
         """
