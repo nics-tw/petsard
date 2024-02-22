@@ -31,7 +31,7 @@ evaluator = Evaluator(
 
 `data` (`dict`): The dictionary contains 3 types of data, in the forms of `pd.DataFrame`s. The `keys` of `data` are specified above. 包含三種類型資料，需要是 `pd.DataFrame` 的格式。`data` 的 `keys` 可見上述程式碼。
 
-`evaluating_method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}{function name}`. For example, `'anonymeter_singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}{函式名}`，例如：`'anonymeter_singlingout_univariate'`
+`evaluating_method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}_{function name}`. For example, `'anonymeter_singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}_{函式名}`，例如：`'anonymeter_singlingout_univariate'`
 
 `**kwargs` (`dict`): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
 
