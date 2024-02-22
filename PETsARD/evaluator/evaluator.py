@@ -3,7 +3,7 @@ import re
 from PETsARD.evaluator.anonymeter import AnonymeterFactory
 from PETsARD.evaluator.sdmetrics import SDMetrics
 
-from PETsARD.error import UnsupportedSynMethodError
+from PETsARD.error import UnsupportedEvalMethodError
 
 
 class EvaluatorMethodMap():
@@ -33,7 +33,7 @@ class EvaluatorMethodMap():
             )
             return cls.__dict__[method_1st.upper()]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
 class Evaluator:
     """
@@ -94,7 +94,7 @@ class Evaluator:
         elif EvaluatorMethodMap.getext(method) == EvaluatorMethodMap.SDMETRICS:
             self.evaluator = SDMetrics(**self.config).create()
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedEvalMethodError
 
     def eval(self) -> None:
         """

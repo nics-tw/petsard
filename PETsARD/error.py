@@ -21,5 +21,8 @@ class ConfigError(Exception):
 class UnsupportedSynMethodError(Exception):
     pass
 
+class UnsupportedEvalMethodError(Exception):
+    pass
+
 class UnexecutedError(Exception):
     pass
