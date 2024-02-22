@@ -36,6 +36,9 @@ class AnonymeterMap():
 
         Args:
             method (str): evaluating method
+
+        Return:
+            (int): The method code.
         """
         try:
             return cls.__dict__[
@@ -50,11 +53,6 @@ class AnonymeterFactory:
     Factory for "Anonymeter" Evaluator.
 
     AnonymeterFactory defines which module to use within Anonymeter.
-
-    TODO As AnonymeterMethodMap,
-            use a class to define mappings of string and int,
-            avoiding string conditions.
-
     """
 
     def __init__(self, **kwargs):

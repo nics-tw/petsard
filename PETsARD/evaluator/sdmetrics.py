@@ -28,6 +28,9 @@ class SDMetricsMap():
 
         Args:
             method (str): evaluating method
+
+        Return:
+            (int): The method code.
         """
         try:
             # accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
