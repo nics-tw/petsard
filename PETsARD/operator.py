@@ -406,7 +406,7 @@ class EvaluatorOperator(Operator):
             raise ConfigError
 
         return self.input
-    
+
     def get_result(self):
         """
         Retrieve the pre-processing result.
