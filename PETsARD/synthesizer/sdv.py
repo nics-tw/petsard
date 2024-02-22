@@ -1,3 +1,4 @@
+import re
 import time
 
 import pandas as pd
@@ -12,70 +13,61 @@ from sdv.single_table import (
 from PETsARD.error import UnfittedError, UnsupportedSynMethodError
 
 
+class SDVMap():
+    """
+    Mapping of SDV.
+    """
+    COPULAGAN:      int = 1
+    CTGAN:          int = 2
+    GAUSSIANCOPULA: int = 3
+    TVAE:           int = 4
+
+    @classmethod
+    def map(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value
+
+        Args:
+            method (str): evaluating method
+
+        Return:
+            (int): The method code.
+        """
+        try:
+            # accept both of "sdv-" or "sdv-single_table-" prefix
+            return cls.__dict__[
+                re.sub(
+                    r"^(sdv-single_table-|sdv-)",
+                    "",
+                    method
+                ).upper()
+            ]
+        except KeyError:
+            raise UnsupportedSynMethodError
+
+
 class SDVFactory:
     """
-    Manage the SDV synthesizers.
-    It allocates the task to the right SDV synthesizer based on the parameters.
+    Factory method of the SDV synthesizers.
 
     Args:
         data (pd.DataFrame): The data to be synthesized from.
         **kwargs: The other parameters.
-
-    TODO As AnonymeterMethodMap, use class define mapping of string and int,
-         don't use string condition.
+            method (str): The synthesizer method. Default is None.
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         method: str = kwargs.get('method', None)
+        method_code = SDVMap.map(method)  # self.config['method']
 
-        if method.startswith('sdv-singletable'):
-            self.Synthesizer = SDVSingleTableFactory(
-                data=data,
-                method=method
-            ).create()
-        else:
-            raise UnsupportedSynMethodError
-
-    def create(self):
-        """
-        Create synthesizer instance.
-
-        Args:
-            None
-        Return:
-            self.Synthesizer (synthesizer): The synthesizer instance.
-        """
-        return self.Synthesizer
-
-
-class SDVSingleTableFactory:
-    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        """
-        Base class for all "SDV".
-            The "SDV" class defines the common API
-            that all the "SDV" need to implement, as well as common functionality.
-
-        Args:
-            data (pd.DataFrame): The data to be synthesized.
-            **kwargs: The other parameters.
-
-        Return:
-            None
-
-        TODO As AnonymeterMethodMap, use class define mapping of string and int,
-             don't use string condition.
-        """
-        method: str = kwargs.get('method', None)
-
-        if method == 'sdv-singletable-copulagan':
+        if method_code == SDVMap.COPULAGAN:
             self.Synthesizer = SDVSingleTableCopulaGAN(data=data)
-        elif method == 'sdv-singletable-ctgan':
+        elif method_code == SDVMap.CTGAN:
             self.Synthesizer = SDVSingleTableCTGAN(data=data)
-        elif method == 'sdv-singletable-gaussiancopula':
+        elif method_code == SDVMap.GAUSSIANCOPULA:
             self.Synthesizer = SDVSingleTableGaussianCopula(data=data)
-        elif method == 'sdv-singletable-tvae':
+        elif method_code == SDVMap.TVAE:
             self.Synthesizer = SDVSingleTableTVAE(data=data)
-
         else:
             raise UnsupportedSynMethodError
 
