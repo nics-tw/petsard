@@ -36,7 +36,7 @@ class SDMetricsMap():
             # accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
             return cls.__dict__[
                 re.sub(
-                    r"^(sdmetrics-|sdmetrics-single_table-)",
+                    r"^(sdmetrics-single_table-|sdmetrics-)",
                     "",
                     method
                 ).upper()
@@ -57,7 +57,7 @@ class SDMetrics:
         method: str = None,
         **kwargs
     ):
-        method_code = SDMetricsMap(method) # self.config['method']
+        method_code = SDMetricsMap.map(method) # self.config['method']
         if method_code == SDMetricsMap.DIAGNOSTICREPORT:
             self.evaluator = SDMetricsDiagnosticReport()
         elif method_code == SDMetricsMap.QUALITYREPORT:
