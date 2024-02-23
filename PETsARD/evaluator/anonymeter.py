@@ -1,5 +1,4 @@
 import re
-import time
 from typing import (
     Dict,
     List,
@@ -130,8 +129,6 @@ class Anonymeter():
         self.aux_cols = anonymeter_aux_cols
         self.secret = anonymeter_secret
 
-        self.eval_method = 'Unknown'
-
     def eval(self):
         """
         Evaluates the privacy risk of the synthetic dataset.
@@ -159,12 +156,6 @@ class Anonymeter():
             warnings.simplefilter("ignore", category=UserWarning)
 
             if self._evaluator:
-                time_start = time.time()
-
-                print(
-                    f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
-                )
-
                 _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
                 if _eval_method_num in [0, 1]:
                     _mode = (
@@ -184,11 +175,6 @@ class Anonymeter():
                         )
                 else:
                     self._evaluator.evaluate(n_jobs=self.n_jobs)
-                    print(
-                        f"Evaluator (Anonymeter): "
-                        f"Evaluating {self.eval_method} spent "
-                        f"{round(time.time()-time_start ,4)} sec."
-                    )
                 self.evaluation = self._extract_result()
             else:
                 raise UnfittedError
@@ -305,23 +291,12 @@ class AnonymeterSinglingOutUnivariate(Anonymeter):
 
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self.eval_method: str = 'SinglingOut - Univariate'
-
-        _time_start = time.time()
-        print(
-            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
-            f"Now is SinglingOut - Univariate Evaluator"
-        )
 
         self._evaluator = SinglingOutEvaluator(
             ori=self.data_ori,
             syn=self.data_syn,
             control=self.data_control,
             n_attacks=self.n_attacks
-        )
-        print(
-            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
-            f"Evaluator time: {round(time.time()-_time_start ,4)} sec."
         )
 
 
@@ -335,22 +310,6 @@ class AnonymeterLinkability(Anonymeter):
 
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self.eval_method: str = 'Linkability'
-
-        _time_start = time.time()
-        print(
-            f"Evaluator (Anonymeter - Linkability): "
-            f"Now is Linkability Evaluator"
-        )
-
-        _str_aux_cols = (
-            f"\n                                      and "
-            .join(f"[{', '.join(row)}]" for row in self.aux_cols)
-        )
-        print(
-            f"Evaluator (Anonymeter - Linkability): "
-            f"aux_cols are {_str_aux_cols}."
-        )
 
         self._evaluator = LinkabilityEvaluator(
             ori=self.data_ori,
@@ -359,10 +318,6 @@ class AnonymeterLinkability(Anonymeter):
             n_attacks=self.n_attacks,
             n_neighbors=self.n_neighbors,
             aux_cols=self.aux_cols
-        )
-        print(
-            f"Evaluator (Anonymeter - Linkability): Evaluator time: "
-            f"{round(time.time()-_time_start ,4)} sec."
         )
 
 
@@ -379,10 +334,6 @@ class AnonymeterInference(Anonymeter):
 
     def __init__(self,   **kwargs):
         super().__init__(**kwargs)
-        self.eval_method: str = 'Inference'
-
-        _time_start = time.time()
-        print('Evaluator (Anonymeter - Inference): Now is Inference Evaluator')
 
         _aux_cols = [
             col for col in self.data_syn.columns if col != self.secret
@@ -394,9 +345,4 @@ class AnonymeterInference(Anonymeter):
             control=self.data_control,
             aux_cols=_aux_cols,
             secret=self.secret
-        )
-
-        print(
-            f"Evaluator (Anonymeter - Inference): Evaluator time: "
-            f"{round(time.time()-_time_start ,4)} sec."
         )

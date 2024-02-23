@@ -1,5 +1,4 @@
 import re
-import time
 from typing import (
     Dict
 )
@@ -95,7 +94,6 @@ class SDMetricsBase():
     ):
         self.data_ori = data['ori']
         self.data_syn = data['syn']
-        self.eval_method = 'Unknown'
 
         data_ori_metadata = SingleTableMetadata()
         data_ori_metadata.detect_from_dataframe(self.data_ori)
@@ -107,22 +105,12 @@ class SDMetricsBase():
             Defines the sub-evaluator from the SDMetrics library
 
         """
-        if self._evaluator:
-            time_start = time.time()
-            print(
-                f"Evaluator (SDMetrics): Evaluating {self.eval_method}."
-            )
 
+        if self._evaluator:
             self._evaluator.generate(
                 real_data=self.data_ori,
                 synthetic_data=self.data_syn,
                 metadata=self.data_ori_metadata
-            )
-
-            print(
-                f"Evaluator (SDMetrics): "
-                f"Evaluating {self.eval_method} spent "
-                f"{round(time.time()-time_start ,4)} sec."
             )
             self.evaluation = self._extract_result()
         else:
@@ -169,7 +157,6 @@ class SDMetricsDiagnosticReport(SDMetricsBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.eval_method: str = 'DiagnosticReport'
         self._evaluator = DiagnosticReport()
 
 
@@ -179,5 +166,4 @@ class SDMetricsQualityReport(SDMetricsBase):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.eval_method: str = 'QualityReport'
         self._evaluator = QualityReport()
