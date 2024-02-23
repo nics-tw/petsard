@@ -5,7 +5,7 @@ The `evalutor` module is responsible for evaluting the quality of synthetic data
 ```python
 from PETsARD.evaluator.evaluator import Evaluator
 
-evaluator = Evaluator(data, evaluating_method='anonymeter-singlingout-univariate')
+evaluator = Evaluator(data, evaluating_method='anonymeter-singlingout_univariate')
 
 evaluator.eval()
 ```
@@ -31,7 +31,7 @@ evaluator = Evaluator(
 
 `data` (`dict`): The dictionary contains 3 types of data, in the forms of `pd.DataFrame`s. The `keys` of `data` are specified above. 包含三種類型資料，需要是 `pd.DataFrame` 的格式。`data` 的 `keys` 可見上述程式碼。
 
-`evaluating_method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout-univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout-univariate'`
+`evaluating_method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
 
 `**kwargs` (`dict`): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
 
@@ -49,7 +49,7 @@ In this section, we provide a comprehensive list of supported evaluator types an
 
 | Submodule | Class | Alias (`evaluating_method` name) |
 |---|:---:|:---:|
-| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout-univariate' |
+| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' |
 | `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' |
 | `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' |
 | `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' |
@@ -69,7 +69,7 @@ Therefore, `PETsARD` includes built-in calls to `anonymeter`. For more details, 
 
 因此 `PETsARD` 整合了對 `anonymeter` 的使用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
 
-### `'anonymeter-singlingout-univariate'`
+### `'anonymeter-singlingout_univariate'`
 
 Singling Out risk represents the possibility of still being able to identify a particular individual, their part, or complete records, even after any Privacy-Enhancing Techniques have been applied. In the example from the `anonymeter`, it refers to the scenario where "there is only one person with attributes X, Y, and Z". In other words, attackers may attempt to identify specific individuals.
 
