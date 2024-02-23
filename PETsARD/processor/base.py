@@ -474,7 +474,7 @@ class Processor:
                 for col, obj in self._config[processor].items():
 
                     logging.debug(
-                        f'{processor}: {obj} from {col} start',
+                        f'{processor}: {obj} from {col} start' +\
                         ' inverse transforming.')
 
                     if obj is None:
