@@ -7,7 +7,9 @@ The usage of benchmark datasets is straightforward. All you need to do is to pla
 基準資料集的使用非常簡單，你只要將各資料集對應的 "Benchmark dataset name" 標籤，以 `benchmark://{Benchmark dataset name}` 的形式放到 `Loader` 的 `filepath` 參數中（大小寫不限），`PETsARD` 便會將對應的資料集下載好，並遵照 `Loader` 的功能加載在 `Loader.data`，而你仍可以按照 `Loader` 的其他參數去自定義資料集的 `metadata`。以下是呼叫 "adult" 資料集的例子：
 
 ```python
-loader = PETsARD.Loader(
+from PETsARD import Loader
+
+load = PETsARD.Loader(
     filepath='benchmark://adult',
     na_values={k: '?' for k in [
         'workclass',
@@ -15,6 +17,9 @@ loader = PETsARD.Loader(
         'native-country'
     ]}
 )
+
+load.load()
+
 print(loader.data.head(1))
 ```
 
