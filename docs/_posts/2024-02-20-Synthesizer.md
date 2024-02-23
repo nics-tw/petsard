@@ -95,7 +95,7 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 | `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ | ✅ |
 
-[^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the sequence.
+[^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the `'sequence'`, and `'encoder'` should not be in the `'sequence'`. 若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
 
 ## SDV
 
@@ -145,9 +145,9 @@ See [document](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/
 
 ## SmartNoise
 
-`smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. it's worth noting that we only support the utilization of cube-style (histogram-based) synthesizers, as listed above. Please ensure that your input data is exclusively in categorical format before initiating training. Specifically, in the `Processor` within `PETsARD`, ensure that the last element in the `sequence` is set to `'discretizing'`.
+`smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. it's worth noting that we only support the utilization of cube-style (histogram-based) synthesizers, as listed above. Please ensure that your input data is exclusively in categorical format before initiating training. Specifically, in the `Processor` within `PETsARD`, ensure that the last element in the `sequence` is set to `'discretizing'`, and `'encoder'` must not be in the `'sequence'`.
 
-`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。同時我們也只支援 cube-style (基於長條圖的) 合成資料演算法，如上表所附。在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`。
+`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。同時我們也只支援 cube-style (基於長條圖的) 合成資料演算法，如上表所附。在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
 
 ### `'smartnoise-aim'`
 
