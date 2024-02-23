@@ -34,7 +34,7 @@ synthesizer = Synthesizer(
 
 `synthesizing_method` (`str`): The synthetic method. The format should be: `{library name}-{function name}`. For example, `'sdv-singletable-gaussiancopula'`. 合成方法。格式須為 `{套件名}-{函式名}`，例如：`'sdv-singletable-gaussiancopula'`
 
-`epsilon` (`float`, default=`5.0`, optional): The epsilon used in DP algorithm. If the synthetic method does not include DP, the parameter will be ignored. See "Available Synthesizer Types". 用於 DP 演算法的 epsilon。如果合成方法不包含 DP，此參數會被忽略。詳見 "Available Synthesizer Types"。
+`epsilon` (`float`, default=`5.0`, optional): The epsilon used in differential privacy (DP) algorithm. If the synthetic method does not include DP, the parameter will be ignored. See "Available Synthesizer Types". 用於差分隱私 (DP) 演算法的 epsilon。如果合成方法不包含 DP，此參數會被忽略。詳見 "Available Synthesizer Types"。
 
 `**kwargs` (`dict`): The parameters defined by each synthetic methods. See the following sections. 合成方法的自定義參數。詳見後續章節。
 
@@ -99,7 +99,7 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 
 `sdv` provides several methods to synthesize data, including copula-based and neural-network-based synthesizer. For more details, please refer to its official [website](https://sdv.dev/), [document](https://docs.sdv.dev/sdv) and [GitHub](https://github.com/sdv-dev/SDV). Within our package, we intentionally disable the default preprocessing procedure in `sdv` to enhance customization flexibility. Please ensure that your input data is exclusively in numerical format before initiating training.
 
-`sdv` 提供了數種合成資料的方法，包含基於耦合分配 (copula)及神經網路的合成方法。詳見其官方[網站](https://sdv.dev/)、[文件](https://docs.sdv.dev/sdv)及 [GitHub](https://github.com/sdv-dev/SDV)。在本套件中，我們抑制了 `sdv` 原生的資料前處理流程以提升客製化的彈性。在訓練前請確保您的資料皆是數值格式。
+`sdv` 提供了數種合成資料的方法，包含基於關聯結構 (copula)及神經網路的合成方法。詳見其官方[網站](https://sdv.dev/)、[說明文件](https://docs.sdv.dev/sdv)及 [GitHub](https://github.com/sdv-dev/SDV)。在本套件中，我們抑制了 `sdv` 原生的資料前處理流程以提升客製化的彈性。在訓練前請確保您的資料皆是數值格式。
 
 ### `'sdv-singletable-copulagan'`
 
@@ -145,7 +145,7 @@ See [document](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/
 
 `smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. it's worth noting that we only support the utilization of cube-style (histogram-based) synthesizers, as listed above. Please ensure that your input data is exclusively in categorical format before initiating training.
 
-`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。同時我們也只支援 cube-style (基於長條圖的) 合成資料演算法，如上表所附。在訓練前請確保您的資料皆是類別格式。
+`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。同時我們也只支援 cube-style (基於長條圖的) 合成資料演算法，如上表所附。在訓練前請確保您的資料皆是類別格式。
 
 ### `'smartnoise-aim'`
 
