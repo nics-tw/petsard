@@ -1,7 +1,11 @@
+from abc import ABC, abstractmethod
+
 import pandas as pd
 
+from PETsARD.error import ConfigError
 
-class EvaluatorBase():
+
+class EvaluatorBase(ABC):
     """
     Base class for Describers/Evaluators.
     """
@@ -10,6 +14,8 @@ class EvaluatorBase():
         """
         Args:
             config (dict): A dictionary containing the configuration settings.
+                - method (str): The method of how you evaluating data.
+                - other parameters should be defined in the module class (Describer/Evaluator)
 
         Attributes:
             config (dict):
@@ -19,10 +25,14 @@ class EvaluatorBase():
             result (dict):
                 A dictionary to store the result of the description/evaluation. Default is an empty.
         """
+        if 'method' not in config:
+            raise ConfigError
+
         self.config: dict = config
         self.data: dict = {}
         self.result: dict = {}
 
+    @abstractmethod
     def create(self, data: dict):
         """
         Create the Describer/Evaluator. This method should be implemented by subclasses.
@@ -32,12 +42,14 @@ class EvaluatorBase():
         """
         raise NotImplementedError
 
+    @abstractmethod
     def eval(self):
         """
         Describes/Evaluates the data. This method should be implemented by subclasses.
         """
         raise NotImplementedError
 
+    @abstractmethod
     def get_global(self) -> pd.DataFrame:
         """
         Get the global result of the description/evaluation.
@@ -48,6 +60,7 @@ class EvaluatorBase():
         """
         raise NotImplementedError
 
+    @abstractmethod
     def get_columnwise(self) -> pd.DataFrame:
         """
         Get the column-wise result of the description/evaluation.
@@ -58,6 +71,7 @@ class EvaluatorBase():
         """
         raise NotImplementedError
 
+    @abstractmethod
     def get_pairwise(self) -> pd.DataFrame:
         """
         Get the pair-wise result of the description/evaluation.
