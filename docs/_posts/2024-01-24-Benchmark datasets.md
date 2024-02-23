@@ -1,12 +1,10 @@
-# Benchmark datasets
+Benchmark datasets is an extended feature of the `loader` module in `PETsARD`, providing users with convenient and reliable example data for algorithm feasibility analysis and PETs evaluation. Therefore, this document focuses on the introduction to various datasets. For details on how to use `Loader`, please refer to the `Loader` documentation.
 
-**Benchmark datasets** is an extended feature of the `Loader` module in `PETsARD` (`Benchmarker`), providing users with convenient and reliable example data for algorithm feasibility analysis and PETs evaluation. Therefore, this document focuses on the introduction to various datasets. For details on how to use `Loader`, please refer to the `Loader` documentation.
+The usage of benchmark datasets is straightforward. All you need to do is to place the corresponding "Benchmark dataset name" in the `filepath` parameter of `Loader`: `benchmark://{Benchmark dataset name}` (case-insensitive). `PETsARD` will download the corresponding dataset and load it into `Loader.data`. You are able to customize the dataset's `metadata` according to other `Loader` parameters. Here is an example of calling the "adult" dataset:
 
-The usage of benchmark datasets is straightforward. All you need to do is to place the corresponding **"Benchmark dataset name"** in the `filepath` parameter of `Loader`: `benchmark://{Benchmark dataset name}` (case-insensitive). `PETsARD` will download the corresponding dataset and load it into `Loader.data`. You are able to customize the dataset's `metadata` according to other `Loader` parameters. Here is an example of calling the "adult" dataset:
+基準資料集 (Benchmark datasets) 是 `PETsARD` 的 `loader` 模組的延伸功能，提供使用者方便呼叫、且可靠的範例資料，讓後續的演算法適用性分析或隱私強化驗測都更為方便。因此，本文將著重在各資料集的介紹上，關於 `Loader` 的使用方式詳見 `Loader` 文檔。
 
-**基準資料集** (**Benchmark datasets**) 是 `PETsARD` 的 `Loader` 模組的延伸功能 (`Benchmarker`)，提供使用者方便呼叫、且可靠的範例資料，讓後續的演算法適用性分析或隱私強化驗測都更為方便。因此，本文將著重在各資料集的介紹上，關於 `Loader` 的使用方式詳見 `Loader` 文檔。
-
-基準資料集的使用非常簡單，你只要將各資料集對應的 **"Benchmark dataset name"** 標籤，以 `benchmark://{Benchmark dataset name}` 的形式放到 `Loader` 的 `filepath` 參數中（大小寫不限），`PETsARD` 便會將對應的資料集下載好，並遵照 `Loader` 的功能加載在 `Loader.data`，而你仍可以按照 `Loader` 的其他參數去自定義資料集的 `metadata`。以下是呼叫 "adult" 資料集的例子：
+基準資料集的使用非常簡單，你只要將各資料集對應的 "Benchmark dataset name" 標籤，以 `benchmark://{Benchmark dataset name}` 的形式放到 `Loader` 的 `filepath` 參數中（大小寫不限），`PETsARD` 便會將對應的資料集下載好，並遵照 `Loader` 的功能加載在 `Loader.data`，而你仍可以按照 `Loader` 的其他參數去自定義資料集的 `metadata`。以下是呼叫 "adult" 資料集的例子：
 
 ```python
 loader = PETsARD.Loader(
@@ -20,17 +18,7 @@ loader = PETsARD.Loader(
 print(loader.data.head(1))
 ```
 
-## Storage
-
-The module first downloads the requested raw data, and store it in a "benchmark" folder within the working directory (in lowercase). If the folder does not exist, it will be created automatically (`./benchmark/{Benchmark filename}`). Subsequently, it will follow the regular `Loader` process for loading. When using it, please make sure that you have appropriate permissions and available hardware space.
-
-If the "benchmark" folder already contains a file with the same filename, the program will check if the local data matches the records in `PETsARD`. If they are matched, the program will skip the download and use the local data directly, making it convenient for users to reuse the data. It's important to note that if there is a file with the same name but with different content, `Loader` will issue a warning and stop. In such cases, users should be aware that the benchmark dataset might have been tampered with and contaminating the experimental results potentially.
-
-基準資料集功能會先下載你所請求的原始資料，存到工作目錄下方的 "benchmark" 資料夾裡（小寫），如果不存在會自動開一個 (`./benchmark/{Benchmark filename}`)，之後照一般的 `Loader` 流程加載。使用時請注意你的權限與硬體空間。
-
-如果你的 "benchmark" 資料夾裡面已經有該資料集對應的同名檔案了，則程式會檢驗本地端的資料是否與 `PETsARD` 的紀錄一致，如果一致的話，便會省去下載、直接使用本地端資料，方便使用者多次使用。要注意的是如果同檔名但檢驗不一致的話，`Loader` 會告警並停止，此時使用者應該留意到可能儲存到了非原版的基準資料集，這很有可能對實驗結果造成汙染。
-
-## Verification
+# Motivation
 
 Classic benchmark datasets are often used in various data analysis or machine learning scenarios. However, in practical experience, it is common to find inconsistencies for two datasets with the same name. Common patterns include:
 
@@ -48,44 +36,34 @@ Usually, The reasons for these patterns are not malicious tampering, but rather 
 
 造成這些樣態原因常常不是惡意竄改，而是某些優化過、或是前處理過的資料被釋出，而後續使用者不經意地加以傳播所導致。由於隱私強化技術的前處理方式至關重要，於是取得相同版本的基準資料集是 `PETsARD` 建議的實驗程序。
 
-### _calculate_sha256()
+# Storage
 
-`PETsARD` ensures the consistency of benchmark datasets' versions by calculating the SHA-256 hash value of files and comparing it to the settings in the `benchmark_datasets.yaml` file. Specifically, `PETsARD` uses `hashlib.sha256()` to calculate the hash of the binary version of a file and records its hexadecimal representation (`.hexdigest()`).
+The module first downloads the requested raw data, and store it in a "benchmark" folder within the working directory (in lowercase). If the folder does not exist, it will be created automatically (`./benchmark/{Benchmark filename}`). Subsequently, it will follow the regular `Loader` process for loading. When using it, please make sure that you have appropriate permissions and available hardware space.
 
-In the functionality related to benchmark datasets, the SHA-256 calculation is entirely background, automated, and in future versions, methods will be provided for users to calculate it manually if desired.
+If the "benchmark" folder already contains a file with the same filename, the program will check if the local data matches the records in `PETsARD`. If they are matched, the program will skip the download and use the local data directly, making it convenient for users to reuse the data. It's important to note that if there is a file with the same name but with different content, `Loader` will issue a warning and stop. In such cases, users should be aware that the benchmark dataset might have been tampered with and contaminating the experimental results potentially.
 
-`PETsARD` 藉由計算檔案的 SHA-256 值，與設定檔案 `benchmark_datasets.yaml` 做比較，來確保基準資料集的版本一致。具體來說，`PETsARD` 使用 `hashlib.sha256()` 計算檔案二進位版本的雜湊，並記錄其雜湊值的 16 進位表示 (`.hexdigest()`)。
+基準資料集功能會先下載你所請求的原始資料，存到工作目錄下方的 "benchmark" 資料夾裡（小寫），如果不存在會自動開一個 (`./benchmark/{Benchmark filename}`)，之後照一般的 `Loader` 流程加載。使用時請注意你的權限與硬體空間。
 
-在基準資料集的功能中，計算 SHA-256 是完全後台的、自動化的，未來版本會再提供方法供使用者自行計算。
+如果你的 "benchmark" 資料夾裡面已經有該資料集對應的同名檔案了，則程式會檢驗本地端的資料是否與 `PETsARD` 的紀錄一致，如果一致的話，便會省去下載、直接使用本地端資料，方便使用者多次使用。要注意的是如果同檔名但檢驗不一致的話，`Loader` 會告警並停止，此時使用者應該留意到可能儲存到了非原版的基準資料集，這很有可能對實驗結果造成汙染。
 
-## Public/private access
+# Available Benchmark Datasets
 
-The `PETsARD` development team, which belongs to the [National Institute for Cyber Security (NICS)](https://www.nics.nat.gov.tw/), stores the benchmark datasets in their cloud space. These datasets are categorized as **public** or **private access**, and the calling methods for both are identical.
+* **Name**: Dataset name. 資料集名稱。
+* **Filename**: Name used in `PETsARD`. 在 `PETsARD` 中的資料集名稱。
+* **Access**: Whether the dataset is public or private. For private datasets, which may have restrictions based on the dataset's authorization or considerations from the data provider, are intended for internal use by the development team and collaborating parties. For any related inquiries, please contact the development team. 公開/私有訪問。私有資料集包含了資料集本身授權的限制、或是資料提供方的考量等原因，僅供團隊與合作方內部使用。相關問題請聯絡開發團隊。
+* **Columns**: Number of columns. 欄位數。
+* **Rows**: Number of rows. 資料數。
+* **File Size**: File size. If it is less than 1 MB, it will be denoted as "< 1 MB". 檔案大小，小於 1 MB 的檔案會被標註為 "< 1 MB"。
+* **License**: License of the dataset. 資料集的原始授權。
+* **Too Few Samples**: Less than 5,000 rows. 資料集少於 5000 筆資料。
+* **Categorical-dominant**: Over 75% columns are categorical. 超過 75% 的欄位為類別欄位。
+* **Numerical-dominant**: Over 75% columns are numerical. 超過 75% 的欄位為數值欄位。
+* **Non-dominant**: Neither categorical nor numerical columns are over 75%. 類別欄位與數值欄位皆未超過 75%。
+* **Extreme Values**: $\text{abs}(\text{skewness})\geq 3$ for any column. The number of columns meeting the requirement is shown in the table. 任一欄位 $\text{abs}(\text{skewness})\geq 3$，符合條件的欄位數會標注在表格中。
+* **High Cardinality**: Categories $\geq 10$ for any categorical column. The number of columns meeting the requirement is shown in the table. 任一類別資料欄位類別數 $\geq 10$，符合條件的欄位數會標注在表格中。
+* **Hash**: Hash value in Benchmark Datasets. 在 Benchmark Datasets 中的 hash value。
 
-**Public datasets** are securely stored in the cloud space after obtaining proper authorization, and they can be downloaded using `request.get()` On the other hand, **Private datasets**, which may have restrictions based on the dataset's authorization or considerations from the data provider, are intended for internal use by the development team and collaborating parties. Access to private datasets is established through `boto3` connection, and configuring cloud permissions is necessary. For any related inquiries, please contact the development team.
-
-基準資料集儲存在 `PETsARD` 開發團隊所屬的臺灣[國家資通安全研究院 (NICS)](https://www.nics.nat.gov.tw/)雲端空間，分成**公開**與**私有訪問**兩種。兩者的呼叫方式完全一樣。
-
-**公開資料集**皆是確認過其授權後，由團隊保存之雲端備份，使用 `request.get()` 下載。而**私有資料集**，包含了資料集本身授權的限制、或是資料提供方的考量等原因，僅供團隊與合作方內部使用。目前私有資料集使用 `boto3` 連線，需要預先設定雲端權限，相關問題請聯絡開發團隊。
-
-## Dataset Lists
-
-* **Name**: Dataset name 資料集名稱
-* **Filename**: Name used in `PETsARD` 在 `PETsARD` 中的資料集名稱
-* **Access**: Whether the dataset is public or private 公開/私有訪問
-* **Columns**: Number of columns 欄位數
-* **Rows**: Number of rows 資料數
-* **File Size**: File size. If it is less than 1 MB, it will be denoted as "< 1 MB" 檔案大小，小於 1 MB 的檔案會被標註為 "< 1 MB"
-* **License**: License of the dataset 資料集的原始授權
-* **Too Few Samples**: Less than 5,000 rows 資料集少於 5000 筆資料
-* **Categorical-dominant**: Over 75% columns are categorical 超過 75% 的欄位為類別欄位
-* **Numerical-dominant**: Over 75% columns are numerical 超過 75% 的欄位為數值欄位
-* **Non-dominant**: Neither categorical nor numerical columns are over 75% 類別欄位與數值欄位皆未超過 75%
-* **Extreme Values**: $|\text{skewness}|\geq 3$ for any column. The number of columns meeting the requirement is shown in the table 任一欄位 $|\text{skewness}|\geq 3$，符合條件的欄位數會標注在表格中
-* **High Cardinality**: Categories $\geq 10$ for any categorical column. The number of columns meeting the requirement is shown in the table 任一類別資料欄位類別數 $\geq 10$，符合條件的欄位數會標注在表格中
-* **Hash**: Hash value in Benchmark Datasets 在 Benchmark Datasets 中的 hash value
-
-### Demographic
+## Demographic
 
 <div class="table-wrapper" markdown="block">
 
@@ -118,7 +96,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^7]: https://www.census.gov/data/tables/time-series/demo/voting-and-registration/p20-586.html
 [^8]: https://www.census.gov/programs-surveys/cps/data/datasets.html
 
-### Business
+## Business
 
 <div class="table-wrapper" markdown="block">
 
@@ -149,7 +127,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^17]: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 [^18]: https://www.kaggle.com/datasets/serapgr/telco-customer-churn
 
-### Biology
+## Biology
 
 <div class="table-wrapper" markdown="block">
 
@@ -165,7 +143,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^20]: https://www.kaggle.com/datasets/parulpandey/palmer-archipelago-antarctica-penguin-data
 [^21]: https://www.kaggle.com/datasets/himanshunakrani/iris-dataset
 
-### Environment
+## Environment
 
 <div class="table-wrapper" markdown="block">
 
@@ -179,7 +157,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^22]: https://www.kaggle.com/datasets/oladimejiwilliams/energydata-complete
 [^23]: https://www.kaggle.com/datasets/parimalbhoyar25/airquality-uci
 
-### Human Resource
+## Human Resource
 
 <div class="table-wrapper" markdown="block">
 
@@ -195,7 +173,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^25]: https://www.kaggle.com/datasets/saikrishna20/candidates-list
 [^26]: https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset
 
-### Medical
+## Medical
 
 <div class="table-wrapper" markdown="block">
 
@@ -220,7 +198,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^32]: https://archive.ics.uci.edu/dataset/15/breast+cancer+wisconsin+origina
 [^33]: https://www.kaggle.com/datasets/drscarlat/mimic3c/data
 
-### Computer Science
+## Computer Science
 
 <div class="table-wrapper" markdown="block">
 
@@ -243,7 +221,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^40]: https://www.kaggle.com/datasets/dhoogla/unswnb15
 [^41]: https://archive.ics.uci.edu/dataset/942/rt-iot2022
 
-### Social Science
+## Social Science
 
 <div class="table-wrapper" markdown="block">
 
@@ -257,7 +235,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^42]: https://archive.ics.uci.edu/dataset/312/dow+jones+index
 [^43]: https://www.kaggle.com/datasets/ishandutta/real-time-election-results-portugal-2019-data-set
 
-### Transportation
+## Transportation
 
 <div class="table-wrapper" markdown="block">
 
@@ -269,7 +247,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 [^44]: https://archive.ics.uci.edu/dataset/204/pems+sf
 
-### Others
+## Others
 
 <div class="table-wrapper" markdown="block">
 
