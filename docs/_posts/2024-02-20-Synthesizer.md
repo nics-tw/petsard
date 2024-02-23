@@ -84,16 +84,18 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 
 在此章節我們列出所有目前支援的合成資料方法及其對應的 `synthesizing_method` 名稱。
 
-| Submodule | Class | Alias (`synthesizing_method` name) | `epsilon` required |
-|---|:---:|:---:|:---:|
-| `sdv` | `CopulaGANSynthesizer` | 'sdv-singletable-copulagan' | |
-| `sdv` | `CTGANSynthesizer` | 'sdv-singletable-ctgan' | |
-| `sdv` | `GaussianCopulaSynthesizer` | 'sdv-singletable-gaussiancopula' | |
-| `sdv` | `TVAESynthesizer` | 'sdv-singletable-tvae' | |
-| `smartnoise` | `SmartNoiseCreator` (AIM) | 'smartnoise-aim' | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (MWEM) | 'smartnoise-mwem' | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ |
+| Submodule | Class | Alias (`synthesizing_method` name) | `epsilon` required | `discretizing` needed[^1] |
+|---|:---:|:---:|:---:|:---:|
+| `sdv` | `CopulaGANSynthesizer` | 'sdv-singletable-copulagan' | | |
+| `sdv` | `CTGANSynthesizer` | 'sdv-singletable-ctgan' | | |
+| `sdv` | `GaussianCopulaSynthesizer` | 'sdv-singletable-gaussiancopula' | | |
+| `sdv` | `TVAESynthesizer` | 'sdv-singletable-tvae' | | |
+| `smartnoise` | `SmartNoiseCreator` (AIM) | 'smartnoise-aim' | ✅ | ✅ |
+| `smartnoise` | `SmartNoiseCreator` (MWEM) | 'smartnoise-mwem' | ✅ | ✅ |
+| `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ | ✅ |
+| `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ | ✅ |
+
+[^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the sequence.
 
 ## SDV
 
