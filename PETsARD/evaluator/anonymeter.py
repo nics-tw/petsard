@@ -47,44 +47,10 @@ class AnonymeterMap():
             raise UnsupportedEvalMethodError
 
 
-class AnonymeterFactory:
+class Anonymeter(EvaluatorBase):
     """
     Factory for "Anonymeter" Evaluator.
-
-    AnonymeterFactory defines which module to use within Anonymeter.
-    """
-
-    def __init__(self, **kwargs):
-        config: dict = kwargs
-        method_code = AnonymeterMap.map(config['method'])
-
-        if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.evaluator = AnonymeterSinglingOutUnivariate(config=config)
-        # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.evaluator = AnonymeterSinglingOutMultivariate(config=config)
-        elif method_code == AnonymeterMap.LINKABILITY:
-            self.evaluator = AnonymeterLinkability(config=config)
-        elif method_code == AnonymeterMap.INFERENCE:
-            self.evaluator = AnonymeterInference(config=config)
-        else:
-            raise UnsupportedEvalMethodError
-
-    def create(self):
-        """
-        create()
-            return the Evaluator which selected by Factory.
-        """
-        return self.evaluator
-
-
-class AnonymeterBase(EvaluatorBase):
-    """
-    Base class for all "Anonymeter".
-        The "Anonymeter" class defines the common API
-        that all the "Anonymeter" need to implement, as well as common functionality.
-
-    Args:
-        data (dict): Following data logic defined in Evaluator.
+        AnonymeterFactory defines which module to use within Anonymeter.
 
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
@@ -138,26 +104,63 @@ class AnonymeterBase(EvaluatorBase):
             config.setdefault(key, value)
         self.evaluator = None
 
-    def _create(self, data: dict):
+    def create(self, data: dict) -> None:
         """
         Create a new instance of the anonymeter class with the given data.
 
         Args:
             data (dict): The data to be stored in the anonymeter instance.
+
+        Resurn:
+            None. Anonymeter class store in self.evaluator.
+
+        TODO SinglingOut attacks of Multi-variate.
         """
         self.data = data
 
-    @abstractmethod
-    def create(self, data: dict):
-        """
-        Create method. Impleted by each Anonymeter class.
+        method_code = AnonymeterMap.map(self.config['method'])
 
-        Args:
-            data (dict): The data used to create the object.
-        """
-        raise NotImplementedError
+        if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+            self.config['singlingout_mode'] = 'univariate'
+            self.evaluator = SinglingOutEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks']
+            )
+        # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
+        #     self.config['singlingout_mode'] = 'multivariate'
+        #     self.evaluator = SinglingOutEvaluator(
+        #         ori=self.data['ori'],
+        #         syn=self.data['syn'],
+        #         control=self.data['control'],
+        #         n_attacks=self.config['n_attacks']
+        #     )
+        elif method_code == AnonymeterMap.LINKABILITY:
+            self.evaluator = LinkabilityEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks'],
+                n_neighbors=self.config['n_neighbors'],
+                aux_cols=self.config['aux_cols']
+            )
+        elif method_code == AnonymeterMap.INFERENCE:
+            aux_cols = [
+                col for col in self.data_syn.columns if col != self.secret
+            ]
+            self.evaluator = InferenceEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks'],
+                aux_cols=aux_cols,
+                secret=self.config['secret']
+            )
+        else:
+            raise UnsupportedEvalMethodError
 
-    def eval(self):
+    def eval(self) -> None:
         """
         Evaluate the anonymization process.
 
@@ -254,25 +257,30 @@ class AnonymeterBase(EvaluatorBase):
 
         # Handle the risk
         try:
-            risk = self.evaluator.evaluator.risk()
+            risk = self.evaluator.risk()
             self.result['risk'] = _safe_round(risk.value)
             self.result['risk_CI_btm'] = _safe_round(risk.ci[0])
             self.result['risk_CI_top'] = _safe_round(risk.ci[1])
         except Exception:
-            pass
-
+            self.result['risk'] = pd.NA
+            self.result['risk_CI_btm'] = pd.NA
+            self.result['risk_CI_top'] = pd.NA
 
         # Handle the attack_rate, baseline_rate, control_rate
         try:
-            results = self.evaluator.evaluator.results()
-
+            results = self.evaluator.results()
             for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
                 rate_result = getattr(results, rate_type, None)
                 if rate_result:
                     self.result[f'{rate_type}'] = _safe_round(rate_result.value)
                     self.result[f'{rate_type}_err'] = _safe_round(rate_result.error)
+                else:
+                    self.result[f'{rate_type}'] = pd.NA
+                    self.result[f'{rate_type}_err'] = pd.NA
         except Exception:
-            pass
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                self.result[f'{rate_type}'] = pd.NA
+                self.result[f'{rate_type}_err'] = pd.NA
 
     def get_global(self) -> pd.DataFrame:
         pass
@@ -282,97 +290,3 @@ class AnonymeterBase(EvaluatorBase):
 
     def get_pairwise(self) -> pd.DataFrame:
         pass
-
-
-class AnonymeterSinglingOutUnivariate(AnonymeterBase):
-    """
-    Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
-
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
-
-    TODO SinglingOut attacks of Multi-variate.
-    """
-
-    def __init__(self, config: dict):
-        super().__init__(config=config)
-
-    def create(self, data: dict):
-        """
-        Creates an instance of the anonymeter.
-
-        Args:
-            data (dict): The data required for creating the anonymeter.
-        """
-        self._create(data=data)
-        self.config['singlingout_mode'] = 'univariate'
-        self.evaluator = SinglingOutEvaluator(
-            ori=self.data['ori'],
-            syn=self.data['syn'],
-            control=self.data['control'],
-            n_attacks=self.config['n_attacks']
-        )
-
-
-class AnonymeterLinkability(AnonymeterBase):
-    """
-    Estimation of the Linkability attacks in the Anonymeter library.
-
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
-    """
-
-    def __init__(self, config: dict):
-        super().__init__(config=config)
-
-    def create(self, data: dict):
-        """
-        Create an instance of the anonymeter.
-
-        Args:
-            data (dict): The data required for creating the anonymeter.
-        """
-        self._create(data=data)
-        self.evaluator = LinkabilityEvaluator(
-            ori=self.data['ori'],
-            syn=self.data['syn'],
-            control=self.data['control'],
-            n_attacks=self.config['n_attacks'],
-            n_neighbors=self.config['n_neighbors'],
-            aux_cols=self.config['aux_cols']
-        )
-
-
-class AnonymeterInference(AnonymeterBase):
-    """
-    Estimation of the Inference attacks in the Anonymeter library.
-
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
-
-    TODO Currently, it calculates a single column as the secret.
-            According to the paper, consider handling multiple secrets.
-    """
-
-    def __init__(self, config: dict):
-        super().__init__(config=config)
-
-    def create(self, data: dict):
-        """
-        Create an instance of the anonymeter.
-
-        Args:
-            data (dict): The data required for creating the anonymeter.
-        """
-        self._create(data=data)
-        aux_cols = [
-            col for col in self.data_syn.columns if col != self.secret
-        ]
-        self.evaluator = InferenceEvaluator(
-            ori=self.data['ori'],
-            syn=self.data['syn'],
-            control=self.data['control'],
-            n_attacks=self.config['n_attacks'],
-            aux_cols=aux_cols,
-            secret=self.config['secret']
-        )

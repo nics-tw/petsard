@@ -1,8 +1,8 @@
 import re
 
-from PETsARD.evaluator.anonymeter import AnonymeterFactory
+from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.sdmetrics import SDMetrics
-from PETsARD.error import UnsupportedEvalMethodError
+from PETsARD.error import ConfigError, UnsupportedEvalMethodError
 
 
 class EvaluatorMap():
@@ -37,37 +37,24 @@ class Evaluator:
     that all "Evaluators" need to implement, as well as common functionality.
 
     Args:
-        data (dict)
-            The dictionary contains necessary information.
-            For now, we adhere to the Anonymeter requirements,
-            so you should include:
-            data = {
-                'ori' : pd.DataFrame   # Original data used for synthesis
-                'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
-                'control: pd.DataFrame # Original data but NOT used for synthesis
-            }
-            Note: So it is recommended to split your original data before synthesizing it.
-                (We recommend to use our pipeline!)
-
-        evaluating_method (str):
+        method (str):
             The method of how you evaluating data. Case insensitive.
                 The format should be: {library name}{function name},
                 e.g., 'anonymeter_singlingout_univariate'.
 
     TODO Extract and process the result.
-
     """
-
     def __init__(self, method: str, **kwargs):
-
         self.config = kwargs
         self.config['method'] = method.lower()
+        self.evaluator = None
 
         method_code = EvaluatorMap.map(self.config['method'])
         if method_code == EvaluatorMap.ANONYMETER:
-            self.evaluator = AnonymeterFactory(**self.config).create()
+            self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
-            self.evaluator = SDMetrics(**self.config).create()
+            pass
+            # self.evaluator = SDMetrics(**self.config)
         else:
             raise UnsupportedEvalMethodError
 
@@ -76,7 +63,17 @@ class Evaluator:
         Create a Evaluator object with the given data.
 
         Args:
-            data (dict): The input data for evaluating.
+            data (dict)
+                The dictionary contains necessary information.
+                For now, we adhere to the Anonymeter requirements,
+                so you should include:
+                data = {
+                    'ori' : pd.DataFrame   # Original data used for synthesis
+                    'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
+                    'control: pd.DataFrame # Original data but NOT used for synthesis
+                }
+                Note: So it is recommended to split your original data before synthesizing it.
+                    (We recommend to use our pipeline!)
         """
         self.evaluator.create(data=data)
 
