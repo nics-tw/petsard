@@ -123,6 +123,8 @@ class Anonymeter(EvaluatorBase):
 
         TODO SinglingOut attacks of Multi-variate.
         """
+        if 'ori' not in data or 'syn' not in data or 'control' not in data:
+            raise ConfigError
         self.data = data
 
         if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
@@ -168,14 +170,84 @@ class Anonymeter(EvaluatorBase):
         else:
             raise UnsupportedEvalMethodError
 
-    def _extract_result(self) -> None:
+    def _extract_result(self) -> dict:
         """
         _extract_result of Anonymeter.
             Uses .risk()/.results() method in Anonymeter
-            to extract result from self._evaluator into the designated dictionary.
+            to extract result from self.evaluator into the designated dictionary.
 
         Return
-            None. Result contains in self.result as following key-value pairs
+            (dict). Result as specific format describe in eval().
+        """
+
+        def _safe_round(value, digits=6):
+            """
+            Safely rounds a given value to the specified number of digits.
+
+            Args:
+                value (float): The value to be rounded.
+                digits (int, optional): The number of digits to round to. Defaults to 6.
+
+            Returns:
+                float or None: The rounded value, or None if an exception occurs.
+            """
+            try:
+                return round(value, digits)
+            except Exception:
+                return pd.NA
+
+        result = {}
+
+        # Handle the risk
+        try:
+            risk = self.evaluator.risk()
+            result['risk'] = _safe_round(risk.value)
+            result['risk_CI_btm'] = _safe_round(risk.ci[0])
+            result['risk_CI_top'] = _safe_round(risk.ci[1])
+        except Exception:
+            result['risk'] = pd.NA
+            result['risk_CI_btm'] = pd.NA
+            result['risk_CI_top'] = pd.NA
+
+        # Handle the attack_rate, baseline_rate, control_rate
+        try:
+            results = self.evaluator.results()
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                rate_result = getattr(results, rate_type, None)
+                if rate_result:
+                    result[f'{rate_type}'] = _safe_round(rate_result.value)
+                    result[f'{rate_type}_err'] = _safe_round(rate_result.error)
+                else:
+                    result[f'{rate_type}'] = pd.NA
+                    result[f'{rate_type}_err'] = pd.NA
+        except Exception:
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                result[f'{rate_type}'] = pd.NA
+                result[f'{rate_type}_err'] = pd.NA
+
+        return result
+
+    def eval(self) -> dict:
+        """
+        Evaluate the anonymization process.
+
+        Keep the known warnings from the Anonymeter library:
+            UserWarning: anonymeter\stats\confidence.py:215:
+                UserWarning: Attack is as good or worse as baseline model.
+                Estimated rates: attack = ...{float}... ,
+                baseline = ...{float}... .
+                Analysis results cannot be trusted. self._sanity_check()
+            - warnings.simplefilter("ignore", category=UserWarning)
+
+        Inhited the known warnings from the Anonymeter SinglingOut:
+            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
+                FutureWarning: is_categorical_dtype is deprecated
+                and will be removed in a future version.
+                Use isinstance(dtype, CategoricalDtype)
+                instead elif is_categorical_dtype(values).
+
+        Return
+            (dict). Result as following key-value pairs:
             - risk (float)
                 Privacy Risk value of specified attacks. Ranging from 0 to 1.
                     A value of 0 indicates no risk, and 1 indicates full risk.
@@ -205,104 +277,46 @@ class Anonymeter(EvaluatorBase):
                 A value of 0 indicates none of success attack,
                     and 1 indicates totally success attack.
                 Includes control_Rate_err for its error rate.
-        """
-
-        def _safe_round(value, digits=6):
-            """
-            Safely rounds a given value to the specified number of digits.
-
-            Args:
-                value (float): The value to be rounded.
-                digits (int, optional): The number of digits to round to. Defaults to 6.
-
-            Returns:
-                float or None: The rounded value, or None if an exception occurs.
-            """
-            try:
-                return round(value, digits)
-            except Exception:
-                return pd.NA
-
-        # Handle the risk
-        try:
-            risk = self.evaluator.risk()
-            self.result['risk'] = _safe_round(risk.value)
-            self.result['risk_CI_btm'] = _safe_round(risk.ci[0])
-            self.result['risk_CI_top'] = _safe_round(risk.ci[1])
-        except Exception:
-            self.result['risk'] = pd.NA
-            self.result['risk_CI_btm'] = pd.NA
-            self.result['risk_CI_top'] = pd.NA
-
-        # Handle the attack_rate, baseline_rate, control_rate
-        try:
-            results = self.evaluator.results()
-            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
-                rate_result = getattr(results, rate_type, None)
-                if rate_result:
-                    self.result[f'{rate_type}'] = _safe_round(rate_result.value)
-                    self.result[f'{rate_type}_err'] = _safe_round(rate_result.error)
-                else:
-                    self.result[f'{rate_type}'] = pd.NA
-                    self.result[f'{rate_type}_err'] = pd.NA
-        except Exception:
-            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
-                self.result[f'{rate_type}'] = pd.NA
-                self.result[f'{rate_type}_err'] = pd.NA
-
-    def eval(self) -> None:
-        """
-        Evaluate the anonymization process.
-
-        Keep the known warnings from the Anonymeter library:
-            UserWarning: anonymeter\stats\confidence.py:215:
-                UserWarning: Attack is as good or worse as baseline model.
-                Estimated rates: attack = ...{float}... ,
-                baseline = ...{float}... .
-                Analysis results cannot be trusted. self._sanity_check()
-            - warnings.simplefilter("ignore", category=UserWarning)
-
-        Inhited the known warnings from the Anonymeter SinglingOut:
-            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
-                FutureWarning: is_categorical_dtype is deprecated
-                and will be removed in a future version.
-                Use isinstance(dtype, CategoricalDtype)
-                instead elif is_categorical_dtype(values).
 
         Exception:
             UnfittedError: If the anonymeter has not been create() yet.
         """
-        if self.evaluator:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", category=FutureWarning)
-                try:
-                    if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-                        # SinglingOut attacks of Univariate
-                        self.evaluator.evaluate(mode=self.config['singlingout_mode'])
-                    elif self.config['method_code'] in [AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
-                        # Linkability and Inference
-                        self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
-                    else:
-                        raise UnsupportedEvalMethodError
-                except RuntimeError:
-                    # Please re-run this cell.
-                    # "For more stable results increase `n_attacks`.
-                    # Note that this will make the evaluation slower.
-                    raise UnableToEvaluateError
-        else:
+        if not self.evaluator:
             raise UnfittedError
-        self._extract_result() # write self.result
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=FutureWarning)
+            try:
+                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+                    # SinglingOut attacks of Univariate
+                    self.evaluator.evaluate(mode=self.config['singlingout_mode'])
+                elif self.config['method_code'] in [
+                    AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
+                    # Linkability and Inference
+                    self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
+                else:
+                    raise UnsupportedEvalMethodError
+            except RuntimeError:
+                # Please re-run this cell.
+                # "For more stable results increase `n_attacks`.
+                # Note that this will make the evaluation slower.
+                raise UnableToEvaluateError
+
+        self.result = self._extract_result()
 
     def get_global(self) -> pd.DataFrame:
         """
-        Returns a pandas DataFrame containing the global evaluation result.
+        Retrieves the global result from the Anonymeter.
 
         Returns:
             pd.DataFrame: A DataFrame with the global evaluation result.
                 One row only for representing the whole data result.
         """
+        if not self.result:
+            raise UnfittedError
+
         return pd.DataFrame.from_dict(
-            data={'result': self.evaluator.result},
+            data={'result': self.result},
             orient='columns'
         ).T
 
