@@ -1,5 +1,7 @@
 import re
 
+import pandas as pd
+
 from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.sdmetrics import SDMetrics
 from PETsARD.error import ConfigError, UnsupportedEvalMethodError
@@ -83,3 +85,34 @@ class Evaluator:
             Call the evaluating method within implementation after Factory.
         """
         self.evaluator.eval()
+        self.result = self.evaluator.result
+
+    def get_global(self) -> pd.DataFrame:
+        """
+        Returns the global evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
+        """
+        return self.evaluator.get_global()
+
+    def get_columnwise(self) -> pd.DataFrame:
+        """
+        Returns the column-wise evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the column-wise evaluation result.
+                Each row contains one column in original data.
+        """
+        return self.evaluator.get_columnwise()
+
+    def get_pairwise(self) -> pd.DataFrame:
+        """
+        Retrieves the pairwise evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the pairwise evaluation result.
+                Each row contains column x column in original data.
+        """
+        return self.evaluator.get_columnwise()
