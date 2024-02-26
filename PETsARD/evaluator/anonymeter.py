@@ -16,7 +16,12 @@ import numpy as np
 import pandas as pd
 
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.error import UnableToEvaluateError, UnfittedError, UnsupportedEvalMethodError
+from PETsARD.error import (
+    ConfigError,
+    UnableToEvaluateError,
+    UnfittedError,
+    UnsupportedEvalMethodError
+)
 
 
 class AnonymeterMap():
@@ -102,6 +107,8 @@ class Anonymeter(EvaluatorBase):
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
+        self.config['method_code'] = AnonymeterMap.map(self.config['method'])
+
         self.evaluator = None
 
     def create(self, data: dict) -> None:
@@ -118,9 +125,7 @@ class Anonymeter(EvaluatorBase):
         """
         self.data = data
 
-        method_code = AnonymeterMap.map(self.config['method'])
-
-        if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
             self.config['singlingout_mode'] = 'univariate'
             self.evaluator = SinglingOutEvaluator(
                 ori=self.data['ori'],
@@ -128,7 +133,7 @@ class Anonymeter(EvaluatorBase):
                 control=self.data['control'],
                 n_attacks=self.config['n_attacks']
             )
-        # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
+        # elif self.config['method_code'] == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
         #     self.config['singlingout_mode'] = 'multivariate'
         #     self.evaluator = SinglingOutEvaluator(
         #         ori=self.data['ori'],
@@ -136,7 +141,10 @@ class Anonymeter(EvaluatorBase):
         #         control=self.data['control'],
         #         n_attacks=self.config['n_attacks']
         #     )
-        elif method_code == AnonymeterMap.LINKABILITY:
+        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+            if 'aux_cols' not in self.config\
+                or self.config['aux_cols'] is None:
+                raise ConfigError
             self.evaluator = LinkabilityEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
@@ -145,9 +153,9 @@ class Anonymeter(EvaluatorBase):
                 n_neighbors=self.config['n_neighbors'],
                 aux_cols=self.config['aux_cols']
             )
-        elif method_code == AnonymeterMap.INFERENCE:
+        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
             aux_cols = [
-                col for col in self.data_syn.columns if col != self.secret
+                col for col in self.data['syn'].columns if col != self.config['secret']
             ]
             self.evaluator = InferenceEvaluator(
                 ori=self.data['ori'],
@@ -160,48 +168,7 @@ class Anonymeter(EvaluatorBase):
         else:
             raise UnsupportedEvalMethodError
 
-    def eval(self) -> None:
-        """
-        Evaluate the anonymization process.
-
-        Keep the known warnings from the Anonymeter library:
-            UserWarning: anonymeter\stats\confidence.py:215:
-                UserWarning: Attack is as good or worse as baseline model.
-                Estimated rates: attack = ...{float}... ,
-                baseline = ...{float}... .
-                Analysis results cannot be trusted. self._sanity_check()
-            - warnings.simplefilter("ignore", category=UserWarning)
-
-        Inhited the known warnings from the Anonymeter SinglingOut:
-            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
-                FutureWarning: is_categorical_dtype is deprecated
-                and will be removed in a future version.
-                Use isinstance(dtype, CategoricalDtype)
-                instead elif is_categorical_dtype(values).
-
-        Exception:
-            UnfittedError: If the anonymeter has not been create() yet.
-        """
-        if self.evaluator:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", category=FutureWarning)
-                try:
-                    if self.config['singlingout_mode'] == 'univariate':
-                        # SinglingOut attacks of Univariate
-                        self.evaluator.evaluate(mode=self.config['singlingout_mode'])
-                    else:
-                        # Linkability and Inference
-                        self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
-                except RuntimeError:
-                    # Please re-run this cell.
-                    # "For more stable results increase `n_attacks`.
-                    # Note that this will make the evaluation slower.
-                    raise UnableToEvaluateError
-        else:
-            raise UnfittedError
-        self._extract_result()
-
-    def _extract_result(self) -> dict:
+    def _extract_result(self) -> None:
         """
         _extract_result of Anonymeter.
             Uses .risk()/.results() method in Anonymeter
@@ -239,6 +206,7 @@ class Anonymeter(EvaluatorBase):
                     and 1 indicates totally success attack.
                 Includes control_Rate_err for its error rate.
         """
+
         def _safe_round(value, digits=6):
             """
             Safely rounds a given value to the specified number of digits.
@@ -282,11 +250,108 @@ class Anonymeter(EvaluatorBase):
                 self.result[f'{rate_type}'] = pd.NA
                 self.result[f'{rate_type}_err'] = pd.NA
 
+    def eval(self) -> None:
+        """
+        Evaluate the anonymization process.
+
+        Keep the known warnings from the Anonymeter library:
+            UserWarning: anonymeter\stats\confidence.py:215:
+                UserWarning: Attack is as good or worse as baseline model.
+                Estimated rates: attack = ...{float}... ,
+                baseline = ...{float}... .
+                Analysis results cannot be trusted. self._sanity_check()
+            - warnings.simplefilter("ignore", category=UserWarning)
+
+        Inhited the known warnings from the Anonymeter SinglingOut:
+            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
+                FutureWarning: is_categorical_dtype is deprecated
+                and will be removed in a future version.
+                Use isinstance(dtype, CategoricalDtype)
+                instead elif is_categorical_dtype(values).
+
+        Exception:
+            UnfittedError: If the anonymeter has not been create() yet.
+        """
+        if self.evaluator:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=FutureWarning)
+                try:
+                    if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+                        # SinglingOut attacks of Univariate
+                        self.evaluator.evaluate(mode=self.config['singlingout_mode'])
+                    elif self.config['method_code'] in [AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
+                        # Linkability and Inference
+                        self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
+                    else:
+                        raise UnsupportedEvalMethodError
+                except RuntimeError:
+                    # Please re-run this cell.
+                    # "For more stable results increase `n_attacks`.
+                    # Note that this will make the evaluation slower.
+                    raise UnableToEvaluateError
+        else:
+            raise UnfittedError
+        self._extract_result() # write self.result
+
     def get_global(self) -> pd.DataFrame:
-        pass
+        """
+        Returns a pandas DataFrame containing the global evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
+        """
+        return pd.DataFrame.from_dict(
+            data={'result': self.evaluator.result},
+            orient='columns'
+        ).T
 
     def get_columnwise(self) -> pd.DataFrame:
-        pass
+        """
+        Retrieves the column-wise result from the Anonymeter.
+
+        Returns:
+            pd.DataFrame: None for Anonymeter didn't have column-wise result.
+        """
+        return None
 
     def get_pairwise(self) -> pd.DataFrame:
-        pass
+        """
+        Retrieves the pairwise result from the Anonymeter.
+
+        Returns:
+            pd.DataFrame: None for Anonymeter didn't have pairwise result.
+        """
+        return None
+
+    def get_details(self) -> dict:
+        """
+        Retrieves the specify details of the evaluation.
+
+        Returns:
+            None. self.result['details'] will store the non-specific data.
+        """
+        details = {}
+
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+            # SinglingOut attacks of Univariate
+            #   control queries didn't been stored
+            details['attack_queries']   = self.evaluator._attack_queries
+            details['baseline_queries'] = self.evaluator._baseline_queries
+        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+            # Linkability: Dict[int, Set(int)]
+            #   aux_cols[0] indexes links to aux_cols[1]
+            n_neighbors = self.config['n_neighbors']
+            details['attack_links'] = \
+                self.evaluator._attack_links.find_links(n_neighbors=n_neighbors)
+            details['baseline_links'] = \
+                self.evaluator._baseline_links.find_links(n_neighbors=n_neighbors)
+            details['control_links'] = \
+                self.evaluator._control_links.find_links(n_neighbors=n_neighbors)
+        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
+            # Inference
+            pass # Inference queries didn't been stored
+        else:
+            raise UnsupportedEvalMethodError
+
+        self.result['details'] = details
