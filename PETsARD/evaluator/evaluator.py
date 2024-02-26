@@ -60,14 +60,16 @@ class Evaluator:
 
     def __init__(self, method: str, **kwargs):
 
-        self.config = {
-            'method': method.lower(),
-            'n_attacks': kwargs.get('n_attacks', 2000),
-            'n_jobs': kwargs.get('n_jobs', -2),
-            'n_neighbors': kwargs.get('n_neighbors', 10),
-            'aux_cols': kwargs.get('aux_cols', None),
-            'secret': kwargs.get('secret', None)
-        }
+        self.config = kwargs
+        self.config['method'] = method.lower()
+
+        method_code = EvaluatorMap.map(self.config['method'])
+        if method_code == EvaluatorMap.ANONYMETER:
+            self.evaluator = AnonymeterFactory(**self.config).create()
+        elif method_code == EvaluatorMap.SDMETRICS:
+            self.evaluator = SDMetrics(**self.config).create()
+        else:
+            raise UnsupportedEvalMethodError
 
     def create(self, data: dict) -> None:
         """
@@ -76,16 +78,7 @@ class Evaluator:
         Args:
             data (dict): The input data for evaluating.
         """
-        self.config['data'] = data
-
-        # TODO: verify method in __init__
-        method_code = EvaluatorMap.map(self.config['method'])
-        if method_code == EvaluatorMap.ANONYMETER:
-            self.evaluator = AnonymeterFactory(**self.config).create()
-        elif method_code == EvaluatorMap.SDMETRICS:
-            self.evaluator = SDMetrics(**self.config).create()
-        else:
-            raise UnsupportedEvalMethodError
+        self.evaluator.create(data=data)
 
     def eval(self) -> None:
         """

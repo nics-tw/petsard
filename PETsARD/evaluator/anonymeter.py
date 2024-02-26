@@ -1,7 +1,6 @@
+from abc import abstractmethod
 import re
 from typing import (
-    Dict,
-    List,
     Optional,
     Tuple,
     Union
@@ -17,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
+from PETsARD.error import UnableToEvaluateError, UnfittedError, UnsupportedEvalMethodError
 
 
 class AnonymeterMap():
@@ -92,7 +91,6 @@ class AnonymeterBase(EvaluatorBase):
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
-
     def __init__(self, config: dict):
         """
         Args:
@@ -117,11 +115,17 @@ class AnonymeterBase(EvaluatorBase):
                 - secret (str | List[str]], Optional):
                     The secret attribute(s) of the target records, unknown to the attacker.
                     This is what the attacker will try to guess.
+
+        Attr:
+            config (dict):
+                A dictionary containing the configuration settings.
+            evaluator (Anonymeter):
+                Anonymeter class for implementing the Anonymeter.
         """
         super().__init__(config=config)
 
         default_config = {
-            'n_attacks': 2000, # int
+            'n_attacks': 2000,  # int
             'n_jobs': -2,      # int
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
@@ -129,17 +133,66 @@ class AnonymeterBase(EvaluatorBase):
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
-
-
-    #     self.data_ori = data['ori']
-    #     self.data_syn = data['syn']
-    #     self.data_control = data['control']
+        self.evaluator = None
 
     def _create(self, data: dict):
+        """
+        Create a new instance of the anonymeter class with the given data.
+
+        Args:
+            data (dict): The data to be stored in the anonymeter instance.
+        """
         self.data = data
 
+    @abstractmethod
     def create(self, data: dict):
-        pass
+        """
+        Create method. Impleted by each Anonymeter class.
+
+        Args:
+            data (dict): The data used to create the object.
+        """
+        raise NotImplementedError
+
+    def eval(self):
+        """
+        Evaluate the anonymization process.
+
+        Keep the known warnings from the Anonymeter library:
+            UserWarning: anonymeter\stats\confidence.py:215:
+                UserWarning: Attack is as good or worse as baseline model.
+                Estimated rates: attack = ...{float}... ,
+                baseline = ...{float}... .
+                Analysis results cannot be trusted. self._sanity_check()
+            - warnings.simplefilter("ignore", category=UserWarning)
+
+        Inhited the known warnings from the Anonymeter SinglingOut:
+            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
+                FutureWarning: is_categorical_dtype is deprecated
+                and will be removed in a future version.
+                Use isinstance(dtype, CategoricalDtype)
+                instead elif is_categorical_dtype(values).
+
+        Exception:
+            UnfittedError: If the anonymeter has not been create() yet.
+        """
+        if self.evaluator:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=FutureWarning)
+                try:
+                    if self.config['singlingout_mode'] == 'univariate':
+                        # SinglingOut attacks of Univariate
+                        self.evaluator.evaluate(mode=self.config['singlingout_mode'])
+                    else:
+                        # Linkability and Inference
+                        self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
+                except RuntimeError:
+                    # Please re-run this cell.
+                    # "For more stable results increase `n_attacks`.
+                    # Note that this will make the evaluation slower.
+                    raise UnableToEvaluateError
+        else:
+            raise UnfittedError
 
     def get_global(self) -> pd.DataFrame:
         pass
@@ -150,55 +203,10 @@ class AnonymeterBase(EvaluatorBase):
     def get_pairwise(self) -> pd.DataFrame:
         pass
 
-    # def eval(self):
-    #     """
-    #     Evaluates the privacy risk of the synthetic dataset.
 
-    #     Defines the sub-evaluator and suppresses specific warnings
-    #         due to known reasons from the Anonymeter library:
 
-    #         FutureWarning:
-    #             anonymeter\evaluators\singling_out_evaluator.py:97:
-    #                 FutureWarning: is_categorical_dtype is deprecated
-    #                 and will be removed in a future version.
-    #                 Use isinstance(dtype, CategoricalDtype)
-    #                 instead elif is_categorical_dtype(values).
 
-    #         UserWarning
-    #             anonymeter\stats\confidence.py:215:
-    #                 UserWarning: Attack is as good or worse as baseline model.
-    #                 Estimated rates: attack = ...{float}... ,
-    #                 baseline = ...{float}... .
-    #                 Analysis results cannot be trusted. self._sanity_check()
-
-    #     """
-    #     with warnings.catch_warnings():
-    #         warnings.simplefilter("ignore", category=FutureWarning)
-    #         warnings.simplefilter("ignore", category=UserWarning)
-
-    #         if self._evaluator:
-    #             _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
-    #             if _eval_method_num in [0, 1]:
-    #                 _mode = (
-    #                     'univariate' if _eval_method_num == 0
-    #                     else 'multivariate'
-    #                 )
-    #                 try:
-    #                     self._evaluator.evaluate(mode=_mode)
-    #                 except RuntimeError as ex:
-    #                     print(
-    #                         f"Evaluator (AnonymeterBase): Singling out "
-    #                         f"evaluation failed with {ex}."
-    #                         f"\n                        "
-    #                         f"Please re-run this cell. "
-    #                         f"For more stable results increase `n_attacks`."
-    #                         f"Note that this will make the evaluation slower."
-    #                     )
-    #             else:
-    #                 self._evaluator.evaluate(n_jobs=self.n_jobs)
     #             self.evaluation = self._extract_result()
-    #         else:
-    #             raise UnfittedError
 
     def _extract_result(self) -> dict:
         """
@@ -321,7 +329,8 @@ class AnonymeterSinglingOutUnivariate(AnonymeterBase):
             data (dict): The data required for creating the anonymeter.
         """
         self._create(data=data)
-        self._evaluator = SinglingOutEvaluator(
+        self.config['singlingout_mode'] = 'univariate'
+        self.evaluator = SinglingOutEvaluator(
             ori=self.data['ori'],
             syn=self.data['syn'],
             control=self.data['control'],
@@ -348,7 +357,7 @@ class AnonymeterLinkability(AnonymeterBase):
             data (dict): The data required for creating the anonymeter.
         """
         self._create(data=data)
-        self._evaluator = LinkabilityEvaluator(
+        self.evaluator = LinkabilityEvaluator(
             ori=self.data['ori'],
             syn=self.data['syn'],
             control=self.data['control'],
@@ -372,7 +381,6 @@ class AnonymeterInference(AnonymeterBase):
     def __init__(self, config: dict):
         super().__init__(config=config)
 
-
     def create(self, data: dict):
         """
         Create an instance of the anonymeter.
@@ -384,7 +392,7 @@ class AnonymeterInference(AnonymeterBase):
         aux_cols = [
             col for col in self.data_syn.columns if col != self.secret
         ]
-        self._evaluator = LinkabilityEvaluator(
+        self.evaluator = InferenceEvaluator(
             ori=self.data['ori'],
             syn=self.data['syn'],
             control=self.data['control'],
