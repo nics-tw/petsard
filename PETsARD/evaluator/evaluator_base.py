@@ -34,7 +34,7 @@ class EvaluatorBase(ABC):
         self.result: dict = {}
 
     @abstractmethod
-    def create(self, data: dict):
+    def create(self, data: dict) -> None:
         """
         Create the Describer/Evaluator. This method should be implemented by subclasses.
 
@@ -44,7 +44,7 @@ class EvaluatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def eval(self):
+    def eval(self) -> None:
         """
         Describes/Evaluates the data. This method should be implemented by subclasses.
         """
