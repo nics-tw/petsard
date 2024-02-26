@@ -16,6 +16,7 @@ from anonymeter.evaluators import (
 import numpy as np
 import pandas as pd
 
+from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
 
 
@@ -55,18 +56,17 @@ class AnonymeterFactory:
     """
 
     def __init__(self, **kwargs):
-        method: str = kwargs.get('method', None)
-        method_code = AnonymeterMap.map(method) # self.config['method']
-        data: dict = kwargs.get('data', None)
+        config: dict = kwargs
+        method_code = AnonymeterMap.map(config['method'])
 
         if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
+            self.evaluator = AnonymeterSinglingOutUnivariate(config=config)
         # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.evaluator = AnonymeterSinglingOutMultivariate(**kwargs)
+        #     self.evaluator = AnonymeterSinglingOutMultivariate(config=config)
         elif method_code == AnonymeterMap.LINKABILITY:
-            self.evaluator = AnonymeterLinkability(**kwargs)
+            self.evaluator = AnonymeterLinkability(config=config)
         elif method_code == AnonymeterMap.INFERENCE:
-            self.evaluator = AnonymeterInference(**kwargs)
+            self.evaluator = AnonymeterInference(config=config)
         else:
             raise UnsupportedEvalMethodError
 
@@ -78,7 +78,7 @@ class AnonymeterFactory:
         return self.evaluator
 
 
-class Anonymeter():
+class AnonymeterBase(EvaluatorBase):
     """
     Base class for all "Anonymeter".
         The "Anonymeter" class defines the common API
@@ -86,98 +86,119 @@ class Anonymeter():
 
     Args:
         data (dict): Following data logic defined in Evaluator.
-        anonymeter_n_attacks (int): The number of attack attempts using the specified attack method. Default is 2,000.
-        anonymeter_n_neighbors (int): Specifies the number of jobs Anonymeter will use.
-            -1 means all threads except one. -2 means every thread. Default is -2.
-        anonymeter_n_neighbors (int):
-            Sets the number of nearest neighbors to consider for each entry in the search.
-            Indicating a successful linkability attack
-            only if the closest synthetic record matches for both split original records.
-            Default is 1.
-        anonymeter_aux_cols (Tuple[List[str], List[str]], Optional):
-            Features of the records that are given to the attacker as auxiliary information.
-            The Anonymeter documentation states it supports 'tuple of int',
-                but this is not reflected in their type annotations,
-                so we will omit it here and only mention this for reference.
-        anonymeter_secret (str | List[str]], Optional):
-            The secret attribute(s) of the target records, unknown to the attacker.
-                This is what the attacker will try to guess.
+
 
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
-    def __init__(self,
-                 data: Dict[str, pd.DataFrame],
-                 anonymeter_n_attacks:   int = 2000,
-                 anonymeter_n_jobs:      int = -2,
-                 anonymeter_n_neighbors: int = 1,
-                 anonymeter_aux_cols:    Tuple[List[str], List[str]] = None,
-                 anonymeter_secret:      Optional[Union[str,
-                                                        List[str]]] = None,
-                 **kwargs
-                 ):
-        self.method: str = kwargs.get('method', None)
 
-        self.data_ori = data['ori']
-        self.data_syn = data['syn']
-        self.data_control = data['control']
-
-        self.n_attacks = anonymeter_n_attacks
-        self.n_jobs = anonymeter_n_jobs
-        self.n_neighbors = anonymeter_n_neighbors
-        self.aux_cols = anonymeter_aux_cols
-        self.secret = anonymeter_secret
-
-    def eval(self):
+    def __init__(self, config: dict):
         """
-        Evaluates the privacy risk of the synthetic dataset.
-
-        Defines the sub-evaluator and suppresses specific warnings
-            due to known reasons from the Anonymeter library:
-
-            FutureWarning:
-                anonymeter\evaluators\singling_out_evaluator.py:97:
-                    FutureWarning: is_categorical_dtype is deprecated
-                    and will be removed in a future version.
-                    Use isinstance(dtype, CategoricalDtype)
-                    instead elif is_categorical_dtype(values).
-
-            UserWarning
-                anonymeter\stats\confidence.py:215:
-                    UserWarning: Attack is as good or worse as baseline model.
-                    Estimated rates: attack = ...{float}... ,
-                    baseline = ...{float}... .
-                    Analysis results cannot be trusted. self._sanity_check()
-
+        Args:
+            config (dict): A dictionary containing the configuration settings.
+                - method (str): The method of how you evaluating data.
+                - n_attack (int):
+                    The number of attack attempts using the specified attack method.
+                    Default is 2,000.
+                - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
+                    -1 means all threads except one. -2 means every thread.
+                    Default is -2.
+                - n_neighbors (int, Optional):
+                    Sets the number of nearest neighbors to consider for each entry in the search.
+                    Indicating a successful linkability attack only if
+                    the closest synthetic record matches for both split original records.
+                    Default is 1.
+                - aux_cols (Tuple[List[str], List[str]], Optional):
+                    Features of the records that are given to the attacker as auxiliary information.
+                    The Anonymeter documentation states it supports 'tuple of int',
+                    but this is not reflected in their type annotations,
+                    so we will omit it here and only mention this for reference.
+                - secret (str | List[str]], Optional):
+                    The secret attribute(s) of the target records, unknown to the attacker.
+                    This is what the attacker will try to guess.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=FutureWarning)
-            warnings.simplefilter("ignore", category=UserWarning)
+        super().__init__(config=config)
 
-            if self._evaluator:
-                _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
-                if _eval_method_num in [0, 1]:
-                    _mode = (
-                        'univariate' if _eval_method_num == 0
-                        else 'multivariate'
-                    )
-                    try:
-                        self._evaluator.evaluate(mode=_mode)
-                    except RuntimeError as ex:
-                        print(
-                            f"Evaluator (Anonymeter): Singling out "
-                            f"evaluation failed with {ex}."
-                            f"\n                        "
-                            f"Please re-run this cell. "
-                            f"For more stable results increase `n_attacks`."
-                            f"Note that this will make the evaluation slower."
-                        )
-                else:
-                    self._evaluator.evaluate(n_jobs=self.n_jobs)
-                self.evaluation = self._extract_result()
-            else:
-                raise UnfittedError
+        default_config = {
+            'n_attacks': 2000, # int
+            'n_jobs': -2,      # int
+            'n_neighbors': 1,  # int
+            'aux_cols': None,  # Tuple[List[str], List[str]]
+            'secret': None,    # Optional[Union[str, List[str]]]
+        }
+        for key, value in default_config.items():
+            config.setdefault(key, value)
+
+
+    #     self.data_ori = data['ori']
+    #     self.data_syn = data['syn']
+    #     self.data_control = data['control']
+
+    def _create(self, data: dict):
+        self.data = data
+
+    def create(self, data: dict):
+        pass
+
+    def get_global(self) -> pd.DataFrame:
+        pass
+
+    def get_columnwise(self) -> pd.DataFrame:
+        pass
+
+    def get_pairwise(self) -> pd.DataFrame:
+        pass
+
+    # def eval(self):
+    #     """
+    #     Evaluates the privacy risk of the synthetic dataset.
+
+    #     Defines the sub-evaluator and suppresses specific warnings
+    #         due to known reasons from the Anonymeter library:
+
+    #         FutureWarning:
+    #             anonymeter\evaluators\singling_out_evaluator.py:97:
+    #                 FutureWarning: is_categorical_dtype is deprecated
+    #                 and will be removed in a future version.
+    #                 Use isinstance(dtype, CategoricalDtype)
+    #                 instead elif is_categorical_dtype(values).
+
+    #         UserWarning
+    #             anonymeter\stats\confidence.py:215:
+    #                 UserWarning: Attack is as good or worse as baseline model.
+    #                 Estimated rates: attack = ...{float}... ,
+    #                 baseline = ...{float}... .
+    #                 Analysis results cannot be trusted. self._sanity_check()
+
+    #     """
+    #     with warnings.catch_warnings():
+    #         warnings.simplefilter("ignore", category=FutureWarning)
+    #         warnings.simplefilter("ignore", category=UserWarning)
+
+    #         if self._evaluator:
+    #             _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
+    #             if _eval_method_num in [0, 1]:
+    #                 _mode = (
+    #                     'univariate' if _eval_method_num == 0
+    #                     else 'multivariate'
+    #                 )
+    #                 try:
+    #                     self._evaluator.evaluate(mode=_mode)
+    #                 except RuntimeError as ex:
+    #                     print(
+    #                         f"Evaluator (AnonymeterBase): Singling out "
+    #                         f"evaluation failed with {ex}."
+    #                         f"\n                        "
+    #                         f"Please re-run this cell. "
+    #                         f"For more stable results increase `n_attacks`."
+    #                         f"Note that this will make the evaluation slower."
+    #                     )
+    #             else:
+    #                 self._evaluator.evaluate(n_jobs=self.n_jobs)
+    #             self.evaluation = self._extract_result()
+    #         else:
+    #             raise UnfittedError
 
     def _extract_result(self) -> dict:
         """
@@ -279,7 +300,7 @@ class Anonymeter():
         return dict_result
 
 
-class AnonymeterSinglingOutUnivariate(Anonymeter):
+class AnonymeterSinglingOutUnivariate(AnonymeterBase):
     """
     Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
 
@@ -289,18 +310,26 @@ class AnonymeterSinglingOutUnivariate(Anonymeter):
     TODO SinglingOut attacks of Multi-variate.
     """
 
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, config: dict):
+        super().__init__(config=config)
 
+    def create(self, data: dict):
+        """
+        Creates an instance of the anonymeter.
+
+        Args:
+            data (dict): The data required for creating the anonymeter.
+        """
+        self._create(data=data)
         self._evaluator = SinglingOutEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            n_attacks=self.n_attacks
+            ori=self.data['ori'],
+            syn=self.data['syn'],
+            control=self.data['control'],
+            n_attacks=self.config['n_attacks']
         )
 
 
-class AnonymeterLinkability(Anonymeter):
+class AnonymeterLinkability(AnonymeterBase):
     """
     Estimation of the Linkability attacks in the Anonymeter library.
 
@@ -308,20 +337,28 @@ class AnonymeterLinkability(Anonymeter):
         None. Stores the result in self._evaluator.evaluation.
     """
 
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, config: dict):
+        super().__init__(config=config)
 
+    def create(self, data: dict):
+        """
+        Create an instance of the anonymeter.
+
+        Args:
+            data (dict): The data required for creating the anonymeter.
+        """
+        self._create(data=data)
         self._evaluator = LinkabilityEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            n_attacks=self.n_attacks,
-            n_neighbors=self.n_neighbors,
-            aux_cols=self.aux_cols
+            ori=self.data['ori'],
+            syn=self.data['syn'],
+            control=self.data['control'],
+            n_attacks=self.config['n_attacks'],
+            n_neighbors=self.config['n_neighbors'],
+            aux_cols=self.config['aux_cols']
         )
 
 
-class AnonymeterInference(Anonymeter):
+class AnonymeterInference(AnonymeterBase):
     """
     Estimation of the Inference attacks in the Anonymeter library.
 
@@ -332,17 +369,26 @@ class AnonymeterInference(Anonymeter):
             According to the paper, consider handling multiple secrets.
     """
 
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, config: dict):
+        super().__init__(config=config)
 
-        _aux_cols = [
+
+    def create(self, data: dict):
+        """
+        Create an instance of the anonymeter.
+
+        Args:
+            data (dict): The data required for creating the anonymeter.
+        """
+        self._create(data=data)
+        aux_cols = [
             col for col in self.data_syn.columns if col != self.secret
         ]
-
-        self._evaluator = InferenceEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            aux_cols=_aux_cols,
-            secret=self.secret
+        self._evaluator = LinkabilityEvaluator(
+            ori=self.data['ori'],
+            syn=self.data['syn'],
+            control=self.data['control'],
+            n_attacks=self.config['n_attacks'],
+            aux_cols=aux_cols,
+            secret=self.config['secret']
         )
