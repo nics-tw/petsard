@@ -335,7 +335,7 @@ class DescriberCorr(DescriberBase):
         super().__init__()
 
     def eval(self):
-        temp = self.data.corr(method='pearson')
+        temp = self.data.corr(method='pearson', numeric_only=True)
         upper_indices = np.triu_indices_from(temp, k=1)
         temp.values[upper_indices] = np.nan
 
