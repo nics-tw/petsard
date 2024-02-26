@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
 import pandas as pd
 
@@ -20,7 +21,7 @@ class EvaluatorBase(ABC):
         Attributes:
             config (dict):
                 A dictionary containing the configuration settings.
-            data (dict):
+            data (Dict[str, pd.DataFrame]):
                 A dictionary to store evaluation data. Default is an empty.
             result (dict):
                 A dictionary to store the result of the description/evaluation. Default is an empty.
@@ -29,7 +30,7 @@ class EvaluatorBase(ABC):
             raise ConfigError
 
         self.config: dict = config
-        self.data: dict = {}
+        self.data: Dict[str, pd.DataFrame] = {}
         self.result: dict = {}
 
     @abstractmethod
