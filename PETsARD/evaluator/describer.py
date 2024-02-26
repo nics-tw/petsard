@@ -23,11 +23,12 @@ class Describer:
         self.config: dict = config
         self.data: dict = {}
 
-        self.agg = DescriberAggregator()
+        self.agg = None
 
     def create(self, data):
         self.data = data
-        self.data_content = self.data['data']
+        self.agg = DescriberAggregator(self.config)
+        self.agg.create(self.data['data'])
 
     def eval(self):
         self.agg.eval()
@@ -49,6 +50,8 @@ class DescriberBase:
     def __init__(self):
         super().__init__()
         self.data = None
+
+        self.result = {'global': {}, 'columnwise': {}, 'pairwise': {}}
 
     def create(self, data):
         self.data = data
@@ -372,12 +375,17 @@ class DescriberAggregator(Describer):
         'corr': ('pairwise', DescriberCorr)
     }
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: dict):
+        super().__init__(config=config)
 
         self.global_description = []
         self.column_description = []
         self.pairwise_description = []
+
+        self.data_content: pd.DataFrame = None
+
+    def create(self, data):
+        self.data_content = data
 
     def eval(self):
         """
@@ -388,9 +396,12 @@ class DescriberAggregator(Describer):
         for met in self.config['describe']:
             if type(met) is not str:
                 # it should be a dict: key is the method, and value is a single parameter
-                describer = self._DESCRIBER_MAP[met[0]](met[1])
+                param = list(met.values())[0]
+                met = list(met.keys())[0]
+
+                describer = self._DESCRIBER_MAP[met][1](param)
             else:
-                describer = self._DESCRIBER_MAP[met]()
+                describer = self._DESCRIBER_MAP[met][1]()
             
             describer.create(self.data_content)
             describer.eval()
