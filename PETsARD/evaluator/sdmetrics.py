@@ -10,7 +10,8 @@ from sdmetrics.reports.single_table import (
 )
 from sdv.metadata import SingleTableMetadata
 
-from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
+from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.error import ConfigError, UnfittedError, UnsupportedEvalMethodError
 
 
 class SDMetricsMap():
@@ -44,126 +45,133 @@ class SDMetricsMap():
             raise UnsupportedEvalMethodError
 
 
-class SDMetrics:
+class SDMetrics(EvaluatorBase):
     """
-    Factory for "SDMetrics" Evaluator.
-        SDMetricsFactory defines which module to use within SDMetrics.
-    """
-
-    def __init__(
-        self,
-        data: Dict[str, pd.DataFrame],
-        method: str = None,
-        **kwargs
-    ):
-        method_code = SDMetricsMap.map(method) # self.config['method']
-        if method_code == SDMetricsMap.DIAGNOSTICREPORT:
-            self.evaluator = SDMetricsDiagnosticReport()
-        elif method_code == SDMetricsMap.QUALITYREPORT:
-            self.evaluator = SDMetricsQualityReport()
-        else:
-            raise UnsupportedEvalMethodError
-
-    def create(self):
-        """
-        create()
-            return the Evaluator which selected by Factory.
-        """
-        return self.evaluator
-
-
-class SDMetricsBase():
-    """
-    Base class for all "SDMetrics".
-
-    Args:
-        data (dict)
-            Following data logic defined in Evaluator.
-
-    Returns:
-        None
+    Factory for SDMetrics Evaluator, defines which module to use within SDMetrics.
 
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
-    def __init__(
-        self,
-        data: Dict[str, pd.DataFrame],
-        method: str = None,
-        **kwargs
-    ):
-        self.data_ori = data['ori']
-        self.data_syn = data['syn']
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): A dictionary containing the configuration settings.
+                - method (str): The method of how you evaluating data.
+
+        Attributes:
+            evaluator (Anonymeter): Anonymeter class for implementing the Anonymeter.
+        """
+        super().__init__(config=config)
+
+        self.config['method_code'] = SDMetricsMap.map(self.config['method'])
+
+        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
+            self.evaluator = DiagnosticReport()
+        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
+            self.evaluator = QualityReport()
+        else:
+            raise UnsupportedEvalMethodError
+
+        self.metadata: dict = None
+
+    def create(self, data: dict):
+        """
+        create() of SDMetrics.
+            Defines the sub-evaluator from the SDMetrics library,
+            and build the metadata from the original data.
+
+        Args:
+            data (dict): The data required for description/evaluation.
+                - ori (pd.DataFrame): The original data used for synthesis.
+                - syn (pd.DataFrame): The synthetic data generated from 'ori'.
+
+        Attributes:
+            metadata (dict):
+                A dictionary containing the metadata information as SDV format.
+
+        TODO Consider use nametupled to replace "data" dict for more certain requirement
+        """
+        if 'ori' not in data or 'syn' not in data:
+            raise ConfigError
+        self.data = data
 
         data_ori_metadata = SingleTableMetadata()
-        data_ori_metadata.detect_from_dataframe(self.data_ori)
-        self.data_ori_metadata = data_ori_metadata.to_dict()
-
-    def eval(self):
-        """
-        eval() of SDMetrics.
-            Defines the sub-evaluator from the SDMetrics library
-
-        """
-
-        if self._evaluator:
-            self._evaluator.generate(
-                real_data=self.data_ori,
-                synthetic_data=self.data_syn,
-                metadata=self.data_ori_metadata
-            )
-            self.evaluation = self._extract_result()
-        else:
-            raise UnfittedError
+        data_ori_metadata.detect_from_dataframe(self.data['ori'])
+        self.metadata = data_ori_metadata.to_dict()
 
     def _extract_result(self) -> dict:
         """
         _extract_result of SDMetrics.
+            Uses .get_score()/.get_properties()/.get_details() method in SDMetrics
+            to extract result from self.evaluator into the designated dictionary.
 
         Return
-            (dict)
-                Contains the following key-value pairs
-
-        TODO  Consider using alternative methods to extract results
-                and evaluate migrating this functionality to the Reporter.
-
+            (dict). Result as following key-value pairs:
+            - score (pd.DataFrame):
+            - properties (pd.DataFrame):
+            - details (pd.DataFrame):
         """
-        dict_result = {}
+        result = {}
 
-        dict_result['score'] = self._evaluator.get_score()
+        result['score'] = self.evaluator.get_score()
 
         # Tranfer pandas to desired dict format:
         #     {'properties name': {'Score': ...},
         #      'properties name': {'Score': ...}
         #     }
-        dict_result['properties'] = (
-            self._evaluator.get_properties()
+        result['properties'] = (
+            self.evaluator.get_properties()
                 .set_index('Property').rename_axis(None)
                 .to_dict('index')
         )
 
-        dict_result['details'] = {}
-        for property in dict_result['properties'].keys():
-            dict_result['details'][property] =\
-                self._evaluator.get_details(property_name=property)
+        result['details'] = {}
+        for property in result['properties'].keys():
+            result['details'][property] =\
+                self.evaluator.get_details(property_name=property)
 
-        return dict_result
+        return result
 
+    def eval(self) -> None:
+        """
+        Evaluate the SDMetrics process.
 
-class SDMetricsDiagnosticReport(SDMetricsBase):
-    """
-    Estimation of the DiagnosticReport in the SDMetrics library.
-    """
+        Return
+            None. Result contains in self.result as following key-value pairs:
+        """
+        if not self.evaluator:
+            raise UnfittedError
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._evaluator = DiagnosticReport()
+        self.evaluator.generate(
+            real_data=self.data['ori'],
+            synthetic_data=self.data['syn'],
+            metadata=self.metadata
+        )
+        self.result = self._extract_result()
 
+    def get_global(self) -> pd.DataFrame:
+        """
+        Returns the global result from the SDMetrics.
 
-class SDMetricsQualityReport(SDMetricsBase):
-    """
-    Estimation of the QualityReport in the SDMetrics library.
-    """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._evaluator = QualityReport()
+        Returns:
+            pd.DataFrame: None for SDMetrics didn't have column-wise result.
+        """
+        return None
+
+    def get_columnwise(self) -> pd.DataFrame:
+        """
+        Retrieves the column-wise result from the SDMetrics.
+
+        Returns:
+            pd.DataFrame: None for SDMetrics didn't have column-wise result.
+        """
+        return None
+
+    def get_pairwise(self) -> pd.DataFrame:
+        """
+        Retrieves the pairwise result from the SDMetrics.
+
+        Returns:
+            pd.DataFrame: None for SDMetrics didn't have pairwise result.
+        """
+        return None
