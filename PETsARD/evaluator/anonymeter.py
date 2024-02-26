@@ -86,7 +86,6 @@ class AnonymeterBase(EvaluatorBase):
     Args:
         data (dict): Following data logic defined in Evaluator.
 
-
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
@@ -119,6 +118,10 @@ class AnonymeterBase(EvaluatorBase):
         Attr:
             config (dict):
                 A dictionary containing the configuration settings.
+            data (Dict[str, pd.DataFrame]):
+                A dictionary to store evaluation data. Default is an empty.
+            result (dict):
+                A dictionary to store the result of the description/evaluation. Default is an empty.
             evaluator (Anonymeter):
                 Anonymeter class for implementing the Anonymeter.
         """
@@ -193,6 +196,83 @@ class AnonymeterBase(EvaluatorBase):
                     raise UnableToEvaluateError
         else:
             raise UnfittedError
+        self._extract_result()
+
+    def _extract_result(self) -> dict:
+        """
+        _extract_result of Anonymeter.
+            Uses .risk()/.results() method in Anonymeter
+            to extract result from self._evaluator into the designated dictionary.
+
+        Return
+            None. Result contains in self.result as following key-value pairs
+            - risk (float)
+                Privacy Risk value of specified attacks. Ranging from 0 to 1.
+                    A value of 0 indicates no risk, and 1 indicates full risk.
+                Includes risk_ci_btm and risk_ci_top
+                    for the bottom and top of the confidence interval.
+            - attack_Rate (float)
+                Main attack rate of specified attacks, which the attacker
+                    uses the synthetic datase to deduce private information of records
+                    in the original/training dataset. Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes attack_Rate_err for its error rate.
+            - baseline_Rate (float)
+                Naive, or Baseline attack rate of specified attacks, which is
+                    carried out based on random guessing, to provide a baseline against
+                    which the strength of the “main” attack can be compared.
+                    Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes baseline_Rate_err for its error rate.
+            - control_Rate (float)
+                Control attack rate of specified attacks,  hich is conducted on
+                    a set of control dataset, to distinguish the concrete privacy risks
+                    of the original data records (i.e., specific information)
+                    from general risks intrinsic to the whole population (i.e., generic information).
+                    Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes control_Rate_err for its error rate.
+        """
+        def _safe_round(value, digits=6):
+            """
+            Safely rounds a given value to the specified number of digits.
+
+            Args:
+                value (float): The value to be rounded.
+                digits (int, optional): The number of digits to round to. Defaults to 6.
+
+            Returns:
+                float or None: The rounded value, or None if an exception occurs.
+            """
+            try:
+                return round(value, digits)
+            except Exception:
+                return pd.NA
+
+        # Handle the risk
+        try:
+            risk = self.evaluator.evaluator.risk()
+            self.result['risk'] = _safe_round(risk.value)
+            self.result['risk_CI_btm'] = _safe_round(risk.ci[0])
+            self.result['risk_CI_top'] = _safe_round(risk.ci[1])
+        except Exception:
+            pass
+
+
+        # Handle the attack_rate, baseline_rate, control_rate
+        try:
+            results = self.evaluator.evaluator.results()
+
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                rate_result = getattr(results, rate_type, None)
+                if rate_result:
+                    self.result[f'{rate_type}'] = _safe_round(rate_result.value)
+                    self.result[f'{rate_type}_err'] = _safe_round(rate_result.error)
+        except Exception:
+            pass
 
     def get_global(self) -> pd.DataFrame:
         pass
@@ -202,110 +282,6 @@ class AnonymeterBase(EvaluatorBase):
 
     def get_pairwise(self) -> pd.DataFrame:
         pass
-
-
-
-
-    #             self.evaluation = self._extract_result()
-
-    def _extract_result(self) -> dict:
-        """
-        _extract_result of Anonymeter.
-            Uses .risk()/.results() method in Anonymeter
-            to extract result from self._evaluator into the designated dictionary.
-
-        Return
-            (dict)
-                Contains the following key-value pairs
-
-                Risk (float)
-                    Privacy Risk value of specified attacks.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates no risk, and 1 indicates full risk.
-                    Includes CI_btm and CI_top for the bottom and top of the confidence interval.
-
-                Attack_Rate (float)
-                    Main attack rate of specified attacks,
-                        which the attacker uses the synthetic dataset
-                        to deduce private information of records
-                        in the original/training dataset.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-                Baseline_Rate (float)
-                    Naive, or Baseline attack rate of specified attacks,
-                        which is carried out based on random guessing,
-                        to provide a baseline against
-                        which the strength of the “main” attack can be compared.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-                Control_Rate (float)
-                    Control attack rate of specified attacks,
-                        which is conducted on a set of control dataset,
-                        to distinguish the concrete privacy risks
-                        of the original data records (i.e., specific information)
-                        from general risks intrinsic
-                        to the whole population (i.e., generic information).
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-        TODO  Consider using alternative methods to extract results
-                and evaluate migrating this functionality to the Reporter.
-
-        """
-        dict_result = {}
-        para_to_handle = [
-            ('Risk',              ['risk()',    'value']),
-            ('Risk_CI_btm',       ['risk()',    'ci[0]']),
-            ('Risk_CI_top',       ['risk()',    'ci[1]']),
-            ('Attack_Rate',       ['results()', 'attack_rate',   'value']),
-            ('Attack_Rate_err',   ['results()', 'attack_rate',   'error']),
-            ('Baseline_Rate',     ['results()', 'baseline_rate', 'value']),
-            ('Baseline_Rate_err', ['results()', 'baseline_rate', 'error']),
-            ('Control_Rate',      ['results()', 'control_rate',  'value']),
-            ('Control_Rate_err',  ['results()', 'control_rate',  'error'])
-        ]
-
-        for key, evals in para_to_handle:
-            dict_result[key] = np.nan
-            try:
-                eval_instance = self._evaluator
-                for eval_command in evals:
-                    if '()' in eval_command:
-                        method_name = eval_command.split('(')[0]
-                        if hasattr(eval_instance, method_name):
-                            method = getattr(eval_instance, method_name)
-                            if callable(method):
-                                eval_instance = method()
-                            else:
-                                break
-                        else:
-                            break
-                    elif '[' in eval_command:
-                        attr_name = eval_command.split('[')[0]
-                        index = int(eval_command.split('[')[1].rstrip(']'))
-                        if hasattr(eval_instance, attr_name):
-                            attr = getattr(eval_instance, attr_name)
-                            if isinstance(attr, (list, dict, tuple)):
-                                try:
-                                    eval_instance = attr[index]
-                                except (IndexError, KeyError):
-                                    break
-                        else:
-                            break
-                    else:
-                        eval_instance = getattr(eval_instance, eval_command)
-                dict_result[key] = eval_instance
-            except Exception as ex:
-                pass
-        return dict_result
 
 
 class AnonymeterSinglingOutUnivariate(AnonymeterBase):
