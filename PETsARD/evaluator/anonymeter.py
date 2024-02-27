@@ -1,8 +1,6 @@
+from abc import abstractmethod
 import re
-import time
 from typing import (
-    Dict,
-    List,
     Optional,
     Tuple,
     Union
@@ -14,10 +12,16 @@ from anonymeter.evaluators import (
     LinkabilityEvaluator,
     InferenceEvaluator
 )
-import numpy as np
 import pandas as pd
 
-from PETsARD.error import UnfittedError, UnsupportedEvalMethodError
+from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.error import (
+    ConfigError,
+    UnableToEvaluateError,
+    UnfittedError,
+    UnsupportedMethodError
+)
+from PETsARD.util import safe_round
 
 
 class AnonymeterMap():
@@ -45,358 +49,307 @@ class AnonymeterMap():
                 re.sub(r"^anonymeter-", "", method).upper()
             ]
         except KeyError:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
 
-class AnonymeterFactory:
+class Anonymeter(EvaluatorBase):
     """
     Factory for "Anonymeter" Evaluator.
-
-    AnonymeterFactory defines which module to use within Anonymeter.
-    """
-
-    def __init__(self, **kwargs):
-        method: str = kwargs.get('method', None)
-        method_code = AnonymeterMap.map(method) # self.config['method']
-        data: dict = kwargs.get('data', None)
-
-        if method_code == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.evaluator = AnonymeterSinglingOutUnivariate(**kwargs)
-        # elif method_code == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.evaluator = AnonymeterSinglingOutMultivariate(**kwargs)
-        elif method_code == AnonymeterMap.LINKABILITY:
-            self.evaluator = AnonymeterLinkability(**kwargs)
-        elif method_code == AnonymeterMap.INFERENCE:
-            self.evaluator = AnonymeterInference(**kwargs)
-        else:
-            raise UnsupportedEvalMethodError
-
-    def create(self):
-        """
-        create()
-            return the Evaluator which selected by Factory.
-        """
-        return self.evaluator
-
-
-class Anonymeter():
-    """
-    Base class for all "Anonymeter".
-        The "Anonymeter" class defines the common API
-        that all the "Anonymeter" need to implement, as well as common functionality.
-
-    Args:
-        data (dict): Following data logic defined in Evaluator.
-        anonymeter_n_attacks (int): The number of attack attempts using the specified attack method. Default is 2,000.
-        anonymeter_n_neighbors (int): Specifies the number of jobs Anonymeter will use.
-            -1 means all threads except one. -2 means every thread. Default is -2.
-        anonymeter_n_neighbors (int):
-            Sets the number of nearest neighbors to consider for each entry in the search.
-            Indicating a successful linkability attack
-            only if the closest synthetic record matches for both split original records.
-            Default is 1.
-        anonymeter_aux_cols (Tuple[List[str], List[str]], Optional):
-            Features of the records that are given to the attacker as auxiliary information.
-            The Anonymeter documentation states it supports 'tuple of int',
-                but this is not reflected in their type annotations,
-                so we will omit it here and only mention this for reference.
-        anonymeter_secret (str | List[str]], Optional):
-            The secret attribute(s) of the target records, unknown to the attacker.
-                This is what the attacker will try to guess.
+        AnonymeterFactory defines which module to use within Anonymeter.
 
     TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
-    def __init__(self,
-                 data: Dict[str, pd.DataFrame],
-                 anonymeter_n_attacks:   int = 2000,
-                 anonymeter_n_jobs:      int = -2,
-                 anonymeter_n_neighbors: int = 1,
-                 anonymeter_aux_cols:    Tuple[List[str], List[str]] = None,
-                 anonymeter_secret:      Optional[Union[str,
-                                                        List[str]]] = None,
-                 **kwargs
-                 ):
-        self.method: str = kwargs.get('method', None)
-
-        self.data_ori = data['ori']
-        self.data_syn = data['syn']
-        self.data_control = data['control']
-
-        self.n_attacks = anonymeter_n_attacks
-        self.n_jobs = anonymeter_n_jobs
-        self.n_neighbors = anonymeter_n_neighbors
-        self.aux_cols = anonymeter_aux_cols
-        self.secret = anonymeter_secret
-
-        self.eval_method = 'Unknown'
-
-    def eval(self):
+    def __init__(self, config: dict):
         """
-        Evaluates the privacy risk of the synthetic dataset.
+        Args:
+            config (dict): A dictionary containing the configuration settings.
+                - method (str): The method of how you evaluating data.
+                - n_attack (int):
+                    The number of attack attempts using the specified attack method.
+                    Default is 2,000.
+                - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
+                    -1 means all threads except one. -2 means every thread.
+                    Default is -2.
+                - n_neighbors (int, Optional):
+                    Sets the number of nearest neighbors to consider for each entry in the search.
+                    Indicating a successful linkability attack only if
+                    the closest synthetic record matches for both split original records.
+                    Default is 1.
+                - aux_cols (Tuple[List[str], List[str]], Optional):
+                    Features of the records that are given to the attacker as auxiliary information.
+                    The Anonymeter documentation states it supports 'tuple of int',
+                    but this is not reflected in their type annotations,
+                    so we will omit it here and only mention this for reference.
+                - secret (str | List[str]], Optional):
+                    The secret attribute(s) of the target records, unknown to the attacker.
+                    This is what the attacker will try to guess.
 
-        Defines the sub-evaluator and suppresses specific warnings
-            due to known reasons from the Anonymeter library:
-
-            FutureWarning:
-                anonymeter\evaluators\singling_out_evaluator.py:97:
-                    FutureWarning: is_categorical_dtype is deprecated
-                    and will be removed in a future version.
-                    Use isinstance(dtype, CategoricalDtype)
-                    instead elif is_categorical_dtype(values).
-
-            UserWarning
-                anonymeter\stats\confidence.py:215:
-                    UserWarning: Attack is as good or worse as baseline model.
-                    Estimated rates: attack = ...{float}... ,
-                    baseline = ...{float}... .
-                    Analysis results cannot be trusted. self._sanity_check()
-
+        Attr:
+            config (dict):
+                A dictionary containing the configuration settings.
+            data (Dict[str, pd.DataFrame]):
+                A dictionary to store evaluation data. Default is an empty.
+            result (dict):
+                A dictionary to store the result of the description/evaluation. Default is an empty.
+            evaluator (Anonymeter):
+                Anonymeter class for implementing the Anonymeter.
         """
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=FutureWarning)
-            warnings.simplefilter("ignore", category=UserWarning)
+        super().__init__(config=config)
 
-            if self._evaluator:
-                time_start = time.time()
+        default_config = {
+            'n_attacks': 2000,  # int
+            'n_jobs': -2,      # int
+            'n_neighbors': 1,  # int
+            'aux_cols': None,  # Tuple[List[str], List[str]]
+            'secret': None,    # Optional[Union[str, List[str]]]
+        }
+        for key, value in default_config.items():
+            config.setdefault(key, value)
+        self.config['method_code'] = AnonymeterMap.map(self.config['method'])
 
-                print(
-                    f"Evaluator (Anonymeter): Evaluating  {self.eval_method}."
-                )
+        self.evaluator = None
 
-                _eval_method_num = AnonymeterMap.map(self.method) # self.config['method']
-                if _eval_method_num in [0, 1]:
-                    _mode = (
-                        'univariate' if _eval_method_num == 0
-                        else 'multivariate'
-                    )
-                    try:
-                        self._evaluator.evaluate(mode=_mode)
-                    except RuntimeError as ex:
-                        print(
-                            f"Evaluator (Anonymeter): Singling out "
-                            f"evaluation failed with {ex}."
-                            f"\n                        "
-                            f"Please re-run this cell. "
-                            f"For more stable results increase `n_attacks`."
-                            f"Note that this will make the evaluation slower."
-                        )
-                else:
-                    self._evaluator.evaluate(n_jobs=self.n_jobs)
-                    print(
-                        f"Evaluator (Anonymeter): "
-                        f"Evaluating {self.eval_method} spent "
-                        f"{round(time.time()-time_start ,4)} sec."
-                    )
-                self.evaluation = self._extract_result()
-            else:
-                raise UnfittedError
+    def create(self, data: dict) -> None:
+        """
+        Create a new instance of the anonymeter class with the given data.
+
+        Args:
+            data (dict): The data to be stored in the anonymeter instance.
+
+        Resurn:
+            None. Anonymeter class store in self.evaluator.
+
+        TODO SinglingOut attacks of Multi-variate.
+        """
+        if 'ori' not in data or 'syn' not in data or 'control' not in data:
+            raise ConfigError
+        self.data = data
+
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+            self.config['singlingout_mode'] = 'univariate'
+            self.evaluator = SinglingOutEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks']
+            )
+        # elif self.config['method_code'] == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
+        #     self.config['singlingout_mode'] = 'multivariate'
+        #     self.evaluator = SinglingOutEvaluator(
+        #         ori=self.data['ori'],
+        #         syn=self.data['syn'],
+        #         control=self.data['control'],
+        #         n_attacks=self.config['n_attacks']
+        #     )
+        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+            if 'aux_cols' not in self.config\
+                or self.config['aux_cols'] is None:
+                raise ConfigError
+            self.evaluator = LinkabilityEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks'],
+                n_neighbors=self.config['n_neighbors'],
+                aux_cols=self.config['aux_cols']
+            )
+        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
+            aux_cols = [
+                col for col in self.data['syn'].columns if col != self.config['secret']
+            ]
+            self.evaluator = InferenceEvaluator(
+                ori=self.data['ori'],
+                syn=self.data['syn'],
+                control=self.data['control'],
+                n_attacks=self.config['n_attacks'],
+                aux_cols=aux_cols,
+                secret=self.config['secret']
+            )
+        else:
+            raise UnsupportedMethodError
 
     def _extract_result(self) -> dict:
         """
         _extract_result of Anonymeter.
             Uses .risk()/.results() method in Anonymeter
-            to extract result from self._evaluator into the designated dictionary.
+            to extract result from self.evaluator into the designated dictionary.
 
         Return
-            (dict)
-                Contains the following key-value pairs
-
-                Risk (float)
-                    Privacy Risk value of specified attacks.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates no risk, and 1 indicates full risk.
-                    Includes CI_btm and CI_top for the bottom and top of the confidence interval.
-
-                Attack_Rate (float)
-                    Main attack rate of specified attacks,
-                        which the attacker uses the synthetic dataset
-                        to deduce private information of records
-                        in the original/training dataset.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-                Baseline_Rate (float)
-                    Naive, or Baseline attack rate of specified attacks,
-                        which is carried out based on random guessing,
-                        to provide a baseline against
-                        which the strength of the “main” attack can be compared.
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-                Control_Rate (float)
-                    Control attack rate of specified attacks,
-                        which is conducted on a set of control dataset,
-                        to distinguish the concrete privacy risks
-                        of the original data records (i.e., specific information)
-                        from general risks intrinsic
-                        to the whole population (i.e., generic information).
-                    Ranging from 0 to 1.
-                    A value of 0 indicates none of success attack,
-                        and 1 indicates totally success attack.
-                    Includes _err for its error rate.
-
-        TODO  Consider using alternative methods to extract results
-                and evaluate migrating this functionality to the Reporter.
-
+            (dict). Result as specific format describe in eval().
         """
-        dict_result = {}
-        para_to_handle = [
-            ('Risk',              ['risk()',    'value']),
-            ('Risk_CI_btm',       ['risk()',    'ci[0]']),
-            ('Risk_CI_top',       ['risk()',    'ci[1]']),
-            ('Attack_Rate',       ['results()', 'attack_rate',   'value']),
-            ('Attack_Rate_err',   ['results()', 'attack_rate',   'error']),
-            ('Baseline_Rate',     ['results()', 'baseline_rate', 'value']),
-            ('Baseline_Rate_err', ['results()', 'baseline_rate', 'error']),
-            ('Control_Rate',      ['results()', 'control_rate',  'value']),
-            ('Control_Rate_err',  ['results()', 'control_rate',  'error'])
-        ]
 
-        for key, evals in para_to_handle:
-            dict_result[key] = np.nan
+        result = {}
+
+        # Handle the risk
+        try:
+            risk = self.evaluator.risk()
+            result['risk'] = safe_round(risk.value)
+            result['risk_CI_btm'] = safe_round(risk.ci[0])
+            result['risk_CI_top'] = safe_round(risk.ci[1])
+        except Exception:
+            result['risk'] = pd.NA
+            result['risk_CI_btm'] = pd.NA
+            result['risk_CI_top'] = pd.NA
+
+        # Handle the attack_rate, baseline_rate, control_rate
+        try:
+            results = self.evaluator.results()
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                rate_result = getattr(results, rate_type, None)
+                if rate_result:
+                    result[f'{rate_type}'] = safe_round(rate_result.value)
+                    result[f'{rate_type}_err'] = safe_round(rate_result.error)
+                else:
+                    result[f'{rate_type}'] = pd.NA
+                    result[f'{rate_type}_err'] = pd.NA
+        except Exception:
+            for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
+                result[f'{rate_type}'] = pd.NA
+                result[f'{rate_type}_err'] = pd.NA
+
+        return result
+
+    def eval(self) -> dict:
+        """
+        Evaluate the anonymization process.
+
+        Keep the known warnings from the Anonymeter library:
+            UserWarning: anonymeter\stats\confidence.py:215:
+                UserWarning: Attack is as good or worse as baseline model.
+                Estimated rates: attack = ...{float}... ,
+                baseline = ...{float}... .
+                Analysis results cannot be trusted. self._sanity_check()
+            - warnings.simplefilter("ignore", category=UserWarning)
+
+        Suppressed the known warnings from the Anonymeter SinglingOut:
+            FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
+                FutureWarning: is_categorical_dtype is deprecated
+                and will be removed in a future version.
+                Use isinstance(dtype, CategoricalDtype)
+                instead elif is_categorical_dtype(values).
+
+        Return
+            (dict). Result as following key-value pairs:
+            - risk (float)
+                Privacy Risk value of specified attacks. Ranging from 0 to 1.
+                    A value of 0 indicates no risk, and 1 indicates full risk.
+                Includes risk_ci_btm and risk_ci_top
+                    for the bottom and top of the confidence interval.
+            - attack_Rate (float)
+                Main attack rate of specified attacks, which the attacker
+                    uses the synthetic datase to deduce private information of records
+                    in the original/training dataset. Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes attack_Rate_err for its error rate.
+            - baseline_Rate (float)
+                Naive, or Baseline attack rate of specified attacks, which is
+                    carried out based on random guessing, to provide a baseline against
+                    which the strength of the “main” attack can be compared.
+                    Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes baseline_Rate_err for its error rate.
+            - control_Rate (float)
+                Control attack rate of specified attacks,  hich is conducted on
+                    a set of control dataset, to distinguish the concrete privacy risks
+                    of the original data records (i.e., specific information)
+                    from general risks intrinsic to the whole population (i.e., generic information).
+                    Ranging from 0 to 1.
+                A value of 0 indicates none of success attack,
+                    and 1 indicates totally success attack.
+                Includes control_Rate_err for its error rate.
+
+        Exception:
+            UnfittedError: If the anonymeter has not been create() yet.
+        """
+        if not self.evaluator:
+            raise UnfittedError
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=FutureWarning)
             try:
-                eval_instance = self._evaluator
-                for eval_command in evals:
-                    if '()' in eval_command:
-                        method_name = eval_command.split('(')[0]
-                        if hasattr(eval_instance, method_name):
-                            method = getattr(eval_instance, method_name)
-                            if callable(method):
-                                eval_instance = method()
-                            else:
-                                break
-                        else:
-                            break
-                    elif '[' in eval_command:
-                        attr_name = eval_command.split('[')[0]
-                        index = int(eval_command.split('[')[1].rstrip(']'))
-                        if hasattr(eval_instance, attr_name):
-                            attr = getattr(eval_instance, attr_name)
-                            if isinstance(attr, (list, dict, tuple)):
-                                try:
-                                    eval_instance = attr[index]
-                                except (IndexError, KeyError):
-                                    break
-                        else:
-                            break
-                    else:
-                        eval_instance = getattr(eval_instance, eval_command)
-                dict_result[key] = eval_instance
-            except Exception as ex:
-                pass
-        return dict_result
+                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+                    # SinglingOut attacks of Univariate
+                    self.evaluator.evaluate(mode=self.config['singlingout_mode'])
+                elif self.config['method_code'] in [
+                    AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
+                    # Linkability and Inference
+                    self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
+                else:
+                    raise UnsupportedMethodError
+            except RuntimeError:
+                # Please re-run this cell.
+                # "For more stable results increase `n_attacks`.
+                # Note that this will make the evaluation slower.
+                raise UnableToEvaluateError
 
+        self.result = self._extract_result()
 
-class AnonymeterSinglingOutUnivariate(Anonymeter):
-    """
-    Estimation of the SinglingOut attacks of Univariate in the Anonymeter library.
+    def get_global(self) -> Union[pd.DataFrame, None]:
+        """
+        Retrieves the global result from the Anonymeter.
 
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
+        Returns:
+            pd.DataFrame: A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
+        """
+        if not self.result:
+            raise UnfittedError
 
-    TODO SinglingOut attacks of Multi-variate.
-    """
+        return pd.DataFrame.from_dict(
+            data={'result': self.result},
+            orient='columns'
+        ).T
 
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
-        self.eval_method: str = 'SinglingOut - Univariate'
+    def get_columnwise(self) -> Union[pd.DataFrame, None]:
+        """
+        Retrieves the column-wise result from the Anonymeter.
 
-        _time_start = time.time()
-        print(
-            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
-            f"Now is SinglingOut - Univariate Evaluator"
-        )
+        Returns:
+            pd.DataFrame: None for Anonymeter didn't have column-wise result.
+        """
+        return None
 
-        self._evaluator = SinglingOutEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            n_attacks=self.n_attacks
-        )
-        print(
-            f"Evaluator (Anonymeter - SinglingOut - Univariate): "
-            f"Evaluator time: {round(time.time()-_time_start ,4)} sec."
-        )
+    def get_pairwise(self) -> Union[pd.DataFrame, None]:
+        """
+        Retrieves the pairwise result from the Anonymeter.
 
+        Returns:
+            pd.DataFrame: None for Anonymeter didn't have pairwise result.
+        """
+        return None
 
-class AnonymeterLinkability(Anonymeter):
-    """
-    Estimation of the Linkability attacks in the Anonymeter library.
+    def get_details(self) -> dict:
+        """
+        Retrieves the specify details of the evaluation.
 
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
-    """
+        Returns:
+            None. self.result['details'] will store the non-specific data.
+        """
+        details = {}
 
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
-        self.eval_method: str = 'Linkability'
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+            # SinglingOut attacks of Univariate
+            #   control queries didn't been stored
+            details['attack_queries']   = self.evaluator._attack_queries
+            details['baseline_queries'] = self.evaluator._baseline_queries
+        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+            # Linkability: Dict[int, Set(int)]
+            #   aux_cols[0] indexes links to aux_cols[1]
+            n_neighbors = self.config['n_neighbors']
+            details['attack_links'] = \
+                self.evaluator._attack_links.find_links(n_neighbors=n_neighbors)
+            details['baseline_links'] = \
+                self.evaluator._baseline_links.find_links(n_neighbors=n_neighbors)
+            details['control_links'] = \
+                self.evaluator._control_links.find_links(n_neighbors=n_neighbors)
+        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
+            # Inference
+            pass # Inference queries didn't been stored
+        else:
+            raise UnsupportedMethodError
 
-        _time_start = time.time()
-        print(
-            f"Evaluator (Anonymeter - Linkability): "
-            f"Now is Linkability Evaluator"
-        )
-
-        _str_aux_cols = (
-            f"\n                                      and "
-            .join(f"[{', '.join(row)}]" for row in self.aux_cols)
-        )
-        print(
-            f"Evaluator (Anonymeter - Linkability): "
-            f"aux_cols are {_str_aux_cols}."
-        )
-
-        self._evaluator = LinkabilityEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            n_attacks=self.n_attacks,
-            n_neighbors=self.n_neighbors,
-            aux_cols=self.aux_cols
-        )
-        print(
-            f"Evaluator (Anonymeter - Linkability): Evaluator time: "
-            f"{round(time.time()-_time_start ,4)} sec."
-        )
-
-
-class AnonymeterInference(Anonymeter):
-    """
-    Estimation of the Inference attacks in the Anonymeter library.
-
-    Returns:
-        None. Stores the result in self._evaluator.evaluation.
-
-    TODO Currently, it calculates a single column as the secret.
-            According to the paper, consider handling multiple secrets.
-    """
-
-    def __init__(self,   **kwargs):
-        super().__init__(**kwargs)
-        self.eval_method: str = 'Inference'
-
-        _time_start = time.time()
-        print('Evaluator (Anonymeter - Inference): Now is Inference Evaluator')
-
-        _aux_cols = [
-            col for col in self.data_syn.columns if col != self.secret
-        ]
-
-        self._evaluator = InferenceEvaluator(
-            ori=self.data_ori,
-            syn=self.data_syn,
-            control=self.data_control,
-            aux_cols=_aux_cols,
-            secret=self.secret
-        )
-
-        print(
-            f"Evaluator (Anonymeter - Inference): Evaluator time: "
-            f"{round(time.time()-_time_start ,4)} sec."
-        )
+        self.result['details'] = details
