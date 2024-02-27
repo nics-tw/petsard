@@ -34,8 +34,8 @@ __all__ = [
     'Processor',
     'Synthesizer',
     'Evaluator',
+    'Describer',
     'Config',
     'Status',
     'Executor',
-    'Describer',
 ]
