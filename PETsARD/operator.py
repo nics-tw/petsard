@@ -205,7 +205,7 @@ class PreprocessorOperator(Operator):
         # for keep default but update manual only
         self.processor.update_config(self._config)
         self.processor.fit(data=input['data'])
-        self.processor.data_preproc = self.processor.transform(data=input['data'])
+        self.data_preproc = self.processor.transform(data=input['data'])
 
     def set_input(self, status) -> dict:
         """
@@ -233,7 +233,7 @@ class PreprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.processor.data_preproc
+        return self.data_preproc
 
 
 class SynthesizerOperator(Operator):
@@ -322,7 +322,7 @@ class PostprocessorOperator(Operator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self.processor = input['preprocessor']
-        self.processor.data_postproc = self.processor.inverse_transform(data=input['data'])
+        self.data_postproc = self.processor.inverse_transform(data=input['data'])
 
     def set_input(self, status) -> dict:
         """
@@ -347,7 +347,7 @@ class PostprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.processor.data_postproc
+        self.data_postproc
 
 
 class EvaluatorOperator(Operator):
@@ -377,8 +377,6 @@ class EvaluatorOperator(Operator):
         """
         self.evaluator.create(**input)
         self.evaluator.eval()
-
-        self.evaluator.evaluation = self.evaluator.evaluator.evaluation
 
     def set_input(self, status) -> dict:
         """
