@@ -1,3 +1,4 @@
+import importlib.util
 import re
 
 import pandas as pd
@@ -11,8 +12,10 @@ class EvaluatorMap():
     """
     Mapping of Evaluator.
     """
-    ANONYMETER: int = 1
-    SDMETRICS:  int = 2
+    DEFAULT:       int = 0
+    CUSTOM_METHOD: int = 1
+    ANONYMETER:    int = 10
+    SDMETRICS:     int = 11
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -43,16 +46,39 @@ class Evaluator:
             The method of how you evaluating data. Case insensitive.
                 The format should be: {library name}{function name},
                 e.g., 'anonymeter_singlingout_univariate'.
-
-    TODO Extract and process the result.
     """
     def __init__(self, method: str, **kwargs):
         self.config = kwargs
         self.config['method'] = method.lower()
         self.evaluator = None
 
-        method_code = EvaluatorMap.map(self.config['method'])
-        if method_code == EvaluatorMap.ANONYMETER:
+        method_code: int = EvaluatorMap.map(self.config['method'])
+        self.config['method_code']: int = method_code
+        if method_code == EvaluatorMap.DEFAULT:
+            # default will use SDMetrics - QualityReport
+            self.config['method'] = 'sdmetrics-single_table-qualityreport'
+            self.evaluator = SDMetrics(config=self.config)
+        elif method_code == EvaluatorMap.CUSTOM_METHOD:
+            # custom method
+            if 'custom_method' not in self.config:
+                raise ConfigError
+            elif 'filepath' not in self.config['custom_method']\
+                or 'method' not in self.config['custom_method']:
+                raise ConfigError
+
+            try:
+                spec = importlib.util.spec_from_file_location(
+                    "module.name", self.config['custom_method']['filepath'])
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                evaluator = getattr(
+                    module,
+                    self.config['custom_method']['method']
+                )
+            except:
+                raise ConfigError
+            self.evaluator = evaluator(config=self.config)
+        elif method_code == EvaluatorMap.ANONYMETER:
             self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
             self.evaluator = SDMetrics(config=self.config)
