@@ -3,10 +3,10 @@
 TODO:
     LoadingError in Loader_excel_pandas.py
     ResultError  in Anonymeter.py -> or make it as Reporter
-    UnfittedError in SDV_SingleTable.py
     SamplingError in Splitter.py
     UnsupportDtypeError in df_cast_check.py
 """
+
 
 class NoConfigError(Exception):
     """
@@ -21,16 +21,10 @@ class ConfigError(Exception):
     """
     pass
 
-class UnsupportedSynMethodError(Exception):
-    """
-    Exception raised when an unsupported synchronization method is used.
-    """
-    pass
 
-
-class UnsupportedEvalMethodError(Exception):
+class UnsupportedMethodError(Exception):
     """
-    Exception raised when an unsupported evaluation method is used.
+    Exception raised when an unsupported synthesizing/evaluating method is used.
     """
     pass
 

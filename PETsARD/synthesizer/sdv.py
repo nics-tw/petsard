@@ -10,7 +10,7 @@ from sdv.single_table import (
     TVAESynthesizer
 )
 
-from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedMethodError
 
 
 class SDVMap():
@@ -43,7 +43,7 @@ class SDVMap():
                 ).upper()
             ]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedMethodError
 
 
 class SDVFactory:
@@ -69,7 +69,7 @@ class SDVFactory:
         elif method_code == SDVMap.TVAE:
             self.Synthesizer = SDVSingleTableTVAE(data=data)
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedMethodError
 
     def create(self):
         """

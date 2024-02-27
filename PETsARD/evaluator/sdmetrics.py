@@ -12,7 +12,7 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.error import (
     ConfigError,
     UnfittedError,
-    UnsupportedEvalMethodError
+    UnsupportedMethodError
 )
 
 
@@ -44,7 +44,7 @@ class SDMetricsMap():
                 ).upper()
             ]
         except KeyError:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
 
 class SDMetrics(EvaluatorBase):
@@ -72,7 +72,7 @@ class SDMetrics(EvaluatorBase):
         elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
             self.evaluator = QualityReport()
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
         self.metadata: dict = None
 
@@ -230,7 +230,7 @@ class SDMetrics(EvaluatorBase):
         elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
             property = 'Column Shapes'
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
         return self._transform_details(property=property)
 
@@ -248,4 +248,4 @@ class SDMetrics(EvaluatorBase):
             property = 'Column Pair Trends'
             return self._transform_details(property=property)
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
