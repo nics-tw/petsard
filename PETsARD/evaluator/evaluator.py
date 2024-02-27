@@ -1,3 +1,4 @@
+import importlib.util
 import re
 
 import pandas as pd
@@ -57,6 +58,26 @@ class Evaluator:
             # default will use SDMetrics - QualityReport
             self.config['method'] = 'sdmetrics-single_table-qualityreport'
             self.evaluator = SDMetrics(config=self.config)
+        elif method_code == EvaluatorMap.CUSTOM_METHOD:
+            # custom method
+            if 'custom_method' not in self.config:
+                raise ConfigError
+            elif 'filepath' not in self.config['custom_method']\
+                or 'method' not in self.config['custom_method']:
+                raise ConfigError
+
+            try:
+                spec = importlib.util.spec_from_file_location(
+                    "module.name", self.config['custom_method']['filepath'])
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                evaluator = getattr(
+                    module,
+                    self.config['custom_method']['method']
+                )
+            except:
+                raise ConfigError
+            self.evaluator = evaluator(config=self.config)
         elif method_code == EvaluatorMap.ANONYMETER:
             self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
