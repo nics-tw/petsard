@@ -20,8 +20,7 @@ from PETsARD.loader.loader_pandas import (
     LoaderPandasExcel,
 )
 from PETsARD.loader.metadata import Metadata
-from PETsARD.util import df_casting
-from PETsARD.util import df_cast_check
+from PETsARD.util import df_casting, df_cast_check
 
 
 class LoaderFileExt():

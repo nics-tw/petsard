@@ -5,7 +5,7 @@ import pandas as pd
 from PETsARD import Loader
 from PETsARD.synthesizer.sdv import SDVFactory
 from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
-from PETsARD.error import ConfigError, UnsupportedSynMethodError
+from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
 class SynthesizerMap():
@@ -31,7 +31,7 @@ class SynthesizerMap():
             libname = libname_match.group() if libname_match else ''
             return cls.__dict__[libname.upper()]
         except KeyError:
-            raise UnsupportedSynMethodError
+            raise UnsupportedMethodError
 
 
 class Synthesizer:
@@ -83,7 +83,7 @@ class Synthesizer:
         elif self.config['method_code'] == SynthesizerMap.SMARTNOISE:
             self.Synthesizer = SmartNoiseFactory(**self.config).create()
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedMethodError
 
     def fit(self, **kwargs) -> None:
         """
