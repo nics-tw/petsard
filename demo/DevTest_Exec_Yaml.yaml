@@ -1,4 +1,10 @@
 Loader:
+  adult_local:
+    filepath: 'benchmark/adult.csv'
+    na_values:
+      workclass: '?'
+      occupation: '?'
+      native-country: '?'
   adult:
     filepath: 'benchmark://adult'
     na_values:
@@ -9,10 +15,9 @@ Splitter:
   '0.8':
     num_samples: 2
     train_split_ratio: 0.8
-  '0.5':
-    num_samples: 2
-    train_split_ratio: 0.5
 Preprocessor:
+  # default:
+  #   default: true
   missing-drop:
     missing:
       age: 'missing_drop'
@@ -30,24 +35,55 @@ Preprocessor:
       hours-per-week: 'missing_drop'
       native-country: 'missing_drop'
       income: 'missing_drop'
-    encoder:
-      education: 'encoder_label'
-      marital-status: 'encoder_label'
-      relationship: 'encoder_label'
-      gender: 'encoder_label'
-      workclass: 'encoder_uniform'
-      occupation: 'encoder_uniform'
-      race: 'encoder_uniform'
-      native-country: 'encoder_uniform'
-      income: 'encoder_uniform'
-    outlier:
-      hours-per-week: 'outlier_iqr'
-    scaler: {}
 Synthesizer:
+  sdv-copulagan:
+    method: 'sdv-copulagan'
+  sdv-copulagan:
+    method: 'sdv-ctgan'
   sdv-gaussian:
-    method: 'sdv-singletable-gaussiancopula'
+    method: 'sdv-gaussiancopula'
+  sdv-tvae:
+    method: 'sdv-tvae'
+  # smartnoise-aim:
+  #   method: 'smartnoise-aim'
+  # smartnoise-mwem:
+  #   method: 'smartnoise-mwem'
+  # smartnoise-mst:
+  #   method: 'smartnoise-mst'
+  # smartnoise-pacsynth:
+  #   method: 'smartnoise-pacsynth'
 Postprocessor:
+  # default:
   missing-drop:
 Evaluator:
+  anony-singlingout:
+    method: 'anonymeter-singlingout_univariate'
+  anony-linkability:
+    method: 'anonymeter-linkability'
+    n_neighbors: 10
+    aux_cols:
+      - - age
+        - fnlwgt
+        - race
+        - gender
+        - native-country
+      - - workclass
+        - education
+        - capital-gain
+        - capital-loss
+        - hours-per-week
+  anony-inference:
+    method: 'anonymeter-inference'
+    secret:
+      - age
+  sd-diag:
+    method: 'sdmetrics-diagnosticreport'
   sd-qlt:
-    method: sdmetrics-single_table-qualityreport
+    method: 'sdmetrics-qualityreport'
+# Describer:
+#   summary-test:
+#     method: 'summary'
+#     mean: default
+#     median: default
+#     quantile: 0.25
+#     quantile: 0.99
