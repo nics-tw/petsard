@@ -5,7 +5,7 @@ from snsynth.transform import NoTransformer, TableTransformer
 from snsynth.transform.identity import IdentityTransformer
 from snsynth import Synthesizer as SNSyn
 
-from PETsARD.error import UnfittedError, UnsupportedSynMethodError
+from PETsARD.error import UnfittedError, UnsupportedMethodError
 
 
 class SmartNoise:
@@ -154,7 +154,7 @@ class SmartNoiseFactory:
                 epsilon=epsilon
             )
         else:
-            raise UnsupportedSynMethodError
+            raise UnsupportedMethodError
 
     def create(self):
         """

@@ -19,7 +19,7 @@ from PETsARD.error import (
     ConfigError,
     UnableToEvaluateError,
     UnfittedError,
-    UnsupportedEvalMethodError
+    UnsupportedMethodError
 )
 
 
@@ -48,7 +48,7 @@ class AnonymeterMap():
                 re.sub(r"^anonymeter-", "", method).upper()
             ]
         except KeyError:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
 
 class Anonymeter(EvaluatorBase):
@@ -167,7 +167,7 @@ class Anonymeter(EvaluatorBase):
                 secret=self.config['secret']
             )
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
     def _extract_result(self) -> dict:
         """
@@ -294,7 +294,7 @@ class Anonymeter(EvaluatorBase):
                     # Linkability and Inference
                     self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
                 else:
-                    raise UnsupportedEvalMethodError
+                    raise UnsupportedMethodError
             except RuntimeError:
                 # Please re-run this cell.
                 # "For more stable results increase `n_attacks`.
@@ -365,6 +365,6 @@ class Anonymeter(EvaluatorBase):
             # Inference
             pass # Inference queries didn't been stored
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
         self.result['details'] = details

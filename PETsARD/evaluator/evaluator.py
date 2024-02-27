@@ -4,7 +4,7 @@ import pandas as pd
 
 from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.sdmetrics import SDMetrics
-from PETsARD.error import ConfigError, UnsupportedEvalMethodError
+from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
 class EvaluatorMap():
@@ -28,7 +28,7 @@ class EvaluatorMap():
             libname = libname_match.group() if libname_match else ''
             return cls.__dict__[libname.upper()]
         except KeyError:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
 
 class Evaluator:
@@ -57,7 +57,7 @@ class Evaluator:
         elif method_code == EvaluatorMap.SDMETRICS:
             self.evaluator = SDMetrics(config=self.config)
         else:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
     def create(self, data: dict) -> None:
         """
