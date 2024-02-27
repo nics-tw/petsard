@@ -238,7 +238,7 @@ class Anonymeter(EvaluatorBase):
                 Analysis results cannot be trusted. self._sanity_check()
             - warnings.simplefilter("ignore", category=UserWarning)
 
-        Inhited the known warnings from the Anonymeter SinglingOut:
+        Suppressed the known warnings from the Anonymeter SinglingOut:
             FutureWarning: anonymeter\evaluators\singling_out_evaluator.py:97:
                 FutureWarning: is_categorical_dtype is deprecated
                 and will be removed in a future version.
