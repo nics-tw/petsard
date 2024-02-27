@@ -149,8 +149,12 @@ class SplitterOperator(Operator):
             dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
         """
         try:
-            # Splitter accept Loader only
-            self.input['data'] = status.get_result('Loader')
+            if 'Loader' in status.status:
+                # Splitter accept Loader only
+                self.input['data'] = status.get_result('Loader')
+            else:
+                # Splitter method = 'custom_data'
+                self.input['data'] = None
             self.input['exclude_index'] = status.get_exist_index()
         except:
             raise ConfigError
