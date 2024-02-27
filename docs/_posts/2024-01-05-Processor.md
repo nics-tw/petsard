@@ -115,9 +115,9 @@ processor.update_config(config)
 
 ## `get_changes()`
 
-Compare the differences between the current config and the default config.
+Compare the differences between the current config and the default config. See "Available Processor Types" to know more about the default config.
 
-比較目前設定檔與預設設定檔之間的差異。
+比較目前設定檔與預設設定檔之間的差異。詳見 "Available Processor Types" 以了解預設設定檔的內容。
 
 ```python
 processor.get_changes()
@@ -144,7 +144,7 @@ processor.fit(
 
 `data` (`pandas.DataFrame`): The data to be fitted. 用來學習的資料。
 
-`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: 'missingist', 'outlierist', 'encoder', 'scaler', 'discretizing'. ['missingist', 'outlierist', 'encoder', 'scaler'] is the default sequence if the user doesn't pass a sequence to the method. Noted that 'discretizing' and 'encoder' cannot be used in a sequence at the same time, and 'discretizing' must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： 'missingist'、'outlierist'、'encoder'、'scaler'、'discretizing'。若用戶未指定流程，則使用 ['missingist', 'outlierist', 'encoder', 'scaler'] 作為預設序列。此外，'discretizing' 與 'encoder' 不能在序列中同時存在，且如果 'discretizing' 存在，其必須為最後一個元素。
+`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missingist'`, `'outlierist'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missingist', 'outlierist', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missingist'`、`'outlierist'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missingist', 'outlierist', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
 
 ## `transform()`
 
@@ -206,6 +206,45 @@ In this section, we provide a comprehensive list of supported processor types an
 | `scaler` | Scaler | `ScalerMinMax` | 'scaler_minmax' |
 | `scaler` | Scaler | `ScalerLog` | 'scaler_log' |
 | `discretizing` | Discretizing | `DiscretizingKBins` | 'discretizing_kbins' |
+
+The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`. See [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) page for details.
+
+預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。詳見 [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) 頁面。
+
+```plain_text
+{
+    'missing': {
+        'numerical': MissingMean,
+        'categorical': MissingDrop,
+        'datetime': MissingDrop,
+        'object': MissingDrop
+    },
+    'outlier': {
+        'numerical': OutlierIQR,
+        'categorical': None,
+        'datatime': OutlierIQR,
+        'object': None
+    },
+    'encoder': {
+        'numerical': None,
+        'categorical': EncoderUniform,
+        'datetime': None,
+        'object': EncoderUniform
+    },
+    'scaler': {
+        'numerical': ScalerStandard,
+        'categorical': None,
+        'datetime': ScalerStandard,
+        'object': None
+    },
+    'discretizing': {
+        'numerical': DiscretizingKBins,
+        'categorical': EncoderLabel,
+        'datetime': DiscretizingKBins,
+        'object': EncoderLabel
+    }
+}
+```
 
 ## Encoder
 
