@@ -2,20 +2,17 @@ import re
 
 import pandas as pd
 
-from PETsARD import Loader
 from PETsARD.synthesizer.sdv import SDVFactory
 from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
-from PETsARD.error import ConfigError, UnsupportedMethodError
+from PETsARD.error import UnsupportedMethodError
 
 
 class SynthesizerMap():
     """
     Mapping of Synthesizer.
     """
-    DEFAULT:     int = 0
-    CUSTOM_DATA: int = 1
-    SDV:         int = 10
-    SMARTNOISE:  int = 11
+    SDV:        int = 1
+    SMARTNOISE: int = 2
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -42,22 +39,18 @@ class Synthesizer:
 
     def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
         """
-        Args:
-            method (str): The method to be used for synthesizing the data.
-            epsilon (float): The privacy parameter for the synthesizer. Default: 5.0.
-
         Attributes:
             config (dict):
                 A dictionary containing the configuration parameters for the synthesizer.
+
+        Args:
+            method (str): The method to be used for synthesizing the data.
+            epsilon (float): The privacy parameter for the synthesizer. Default: 5.0.
         """
-        self.config: dict = kwargs
-        self.config['method'] = method.lower()
-        self.config['epsilon'] = epsilon
-        self.config['method_code'] = SynthesizerMap.map(self.config['method'])
-
-        # result in self.data_syn
-        self.data_syn: pd.DataFrame = None
-
+        self.config: dict = {
+            'method': method.lower(),
+            'epsilon': epsilon
+        }
 
     def create(self, data: pd.DataFrame) -> None:
         """
@@ -65,22 +58,14 @@ class Synthesizer:
 
         Args:
             data (pd.DataFrame): The input data for synthesizing.
-
-        # TODO: verify method in __init__
         """
         self.config['data'] = data
 
-        if self.config['method_code'] == SynthesizerMap.DEFAULT:
-            # default will use SDV - GaussianCopula
-            self.config['method'] = 'sdv-single_table-gaussiancopula'
+        # TODO: verify method in __init__
+        method_code = SynthesizerMap.map(self.config['method'])
+        if method_code == SynthesizerMap.SDV:
             self.Synthesizer = SDVFactory(**self.config).create()
-        elif self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
-            if 'filepath' not in self.config:
-                raise ConfigError
-            self.loader = Loader(filepath=self.config['filepath'])
-        elif self.config['method_code'] == SynthesizerMap.SDV:
-            self.Synthesizer = SDVFactory(**self.config).create()
-        elif self.config['method_code'] == SynthesizerMap.SMARTNOISE:
+        elif method_code == SynthesizerMap.SMARTNOISE:
             self.Synthesizer = SmartNoiseFactory(**self.config).create()
         else:
             raise UnsupportedMethodError
@@ -89,10 +74,7 @@ class Synthesizer:
         """
         Fits the synthesizer model with the given parameters.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
-            self.loader.load()
-        else:
-            self.Synthesizer.fit(**kwargs)
+        self.Synthesizer.fit(**kwargs)
 
     def sample(self, **kwargs) -> None:
         """
@@ -101,10 +83,7 @@ class Synthesizer:
         Return:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
-            self.data_syn = self.loader.data
-        else:
-            self.data_syn = self.Synthesizer.sample(**kwargs)
+        self.data_syn = self.Synthesizer.sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """
@@ -114,8 +93,4 @@ class Synthesizer:
         Return:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
-            self.fit()
-            self.data_syn = self.loader.data
-        else:
-            self.data_syn = self.Synthesizer.fit_sample(**kwargs)
+        self.data_syn: pd.DataFrame = self.Synthesizer.fit_sample(**kwargs)
