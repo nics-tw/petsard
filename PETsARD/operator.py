@@ -347,7 +347,7 @@ class PostprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        self.data_postproc
+        return self.data_postproc
 
 
 class EvaluatorOperator(Operator):
