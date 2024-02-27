@@ -19,8 +19,6 @@ class Operator:
                 A dictionary containing configuration parameters.
         """
         self.input: dict = {}
-        if config is None:
-            raise ConfigError
         pass
 
     def run(self, input: dict):
@@ -182,7 +180,7 @@ class PreprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        self._config = {} if config['method'].lower() == 'default' else config
+        self._config = config
 
     def run(self, input: dict):
         """
@@ -226,7 +224,7 @@ class PreprocessorOperator(Operator):
             self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
-
+            
         return self.input
 
     def get_result(self):
@@ -280,9 +278,10 @@ class SynthesizerOperator(Operator):
             self.input['data'] = status.get_result(status.pre_module)
         except:
             raise ConfigError
-
+        
         return self.input
 
+        
     def get_result(self):
         """
         Retrieve the synthesizing result.
@@ -307,7 +306,7 @@ class PostprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        self._config = {} if config['method'].lower() == 'default' else config
+        self._config = config
 
     def run(self, input: dict):
         """

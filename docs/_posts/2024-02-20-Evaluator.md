@@ -3,27 +3,56 @@ The `evalutor` module is responsible for evaluting the quality of synthetic data
 `evaluator` 模組負責評估合成資料的品質。您可以在 `Evaluator` 類別中指定評估方式並檢驗合成資料。
 
 ```python
-from PETsARD.evaluator.evaluator import Evaluator
+from PETsARD import Evaluator
 
-evaluator = Evaluator(data, evaluating_method='anonymeter-singlingout_univariate')
-
+evaluator = Evaluator(
+    method='anonymeter-singlingout_univariate',
+    anonymeter_n_attacks=2000
+)
+evaluator.create(
+    data={
+        'ori': splitter.data[1]['train'],
+        'syn': postproc_data,
+        'control': splitter.data[1]['validation']
+    }
+)
 evaluator.eval()
+evaluator.Evaluator.evaluation
 ```
 
 # `Evaluator`
 
-To initialise an `Evaluator`, three types of data are required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps. Following this, you will need to specify the evaluation method to assess the data. It is important to note that for each evaluation method, a separate `Evaluator` needs to be created. In other words, if you need to evaluate a dataset with five different methods, there will be five corresponding `Evaluator` instances.
+To initialise an `Evaluator`, you need to specify the evaluation method to assess the data. It is important to note that for each evaluation method, a separate `Evaluator` needs to be created. In other words, if you need to evaluate a dataset with five different methods, there will be five corresponding `Evaluator` instances.
 
-使用 `Evaluator` 類別的物件之前，需要有 3 種類型的資料：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。接下來您需要指定資料評估方法。需要注意的是，針對每一個評估方法，需要建立各自獨立的 `Evaluator`，亦即如果您要使用五種方法評估資料集，則會需要五個 `Evaluator` 物件。
+使用 `Evaluator` 類別的物件之前，您需要指定資料評估方法。需要注意的是，針對每一個評估方法，需要建立各自獨立的 `Evaluator`，亦即如果您要使用五種方法評估資料集，則會需要五個 `Evaluator` 物件。
 
 
 ```python
-evaluator = Evaluator(
-    data = {'ori': df_ori, 
-            'syn': df_syn, 
-            'control': df_control}, 
-    evaluating_method,
+evaluator = Evaluator( 
+    method,
     **kwargs
+)
+```
+
+**Parameters**
+
+`method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
+
+`**kwargs` (`dict`): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
+
+## `create()`
+
+Create an `Evaluator` object with the given data. Three types of data are required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
+
+利用資料創建 `Evaluator`。需要有 3 種類型的資料：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
+
+```python
+evaluator.create(
+    data = {
+      'ori': df_ori, 
+      'syn': df_syn, 
+      'control': df_control
+    }
 )
 ```
 
@@ -31,23 +60,19 @@ evaluator = Evaluator(
 
 `data` (`dict`): The dictionary contains 3 types of data, in the forms of `pd.DataFrame`s. The `keys` of `data` are specified above. 包含三種類型資料，需要是 `pd.DataFrame` 的格式。`data` 的 `keys` 可見上述程式碼。
 
-`evaluating_method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
-
-`**kwargs` (`dict`): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
-
 ## `eval()`
 
-Evaluate the synthetic dataset. The evaluation result is stored in the object itself (`self.Evaluator.evaluation`). See "`self.Evaluator.evaluation`".
+Evaluate the synthetic dataset. To retrieve the evaluation result, see the following sections.
 
-評估資料集。評估結果會存在物件本身 (`self.Evaluator.evaluation`)。詳見 "`self.Evaluator.evaluation`"。
+評估資料集。取得評估結果的方法請詳見後續章節。
 
 # Available Evaluator Types
 
-In this section, we provide a comprehensive list of supported evaluator types and their `evaluating_method` name.
+In this section, we provide a comprehensive list of supported evaluator types and their `method` name.
 
-在此章節我們列出所有目前支援的評估類型及其對應的 `evaluating_method` 名稱。
+在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱。
 
-| Submodule | Class | Alias (`evaluating_method` name) |
+| Submodule | Class | Alias (`method` name) |
 |---|:---:|:---:|
 | `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' |
 | `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' |
@@ -159,37 +184,27 @@ for secret in columns:
 
 > 這樣能遍歷每個欄位被視作 `secret`。然後參考 `anonymeter` 論文的方法，對所有 `secret` 的風險結果取平均、則為資料集整體的推論性風險。
 
-### `self.Evaluator.evaluation`
+### `get_global()`
 
-The evaluation results are stored directly as a dictionary in `self.Evaluator.evaluation` with a specific format, and all values are floating-point numbers within the range of 0.0 to 1.0:
+Retrieve the evaluation results from `anonymeter` methods.
 
-評估結果直接作為字典儲存在 `self.Evaluator.evaluation` 內，具有特定格式，且值都是範圍為 0.0 ~ 1.0 的浮點數：
+獲取 `anonymeter` 方法的評估結果。
 
-```plaintext
-{
-    'Risk': 0.0,
-    'Risk_CI_btm': 0.0,
-    'Risk_CI_top': 0.0013568577126237004,
-    'Attack_Rate': 0.0009585236406264672,
-    'Attack_Rate_err': 0.0009585236406264671,
-    'Baseline_Rate': 0.0009585236406264672,
-    'Baseline_Rate_err': 0.0009585236406264671,
-    'Control_Rate': 0.0009585236406264672,
-    'Control_Rate_err': 0.0009585236406264671
-}
-```
+| | risk | risk_CI_btm | risk_CI_top | attack_rate | attack_rate_err | baseline_rate | baseline_rate_err | control_rate | control_rate_err |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| result | 0.998962 | 0.997923 | 1.0 | 0.999041 | 0.000959 | 0.024413 | 0.006695 | 0.076813 | 0.011631 |
 
-| key                | Definition                                            | 定義                    |
+| Key                | Definition                                            | 定義                    |
 |--------------------|-------------------------------------------------------|-------------------------|
 | Risk | Privacy Risk | 隱私風險   |
-| Risk_CI_btm        | The bottom of confidence interval of Privacy Risk | 隱私風險信賴區間下界 |
-| Risk_CI_top        | The top of confidence interval of Privacy Risk    | 隱私風險信賴區間上界 |
-| Attack_Rate        | The Main Privacy Attack rate                      | 主要隱私攻擊率       |
-| Attack_Rate_err    | Error of Main Privacy Attack rate                     | 主要隱私攻擊率誤差   |
-| Baseline_Rate      | The Baseline Privacy Attack rate                  | 基線隱私攻擊率       |
-| Baseline_Rate_err  | Error of the Baseline Privacy Attack rate             | 基線隱私攻擊率誤差   |
-| Control_Rate       | The Control Privacy Attack rate                   | 控制隱私攻擊率       |
-| Control_Rate_err   | Error of the Control Privacy Attack rate              | 控制隱私攻擊率誤差   |
+| risk_CI_btm        | The bottom of confidence interval of Privacy Risk | 隱私風險信賴區間下界 |
+| risk_CI_top        | The top of confidence interval of Privacy Risk    | 隱私風險信賴區間上界 |
+| attack_rate        | The Main Privacy Attack rate                      | 主要隱私攻擊率       |
+| attack_rate_err    | Error of Main Privacy Attack rate                     | 主要隱私攻擊率誤差   |
+| baseline_rate      | The Baseline Privacy Attack rate                  | 基線隱私攻擊率       |
+| baseline_rate_err  | Error of the Baseline Privacy Attack rate             | 基線隱私攻擊率誤差   |
+| control_rate       | The Control Privacy Attack rate                   | 控制隱私攻擊率       |
+| control_rate_err   | Error of the Control Privacy Attack rate              | 控制隱私攻擊率誤差   |
 
 - Privacy Risk is a high level estimation of specific privacy risk obtained from the attack rates mentioned below. Its formula is as follows.
     - The numerator represents the attacker's exploitation of synthetic data, as the Main Attack to excess of the Control Attack success rate.
@@ -251,23 +266,30 @@ It evaluates whether the data structure of the synthetic data is similar to that
 
 此指標衡量合成資料的資料結構是否與原始資料相似。由於兩資料集在基本性質上（如欄位名稱應一致、欄位的值域應相似）必須有高度相似性，因此此分數應盡可能接近 100%。
 
-#### `self.Evaluator.evaluation`
+#### `get_global()`
 
-The evaluation results are stored directly as a dictionary in `self.Evaluator.evaluation` with the following format.
+Retrieve the global evaluation results from `'sdmetrics-diagnosticreport'` methods.
 
-評估結果直接作為字典儲存在 `self.Evaluator.evaluation` 內，格式如下。
+獲取 `'sdmetrics-diagnosticreport'` 方法的全域評估結果。
 
-```plaintext
-Overall Score: 100.0%
+| | Score | Data Validity | Data Structure |
+|:---:|:---:|:---:|:---:|
+| result | 1.0 | 1.0 | 1.0 |
 
-Properties:
-- Data Validity: 100.0%
-- Data Structure: 100.0%
-```
+The `Score` is calculated as the average of two properties: `Data Validity` and `Data Structure`. The former metrics is the average of the data validity score across all columns. The data validity score for each column is the average of the following metrics: `KeyUniqueness` (ensuring uniqueness of primary keys), `BoundaryAdherence` or `CategoryAdherence` (verifying that the synthetic data's range or categories conform to those of the original data). On the other hand, `Data Structure` checks whether the synthetic data shares identical column names with the original data. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included) for more information.
 
-The `Overall Score` is calculated as the average of two properties: `Data Validity` and `Data Structure`. The former metrics is the average of the data validity score across all columns. The data validity score for each column is the average of the following metrics: `KeyUniqueness` (ensuring uniqueness of primary keys), `BoundaryAdherence` or `CategoryAdherence` (verifying that the synthetic data's range or categories conform to those of the original data). On the other hand, `Data Structure` checks whether the synthetic data shares identical column names with the original data. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included) for more information.
+`Score` 為兩指標 `Data Validity` 及 `Data Structure` 的平均。前者是資料效度分數在各欄位的平均。每個欄位的資料效度分數由以下指標組成：`KeyUniqueness` （確保資料主鍵 (primary keys) 的唯一性）, `BoundaryAdherence` or `CategoryAdherence` (確保合成資料的值域或類別與原始資料一致). 而 `Data Structure` 則是檢查合成資料與原始資料的欄位名稱是否相同。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included).
 
-`Overall Score` 為兩指標 `Data Validity` 及 `Data Structure` 的平均。前者是資料效度分數在各欄位的平均。每個欄位的資料效度分數由以下指標組成：`KeyUniqueness` （確保資料主鍵 (primary keys) 的唯一性）, `BoundaryAdherence` or `CategoryAdherence` (確保合成資料的值域或類別與原始資料一致). 而 `Data Structure` 則是檢查合成資料與原始資料的欄位名稱是否相同。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included).
+#### `get_columnwise()`
+
+Retrieve the column-wise evaluation results from `'sdmetrics-diagnosticreport'` methods. Only `Data Validity` metric is provided. See the above section for further information about `Data Validity`.
+
+獲取 `'sdmetrics-diagnosticreport'` 方法的各欄位評估結果。僅提供 `Data Validity` 指標的結果。關於 `Data Validity` 的細節，詳見上方章節。
+
+| | Property | Metric | Score |
+|:---:|:---:|:---:|:---:|
+| age | Data Validity | BoundaryAdherence | 1.0 |
+
 
 ### `'sdmetrics-qualityreport'`
 
@@ -275,23 +297,39 @@ It evaluates whether the synthetic data is similar to the original data in the r
 
 此指標衡量合成資料是否與原始資料在統計指標上相似。分數越高代表合成資料品質越好。
 
-#### `self.Evaluator.evaluation`
+#### `get_global()`
 
-The evaluation results are stored directly as a dictionary in `self.Evaluator.evaluation` with the following format.
+Retrieve the global evaluation results from `'sdmetrics-qualityreport'` methods.
 
-評估結果直接作為字典儲存在 `self.Evaluator.evaluation` 內，格式如下。
+獲取 `'sdmetrics-qualityreport'` 方法的全域評估結果。
 
-```plaintext
-Overall Score: 74.06%
+| | Score | Column Shapes | Column Pair Trends |
+|:---:|:---:|:---:|:---:|
+| result | 1.0 | 1.0 | 1.0 |
 
-Properties:
-- Column Shapes: 91.81%
-- Column Pair Trends: 56.31%
-```
+The `Score` is calculated as the average of two properties: `Column Shapes` and `Column Pair Trends`. The former metrics is the average of the KSComplement/TVComplement across all columns. The latter metrics is the average of Correlation Similarity/Contingency Similarity across all columns pairs. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included) for more information.
 
-The `Overall Score` is calculated as the average of two properties: `Column Shapes` and `Column Pair Trends`. The former metrics is the average of the KSComplement/TVComplement across all columns. The latter metrics is the average of Correlation Similarity/Contingency Similarity across all columns pairs. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included) for more information.
+`Score` 為兩指標 `Column Shapes` 及 `Column Pair Trends` 的平均。前者是每個欄位 KSComplement/TVComplement 值的平均。後者每個欄位組（column pair，兩個欄位即為一個欄位組）的 Correlation Similarity/Contingency Similarity 的平均。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included).
 
-`Overall Score` 為兩指標 `Column Shapes` 及 `Column Pair Trends` 的平均。前者是每個欄位 KSComplement/TVComplement 值的平均。後者每個欄位組（column pair，兩個欄位即為一個欄位組）的 Correlation Similarity/Contingency Similarity 的平均。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included).
+#### `get_columnwise()`
+
+Retrieve the column-wise evaluation results from `'sdmetrics-qualityreport'` methods. Only `Column Shapes` metric is provided. See the above section for further information about `Column Shapes`.
+
+獲取 `'sdmetrics-qualityreport'` 方法的各欄位評估結果。僅提供 `Column Shapes` 指標的結果。關於 `Column Shapes` 的細節，詳見上方章節。
+
+| | Property | Metric | Score |
+|:---:|:---:|:---:|:---:|
+| age | Column Shapes | KSComplement | 1.0 |
+
+#### `get_pairwise()`
+
+Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` methods. Only `Column Pair Trends` metric is provided. See the above section for further information about `Column Pair Trends`.
+
+獲取 `'sdmetrics-qualityreport'` 方法的欄位組合評估結果。僅提供 `Column Pair Trends` 指標的結果。關於 `Column Pair Trends` 的細節，詳見上方章節。
+
+| | Property | Metric | Score | Real Correlation | Synthetic Correlation |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| (age, workclass) | Column Pair Trends | ContingencySimilarity | 1.0 | NaN | NaN |
 
 # Refenece
 
