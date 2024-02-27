@@ -1,0 +1,15 @@
+Loader:
+  demo:
+    method: 'default'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  sdv-gaussian:
+    method: 'sdv-single_table-gaussiancopula'
+Postprocessor:
+  demo:
+    method: 'default'
+# Reporter:
+#   demo:
+#     method: 'save'

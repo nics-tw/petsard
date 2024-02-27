@@ -20,6 +20,7 @@ from PETsARD.loader.loader_pandas import (
     LoaderPandasExcel,
 )
 from PETsARD.loader.metadata import Metadata
+from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.util import df_casting, df_cast_check
 
 
@@ -117,7 +118,8 @@ class Loader:
 
     def __init__(
         self,
-        filepath:     str,
+        filepath:     str = None, # type: ignore
+        method:       str = None, # type: ignore
         header_exist: bool = True,
         header_names: Optional[List[str]] = None,
         na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
@@ -130,6 +132,18 @@ class Loader:
         self.config: dict = None
         self.Loader = None
         self.dtype = dtype
+
+        if filepath is None and method is None:
+            raise ConfigError
+        elif method:
+            if method == 'default':
+                # default will use adult
+                filepath = 'benchmark://adult'
+            else:
+                raise UnsupportedMethodError
+        else:
+            # method is None, but filepath exist. continue
+            pass
 
         # organized yaml
         PETSARD_CONFIG = {}
