@@ -410,4 +410,9 @@ class EvaluatorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.evaluator.evaluation
+        result: dict = {}
+        result['global'] = self.evaluator.get_global()
+        result['columnwise'] = self.evaluator.get_columnwise()
+        result['pairwise'] = self.evaluator.get_pairwise()
+
+        return result
