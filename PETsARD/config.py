@@ -75,9 +75,10 @@ class Config:
             self.yaml = yaml.safe_load(yaml_file)
 
         if 'Splitter' in self.yaml:
-            self.yaml['Splitter'] = self._splitter_handler(
-                deepcopy(self.yaml['Splitter'])
-            )
+            if 'method' not in self.yaml['Splitter']:
+                self.yaml['Splitter'] = self._splitter_handler(
+                    deepcopy(self.yaml['Splitter'])
+                )
 
         self.config, self.module_flow, self.expt_flow = self._set_flow()
 
