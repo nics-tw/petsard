@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Union
 
 import pandas as pd
 
@@ -51,7 +51,7 @@ class EvaluatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_global(self) -> pd.DataFrame:
+    def get_global(self) -> Union[pd.DataFrame, None]:
         """
         Get the global result of the description/evaluation.
             Only one row, and every property/metrics is columns.
@@ -62,7 +62,7 @@ class EvaluatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_columnwise(self) -> pd.DataFrame:
+    def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
         Get the column-wise result of the description/evaluation.
             Each column is a row, and every property/metrics is columns.
@@ -73,7 +73,7 @@ class EvaluatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_pairwise(self) -> pd.DataFrame:
+    def get_pairwise(self) -> Union[pd.DataFrame, None]:
         """
         Get the pair-wise result of the description/evaluation.
             Each column x column is a row, and every property/metrics is columns.
