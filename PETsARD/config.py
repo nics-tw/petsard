@@ -206,7 +206,11 @@ class Status:
         temp['expt'] = expt
         temp['operator'] = operator
         self.status[module] = deepcopy(temp)
-        self.pre_module = module
+
+        # update pre_module based on sequence
+        module_idx = self.sequence.index(module)
+        if module_idx != 0:
+            self.pre_module = self.sequence[module_idx - 1]
 
     def get_result(self, module: str) -> Union[dict, pd.DataFrame]:
         """
