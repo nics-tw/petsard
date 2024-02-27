@@ -55,8 +55,7 @@ class Evaluator:
         if method_code == EvaluatorMap.ANONYMETER:
             self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
-            pass
-            # self.evaluator = SDMetrics(**self.config)
+            self.evaluator = SDMetrics(config=self.config)
         else:
             raise UnsupportedEvalMethodError
 
@@ -115,4 +114,4 @@ class Evaluator:
             pd.DataFrame: A DataFrame with the pairwise evaluation result.
                 Each row contains column x column in original data.
         """
-        return self.evaluator.get_columnwise()
+        return self.evaluator.get_pairwise()
