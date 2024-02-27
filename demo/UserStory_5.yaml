@@ -17,7 +17,9 @@ Postprocessor:
 Evaluator:
   custom:
     method: 'custom_method'
-    custom_method: my_method_filename
+    custom_method:
+      filepath: 'UserStory_5.py'
+      method: 'UserStory_5'
 # Reporter:
 #   demo:
 #     method: 'save'
