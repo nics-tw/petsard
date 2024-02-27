@@ -1,0 +1,13 @@
+Loader:
+  adult:
+    filepath: 'benchmark://adult'
+    na_values:
+      workclass: '?'
+      occupation: '?'
+      native-country: '?'
+# Describer:
+#   demo:
+#     method: 'default'
+# Reporter:
+#   demo:
+#     method: 'save'
