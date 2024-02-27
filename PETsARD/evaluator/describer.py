@@ -453,6 +453,15 @@ class DescriberAggregator(Describer):
         It aggregates the results of multiple Describers and 
         stores the result in self.result.
         """
+        # if self.config['method'] is 'default', generate selected describers
+        if self.config['method'] == 'default':
+            self.config['describe'] = ['row_count', 'col_count', 
+                                       'global_na_count', 'mean', 'median',
+                                       'std', 'min', 'max', 'kurtosis',
+                                       'skew', 'q1', 'q3', 'col_na_count',
+                                       'nunique', 'corr']
+
+
         for met in self.config['describe']:
             if type(met) is not str:
                 # it should be a dict: key is the method,
