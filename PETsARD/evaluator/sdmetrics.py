@@ -1,7 +1,5 @@
 import re
-from typing import (
-    Dict
-)
+from typing import Union
 
 import pandas as pd
 from sdmetrics.reports.single_table import (
@@ -11,7 +9,11 @@ from sdmetrics.reports.single_table import (
 from sdv.metadata import SingleTableMetadata
 
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.error import ConfigError, UnfittedError, UnsupportedEvalMethodError
+from PETsARD.error import (
+    ConfigError,
+    UnfittedError,
+    UnsupportedEvalMethodError
+)
 
 
 class SDMetricsMap():
@@ -111,19 +113,36 @@ class SDMetrics(EvaluatorBase):
             - properties (pd.DataFrame):
             - details (pd.DataFrame):
         """
+
+        def _safe_round(value, digits=6):
+            """
+            Safely rounds a given value to the specified number of digits.
+
+            Args:
+                value (float): The value to be rounded.
+                digits (int, optional): The number of digits to round to. Defaults to 6.
+
+            Returns:
+                float or None: The rounded value, or None if an exception occurs.
+            """
+            try:
+                return round(value, digits)
+            except Exception:
+                return pd.NA
+
         result = {}
 
-        result['score'] = self.evaluator.get_score()
+        result['score'] = _safe_round(self.evaluator.get_score())
 
         # Tranfer pandas to desired dict format:
         #     {'properties name': {'Score': ...},
         #      'properties name': {'Score': ...}
         #     }
-        result['properties'] = (
-            self.evaluator.get_properties()
-                .set_index('Property').rename_axis(None)
-                .to_dict('index')
-        )
+        properties = self.evaluator.get_properties()
+        properties['Score'] = _safe_round(properties['Score'])
+
+        result['properties'] = \
+            properties.set_index('Property').rename_axis(None).to_dict('index')
 
         result['details'] = {}
         for property in result['properties'].keys():
@@ -149,29 +168,84 @@ class SDMetrics(EvaluatorBase):
         )
         self.result = self._extract_result()
 
-    def get_global(self) -> pd.DataFrame:
+    def _transform_details(self, property: str) -> pd.DataFrame:
+        """
+        Transforms the details of a specific property in the result dictionary.
+
+        Args:
+            property (str): The name of the property.
+
+        Returns:
+            (pd.DataFrame) The transformed details dataframe.
+        """
+        data: pd.DataFrame = self.result['details'][property].copy()
+
+        # set column as index, and remove index name
+        if 'Column' not in data.columns:
+            # set pairwise columns as one column
+            data['Column'] = list(zip(data['Column 1'], data['Column 2']))
+            data.drop(columns=['Column 1', 'Column 2'], inplace=True)
+        data.set_index('Column', inplace=True)
+        data.index.name = None
+
+        # set Property
+        data['Property'] = property
+
+        # sort columns
+        return data[
+            ['Property', 'Metric']+
+            [col for col in data.columns if col not in ['Property', 'Metric']]
+        ]
+
+    def get_global(self) -> Union[pd.DataFrame, None]:
         """
         Returns the global result from the SDMetrics.
 
         Returns:
-            pd.DataFrame: None for SDMetrics didn't have column-wise result.
+            pd.DataFrame: A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
         """
-        return None
+        # get_score
+        data = {'Score': self.result['score']}
+        # get_properties
+        data.update(
+            {key: value['Score']
+             for key, value in self.result['properties'].items()}
+        )
+        return pd.DataFrame.from_dict(
+            data={'result': data},
+            orient='columns'
+        ).T
 
-    def get_columnwise(self) -> pd.DataFrame:
+    def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
         Retrieves the column-wise result from the SDMetrics.
 
         Returns:
-            pd.DataFrame: None for SDMetrics didn't have column-wise result.
+            pd.DataFrame: A DataFrame with the column-wise evaluation result.
+                One row represent one column data result.
         """
-        return None
+        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
+            property = 'Data Validity'
+        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
+            property = 'Column Shapes'
+        else:
+            raise UnsupportedEvalMethodError
 
-    def get_pairwise(self) -> pd.DataFrame:
+        return self._transform_details(property=property)
+
+    def get_pairwise(self) -> Union[pd.DataFrame, None]:
         """
         Retrieves the pairwise result from the SDMetrics.
 
         Returns:
-            pd.DataFrame: None for SDMetrics didn't have pairwise result.
+            pd.DataFrame: A DataFrame with the column-wise evaluation result.
+                One row represent one "column x column" data result.
         """
-        return None
+        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
+            return None
+        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
+            property = 'Column Pair Trends'
+            return self._transform_details(property=property)
+        else:
+            raise UnsupportedEvalMethodError
