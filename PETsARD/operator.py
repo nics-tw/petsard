@@ -3,7 +3,7 @@ import pandas as pd
 from PETsARD.loader import Loader, Splitter
 from PETsARD.processor import Processor
 from PETsARD.synthesizer import Synthesizer
-from PETsARD.evaluator import Evaluator
+from PETsARD.evaluator import Evaluator, Describer
 from PETsARD.error import ConfigError
 
 
@@ -140,7 +140,7 @@ class SplitterOperator(Operator):
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the SplitterOperator.
 
         Args:
             status (Status): The current status object.
@@ -149,7 +149,8 @@ class SplitterOperator(Operator):
             dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
         """
         try:
-            self.input['data'] = status.get_result('Loader') # Splitter accept Loader only
+            # Splitter accept Loader only
+            self.input['data'] = status.get_result('Loader')
             self.input['exclude_index'] = status.get_exist_index()
         except:
             raise ConfigError
@@ -209,7 +210,7 @@ class PreprocessorOperator(Operator):
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the PreprocessorOperator.
 
         Args:
             status (Status): The current status object.
@@ -267,7 +268,7 @@ class SynthesizerOperator(Operator):
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the SynthesizerOperator.
 
         Args:
             status (Status): The current status object.
@@ -326,7 +327,7 @@ class PostprocessorOperator(Operator):
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the PostprocessorOperator.
 
         Args:
             status (Status): The current status object.
@@ -367,20 +368,20 @@ class EvaluatorOperator(Operator):
 
     def run(self, input: dict):
         """
-        Executes the data synthesizing using the Evaluator instance.
+        Executes the data evaluating using the Evaluator instance.
 
         Args:
             input (dict): Evaluator input should contains data (dict).
 
         Attributes:
-            evaluator.data_syn (pd.DataFrame): An synthesizing result data.
+            evaluator.result (dict): An evaluating result data.
         """
         self.evaluator.create(**input)
         self.evaluator.eval()
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the EvaluatorOperator.
 
         Args:
             status (Status): The current status object.
@@ -414,5 +415,65 @@ class EvaluatorOperator(Operator):
         result['global'] = self.evaluator.get_global()
         result['columnwise'] = self.evaluator.get_columnwise()
         result['pairwise'] = self.evaluator.get_pairwise()
+
+        return result
+
+
+class DescriberOperator(Operator):
+    """
+    DescriberOperator is responsible for describing data
+        using the configured Describer instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Attributes:
+            describer (Describer):
+                An instance of the Describer class initialized with the provided configuration.
+        """
+        super().__init__(config)
+        self.describer = Describer(**config)
+
+    def run(self, input: dict):
+        """
+        Executes the data describing using the Describer instance.
+
+        Args:
+            input (dict): Describer input should contains data (dict).
+
+        Attributes:
+            describer.result (dict): An describing result data.
+        """
+        self.describer.create(**input)
+        self.describer.eval()
+
+    def set_input(self, status) -> dict:
+        """
+        Sets the input for the DescriberOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict:
+                Describer input should contains data (dict).
+        """
+        try:
+            self.input['data'] = {
+                'data': status.get_result(status.pre_module)
+            }
+        except:
+            raise ConfigError
+
+        return self.input
+
+    def get_result(self):
+        """
+        Retrieve the pre-processing result.
+        """
+        result: dict = {}
+        result['global'] = self.describer.get_global()
+        result['columnwise'] = self.describer.get_columnwise()
+        result['pairwise'] = self.describer.get_pairwise()
 
         return result
