@@ -21,6 +21,7 @@ from PETsARD.error import (
     UnfittedError,
     UnsupportedMethodError
 )
+from PETsARD.util import safe_round
 
 
 class AnonymeterMap():
@@ -179,30 +180,14 @@ class Anonymeter(EvaluatorBase):
             (dict). Result as specific format describe in eval().
         """
 
-        def _safe_round(value, digits=6):
-            """
-            Safely rounds a given value to the specified number of digits.
-
-            Args:
-                value (float): The value to be rounded.
-                digits (int, optional): The number of digits to round to. Defaults to 6.
-
-            Returns:
-                float or None: The rounded value, or None if an exception occurs.
-            """
-            try:
-                return round(value, digits)
-            except Exception:
-                return pd.NA
-
         result = {}
 
         # Handle the risk
         try:
             risk = self.evaluator.risk()
-            result['risk'] = _safe_round(risk.value)
-            result['risk_CI_btm'] = _safe_round(risk.ci[0])
-            result['risk_CI_top'] = _safe_round(risk.ci[1])
+            result['risk'] = safe_round(risk.value)
+            result['risk_CI_btm'] = safe_round(risk.ci[0])
+            result['risk_CI_top'] = safe_round(risk.ci[1])
         except Exception:
             result['risk'] = pd.NA
             result['risk_CI_btm'] = pd.NA
@@ -214,8 +199,8 @@ class Anonymeter(EvaluatorBase):
             for rate_type in ['attack_rate', 'baseline_rate', 'control_rate']:
                 rate_result = getattr(results, rate_type, None)
                 if rate_result:
-                    result[f'{rate_type}'] = _safe_round(rate_result.value)
-                    result[f'{rate_type}_err'] = _safe_round(rate_result.error)
+                    result[f'{rate_type}'] = safe_round(rate_result.value)
+                    result[f'{rate_type}_err'] = safe_round(rate_result.error)
                 else:
                     result[f'{rate_type}'] = pd.NA
                     result[f'{rate_type}_err'] = pd.NA
