@@ -1,8 +1,10 @@
 import re
 
-from PETsARD.evaluator.anonymeter import AnonymeterFactory
+import pandas as pd
+
+from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.sdmetrics import SDMetrics
-from PETsARD.error import UnsupportedEvalMethodError
+from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
 class EvaluatorMap():
@@ -26,7 +28,7 @@ class EvaluatorMap():
             libname = libname_match.group() if libname_match else ''
             return cls.__dict__[libname.upper()]
         except KeyError:
-            raise UnsupportedEvalMethodError
+            raise UnsupportedMethodError
 
 
 class Evaluator:
@@ -37,55 +39,44 @@ class Evaluator:
     that all "Evaluators" need to implement, as well as common functionality.
 
     Args:
-        data (dict)
-            The dictionary contains necessary information.
-            For now, we adhere to the Anonymeter requirements,
-            so you should include:
-            data = {
-                'ori' : pd.DataFrame   # Original data used for synthesis
-                'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
-                'control: pd.DataFrame # Original data but NOT used for synthesis
-            }
-            Note: So it is recommended to split your original data before synthesizing it.
-                (We recommend to use our pipeline!)
-
-        evaluating_method (str):
+        method (str):
             The method of how you evaluating data. Case insensitive.
                 The format should be: {library name}{function name},
                 e.g., 'anonymeter_singlingout_univariate'.
 
     TODO Extract and process the result.
-
     """
-
     def __init__(self, method: str, **kwargs):
+        self.config = kwargs
+        self.config['method'] = method.lower()
+        self.evaluator = None
 
-        self.config = {
-            'method': method.lower(),
-            'n_attacks': kwargs.get('n_attacks', 2000),
-            'n_jobs': kwargs.get('n_jobs', -2),
-            'n_neighbors': kwargs.get('n_neighbors', 10),
-            'aux_cols': kwargs.get('aux_cols', None),
-            'secret': kwargs.get('secret', None)
-        }
+        method_code = EvaluatorMap.map(self.config['method'])
+        if method_code == EvaluatorMap.ANONYMETER:
+            self.evaluator = Anonymeter(config=self.config)
+        elif method_code == EvaluatorMap.SDMETRICS:
+            self.evaluator = SDMetrics(config=self.config)
+        else:
+            raise UnsupportedMethodError
 
     def create(self, data: dict) -> None:
         """
         Create a Evaluator object with the given data.
 
         Args:
-            data (dict): The input data for evaluating.
+            data (dict)
+                The dictionary contains necessary information.
+                For now, we adhere to the Anonymeter requirements,
+                so you should include:
+                data = {
+                    'ori' : pd.DataFrame   # Original data used for synthesis
+                    'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
+                    'control: pd.DataFrame # Original data but NOT used for synthesis
+                }
+                Note: So it is recommended to split your original data before synthesizing it.
+                    (We recommend to use our pipeline!)
         """
-        self.config['data'] = data
-
-        # TODO: verify method in __init__
-        method_code = EvaluatorMap.map(self.config['method'])
-        if method_code == EvaluatorMap.ANONYMETER:
-            self.evaluator = AnonymeterFactory(**self.config).create()
-        elif method_code == EvaluatorMap.SDMETRICS:
-            self.evaluator = SDMetrics(**self.config).create()
-        else:
-            raise UnsupportedEvalMethodError
+        self.evaluator.create(data=data)
 
     def eval(self) -> None:
         """
@@ -93,3 +84,34 @@ class Evaluator:
             Call the evaluating method within implementation after Factory.
         """
         self.evaluator.eval()
+        self.result = self.evaluator.result
+
+    def get_global(self) -> pd.DataFrame:
+        """
+        Returns the global evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
+        """
+        return self.evaluator.get_global()
+
+    def get_columnwise(self) -> pd.DataFrame:
+        """
+        Returns the column-wise evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the column-wise evaluation result.
+                Each row contains one column in original data.
+        """
+        return self.evaluator.get_columnwise()
+
+    def get_pairwise(self) -> pd.DataFrame:
+        """
+        Retrieves the pairwise evaluation result.
+
+        Returns:
+            pd.DataFrame: A DataFrame with the pairwise evaluation result.
+                Each row contains column x column in original data.
+        """
+        return self.evaluator.get_pairwise()
