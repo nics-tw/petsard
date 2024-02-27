@@ -1,0 +1,53 @@
+Loader:
+  adult:
+    filepath: 'benchmark://adult'
+    na_values:
+      workclass: '?'
+      occupation: '?'
+      native-country: '?'
+Splitter:
+  '0.8':
+    num_samples: 2
+    train_split_ratio: 0.8
+  '0.5':
+    num_samples: 2
+    train_split_ratio: 0.5
+Preprocessor:
+  missing-drop:
+    missing:
+      age: 'missing_drop'
+      workclass: 'missing_drop'
+      fnlwgt: 'missing_drop'
+      education: 'missing_drop'
+      educational-num: 'missing_drop'
+      marital-status: 'missing_drop'
+      occupation: 'missing_drop'
+      relationship: 'missing_drop'
+      race: 'missing_drop'
+      gender: 'missing_drop'
+      capital-gain: 'missing_drop'
+      capital-loss: 'missing_drop'
+      hours-per-week: 'missing_drop'
+      native-country: 'missing_drop'
+      income: 'missing_drop'
+    encoder:
+      education: 'encoder_label'
+      marital-status: 'encoder_label'
+      relationship: 'encoder_label'
+      gender: 'encoder_label'
+      workclass: 'encoder_uniform'
+      occupation: 'encoder_uniform'
+      race: 'encoder_uniform'
+      native-country: 'encoder_uniform'
+      income: 'encoder_uniform'
+    outlier:
+      hours-per-week: 'outlier_iqr'
+    scaler: {}
+Synthesizer:
+  sdv-gaussian:
+    method: 'sdv-singletable-gaussiancopula'
+Postprocessor:
+  missing-drop:
+Evaluator:
+  sd-qlt:
+    method: sdmetrics-single_table-qualityreport
