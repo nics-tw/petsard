@@ -207,9 +207,9 @@ In this section, we provide a comprehensive list of supported processor types an
 | `scaler` | Scaler | `ScalerLog` | 'scaler_log' |
 | `discretizing` | Discretizing | `DiscretizingKBins` | 'discretizing_kbins' |
 
-The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`.
+The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`. See [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) page for details.
 
-預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。
+預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。詳見 [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) 頁面。
 
 ```plain_text
 {
