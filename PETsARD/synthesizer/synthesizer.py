@@ -11,6 +11,7 @@ class SynthesizerMap():
     """
     Mapping of Synthesizer.
     """
+    DEFAULT:    int = 0
     SDV:        int = 1
     SMARTNOISE: int = 2
 
@@ -47,10 +48,10 @@ class Synthesizer:
             method (str): The method to be used for synthesizing the data.
             epsilon (float): The privacy parameter for the synthesizer. Default: 5.0.
         """
-        self.config: dict = {
-            'method': method.lower(),
-            'epsilon': epsilon
-        }
+        self.config: dict = kwargs
+
+        self.config['method'] = method.lower()
+        self.config['epsilon'] = epsilon
 
     def create(self, data: pd.DataFrame) -> None:
         """
@@ -58,12 +59,17 @@ class Synthesizer:
 
         Args:
             data (pd.DataFrame): The input data for synthesizing.
+
+        # TODO: verify method in __init__
         """
         self.config['data'] = data
 
-        # TODO: verify method in __init__
         method_code = SynthesizerMap.map(self.config['method'])
-        if method_code == SynthesizerMap.SDV:
+        if method_code == SynthesizerMap.DEFAULT:
+            # default will use SDV - GaussianCopula
+            self.config['method'] = 'sdv-single_table-gaussiancopula'
+            self.Synthesizer = SDVFactory(**self.config).create()
+        elif method_code == SynthesizerMap.SDV:
             self.Synthesizer = SDVFactory(**self.config).create()
         elif method_code == SynthesizerMap.SMARTNOISE:
             self.Synthesizer = SmartNoiseFactory(**self.config).create()
