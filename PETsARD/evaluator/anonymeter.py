@@ -12,7 +12,6 @@ from anonymeter.evaluators import (
     LinkabilityEvaluator,
     InferenceEvaluator
 )
-import numpy as np
 import pandas as pd
 
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -304,7 +303,7 @@ class Anonymeter(EvaluatorBase):
 
         self.result = self._extract_result()
 
-    def get_global(self) -> pd.DataFrame:
+    def get_global(self) -> Union[pd.DataFrame, None]:
         """
         Retrieves the global result from the Anonymeter.
 
@@ -320,7 +319,7 @@ class Anonymeter(EvaluatorBase):
             orient='columns'
         ).T
 
-    def get_columnwise(self) -> pd.DataFrame:
+    def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
         Retrieves the column-wise result from the Anonymeter.
 
@@ -329,7 +328,7 @@ class Anonymeter(EvaluatorBase):
         """
         return None
 
-    def get_pairwise(self) -> pd.DataFrame:
+    def get_pairwise(self) -> Union[pd.DataFrame, None]:
         """
         Retrieves the pairwise result from the Anonymeter.
 
