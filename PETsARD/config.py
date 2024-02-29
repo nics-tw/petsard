@@ -34,13 +34,11 @@ class Config:
     task name is assigned by user.
     """
 
-    def __init__(self, filename: str, sequence: list = None):
+    def __init__(self, filename: str):
         """
         Args:
             filename (str)
                 The filename of config file.
-            sequence (list. Optional):
-                The user defined sequence of modules in the experiment.
         """
         self.config:      queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
