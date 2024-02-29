@@ -1,0 +1,19 @@
+Splitter:
+  custom:
+    method: 'custom_data'
+    filepath:
+      ori: 'ori.csv'
+      control: 'control.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+  anony-singling:
+    method: 'anonymeter-singlingout_univariate'
+    n_attack: 2
+# Reporter:
+#   demo:
+#     method: 'save'

@@ -18,10 +18,8 @@ class Operator:
             config (dict):
                 A dictionary containing configuration parameters.
         """
+        self.config = config
         self.input: dict = {}
-        if config is None:
-            raise ConfigError
-        pass
 
     def run(self, input: dict):
         """
@@ -149,14 +147,17 @@ class SplitterOperator(Operator):
             dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
         """
         try:
-            # Splitter accept Loader only
-            self.input['data'] = status.get_result('Loader')
+            if 'method' in self.config:
+                # Splitter method = 'custom_data'
+                self.input['data'] = None
+            else:
+                # Splitter accept Loader only
+                self.input['data'] = status.get_result('Loader')
             self.input['exclude_index'] = status.get_exist_index()
         except:
             raise ConfigError
 
         return self.input
-
 
     def get_result(self):
         """
@@ -221,9 +222,9 @@ class PreprocessorOperator(Operator):
         """
         try:
             if status.pre_module == 'Splitter':
-                self.input['data'] = status.get_result(status.pre_module)['train']
+                self.input['data'] = status.get_result(status.pre_module('Preprocessor'))['train']
             else:  # Loader only
-                self.input['data'] = status.get_result(status.pre_module)
+                self.input['data'] = status.get_result(status.pre_module('Preprocessor'))
             self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
@@ -278,7 +279,7 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame).
         """
         try:
-            self.input['data'] = status.get_result(status.pre_module)
+            self.input['data'] = status.get_result(status.pre_module('Synthesizer'))
         except:
             raise ConfigError
 
@@ -337,7 +338,7 @@ class PostprocessorOperator(Operator):
                 Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
         """
         try:
-            self.input['data'] = status.get_result(status.pre_module)
+            self.input['data'] = status.get_result(status.pre_module('Postprocessor'))
             self.input['preprocessor'] = status.get_processor()
         except:
             raise ConfigError
@@ -394,13 +395,13 @@ class EvaluatorOperator(Operator):
             if 'Splitter' in status.status:
                 self.input['data'] = {
                     'ori':     status.get_result('Splitter')['train'],
-                    'syn':     status.get_result(status.pre_module),
+                    'syn':     status.get_result(status.pre_module('Evaluator')),
                     'control': status.get_result('Splitter')['validation']
                 }
-            else:  # Loader only
+            else: # Loader only
                 self.input['data'] = {
                     'ori': status.get_result('Loader'),
-                    'syn': status.get_result(status.pre_module),
+                    'syn': status.get_result(status.pre_module('Evaluator')),
                 }
         except:
             raise ConfigError
@@ -462,7 +463,7 @@ class DescriberOperator(Operator):
         """
         try:
             self.input['data'] = {
-                'data': status.get_result(status.pre_module)
+                'data': status.get_result(status.pre_module('Describer'))
             }
         except:
             raise ConfigError
