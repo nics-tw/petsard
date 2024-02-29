@@ -22,6 +22,7 @@ from PETsARD.loader import Loader, Metadata, Splitter
 from PETsARD.processor import Processor
 from PETsARD.synthesizer import Synthesizer
 from PETsARD.evaluator import Evaluator, Describer
+from PETsARD.reporter import Reporter
 from PETsARD.util import *
 from PETsARD.config import Config, Status
 from PETsARD.executor import Executor
@@ -35,6 +36,7 @@ __all__ = [
     'Synthesizer',
     'Evaluator',
     'Describer',
+    'Reporter',
     'Config',
     'Status',
     'Executor',
