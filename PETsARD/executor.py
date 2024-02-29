@@ -6,21 +6,19 @@ class Executor:
     Represents an executor that runs a series of operators based on a given configuration.
     """
 
-    def __init__(self, config: str, sequence: list = None):
+    def __init__(self, config: str):
         """
         Initialize the executor object.
 
         Args:
             config (str): The configuration filename for the executor.
-            sequence (list, optional):
-                The sequence of actions to be executed. Defaults to None.
 
         Attributes:
             config (Config): The configuration object.
             status (Status): The status of the executor.
             result (dict): The result of the executor.
         """
-        self.config = Config(filename=config, sequence=sequence)
+        self.config = Config(filename=config)
         self.sequence = self.config.sequence  # sequence default in Config
         self.status = Status(config=self.config)
         self.result: dict = {}
