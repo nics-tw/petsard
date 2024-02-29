@@ -45,9 +45,10 @@ Preprocessor:
     scaler: {}
 Synthesizer:
   sdv-gaussian:
-    method: 'sdv-singletable-gaussiancopula'
+    method: 'sdv-single_table-gaussiancopula'
 Postprocessor:
   missing-drop:
+    method: 'default'
 Evaluator:
   sd-qlt:
     method: sdmetrics-single_table-qualityreport

@@ -1,5 +1,6 @@
 from copy import deepcopy
 import queue
+import re
 from typing import Tuple, Union
 
 import pandas as pd
@@ -12,7 +13,9 @@ from PETsARD.operator import (
     PreprocessorOperator,
     SynthesizerOperator,
     PostprocessorOperator,
-    EvaluatorOperator
+    EvaluatorOperator,
+    DescriberOperator,
+    ReporterOperator
 )
 from PETsARD.processor import Processor
 from PETsARD.error import ConfigError, UnexecutedError
@@ -73,6 +76,13 @@ class Config:
 
         with open(self.filename, 'r') as yaml_file:
             self.yaml = yaml.safe_load(yaml_file)
+
+        # Config check: any expt_name should not be postfix with "_[xxx]"
+        pattern = re.compile(r'_(\[[^\]]*\])$')
+        for module, expt_config in self.yaml.items():
+            for expt_name in expt_config:
+                if pattern.search(expt_name):
+                    raise ConfigError
 
         if 'Splitter' in self.yaml:
             if 'method' not in self.yaml['Splitter']:
@@ -235,11 +245,37 @@ class Status:
         """
         return self.status[module]['operator'].get_result()
 
-    def get_full_expt(self) -> dict:
+    def get_full_expt(self, module: str = None) -> dict:
         """
         Retrieve a dictionary of module names and their corresponding experiment names.
+
+        Args:
+            module (str, optional): The module name. If provided,
+                returns the experiment pairs up to and including the specified module.
+                If not provided, returns all experiment pairs in the status.
+
+        Returns:
+            (dict) A dictionary containing the experiment pairs.
         """
-        return {module: self.status[module]['expt'] for module in self.sequence}
+
+        # Normal case: get all of expt pairs in status
+        if module is None:
+            return {
+                module: self.status[seq_module]['expt']
+                for seq_module in self.sequence
+            }
+
+        # Special case: get expt pairs before given module (incl. module itself)
+        else:
+            if module not in self.sequence:
+                raise ConfigError
+
+            module_idx = self.sequence.index(module) + 1
+            sub_sequence = self.sequence[:module_idx]
+            return {
+                module: self.status[seq_module]['expt']
+                for seq_module in sub_sequence
+            }
 
     def get_exist_index(self) -> list:
         """

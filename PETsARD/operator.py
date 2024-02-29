@@ -20,6 +20,8 @@ class Operator:
         """
         self.config = config
         self.input: dict = {}
+        if config is None:
+            raise ConfigError
 
     def run(self, input: dict):
         """
@@ -184,7 +186,8 @@ class PreprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        self._config = {} if config['method'].lower() == 'default' else config
+        method = config['method'].lower() if 'method' in config else None
+        self._config = {} if method == 'default' else config
 
     def run(self, input: dict):
         """
