@@ -20,7 +20,6 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        filepath: Optional[Dict[str, str]] = None,
         num_samples:       int = 1,
         train_split_ratio: float = 0.8,
         random_state:      Optional[Union[int, float, str]] = None,
@@ -31,35 +30,13 @@ class Splitter:
             method (str):
                 Support load exist split data, accepted 'custom_data' only.
                 Default is None.
-            filepath (Dict[str, str]):
-                The filepath of the data to be loaded.
-                Only required when method = 'custom_data'. Default is None.
             num_samples (int): Number of times to resample the data. Default is 1.
             train_split_ratio (float): Ratio of data to assign to the training set, must between 0 ~ 1. Default is 0.8.
             random_state (int | float | str): Seed for random number generation. Default is None.
         """
-        if method:
-            if method.lower() != 'custom_data':
-                raise ConfigError
-            else:
-                if filepath is None:
-                    raise ConfigError
-                if 'ori' not in filepath\
-                    or 'control' not in filepath:
-                    raise ConfigError
 
-                config = kwargs
-                self.loader: dict = {}
-
-                for key in ['ori', 'control']:
-                    config['filepath'] = filepath[key]
-                    self.loader[key] = Loader(**config)
-
-                config['method'] = method
-                config['filepath'] = filepath
-                self.config = config
-
-        else:
+        # Normal Splitter use case
+        if method is None:
             if not (0 <= train_split_ratio <= 1):
                 raise ConfigError(
                     "Splitter:  train_split_ratio must be a float between 0 and 1.")
@@ -68,6 +45,28 @@ class Splitter:
                 'train_split_ratio': train_split_ratio,
                 'random_state': random_state,
             }
+
+        # custom_data Splitter use case
+        else:
+            if method.lower() != 'custom_data':
+                raise ConfigError
+
+            filepath = kwargs.get('filepath', None)
+            if filepath is None or isinstance(filepath, dict):
+                raise ConfigError
+            if 'ori' not in filepath or 'control' not in filepath:
+                raise ConfigError
+
+            config = kwargs
+            self.loader: dict = {}
+
+            for key in ['ori', 'control']:
+                config['filepath'] = filepath[key]
+                self.loader[key] = Loader(**config)
+
+            config['method'] = method
+            config['filepath'] = filepath
+            self.config = config
 
     def split(self, data: pd.DataFrame, exclude_index: List[int] = None):
         """
