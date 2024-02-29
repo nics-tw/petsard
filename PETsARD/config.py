@@ -21,30 +21,6 @@ from PETsARD.processor import Processor
 from PETsARD.error import ConfigError, UnexecutedError
 
 
-class Sequence:
-    """
-    Initializes a sequence of modules for an experiment.
-    """
-
-    def __init__(self, sequence: list = None):
-        """
-        Args:
-            sequence (list, optional):
-                The user defined sequence of modules in the experiment.
-
-        Attributes:
-            default_sequence (list):
-                The default sequence of modules.
-            sequence (list):
-                The sequence of modules for the experiment.
-        """
-        self.default_sequence: list = [
-            'Loader', 'Splitter', 'Preprocessor', 'Synthesizer', 'Postprocessor', 'Evaluator'
-        ]
-
-        self.sequence: list = self.default_sequence if sequence is None else sequence
-
-
 class Config:
     """
     The config of experiment for executor to read.
@@ -69,13 +45,14 @@ class Config:
         self.config:      queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
         self.expt_flow:   queue.Queue = queue.Queue()
-        self.filename = filename
+        self.filename: str = filename
+        self.sequence: list = []
         self.yaml: dict = {}
-
-        self.sequence: list = Sequence(sequence).sequence
 
         with open(self.filename, 'r') as yaml_file:
             self.yaml = yaml.safe_load(yaml_file)
+
+        self.sequence = list(self.yaml.keys())
 
         # Config check: any expt_name should not be postfix with "_[xxx]"
         pattern = re.compile(r'_(\[[^\]]*\])$')
@@ -193,7 +170,7 @@ class Status:
         self.sequence: list = config.sequence
         self.pre_module: str = None
 
-        if 'Splitter' in self.config.sequence:
+        if 'Splitter' in self.sequence:
             self.exist_index: list = []
 
     def put(self, module: str, expt: str, operator: Operator):
