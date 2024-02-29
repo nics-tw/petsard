@@ -1,5 +1,5 @@
 Loader:
-  adult_ori:
+  custom:
     filepath: 'ori.csv'
 Synthesizer:
   custom:
@@ -7,7 +7,7 @@ Synthesizer:
     filepath: 'syn.csv'
 Evaluator:
   demo:
-    method: 'sdmetrics-qualityreport'
+    method: 'default'
 # Reporter:
 #   demo:
 #     method: 'save'
