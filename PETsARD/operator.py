@@ -191,7 +191,7 @@ class PreprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        method = config['method'].lower() if 'method' in config else None
+        method = config['method'].lower() if 'method' in config else 'custom'
         self._config = {} if method == 'default' else config
 
     def run(self, input: dict):
@@ -229,10 +229,11 @@ class PreprocessorOperator(Operator):
                 Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
         """
         try:
-            if status.pre_module == 'Splitter':
-                self.input['data'] = status.get_result(status.pre_module('Preprocessor'))['train']
+            pre_module = status.pre_module('Preprocessor')
+            if pre_module == 'Splitter':
+                self.input['data'] = status.get_result(pre_module)['train']
             else:  # Loader only
-                self.input['data'] = status.get_result(status.pre_module('Preprocessor'))
+                self.input['data'] = status.get_result(pre_module)
             self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
@@ -503,8 +504,8 @@ class ReporterOperator(Operator):
     def set_input(self, status) -> dict:
         full_expt = status.get_full_expt()
 
-        input = {}
-        for module, expt in full_expt.items():
+        data = {}
+        for module in full_expt.keys():
             result = status.get_result(module=module)
             index_dict = status.get_full_expt(module=module)
             # if module.get_result is a dict,
@@ -512,8 +513,9 @@ class ReporterOperator(Operator):
             if isinstance(result, dict):
                 for key in result.keys():
                     index_dict[module] = f"{index_dict[module]}_[{key}]"
-            index_tuple = [(key, value) for key, value in index_dict.items()]
-            input[index_tuple] = deepcopy(result)
+            index_tuple = tuple(item for pair in index_dict.items() for item in pair)
+            data[index_tuple] = deepcopy(result)
+        self.input['data'] = data
 
         return self.input
 
