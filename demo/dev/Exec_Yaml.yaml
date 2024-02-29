@@ -52,3 +52,10 @@ Postprocessor:
 Evaluator:
   sd-qlt:
     method: sdmetrics-single_table-qualityreport
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'Exec_Yaml'
+    source:
+      - 'Synthesizer'
+      - 'Postprocessor'
