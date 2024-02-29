@@ -10,6 +10,8 @@ Synthesizer:
 Postprocessor:
   demo:
     method: 'default'
-# Reporter:
-#   demo:
-#     method: 'save'
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'UserStory_8'
+    source: 'Postprocessor'
