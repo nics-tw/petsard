@@ -128,7 +128,7 @@ class Config:
             for n in range(num_samples):
                 # fill zero on n
                 formatted_n = f"{n+1:0{zero_padding}}"
-                iter_expt_name = f"{expt_name}_[{formatted_n}|{num_samples}]"
+                iter_expt_name = f"{expt_name}_[{num_samples}-{formatted_n}]"
                 transformed_config[iter_expt_name] = iter_expt_config
         return transformed_config
 
@@ -187,6 +187,16 @@ class Status:
 
         TODO self.exist_index
         """
+        # renew status when 2nd,... rounds
+        if module in self.status:
+            module_seq_idx = self.sequence.index(module)
+            module_to_keep = set(self.sequence[:module_seq_idx + 1])
+            keys_to_remove = [
+                key for key in self.status if key not in module_to_keep
+            ]
+            for exist_module in keys_to_remove:
+                del self.status[exist_module]
+
         temp = {}
         temp['expt'] = expt
         temp['operator'] = operator
@@ -236,8 +246,8 @@ class Status:
         # Normal case: get all of expt pairs in status
         if module is None:
             return {
-                module: self.status[seq_module]['expt']
-                for seq_module in self.sequence
+                seq_module: self.status[seq_module]['expt']
+                for seq_module in self.sequence if seq_module in self.status
             }
 
         # Special case: get expt pairs before given module (incl. module itself)
@@ -248,7 +258,7 @@ class Status:
             module_idx = self.sequence.index(module) + 1
             sub_sequence = self.sequence[:module_idx]
             return {
-                module: self.status[seq_module]['expt']
+                seq_module: self.status[seq_module]['expt']
                 for seq_module in sub_sequence
             }
 
