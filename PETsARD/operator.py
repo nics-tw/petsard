@@ -1,9 +1,14 @@
-import pandas as pd
+from copy import deepcopy
 
-from PETsARD.loader import Loader, Splitter
-from PETsARD.processor import Processor
-from PETsARD.synthesizer import Synthesizer
-from PETsARD.evaluator import Evaluator, Describer
+from PETsARD import (
+    Loader,
+    Splitter,
+    Processor,
+    Synthesizer,
+    Evaluator,
+    Describer,
+    Reporter
+)
 from PETsARD.error import ConfigError
 
 
@@ -483,3 +488,34 @@ class DescriberOperator(Operator):
         result['pairwise'] = self.describer.get_pairwise()
 
         return result
+
+
+class ReporterOperator(Operator):
+
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.reporter = Reporter(**config)
+
+    def run(self, input: dict):
+        self.reporter.create(**input)
+        self.reporter.report()
+
+    def set_input(self, status) -> dict:
+        full_expt = status.get_full_expt()
+
+        input = {}
+        for module, expt in full_expt.items():
+            result = status.get_result(module=module)
+            index_dict = status.get_full_expt(module=module)
+            # if module.get_result is a dict,
+            #   add key into expt_name: expt_name[key]
+            if isinstance(result, dict):
+                for key in result.keys():
+                    index_dict[module] = f"{index_dict[module]}_[{key}]"
+            index_tuple = [(key, value) for key, value in index_dict.items()]
+            input[index_tuple] = deepcopy(result)
+
+        return self.input
+
+    def get_result(self):
+        pass
