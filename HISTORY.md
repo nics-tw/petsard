@@ -2,8 +2,8 @@
 
 - **Beta testing 外部測試階段**
   - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
-    - Three new modules have been added: `Describer`, `Reporter`, and `Executor` which can fully execute processes according to YAML, ensuring that all user stories in the spec are executed correctly.
-    - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，並確保規格說明書中所有的用戶故事都能正確執行。
+    - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
+    - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
 - **In Developing 開發階段**
   - **0.6.0-alpha** (2024-02-07): **Transition to new modules** **新模組轉換**
     - Introduced two new module `Config` and `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
