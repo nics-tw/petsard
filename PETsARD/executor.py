@@ -28,14 +28,14 @@ class Executor:
         run(): Runs the operators based on the configuration.
         """
         while self.config.config.qsize() > 0:
-            opr = self.config.config.get()
+            ops = self.config.config.get()
             module = self.config.module_flow.get()
             expt = self.config.expt_flow.get()
 
             print(f"Now is {module} with {expt}...")
-            opr.run(opr.set_input(status=self.status))
+            ops.run(ops.set_input(status=self.status))
 
-            self.status.put(module, expt, opr)
+            self.status.put(module, expt, ops)
 
             # collect result
             self._set_result(module)
