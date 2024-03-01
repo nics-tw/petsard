@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from PETsARD.error import UnfittedError
 
@@ -10,7 +10,7 @@ class Encoder:
     Base class for all Encoder classes.
     """
 
-    PROC_TYPE = 'encoder'
+    PROC_TYPE = ('encoder',)
 
     def __init__(self) -> None:
         # Mapping dict
@@ -129,7 +129,9 @@ class EncoderUniform(Encoder):
         Args:
             data (pd.Series): The categorical data needed to be transformed.
         """
-        normalize_value_counts = data.value_counts(normalize=True)
+        # Filter the counts > 0
+        normalize_value_counts = data.value_counts(normalize=True)\
+            .loc[lambda x: x > 0]
         # Get keys (original labels)
         self.labels = normalize_value_counts.index.get_level_values(
             0).to_list()
@@ -195,6 +197,8 @@ class EncoderLabel(Encoder):
     Implement a label encoder.
     """
 
+    PROC_TYPE = ('encoder', 'discretizing')
+
     def __init__(self) -> None:
         super().__init__()
         self.model = LabelEncoder()
@@ -240,3 +244,58 @@ class EncoderLabel(Encoder):
         """
 
         return self.model.inverse_transform(data)
+    
+class EncoderOneHot(Encoder):
+    """
+    Implement a one-hot encoder.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.model = OneHotEncoder(sparse_output=False)
+
+        # for the use in Mediator
+        self._transform_temp: np.ndarray = None
+
+    def _fit(self, data: pd.Series) -> None:
+        """
+        Gather information for transformation and reverse transformation.
+
+        Args:
+            data (pd.Series): The categorical data needed to be transformed.
+        """
+        self.model.fit(data.values.reshape(-1, 1))
+
+        # Set original labels
+        self.labels = self.model.categories_[0].tolist()
+
+    def _transform(self, data: pd.Series) -> None:
+        """
+        Transform categorical data to a one-hot numeric array.
+
+        Args:
+            data (pd.Series): The categorical data needed to be transformed.
+
+        Return:
+            None: The transformed data is stored in _transform_temp.
+            data (pd.Series): Original data (dummy).
+        """
+
+        self._transform_temp = self.model.transform(data.values.reshape(-1, 1))
+
+        return data
+
+    def _inverse_transform(self, data: pd.Series) -> None:
+        """
+        Inverse the transformed data to the categorical data.
+        This is a dummy method, and it is implemented in MediatorEncoder.
+
+        Args:
+            data (pd.Series): The categorical data needed to 
+            be transformed inversely.
+
+        Return:
+            data (pd.Series): Original data (dummy).
+        """
+
+        return data

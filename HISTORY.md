@@ -1,9 +1,13 @@
 ## History 歷史
 
+- **Beta testing 外部測試階段**
+  - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
+    - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
+    - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
 - **In Developing 開發階段**
-  -  **0.6.0-alpha** (2024-02-07): **Transition to new modules** **新模組轉換**
-    - Introduced one new module, config, and one class, `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
-    - 新增一個模組：config 與一個類別 Operator，以及進行變數及檔案名稱統一，並進行 SDV 及 Anonymeter 檔案的整併。
+  - **0.6.0-alpha** (2024-02-07): **Transition to new modules** **新模組轉換**
+    - Introduced two new module `Config` and `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
+    - 新增兩個模組：`Config` 與 `Operator`，以及進行變數及檔案名稱統一，並進行 SDV 及 Anonymeter 檔案的整併。
   - **0.5.0-alpha** (2024-01-30): **Transition to new modules** **新模組轉換**
     - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html).
     - 導入 Metadata 與 Processor 兩個新模組，同時下架 Pre/Postprocessor，同時新增 [Anonymeter 手冊](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html)。

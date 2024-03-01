@@ -1,0 +1,31 @@
+Loader:
+  adult_ori:
+    filepath: 'ori.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+  custom:
+    method: 'custom_method'
+    custom_method:
+      filepath: 'UserStory_05.py'
+      method: 'UserStory_05'
+Reporter:
+  save_report_demo:
+    method: 'save_report'
+    output: 'UserStory_07'
+    granularity: 'global'
+    eval: 'demo'
+  save_report_sd-qlt:
+    method: 'save_report'
+    output: 'UserStory_07'
+    granularity: 'global'
+    eval: 'sd-qlt'
+  save_report_custom:
+    method: 'save_report'
+    output: 'UserStory_07'
+    granularity: 'global'
+    eval: 'custom'
