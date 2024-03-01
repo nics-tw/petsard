@@ -166,12 +166,13 @@ class SDMetrics(EvaluatorBase):
         data: pd.DataFrame = self.result['details'][property].copy()
 
         # set column as index, and remove index name
-        if 'Column' not in data.columns:
+        if 'Column' in data.columns:
+            data.set_index('Column', inplace=True)
+            data.index.name = None
+        else:
             # set pairwise columns as one column
-            data['Column'] = list(zip(data['Column 1'], data['Column 2']))
-            data.drop(columns=['Column 1', 'Column 2'], inplace=True)
-        data.set_index('Column', inplace=True)
-        data.index.name = None
+            data.set_index(['Column 1', 'Column 2'], inplace=True)
+            data.index.names = [None, None]
 
         # set Property
         data['Property'] = property

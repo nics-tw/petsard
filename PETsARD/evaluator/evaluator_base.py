@@ -50,7 +50,6 @@ class EvaluatorBase(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def get_global(self) -> Union[pd.DataFrame, None]:
         """
         Get the global result of the description/evaluation.
@@ -61,7 +60,6 @@ class EvaluatorBase(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
         Get the column-wise result of the description/evaluation.
@@ -72,7 +70,6 @@ class EvaluatorBase(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def get_pairwise(self) -> Union[pd.DataFrame, None]:
         """
         Get the pair-wise result of the description/evaluation.

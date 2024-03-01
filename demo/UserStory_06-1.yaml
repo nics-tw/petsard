@@ -1,0 +1,16 @@
+Loader:
+  custom:
+    filepath: 'ori.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_06-1'
+    granularity: 'global'
+    eval: 'demo'
