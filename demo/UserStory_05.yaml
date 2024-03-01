@@ -1,0 +1,43 @@
+Loader:
+  adult:
+    filepath: 'benchmark://adult'
+    na_values:
+      workclass: '?'
+      occupation: '?'
+      native-country: '?'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  custom:
+    method: 'custom_method'
+    custom_method:
+      # filepath is the path of the *.py file of the custom method
+      # method is the class name in the *.py file
+      #   which should include the function
+      #   .create(), .eval(), and any method of .get_global/columnwise/pairwise()
+      #   You can inherit the class 'EvaluatorBase`
+      filepath: 'UserStory_05.py'
+      method: 'UserStory_05'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'global'
+    eval: 'custom'
+  save_report_columnwise:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'columnwise'
+    eval: 'custom'
+  save_report_pairwise:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'pairwise'
+    eval: 'custom'

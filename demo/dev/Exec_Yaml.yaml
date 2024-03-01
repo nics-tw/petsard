@@ -52,3 +52,25 @@ Postprocessor:
 Evaluator:
   sd-qlt:
     method: sdmetrics-single_table-qualityreport
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'Exec_Yaml'
+    source:
+      - 'Synthesizer'
+      - 'Postprocessor'
+  save_report_global:
+    method: 'save_report'
+    output: 'Exec_Yaml'
+    granularity: 'global'
+    eval: 'sd-qlt'
+  save_report_columnwise:
+    method: 'save_report'
+    output: 'Exec_Yaml'
+    granularity: 'columnwise'
+    eval: 'sd-qlt'
+  save_report_pairwise:
+    method: 'save_report'
+    output: 'Exec_Yaml'
+    granularity: 'pairwise'
+    eval: 'sd-qlt'

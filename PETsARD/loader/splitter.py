@@ -52,7 +52,7 @@ class Splitter:
                 raise ConfigError
 
             filepath = kwargs.get('filepath', None)
-            if filepath is None or isinstance(filepath, dict):
+            if filepath is None or not isinstance(filepath, dict):
                 raise ConfigError
             if 'ori' not in filepath or 'control' not in filepath:
                 raise ConfigError
