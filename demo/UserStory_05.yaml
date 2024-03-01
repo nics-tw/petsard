@@ -20,6 +20,19 @@ Evaluator:
     custom_method:
       filepath: 'UserStory_05.py'
       method: 'UserStory_05'
-# Reporter:
-#   demo:
-#     method: 'save'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'global'
+    eval: 'custom'
+  save_report_columnwise:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'columnwise'
+    eval: 'custom'
+  save_report_pairwise:
+    method: 'save_report'
+    output: 'UserStory_05'
+    granularity: 'pairwise'
+    eval: 'custom'
