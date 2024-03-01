@@ -1,0 +1,2 @@
+full_expt_name,risk,risk_CI_btm,risk_CI_top,attack_rate,attack_rate_err,baseline_rate,baseline_rate_err,control_rate,control_rate_err
+Splitter[custom_[1-1]]_Synthesizer[custom]_Evaluator[anony-singling_[global]],0.025391,0.013948,0.036833,0.047369,0.00926,0.001458,0.001369,0.022551,0.006436
