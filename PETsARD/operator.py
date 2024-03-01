@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import pandas as pd
+
 from PETsARD import (
     Loader,
     Splitter,
@@ -229,7 +231,7 @@ class PreprocessorOperator(Operator):
                 Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
         """
         try:
-            pre_module = status.pre_module('Preprocessor')
+            pre_module = status.get_pre_module('Preprocessor')
             if pre_module == 'Splitter':
                 self.input['data'] = status.get_result(pre_module)['train']
             else:  # Loader only
@@ -288,7 +290,7 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame).
         """
         try:
-            self.input['data'] = status.get_result(status.pre_module('Synthesizer'))
+            self.input['data'] = status.get_result(status.get_pre_module('Synthesizer'))
         except:
             raise ConfigError
 
@@ -347,7 +349,7 @@ class PostprocessorOperator(Operator):
                 Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
         """
         try:
-            self.input['data'] = status.get_result(status.pre_module('Postprocessor'))
+            self.input['data'] = status.get_result(status.get_pre_module('Postprocessor'))
             self.input['preprocessor'] = status.get_processor()
         except:
             raise ConfigError
@@ -404,13 +406,13 @@ class EvaluatorOperator(Operator):
             if 'Splitter' in status.status:
                 self.input['data'] = {
                     'ori':     status.get_result('Splitter')['train'],
-                    'syn':     status.get_result(status.pre_module('Evaluator')),
+                    'syn':     status.get_result(status.get_pre_module('Evaluator')),
                     'control': status.get_result('Splitter')['validation']
                 }
             else: # Loader only
                 self.input['data'] = {
                     'ori': status.get_result('Loader'),
-                    'syn': status.get_result(status.pre_module('Evaluator')),
+                    'syn': status.get_result(status.get_pre_module('Evaluator')),
                 }
         except:
             raise ConfigError
@@ -472,7 +474,7 @@ class DescriberOperator(Operator):
         """
         try:
             self.input['data'] = {
-                'data': status.get_result(status.pre_module('Describer'))
+                'data': status.get_result(status.get_pre_module('Describer'))
             }
         except:
             raise ConfigError
@@ -492,32 +494,88 @@ class DescriberOperator(Operator):
 
 
 class ReporterOperator(Operator):
+    """
+    Operator class for generating reports using the Reporter class.
+
+    Args:
+        config (dict): Configuration parameters for the Reporter.
+
+    Attributes:
+        reporter (Reporter): Instance of the Reporter class.
+        report (dict): Dictionary to store the generated reports.
+
+    Methods:
+        run(input: dict): Runs the Reporter to create and generate reports.
+        set_input(status) -> dict: Sets the input data for the Reporter.
+        get_result(): Placeholder method for getting the result.
+
+    """
 
     def __init__(self, config: dict):
         super().__init__(config)
         self.reporter = Reporter(**config)
+        self.report: dict = {}
 
     def run(self, input: dict):
+        """
+        Runs the Reporter to create and generate reports.
+
+        Args:
+            input (dict): Input data for the Reporter.
+        """
         self.reporter.create(**input)
         self.reporter.report()
+        if 'Reporter' in self.reporter.report_data:
+            # ReporterSaveReport
+            temp: dict = self.reporter.report_data['Reporter']
+            if 'eval_expt_name' in temp:
+                eval_expt_name: str = temp['eval_expt_name']
+                report: pd.DataFrame = deepcopy(temp['report'])
+                self.report[eval_expt_name] = report
+        else:
+            # ReporterSaveData
+            self.report = self.reporter.report_data
 
     def set_input(self, status) -> dict:
+        """
+        Sets the input data for the Reporter.
+
+        Args:
+            status: The status object.
+
+        Returns:
+            dict: The input data for the Reporter.
+
+        """
         full_expt = status.get_full_expt()
 
         data = {}
         for module in full_expt.keys():
-            result = status.get_result(module=module)
             index_dict = status.get_full_expt(module=module)
+            result = status.get_result(module=module)
+
             # if module.get_result is a dict,
             #   add key into expt_name: expt_name[key]
             if isinstance(result, dict):
                 for key in result.keys():
-                    index_dict[module] = f"{index_dict[module]}_[{key}]"
-            index_tuple = tuple(item for pair in index_dict.items() for item in pair)
-            data[index_tuple] = deepcopy(result)
+                    temp_dict: dict = index_dict.copy()
+                    temp_dict[module] = f"{index_dict[module]}_[{key}]"
+                    index_tuple = tuple(item for pair in temp_dict.items() for item in pair)
+                    data[index_tuple] = deepcopy(result[key])
+            else:
+                index_tuple = tuple(item for pair in index_dict.items() for item in pair)
+                data[index_tuple] = deepcopy(result)
         self.input['data'] = data
+        self.input['data']['exist_report'] = status.get_report()
 
         return self.input
 
     def get_result(self):
-        pass
+        """
+        Placeholder method for getting the result.
+
+        Returns:
+            (dict) key as module name,
+            value as raw/processed data (others) or report data (Reporter)
+        """
+        return self.report
