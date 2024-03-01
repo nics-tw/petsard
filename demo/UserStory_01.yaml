@@ -7,12 +7,15 @@ Loader:
       native-country: '?'
 Describer:
   demo:
+    # Describer only have one method 'default'
     method: 'default'
 Reporter:
   save_report_global:
     method: 'save_report'
     output: 'UserStory_01'
     granularity: 'global'
+    # eval in Reporter means which
+    #   expt_name of Evaluator/Describer should Reporter use
     eval: 'demo'
   save_report_columnwise:
     method: 'save_report'
