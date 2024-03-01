@@ -5,9 +5,22 @@ Loader:
       workclass: '?'
       occupation: '?'
       native-country: '?'
-# Describer:
-#   demo:
-#     method: 'default'
-# Reporter:
-#   demo:
-#     method: 'save'
+Describer:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_01'
+    granularity: 'global'
+    eval: 'demo'
+  save_report_columnwise:
+    method: 'save_report'
+    output: 'UserStory_01'
+    granularity: 'columnwise'
+    eval: 'demo'
+  save_report_pairwise:
+    method: 'save_report'
+    output: 'UserStory_01'
+    granularity: 'pairwise'
+    eval: 'demo'
