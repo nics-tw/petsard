@@ -1,5 +1,6 @@
 Loader:
   demo:
+    # default of Loader is Adult dataset
     method: 'default'
 Preprocessor:
   demo:
