@@ -1,0 +1,15 @@
+Loader:
+  adult_ori:
+    filepath: 'ori.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'syn.csv'
+Evaluator:
+  sd-qlt:
+    method: sdmetrics-single_table-qualityreport
+  custom:
+    method: 'custom_method'
+# Reporter:
+#   demo:
+#     method: 'save'

@@ -1,0 +1,13 @@
+Loader:
+  custom:
+    filepath: 'ori.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+# Reporter:
+#   demo:
+#     method: 'save'
