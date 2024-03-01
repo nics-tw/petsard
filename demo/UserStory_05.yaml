@@ -18,6 +18,11 @@ Evaluator:
   custom:
     method: 'custom_method'
     custom_method:
+      # filepath is the path of the *.py file of the custom method
+      # method is the class name in the *.py file
+      #   which should include the function
+      #   .create(), .eval(), and any method of .get_global/columnwise/pairwise()
+      #   You can inherit the class 'EvaluatorBase`
       filepath: 'UserStory_05.py'
       method: 'UserStory_05'
 Reporter:

@@ -56,7 +56,13 @@ class UserStory_05(EvaluatorBase):
         """
         Returns the pairwise evaluation result.
         """
+        index = [
+            (col1, col2)
+            for i, col1 in enumerate(self.columns)
+            for j, col2 in enumerate(self.columns)
+            if j <= i
+        ]
         return pd.DataFrame(
             self.result,
-            index=list(itertools.product(self.columns, self.columns))
+            index=pd.MultiIndex.from_tuples(index)
         )
