@@ -16,8 +16,13 @@ Postprocessor:
     method: 'default'
 Evaluator:
   demo:
+    # defalut of Evaluator is SDMetrics QualityReport
     method: 'default'
 Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'UserStory_04'
+    source: 'Postprocessor'
   save_report_global:
     method: 'save_report'
     output: 'UserStory_04'
