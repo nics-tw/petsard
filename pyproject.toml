@@ -76,7 +76,7 @@
 # ......
 # Dependencies version in key libraries
 # 關鍵套件相依性版本
-# 
+#
 # 1. SDV: 1.8 above
 #    - https://github.com/sdv-dev/SDV
 #    - 1.9 update: 2024/01/11
@@ -95,7 +95,7 @@
 
 [tool.poetry]
 name = "petsard"
-version = "0.6.0-alpha"
+version = "0.7.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     "alexchen830 <alexchen830@gmail.com>",
