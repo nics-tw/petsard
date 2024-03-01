@@ -1,0 +1,2 @@
+full_expt_name,score
+Loader[adult]_Preprocessor[demo]_Synthesizer[demo]_Postprocessor[demo]_Evaluator[custom_[global]],100
