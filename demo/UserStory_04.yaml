@@ -17,6 +17,9 @@ Postprocessor:
 Evaluator:
   demo:
     method: 'default'
-# Reporter:
-#   rpt:
-#     method: 'save'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_04'
+    granularity: 'global'
+    eval: 'demo'
