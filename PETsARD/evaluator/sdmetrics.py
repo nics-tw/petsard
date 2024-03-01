@@ -168,17 +168,11 @@ class SDMetrics(EvaluatorBase):
         # set column as index, and remove index name
         if 'Column' in data.columns:
             data.set_index('Column', inplace=True)
+            data.index.name = None
         else:
             # set pairwise columns as one column
-            index = [
-                (col1, col2)
-                for i, col1 in enumerate(data['Column 1'])
-                for j, col2 in enumerate(data['Column 2'])
-                if j <= i
-            ]
-            data.drop(columns=['Column 1', 'Column 2'], inplace=True)
-            data.index = pd.MultiIndex.from_tuples(index)
-        data.index.name = None
+            data.set_index(['Column 1', 'Column 2'], inplace=True)
+            data.index.names = [None, None]
 
         # set Property
         data['Property'] = property
