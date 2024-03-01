@@ -8,6 +8,9 @@ Synthesizer:
 Evaluator:
   demo:
     method: 'default'
-# Reporter:
-#   demo:
-#     method: 'save'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'UserStory_06-1'
+    granularity: 'global'
+    eval: 'demo'

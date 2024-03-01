@@ -14,6 +14,14 @@ Evaluator:
   anony-singling:
     method: 'anonymeter-singlingout_univariate'
     n_attack: 2
-# Reporter:
-#   demo:
-#     method: 'save'
+Reporter:
+  save_report_global_demo:
+    method: 'save_report'
+    output: 'UserStory_06-2'
+    granularity: 'global'
+    eval: 'demo'
+  save_report_global_anony:
+    method: 'save_report'
+    output: 'UserStory_06-2'
+    granularity: 'global'
+    eval: 'anony-singling'
