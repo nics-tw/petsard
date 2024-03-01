@@ -7,13 +7,10 @@ demo/benchmark/
 
 # temporary
 **/*.csv
-**/PETsARD*Executor.txt
-**/PETsARD*Trial*.csv
 **/log.txt
 
-# abandoned
-**/\[sunset\]
-
+# but kept /demo/UserStory*.csv for demo
+!/demo/UserStory*.csv
 
 
 ###### ###### ###### ###### ###### ######
@@ -22,7 +19,6 @@ demo/benchmark/
 
 # SDV
 **/.sample.csv.temp*
-
 
 
 ###### ###### ###### ###### ###### ######
