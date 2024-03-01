@@ -10,6 +10,7 @@ Preprocessor:
     method: 'default'
 Synthesizer:
   demo:
+    # default of Synthesizer is SDV Gaussian Copula
     method: 'default'
 Postprocessor:
   demo:
