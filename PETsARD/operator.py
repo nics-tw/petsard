@@ -207,10 +207,7 @@ class PreprocessorOperator(Operator):
         Attributes:
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
-
-        TODO consider use update_config() when #247 is done
         """
-
         self.processor = Processor(
             metadata=input['metadata']
         )
