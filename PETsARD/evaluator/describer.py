@@ -304,19 +304,19 @@ class DescriberRange(DescriberBase):
         }
 
 
-class DescriberQuantile(DescriberBase):
+class DescriberPercentile(DescriberBase):
     """
-    Calculate the quantile of each column in the dataset.
+    Calculate the k*100 th-percentile of each column in the dataset.
     """
 
-    def __init__(self, q):
+    def __init__(self, k):
         super().__init__()
-        self.quantile = q
+        self.percentile = k
 
     def eval(self):
         self.result['columnwise'] = {
-            f'{self.quantile * 100} th '+'quantile':
-            self.data.quantile(self.quantile, axis=0, numeric_only=True)
+            f'{self.percentile * 100} th '+'percentile':
+            self.data.quantile(self.percentile, axis=0, numeric_only=True)
                 .to_dict()
         }
 
@@ -421,7 +421,7 @@ class DescriberAggregator(Describer):
         'q3': ('columnwise', DescriberQ3),
         'iqr': ('columnwise', DescriberIQR),
         'range': ('columnwise', DescriberRange),
-        'quantile': ('columnwise', DescriberQuantile),
+        'percentile': ('columnwise', DescriberPercentile),
         'col_na_count': ('columnwise', DescriberColNA),
         'nunique': ('columnwise', DescriberNUnique),
         'cov': ('pairwise', DescriberCov),
