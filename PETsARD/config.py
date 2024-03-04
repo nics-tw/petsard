@@ -21,6 +21,21 @@ from PETsARD.processor import Processor
 from PETsARD.error import ConfigError, UnexecutedError
 
 
+class PeekableQueue(queue.Queue):
+    """
+    A queue that allows peeking at the first element without removing it.
+    """
+
+    def peek(self):
+        """Return the first element in the queue without removing it.
+
+        Returns:
+            The first element in the queue, or None if the queue is empty.
+        """
+        with self.mutex:
+            return self.queue[0] if not self.empty() else None
+
+
 class Config:
     """
     The config of experiment for executor to read.
@@ -40,9 +55,9 @@ class Config:
             filename (str)
                 The filename of config file.
         """
-        self.config:      queue.Queue = queue.Queue()
-        self.module_flow: queue.Queue = queue.Queue()
-        self.expt_flow:   queue.Queue = queue.Queue()
+        self.config:      PeekableQueue = PeekableQueue()
+        self.module_flow: PeekableQueue = PeekableQueue()
+        self.expt_flow:   PeekableQueue = PeekableQueue()
         self.filename: str = filename
         self.sequence: list = []
         self.yaml: dict = {}
@@ -71,21 +86,21 @@ class Config:
 
         self.config, self.module_flow, self.expt_flow = self._set_flow()
 
-    def _set_flow(self) -> Tuple[queue.Queue, queue.Queue, queue.Queue]:
+    def _set_flow(self) -> Tuple[PeekableQueue, PeekableQueue, PeekableQueue]:
         """
         Populate queues with module operators.
 
         Returns:
-            flow (queue.Queue):
-                Queue containing the operators in the order they were traversed.
-            module_flow (queue.Queue):
-                Queue containing the module names corresponding to each operator.
-            expt_flow (queue.Queue):
-                Queue containing the experiment names corresponding to each operator.
+            flow (PeekableQueue):
+                Peekable Queue containing the operators in the order they were traversed.
+            module_flow (PeekableQueue):
+                Peekable Queue containing the module names corresponding to each operator.
+            expt_flow (PeekableQueue):
+                Peekable Queue containing the experiment names corresponding to each operator.
         """
-        flow:        queue.Queue = queue.Queue()
-        module_flow: queue.Queue = queue.Queue()
-        expt_flow:   queue.Queue = queue.Queue()
+        flow:        PeekableQueue = PeekableQueue()
+        module_flow: PeekableQueue = PeekableQueue()
+        expt_flow:   PeekableQueue = PeekableQueue()
 
         def _set_flow_dfs(modules):
             """
