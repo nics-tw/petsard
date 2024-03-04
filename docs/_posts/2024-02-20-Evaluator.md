@@ -190,6 +190,10 @@ Retrieve the evaluation results from `anonymeter` methods.
 
 獲取 `anonymeter` 方法的評估結果。
 
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
 | | risk | risk_CI_btm | risk_CI_top | attack_rate | attack_rate_err | baseline_rate | baseline_rate_err | control_rate | control_rate_err |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | result | 0.998962 | 0.997923 | 1.0 | 0.999041 | 0.000959 | 0.024413 | 0.006695 | 0.076813 | 0.011631 |
@@ -272,6 +276,10 @@ Retrieve the global evaluation results from `'sdmetrics-diagnosticreport'` metho
 
 獲取 `'sdmetrics-diagnosticreport'` 方法的全域評估結果。
 
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
 | | Score | Data Validity | Data Structure |
 |:---:|:---:|:---:|:---:|
 | result | 1.0 | 1.0 | 1.0 |
@@ -285,6 +293,10 @@ The `Score` is calculated as the average of two properties: `Data Validity` and 
 Retrieve the column-wise evaluation results from `'sdmetrics-diagnosticreport'` methods. Only `Data Validity` metric is provided. See the above section for further information about `Data Validity`.
 
 獲取 `'sdmetrics-diagnosticreport'` 方法的各欄位評估結果。僅提供 `Data Validity` 指標的結果。關於 `Data Validity` 的細節，詳見上方章節。
+
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
 
 | | Property | Metric | Score |
 |:---:|:---:|:---:|:---:|
@@ -303,6 +315,10 @@ Retrieve the global evaluation results from `'sdmetrics-qualityreport'` methods.
 
 獲取 `'sdmetrics-qualityreport'` 方法的全域評估結果。
 
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
 | | Score | Column Shapes | Column Pair Trends |
 |:---:|:---:|:---:|:---:|
 | result | 1.0 | 1.0 | 1.0 |
@@ -317,6 +333,10 @@ Retrieve the column-wise evaluation results from `'sdmetrics-qualityreport'` met
 
 獲取 `'sdmetrics-qualityreport'` 方法的各欄位評估結果。僅提供 `Column Shapes` 指標的結果。關於 `Column Shapes` 的細節，詳見上方章節。
 
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
 | | Property | Metric | Score |
 |:---:|:---:|:---:|:---:|
 | age | Column Shapes | KSComplement | 1.0 |
@@ -326,6 +346,10 @@ Retrieve the column-wise evaluation results from `'sdmetrics-qualityreport'` met
 Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` methods. Only `Column Pair Trends` metric is provided. See the above section for further information about `Column Pair Trends`.
 
 獲取 `'sdmetrics-qualityreport'` 方法的欄位組合評估結果。僅提供 `Column Pair Trends` 指標的結果。關於 `Column Pair Trends` 的細節，詳見上方章節。
+
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
 
 | | Property | Metric | Score | Real Correlation | Synthetic Correlation |
 |:---:|:---:|:---:|:---:|:---:|:---:|
