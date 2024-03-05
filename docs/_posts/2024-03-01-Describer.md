@@ -48,13 +48,13 @@ des = Describer(config)
 
 ## `create()`
 
-Create a `Describer` object with the provided data. The data should be stored within a `dict`. Each dataset should adhere to the following structure: the dataset name serves as the key, while the corresponding value represents the dataset itself in `pd.DataFrame` format.
+Create a `Describer` object with the provided data. The data should be stored within a `dict`. Each dataset should adhere to the following structure: the key must be `'data'`, while the corresponding value represents the dataset itself in `pd.DataFrame` format.
 
-利用資料創建 `Describer`。資料集須以 `dict` 方式儲存。每個資料集須符合下述架構：鍵為資料集名稱；值為 `pd.DataFrame` 格式的資料集。
+利用資料創建 `Describer`。資料集須以 `dict` 方式儲存。每個資料集須符合下述架構：鍵為 `'data'`；值為 `pd.DataFrame` 格式的資料集。
 
 ```python
 data = {
-  'dataset_name': pd.DataFrame
+  'data': pd.DataFrame
 }
 
 des.create(data)
