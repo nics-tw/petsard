@@ -92,7 +92,7 @@ class Encoder:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        return self._inverse_transform(data)
+        return self._inverse_transform(data.to_numpy())
     
     def _inverse_transform():
         """
@@ -168,12 +168,12 @@ class EncoderUniform(Encoder):
                             uniform(self.cat_to_val[x][0], 
                                     self.cat_to_val[x][1], size=1)[0]).values
 
-    def _inverse_transform(self, data: pd.Series) -> pd.Series:
+    def _inverse_transform(self, data: np.ndarray) -> pd.Series:
         """
         Inverse the transformed data to the categorical data.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (np.ndarray): The categorical data needed to 
             be transformed inversely.
 
         Return:
@@ -231,12 +231,12 @@ class EncoderLabel(Encoder):
 
         return self.model.transform(data)
 
-    def _inverse_transform(self, data: pd.Series) -> np.ndarray:
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
         """
         Inverse the transformed data to the categorical data.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (np.ndarray): The categorical data needed to 
             be transformed inversely.
 
         Return:
@@ -285,13 +285,13 @@ class EncoderOneHot(Encoder):
 
         return data
 
-    def _inverse_transform(self, data: pd.Series) -> None:
+    def _inverse_transform(self, data: np.ndarray) -> None:
         """
         Inverse the transformed data to the categorical data.
         This is a dummy method, and it is implemented in MediatorEncoder.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (np.ndarray): The categorical data needed to 
             be transformed inversely.
 
         Return:
