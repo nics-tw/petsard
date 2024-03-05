@@ -37,14 +37,9 @@ class SmartNoise:
                 f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
             )
 
-            # TODO - for mst and pacsynth,
-            # we need to implement other transformer rather than IdentityTransformer
-            t = TableTransformer([IdentityTransformer() 
-                                  for i in range(self.data.shape[1])])
-
             # TODO - Only support cube-style synthesizer. 
             # GAN-style synthesizer needed to be implemented.
-            self._Synthesizer.fit(self.data, transformer=t)
+            self._Synthesizer.fit(self.data, categorical_columns=self.data.columns)
             print(
                 f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
