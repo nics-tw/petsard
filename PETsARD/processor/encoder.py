@@ -64,7 +64,7 @@ class Encoder:
                 " in the fitting process.", 
                 " Please check the data categories again.")
 
-        return self._transform(data)
+        return pd.Categorical(self._transform(data))
     
     def _transform():
         """
