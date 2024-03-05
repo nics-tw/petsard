@@ -72,22 +72,22 @@ If the "benchmark" folder already contains a file with the same filename, the pr
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Adult [^1] | adult_uci.csv | Public | 15 | 32,561 | 3.6 MB | CC BY 4.0 |  |  |  | ✅ | ✅2 | ✅3 |  |
-| Adult income dataset [^2]  | adult.csv | Public | 15 | 48,842 | 5.1 MB | Unknown |  |  |  | ✅ | ✅2 | ✅3 |  |
-| Census-Income (KDD) [^3] | census_kdd.csv | Public | 45 | 199,523 | 97.4 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅11 |  |
-| The NIST Diverse Communities Data Excerpts: Massachusetts (2018) [^4] | ma2018.csv | Public | 24 | 7244 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
-| The NIST Diverse Communities Data Excerpts: Massachusetts (2019) [^4] | ma2019.csv | Public | 24 | 7634 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
-| The NIST Diverse Communities Data Excerpts: National (2018) [^4]| national2018.csv | Public | 24 | 27111 | 1.9 MB | Unknown |  |  | ✅ |  | ✅7 | ✅1 |  |
-| The NIST Diverse Communities Data Excerpts: National (2019) [^4]| national2019.csv | Public | 24 | 27253 | 1.9 MB | Unknown |  |  | ✅ |  | ✅9 | ✅1 |  |
-| The NIST Diverse Communities Data Excerpts: Texas (2018) [^4]| tx2018.csv | Public | 24 | 8,775 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
-| The NIST Diverse Communities Data Excerpts: Texas (2019) [^4]| tx2019.csv | Public | 24 | 9,276 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
-| American Community Survey: Person-level [^5] [^6]| ss15pusab.csv | Public | 284 | 3,147,005 | 2.2 GB | CC0 |  |  | ✅ |  | ✅95 | ✅2 |  |
-| American Community Survey: Household-level [^5] [^6]| ss15husab.csv | Public | 235 | 1,496,678 | 1.1 GB | CC0 |  |  | ✅ |  | ✅75 |  |  |
-| CPS Youth Voter Data: Family-level [^7] [^8]| ffpub23.csv | Public | 85 | 65,767 | 14.0 MB | Unknown |  |  | ✅ |  | ✅53 |  |  |
-| CPS Youth Voter Data: Household-level [^7] [^8]| hhpub23.csv | Public | 140 | 88,978 | 28.9 MB | Unknown |  |  | ✅ |  | ✅58 | ✅1 |  |
-| CPS Youth Voter Data: Person-level [^7] [^8]| pppub23.csv | Public | 829 | 146,133 | 268.0 MB | Unknown |  |  | ✅ |  | ✅513 | ✅1 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| adult | Adult [^1] | adult_uci.csv | Public | 15 | 32,561 | 3.6 MB | CC BY 4.0 |  |  |  | ✅ | ✅2 | ✅3 |  |
+| adult-income | Adult income dataset [^2]  | adult-income.csv | Public | 15 | 48,842 | 5.1 MB | Unknown |  |  |  | ✅ | ✅2 | ✅3 |  |
+| census-income | Census-Income (KDD) [^3] | census_kdd.csv | Public | 45 | 199,523 | 97.4 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅11 |  |
+| ma2018 | The NIST Diverse Communities Data Excerpts: Massachusetts (2018) [^4] | ma2018.csv | Public | 24 | 7244 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
+| ma2019 | The NIST Diverse Communities Data Excerpts: Massachusetts (2019) [^4] | ma2019.csv | Public | 24 | 7634 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
+| national2018 | The NIST Diverse Communities Data Excerpts: National (2018) [^4]| national2018.csv | Public | 24 | 27111 | 1.9 MB | Unknown |  |  | ✅ |  | ✅7 | ✅1 |  |
+| national2019 | The NIST Diverse Communities Data Excerpts: National (2019) [^4]| national2019.csv | Public | 24 | 27253 | 1.9 MB | Unknown |  |  | ✅ |  | ✅9 | ✅1 |  |
+| tx2018 | The NIST Diverse Communities Data Excerpts: Texas (2018) [^4]| tx2018.csv | Public | 24 | 8,775 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
+| tx2019 | The NIST Diverse Communities Data Excerpts: Texas (2019) [^4]| tx2019.csv | Public | 24 | 9,276 | < 1 MB | Unknown |  |  | ✅ |  | ✅8 |  |  |
+| acs-person | American Community Survey: Person-level [^5] [^6]| ss15pusab.csv | Public | 284 | 3,147,005 | 2.2 GB | CC0 |  |  | ✅ |  | ✅95 | ✅2 |  |
+| acs-household | American Community Survey: Household-level [^5] [^6]| ss15husab.csv | Public | 235 | 1,496,678 | 1.1 GB | CC0 |  |  | ✅ |  | ✅75 |  |  |
+| voter2022-family | CPS Youth Voter Data: Family-level [^7] [^8]| ffpub23.csv | Public | 85 | 65,767 | 14.0 MB | Unknown |  |  | ✅ |  | ✅53 |  |  |
+| voter2022-household | CPS Youth Voter Data: Household-level [^7] [^8]| hhpub23.csv | Public | 140 | 88,978 | 28.9 MB | Unknown |  |  | ✅ |  | ✅58 | ✅1 |  |
+| voter2022-household | CPS Youth Voter Data: Person-level [^7] [^8]| pppub23.csv | Public | 829 | 146,133 | 268.0 MB | Unknown |  |  | ✅ |  | ✅513 | ✅1 |  |
 
 </div>
 
