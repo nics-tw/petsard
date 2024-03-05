@@ -7,6 +7,24 @@ from botocore.exceptions import ClientError, NoCredentialsError
 import requests
 
 
+
+def DigestSha256(filepath):
+    """
+    Calculate SHA-256 value of file.
+    ...
+    Args:
+        filepath (str) Openable file full path.
+    ...
+    return:
+        (str) SHA-256 value of file.
+    """
+    sha256hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256hash.update(byte_block)
+    return sha256hash.hexdigest()
+
+
 class BenchmarkerBase(ABC):
     """
     BenchmarkerBase
@@ -25,8 +43,7 @@ class BenchmarkerBase(ABC):
             #     if match, ignore download and continue,
             #     if NOT match, raise Error
             # TODO ValueError
-            exist_sha256hash = \
-                self._calculate_sha256(self.para_Loader['filepath'])
+            exist_sha256hash = DigestSha256(self.para_Loader['filepath'])
             if exist_sha256hash == self.para_Loader['benchmark_sha256']:
                 self.para_Loader['benchmark_already_exist'] = True
             else:
@@ -49,27 +66,6 @@ class BenchmarkerBase(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def _calculate_sha256(filepath):
-        """
-        Calculate SHA-256 value of file.
-        ...
-        Args:
-            filepath (str)
-                Openable file full path.
-        ...
-        return:
-            (str)
-                SHA-256 value of file.
-        ...
-        TODO public method, and no need to initialized
-        """
-        sha256hash = hashlib.sha256()
-        with open(filepath, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha256hash.update(byte_block)
-        return sha256hash.hexdigest()
-
     def _verify_download(self, link: str = ''):
         """
         Verifing the download file SHA-256 value is matched as expected.
@@ -78,8 +74,7 @@ class BenchmarkerBase(ABC):
             link (str)
                 The download link for error message.
         """
-        download_sha256hash = \
-            self._calculate_sha256(self.para_Loader['filepath'])
+        download_sha256hash = DigestSha256(self.para_Loader['filepath'])
         if not download_sha256hash == self.para_Loader['benchmark_sha256']:
             try:
                 os.remove(self.para_Loader['filepath'])
