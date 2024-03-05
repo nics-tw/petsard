@@ -190,10 +190,15 @@ class PreprocessorOperator(Operator):
         Attributes:
             _processor (Processor): The processor object used by the Operator.
             _config (dict): The configuration parameters for the Operator.
+            _sequence (list): The sequence of the pre-processing steps (if any
         """
         super().__init__(config)
         self.processor = None
         method = config['method'].lower() if 'method' in config else 'custom'
+        self._sequence = None
+        if 'sequence' in config:
+            self._sequence = config['sequence']
+            del config['sequence']
         self._config = {} if method == 'default' else config
 
     def run(self, input: dict):
@@ -213,7 +218,10 @@ class PreprocessorOperator(Operator):
         )
         # for keep default but update manual only
         self.processor.update_config(self._config)
-        self.processor.fit(data=input['data'])
+        if self._sequence is None:
+            self.processor.fit(data=input['data'])
+        else:
+            self.processor.fit(data=input['data'], sequence=self._sequence)
         self.data_preproc = self.processor.transform(data=input['data'])
 
     def set_input(self, status) -> dict:
