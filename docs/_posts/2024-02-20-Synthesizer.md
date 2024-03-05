@@ -91,7 +91,6 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 | `sdv` | `GaussianCopulaSynthesizer` | 'sdv-singletable-gaussiancopula' | | |
 | `sdv` | `TVAESynthesizer` | 'sdv-singletable-tvae' | | |
 | `smartnoise` | `SmartNoiseCreator` (AIM) | 'smartnoise-aim' | ✅ | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (MWEM) | 'smartnoise-mwem' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ | ✅ |
 
@@ -158,12 +157,6 @@ Use the Adaptive Iterative Mechanism (AIM) algorithm provided in `smartnoise`. S
 **Parameters**
 
 See [document](https://docs.smartnoise.org/synth/synthesizers/aim.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
-
-### `'smartnoise-mwem'`
-
-Use the Multiplicative Weights Exponential Mechanism (MWEM) algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/mwem.html) for further details.
-
-使用 `smartnoise` 提供的 Multiplicative Weights Exponential Mechanism (MWEM) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mwem.html)。
 
 **Parameters**
 
