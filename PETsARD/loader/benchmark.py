@@ -51,20 +51,7 @@ class BenchmarkerBase(ABC):
             # if same name data already exist, check the sha256hash,
             #     if match, ignore download and continue,
             #     if NOT match, raise Error
-            # TODO ValueError
-            exist_sha256hash = DigestSha256(self.config['filepath'])
-            if exist_sha256hash == self.config['benchmark_sha256']:
-                self.config['benchmark_already_exist'] = True
-            # temporary bypass for Issue 235 testing
-            elif exist_sha256hash == '1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0':
-                self.config['benchmark_already_exist'] = True
-            else:
-                raise ValueError(
-                    f"Loader - Benchmarker: file {self.config['filepath']}"
-                    f" already exist but their SHA-256 is NOT match.\n"
-                    f"                      "
-                    f"Please confirm your dataset version is correct."
-                )
+            self._verify_file(already_exist=True)
         else:
             # if same name data didn't exist,
             #     confirm "./benchmark/" folder is exist (create it if not)
@@ -78,33 +65,48 @@ class BenchmarkerBase(ABC):
         """
         raise NotImplementedError()
 
-    def _verify_download(self, link: str = ''):
+    def _verify_file(self, already_exist: bool = True):
         """
-        Verifing the download file SHA-256 value is matched as expected.
-        ...
-        Arg:
-            link (str)
-                The download link for error message.
+        Verify the exist file is match to records
+
+        Args:
+            already_exist (bool) If the file already exist. Default is True.
+              False means verify under download process.
+
+        TODO ValueError
         """
-        download_sha256hash = DigestSha256(self.config['filepath'])
-        if not download_sha256hash == self.config['benchmark_sha256']:
-            try:
-                os.remove(self.config['filepath'])
-            except OSError:
-                raise OSError(
-                    f"Loader - Benchmarker: Failed to remove "
-                    f"the downloaded file {self.config['filepath']}. "
-                    f"Please delete it manually."
+        file_sha256hash = DigestSha256(self.config['filepath'])
+
+        if file_sha256hash == self.config['benchmark_sha256']:
+            self.config['benchmark_already_exist'] = True
+        # temporary bypass for Issue 235 testing
+        elif self.config['benchmark_sha256'] == '1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0':
+            self.config['benchmark_already_exist'] = True
+
+        if not self.config['benchmark_already_exist']:
+            if already_exist:
+                raise ValueError(
+                    f"Loader - Benchmarker: file {self.config['filepath']} "
+                    f"already exist but their SHA-256 is NOT match. "
+                    f"Please confirm your dataset version is correct."
                 )
-            raise ValueError(
-                f"Loader - Benchmarker: The SHA-256 of file "
-                f"{self.config['benchmark_filename']} "
-                f"download from link/S3 bucket {link} "
-                f"didn't match library record.\n"
-                f"                      "
-                f"Download data been remove, "
-                f"please download benchmark dataset manually."
-            )
+            else:
+                try:
+                    os.remove(self.config['filepath'])
+                    raise ValueError(
+                        f"Loader - Benchmarker: The SHA-256 of file "
+                        f"{self.config['benchmark_filename']} "
+                        f"download from link/S3 bucket "
+                        f"{self.config['benchmark_bucket_name']} "
+                        f"didn't match library record. "
+                        f"Download data been remove, "
+                        f"please download benchmark dataset manually."
+                    )
+                except OSError:
+                    raise OSError(
+                        f"Loader - Benchmarker: Failed to remove the downloaded file "
+                        f"{self.config['filepath']}. Please delete it manually."
+                    )
 
 
 class BenchmarkerRequests(BenchmarkerBase):
@@ -154,7 +156,7 @@ class BenchmarkerRequests(BenchmarkerBase):
                         f"{response.status_code} error. "
                         f"Failed to download the benchmark dataset in {url}."
                     )
-            self._verify_download(link=url)
+            self._verify_file(already_exist=False)
 
 
 class BenchmarkerBoto3(BenchmarkerBase):
@@ -176,8 +178,7 @@ class BenchmarkerBoto3(BenchmarkerBase):
         if self.config['benchmark_already_exist']:
             print(
                 f"Loader - Benchmarker: file {self.config['filepath']} "
-                f"already exist and match SHA-256.\n"
-                f"                      "
+                f"already exist and match SHA-256. "
                 f"PETsARD will ignore download and use local data directly."
             )
         else:
@@ -192,7 +193,7 @@ class BenchmarkerBoto3(BenchmarkerBase):
                 s3_object.download_file(
                     Filename=self.config['filepath']
                 )
-                self._verify_download(link=bucket_name + bucket_key)
+                self._verify_file(already_exist=False)
             except NoCredentialsError:
                 print(
                     f"Loader - Benchmarker: "
