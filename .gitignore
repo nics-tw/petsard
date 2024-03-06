@@ -4,6 +4,7 @@
 
 # benchmark datasets
 demo/benchmark/
+demo/dev/benchmark/
 
 # temporary
 **/*.csv
