@@ -182,16 +182,16 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| NHANES diabetes [^27] [^28] | [NHANES] B.csv | Public | 12 | 4,189 | < 1 MB | Unknown | ✅ |  |  | ✅ |  |  |  |
-| Smoking and Drinking Dataset with body signal [^29] | smokingdrinking.csv | Public | 24 | 991,346 | 103.5 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅14 |  |  |
-| Cervical Cancer [^30] | cervical_cancer.csv | Public | 36 | 835 | < 1 MB | Apache 2.0 | ✅ |  | ✅ |  | ✅23 |  |  |
-| Heart Disease Cleveland UCI [^31] | heart_cleveland.csv | Public | 14 | 297 | < 1 MB | Unknown | ✅ |  | ✅ |  |  |  |  |
-| Breast Cancer Wisconsin (Original) (01) [^32] | breast_cancer.csv | Public | 11 | 699 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 | ✅1 |  |
-| Breast Cancer Wisconsin (Original) (02) [^32] | wdbc.csv | Public | 32 | 569 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅6 |  |  |
-| Breast Cancer Wisconsin (Original) (03) [^32] | wpbc.csv | Public | 35 | 198 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 | ✅1 |  |
-| MIMIC3c aggregated data [^33] | mimic3c.csv | Public | 28 | 58,976 | 11.3 MB | Unknown |  |  |  | ✅ | ✅15 | ✅4 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| nhanes_diabetes | NHANES diabetes [^27] [^28] | nhanes_diabetes.csv | Public | 12 | 4,189 | < 1 MB | Unknown | ✅ |  |  | ✅ |  |  |  |
+| smokingdrinking | Smoking and Drinking Dataset with body signal [^29] | smokingdrinking.csv | Public | 24 | 991,346 | 103.5 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅14 |  |  |
+| cervical_cancer | Cervical Cancer [^30] | cervical_cancer.csv | Public | 36 | 835 | < 1 MB | Apache 2.0 | ✅ |  | ✅ |  | ✅23 |  |  |
+| heart_cleveland | Heart Disease Cleveland UCI [^31] | heart_cleveland.csv | Public | 14 | 297 | < 1 MB | Unknown | ✅ |  | ✅ |  |  |  |  |
+| breast_cancer-01 | Breast Cancer Wisconsin (Original) (01) [^32] | breast_cancer.csv | Public | 11 | 699 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 | ✅1 |  |
+| breast_cancer-02 | Breast Cancer Wisconsin (Original) (02) [^32] | wdbc.csv | Public | 32 | 569 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅6 |  |  |
+| breast_cancer-03 | Breast Cancer Wisconsin (Original) (03) [^32] | wpbc.csv | Public | 35 | 198 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 | ✅1 |  |
+| mimic3c | MIMIC3c aggregated data [^33] | mimic3c.csv | Public | 28 | 58,976 | 11.3 MB | Unknown |  |  |  | ✅ | ✅15 | ✅4 |  |
 
 </div>
 

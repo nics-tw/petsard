@@ -180,5 +180,47 @@ datasets:
     access: public
     sha256: d11789e1db393cd1d985ca41a0e73a1d405543fb2c0d540a3b4f7d723bca92f7
 
+# Medical
+  # NHANES diabetes
+  nhanes_diabetes:
+    filename: nhanes_diabetes.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Smoking and Drinking Dataset with body signal
+  smokingdrinking:
+    filename: smokingdrinking.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Cervical Cancer
+  cervical_cancer:
+    filename: cervical_cancer.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Heart Disease Cleveland UCI
+  heart_cleveland:
+    filename: heart_cleveland.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Breast Cancer Wisconsin (Original) (01)
+  breast_cancer-01:
+    filename: breast_cancer.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Breast Cancer Wisconsin (Original) (02)
+  breast_cancer-02:
+    filename: wdbc.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Breast Cancer Wisconsin (Original) (03)
+  breast_cancer-03:
+    filename: wpbc.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # MIMIC3c aggregated data
+  mimic3c:
+    filename: mimic3c.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
