@@ -207,13 +207,13 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| ISOLET [^34] | isolet.csv | Public | 618 | 7,797 | 31.2 MB | CC BY 4.0 |  |  | ✅ |  | ✅50 |  |  |
-| KDD Cup 1999 [^35] [^36] | kddcup.csv | Public | 42 | 4,898,431 | 644.2 MB | Unknown |  |  | ✅ |  | ✅25 | ✅3 |  |
-| NSL-KDD [^37] [^38] | nslkdd.csv | Public | 43 | 148,517 | 19.8 MB | Conditional |  |  | ✅ |  | ✅21 | ✅3 |  |
-| UNSW-NB15 [^39] [^40] | unswnb15.csv | Public | 36 | 257,673 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅24 | ✅4 |  |
-| RT-IoT2022 [^41] | rt_iot.csv | Public | 84 | 123,117 | 50.0 MB | CC BY 4.0 |  |  | ✅ |  | ✅65 | ✅2 |  |
+| isolet | ISOLET [^34] | isolet.csv | Public | 618 | 7,797 | 31.2 MB | CC BY 4.0 |  |  | ✅ |  | ✅50 |  |  |
+| kddcup1999 | KDD Cup 1999 [^35] [^36] | kddcup.csv | Public | 42 | 4,898,431 | 644.2 MB | Unknown |  |  | ✅ |  | ✅25 | ✅3 |  |
+| nslkdd | NSL-KDD [^37] [^38] | nslkdd.csv | Public | 43 | 148,517 | 19.8 MB | Conditional |  |  | ✅ |  | ✅21 | ✅3 |  |
+| unswnb15 | UNSW-NB15 [^39] [^40] | unswnb15.csv | Public | 36 | 257,673 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅24 | ✅4 |  |
+| rt_iot2022 | RT-IoT2022 [^41] | rt_iot.csv | Public | 84 | 123,117 | 50.0 MB | CC BY 4.0 |  |  | ✅ |  | ✅65 | ✅2 |  |
 
 </div>
 
