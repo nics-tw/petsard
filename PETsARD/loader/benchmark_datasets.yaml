@@ -76,3 +76,64 @@ datasets:
     filename: pppub23.csv
     access: public
     sha256: 19b56537e50e7663f954361ef2bb5ce9cef8d9d45f156fe1a69a99b654198ffe
+
+# Business
+  # insurance_synthetic_data
+  insurance_synthetic:
+    filename: insurance_synthetic.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Insurance Company Benchmark (COIL 2000)
+  coil2000:
+    filename: ticdata.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Bank Marketing (01)
+  bank-marketing-1:
+    filename: bank_full.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Bank Marketing (02)
+  bank-marketing-2:
+    filename: bank_additional__full.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Credit score classification
+  credit_score:
+    filename: credit_score.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Credict Card Fraud Detection
+  creditcard-fraud:
+    filename: creditcard.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Bank_Loan_modelling
+  bank_loan:
+    filename: bank_loan.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Netflix Prize data
+  netflix_prize:
+    filename: netflix_prize.csv
+    access: private
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Bike Sales in Europe
+  bike-sales:
+    filename: sales.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Brazilian E-Commerce Public Dataset by Olist
+  olist:
+    filename: olist.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Telco_Customer_Churn
+  telco-churn:
+    filename: telco.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
+
+
+
