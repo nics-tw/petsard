@@ -110,7 +110,7 @@ https://www.census.gov/programs-surveys/acs/data.html
 | insurance_synthetic | insurance_synthetic_data [^9] | insurance_synthetic.csv | Public | 10 | 700 | < 1 MB | Unknown | ✅ |  |  | ✅ |  | ✅4 |  |
 | coil2000 | Insurance Company Benchmark (COIL 2000) [^10] | ticdata.csv | Public | 86 | 9,822 | 1.6 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |  |
 | bank-marketing-1 | Bank Marketing (01) [^11] | bank_full.csv | Public | 17 | 45,211 | 3.5 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
-| bank-marketing-2 | Bank Marketing (02) [^11] | bank_additional__full.csv | Public | 21 | 41,188 | 4.7 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
+| bank-marketing-2 | Bank Marketing (02) [^11] | bank_additional_full.csv | Public | 21 | 41,188 | 4.7 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
 | credit_score | Credit score classification [^12] | credit_score.csv | Public | 28 | 100,000 | 29.7 MB | CC0 |  |  |  | ✅ | ✅5 | ✅15 |  |
 | creditcard-fraud | Credict Card Fraud Detection [^13] | creditcard.csv | Public | 31 | 284,807 | 143.8 MB | DbCL v1.0 |  |  | ✅ |  | ✅9 |  |  |
 | bank_loan | Bank_Loan_modelling [^14] | bank_loan.csv | Public | 13 | 5,000 | < 1 MB | CC0 |  |  | ✅ |  | ✅2 |  |  |
