@@ -261,4 +261,11 @@ datasets:
     access: public
     sha256: 2662ee93dcbd9afffca5fa8e516776e6f16484a37e0724020961aec4dd290c00
 
+# Transportation
+  # PEMS-SF
+  pems_sf:
+    filename: pems_sf.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
