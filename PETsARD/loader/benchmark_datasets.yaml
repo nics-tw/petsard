@@ -151,3 +151,17 @@ datasets:
     access: public
     sha256: c52742e50315a99f956a383faedf7575552675f6409ef0f9a47076dd08479930
 
+# Environment
+  # energydata_complete
+  energydata_complete:
+    filename: energydata_complete.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # AirQuality_UCI
+  airquality:
+    filename: airquality.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
+
+# 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0

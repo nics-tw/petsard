@@ -152,10 +152,10 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| energydata_complete [^22] | energydata_complete.csv | Public | 29 | 19,735 | 11.4 MB | Unknown |  |  | ✅ |  | ✅1 | ✅1 |  |
-| AirQuality_UCI [^23] | airquality.csv | Public | 15 | 9,357 | < 1 MB | Unknown |  |  |  | ✅ | ✅1 | ✅7 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| energydata_complete | energydata_complete [^22] | energydata_complete.csv | Public | 29 | 19,735 | 11.4 MB | Unknown |  |  | ✅ |  | ✅1 | ✅1 |  |
+| airquality | AirQuality_UCI [^23] | airquality.csv | Public | 15 | 9,357 | < 1 MB | Unknown |  |  |  | ✅ | ✅1 | ✅7 |  |
 
 </div>
 
