@@ -117,7 +117,7 @@ datasets:
   netflix_prize:
     filename: netflix_prize.csv
     access: private
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: d7ff1d681f13d43fafc6420c18ca99303184eb3f702ccfb8588847c41bf3c776
   # Bike Sales in Europe
   bike-sales:
     filename: sales.csv
