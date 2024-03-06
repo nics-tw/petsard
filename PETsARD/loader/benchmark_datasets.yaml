@@ -82,37 +82,37 @@ datasets:
   insurance_synthetic:
     filename: insurance_synthetic.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 462bc38c5d5034510262ce43cbe00a2b0fc3cffaae472c653fb2e0907fefa318
   # Insurance Company Benchmark (COIL 2000)
   coil2000:
     filename: ticdata.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 1b5669ac0181bcd0450a3b740f5dc65ed3b789b39418f1394dd6703a331b7225
   # Bank Marketing (01)
   bank-marketing-1:
     filename: bank_full.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: b44507c26634736d4a0619ec2d7c4b6ff56a2c63cbeb5176d3134e7b25e416f0
   # Bank Marketing (02)
   bank-marketing-2:
     filename: bank_additional_full.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 5797716d254c8259177486baf6b0695df48c2fa8e33bda4c40c2fbf5cf34e475
   # Credit score classification
   credit_score:
     filename: credit_score.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 76761c61eb8f1f9f1fa84096ca4b7429dbe6aa0e93c9c7643b2a3e095b1d3944
   # Credict Card Fraud Detection
   creditcard-fraud:
     filename: creditcard.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89
   # Bank_Loan_modelling
   bank_loan:
     filename: bank_loan.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 740e87b000ad6d5709371acf94908c28e02f5c834ec8d0a84405c92c0c2513c5
   # Netflix Prize data
   netflix_prize:
     filename: netflix_prize.csv
@@ -122,17 +122,17 @@ datasets:
   bike-sales:
     filename: sales.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 1b04713ff05b0accfadae6c053bfa8762030d958bd95fea78d4a38a3beb82819
   # Brazilian E-Commerce Public Dataset by Olist
   olist:
     filename: olist.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 832cffa5ab0c9f6503fe25a1bedaf23937e6e53bd70de2ca9f5c6cba63868a43
   # Telco_Customer_Churn
   telco-churn:
     filename: telco.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: a0ea74c48c1063be89a73ce3fb868593604c0129f2bf581934f04983d728b3b5
 
 
 
