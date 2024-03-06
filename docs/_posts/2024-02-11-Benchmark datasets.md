@@ -230,10 +230,10 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Dow Jones Index [^42] | dowjones.csv | Public | 16 | 750 | < 1 MB | CC BY 4.0 | ✅ |  |  | ✅ | ✅3 | ✅8 |  |
-| Real Time Election Results: Portugal 2019 Data Set [^43] | election.csv | Public | 28 | 21,643 | 3.0 MB | ODbL v1.0 |  |  | ✅ |  | ✅16 | ✅3 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| dowjones | Dow Jones Index [^42] | dowjones.csv | Public | 16 | 750 | < 1 MB | CC BY 4.0 | ✅ |  |  | ✅ | ✅3 | ✅8 |  |
+| election-portugal-2019 | Real Time Election Results: Portugal 2019 Data Set [^43] | election.csv | Public | 28 | 21,643 | 3.0 MB | ODbL v1.0 |  |  | ✅ |  | ✅16 | ✅3 |  |
 
 </div>
 

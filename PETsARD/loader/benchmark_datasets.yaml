@@ -249,5 +249,16 @@ datasets:
     access: public
     sha256: 416a637f031078596323054d9c6d8b5db254336aa63fdf5be7d1a30bed1f7c81
 
+# Social Science
+  # Dow Jones Index
+  dowjones:
+    filename: dowjones.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Real Time Election Results: Portugal 2019 Data Set
+  election-portugal-2019:
+    filename: election.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
