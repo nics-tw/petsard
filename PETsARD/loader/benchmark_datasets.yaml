@@ -266,7 +266,7 @@ datasets:
   pems_sf:
     filename: pems_sf.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 1d4c8009eed1ce05b4a9a90db2e6b499fbba15028dc183adfa36f93eb403ba7b
 
 # Others
   # wine (red wine)
