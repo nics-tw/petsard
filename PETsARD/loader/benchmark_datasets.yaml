@@ -9,7 +9,7 @@ datasets:
   adult:
     filename: adult_uci.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: b1ee59153ff6055037ada6074d5cbed507af97f4d4d4b1fffcd7f62133c283a5
   adult-income:
     filename: adult-income.csv
     access: public
@@ -17,51 +17,51 @@ datasets:
   census-income:
     filename: census_kdd.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: edda24085b2c3a7fda325d8e4ce6137c537b2600e77c326271bab264e8e2190e
   ma2018:
     filename: ma2018.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 067b99e8180a6b8149d03fa31b5a29aa6d9ff66a9173e6425915d46a4bb77cad
   ma2019:
     filename: ma2019.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 5489f7d45bccad8ae591dfe9011638def521b3f8641edf169bb45fea2c62fb44
   national2018:
     filename: national2018.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: d3f9b74f95d4bd55add179957812c3cd46756be1fd58f565a9ef53522cb4ce3a
   national2019:
     filename: national2019.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 9e039c8e47c9e998d60f66fd50ec620fc2d0703decdc21f3069c9844fbef979b
   tx2018:
     filename: tx2018.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: f6a6d7ba4f845b168a6e1d8ee869c11ea156abe4221f2abb1d2bddb50fe7d0fa
   tx2019:
     filename: tx2019.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 0dab7a8b745232c622d7d3bc0b7fdeaf7f8ecdb3a5653a73fd2867f5f116ed96
   acs-person:
     filename: ss15pusab.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 4c70c3cbc7f55906de8347016a6c197e1fb36f10d8bb80b9f2246152a8adbd86
   acs-household:
     filename: ss15husab.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 69381ce79bdc422f362f9a66e8870af98e26fff7353448a22ba8af90aa630469
   voter2022-family:
     filename: ffpub23.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 0c105bb56207cf87616ef8af300d7d0f5ab108223fb31b7bdd1332af955bce0c
   voter2022-household:
     filename: hhpub23.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: c88192cb3c963a90ea98022606112a01ade0eb8e2c17df4149052970a5d5246f
   voter2022-person:
     filename: pppub23.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 19b56537e50e7663f954361ef2bb5ce9cef8d9d45f156fe1a69a99b654198ffe
 
 
 
