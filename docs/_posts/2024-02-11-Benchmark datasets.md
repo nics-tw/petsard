@@ -136,11 +136,11 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Covertype [^19] | covertype.csv | Public | 55 | 581,012 | 71.7 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |  |
-| Palmer Archipelago (Antarctica) penguin data [^20] | penguins_size.csv | Public | 7 | 344 | < 1 MB | CC0 | ✅ |  |  | ✅ |  |  |  |
-| Iris dataset [^21] | iris.csv | Public | 5 | 150 | < 1 MB | CC0 | ✅ |  | ✅ |  |  |  |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| covertype | Covertype [^19] | covertype.csv | Public | 55 | 581,012 | 71.7 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |  |
+| penguins_size | Palmer Archipelago (Antarctica) penguin data [^20] | penguins_size.csv | Public | 7 | 344 | < 1 MB | CC0 | ✅ |  |  | ✅ |  |  |  |
+| iris | Iris dataset [^21] | iris.csv | Public | 5 | 150 | < 1 MB | CC0 | ✅ |  | ✅ |  |  |  |  |
 
 </div>
 
