@@ -222,5 +222,32 @@ datasets:
     access: public
     sha256: 0f1013cf71dddb2c8d753477b4f11fff0dc34f5f8d6392ba8e965ea1e6bd4730
 
+# Computer Science
+  # ISOLET
+  isolet:
+    filename: isolet.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # KDD Cup 1999
+  kddcup1999:
+    filename: kddcup.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # NSL-KDD
+  nslkdd:
+    filename: nslkdd.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # UNSW-NB15
+  unswnb15:
+    filename: unswnb15.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # RT-IoT2022
+  rt_iot2022:
+    filename: rt_iot.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
