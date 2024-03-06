@@ -163,5 +163,22 @@ datasets:
     access: public
     sha256: b602b7893740cb4059cb90878fa327fa5f670c2a2b7d9078b5e4374cc75006b0
 
+# Human Resource
+  # Data Science Jobs Salaries Dataset
+  ds_salary:
+    filename: ds_salary.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Candidates_list
+  candidates_list:
+    filename: candidates.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # IBM HR Analytics Employee Attrition & Performance
+  ibm-attrition:
+    filename: attrition.csv
+    access: public
+    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
