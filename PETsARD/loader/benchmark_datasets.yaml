@@ -168,17 +168,17 @@ datasets:
   ds_salary:
     filename: ds_salary.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 01e439a7cdba24c45aab28e2ca5d2d6e41164022378bff410ed37496b0d1ef5a
   # Candidates_list
   candidates_list:
     filename: candidates.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: d08b595e7616e997b1be94bb7ca4c33a9aaa117dc8814e50142271df802c73be
   # IBM HR Analytics Employee Attrition & Performance
   ibm-attrition:
     filename: attrition.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: d11789e1db393cd1d985ca41a0e73a1d405543fb2c0d540a3b4f7d723bca92f7
 
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
