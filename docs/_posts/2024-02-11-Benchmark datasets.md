@@ -105,19 +105,19 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| insurance_synthetic_data [^9] | insurance_synthetic.csv | Public | 10 | 700 | < 1 MB | Unknown | ✅ |  |  | ✅ |  | ✅4 |  |
-| Insurance Company Benchmark (COIL 2000) [^10] | ticdata.csv | Public | 86 | 9,822 | 1.6 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |  |
-| Bank Marketing (01) [^11] | bank_full.csv | Public | 17 | 45,211 | 3.5 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
-| Bank Marketing (02) [^11] | bank_additional__full.csv | Public | 21 | 41,188 | 4.7 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
-| Credit score classification [^12] | credit_score.csv | Public | 28 | 100,000 | 29.7 MB | CC0 |  |  |  | ✅ | ✅5 | ✅15 |  |
-| Credict Card Fraud Detection [^13] | creditcard.csv | Public | 31 | 284,807 | 143.8 MB | DbCL v1.0 |  |  | ✅ |  | ✅9 |  |  |
-| Bank_Loan_modelling [^14] | bank_loan.csv | Public | 13 | 5,000 | < 1 MB | CC0 |  |  | ✅ |  | ✅2 |  |  |
-| Netflix Prize data [^15] | netflix_prize.csv | Private | 4 | 100,480,507 | 2.6 GB | Restricted |  | ✅ |  |  |  | ✅3 |  |
-| Bike Sales in Europe [^16] | sales.csv | Public | 18 | 113,036 | 14.4 MB | Unknown |  |  |  | ✅ | ✅3 | ✅5 |  |
-| Brazilian E-Commerce Public Dataset by Olist [^17] | olist.csv | Public | 22 | 117,601 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  |  | ✅ | ✅5 | ✅13 |  |
-| Telco_Customer_Churn [^18] | telco.csv | Public | 21 | 7,043 | < 1 MB | Unknown |  | ✅ |  |  |  | ✅2 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| insurance_synthetic | insurance_synthetic_data [^9] | insurance_synthetic.csv | Public | 10 | 700 | < 1 MB | Unknown | ✅ |  |  | ✅ |  | ✅4 |  |
+| coil2000 | Insurance Company Benchmark (COIL 2000) [^10] | ticdata.csv | Public | 86 | 9,822 | 1.6 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  |  |
+| bank-marketing-1 | Bank Marketing (01) [^11] | bank_full.csv | Public | 17 | 45,211 | 3.5 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
+| bank-marketing-2 | Bank Marketing (02) [^11] | bank_additional__full.csv | Public | 21 | 41,188 | 4.7 MB | CC BY 4.0 |  |  |  | ✅ | ✅4 | ✅2 |  |
+| credit_score | Credit score classification [^12] | credit_score.csv | Public | 28 | 100,000 | 29.7 MB | CC0 |  |  |  | ✅ | ✅5 | ✅15 |  |
+| creditcard-fraud | Credict Card Fraud Detection [^13] | creditcard.csv | Public | 31 | 284,807 | 143.8 MB | DbCL v1.0 |  |  | ✅ |  | ✅9 |  |  |
+| bank_loan | Bank_Loan_modelling [^14] | bank_loan.csv | Public | 13 | 5,000 | < 1 MB | CC0 |  |  | ✅ |  | ✅2 |  |  |
+| netflix_prize | Netflix Prize data [^15] | netflix_prize.csv | Private | 4 | 100,480,507 | 2.6 GB | Restricted |  | ✅ |  |  |  | ✅3 |  |
+| bike-sales | Bike Sales in Europe [^16] | sales.csv | Public | 18 | 113,036 | 14.4 MB | Unknown |  |  |  | ✅ | ✅3 | ✅5 |  |
+| olist | Brazilian E-Commerce Public Dataset by Olist [^17] | olist.csv | Public | 22 | 117,601 | 39.2 MB | CC BY-NC-SA 4.0 DEED |  |  |  | ✅ | ✅5 | ✅13 |  |
+| telco-churn | Telco_Customer_Churn [^18] | telco.csv | Public | 21 | 7,043 | < 1 MB | Unknown |  | ✅ |  |  |  | ✅2 |  |
 
 </div>
 
