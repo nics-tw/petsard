@@ -256,12 +256,12 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| wine (red wine) [^45] | winequality_red.csv | Public | 12 | 1,599 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 |  |  |
-| wine (white wine) [^45]| winequality_white.csv | Public | 12 | 4898 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 |  |  |
-| Car Evaluation [^46] | car.csv | Public | 7 | 1,728 | < 1 MB | CC BY 4.0 | ✅ | ✅ |  |  |  |  |  |
-| Poker Hand [^47] | poker_hand.csv | Public | 11 | 1,025,010 | 23.0 MB | CC BY 4.0 |  | ✅ |  |  |  | ✅6 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| winequality_red | wine (red wine) [^45] | winequality_red.csv | Public | 12 | 1,599 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 |  |  |
+| winequality_white | wine (white wine) [^45]| winequality_white.csv | Public | 12 | 4898 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 |  |  |
+| car | Car Evaluation [^46] | car.csv | Public | 7 | 1,728 | < 1 MB | CC BY 4.0 | ✅ | ✅ |  |  |  |  |  |
+| poker_hand | Poker Hand [^47] | poker_hand.csv | Public | 11 | 1,025,010 | 23.0 MB | CC BY 4.0 |  | ✅ |  |  |  | ✅6 |  |
 
 </div>
 
