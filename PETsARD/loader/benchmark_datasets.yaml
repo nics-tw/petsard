@@ -139,14 +139,15 @@ datasets:
   covertype:
     filename: covertype.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: ea35ca6820fcbe0bdc6707e9ed31e11a9de84f07d88da73b511c737383c271a6
   # Palmer Archipelago (Antarctica)
   penguins_size:
     filename: penguins_size.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: aa728597b2228a2637e39c6f08e40a80971f4cdac7faf7bc21ff4481ee3e3ae9
   # Iris dataset
   iris:
     filename: iris.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: c52742e50315a99f956a383faedf7575552675f6409ef0f9a47076dd08479930
+
