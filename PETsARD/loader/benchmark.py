@@ -148,13 +148,13 @@ class BenchmarkerRequests(BenchmarkerBase):
                             f.write(chunk)
                     print(
                         f"Loader - Benchmarker : "
-                        f"Success download the benchmark dataset in {url}."
+                        f"Success download the benchmark dataset from {url}."
                     )
                 else:
                     print(
                         f"Loader - Benchmarker : "
                         f"{response.status_code} error. "
-                        f"Failed to download the benchmark dataset in {url}."
+                        f"Failed to download the benchmark dataset from {url}."
                     )
             self._verify_file(already_exist=False)
 
