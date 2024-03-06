@@ -185,42 +185,42 @@ datasets:
   nhanes_diabetes:
     filename: nhanes_diabetes.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: aa46d7a67310ce1310366879152d1f04fed34e1eb10b5fda1ead27c7cceb78fa
   # Smoking and Drinking Dataset with body signal
   smokingdrinking:
     filename: smokingdrinking.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: d07c6e75d1bf6480896d07f901483a044e2c996e849935edf287b50ace89948f
   # Cervical Cancer
   cervical_cancer:
     filename: cervical_cancer.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 2e53eb64952e2fe3e1ed32a494ebcd6660932e466311f74f5451f91394e0dba0
   # Heart Disease Cleveland UCI
   heart_cleveland:
     filename: heart_cleveland.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 386015be85bcc9112cbac782dafd145aeef7abd4f8b9f2ee65f6c4c56ed82d9f
   # Breast Cancer Wisconsin (Original) (01)
   breast_cancer-01:
     filename: breast_cancer.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 870d17aa59055549f5c73c071ec04deaf51f0b3261c72767a724c0863b5dfd67
   # Breast Cancer Wisconsin (Original) (02)
   breast_cancer-02:
     filename: wdbc.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 0f5803c3118570d6f53b7bc39f67aa2604386711804d6974c31476e5abcee974
   # Breast Cancer Wisconsin (Original) (03)
   breast_cancer-03:
     filename: wpbc.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 0bbca0c335d22cac048541ad79ead4143737bd69383e226cc650e48d44a9aee4
   # MIMIC3c aggregated data
   mimic3c:
     filename: mimic3c.csv
     access: public
-    sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+    sha256: 0f1013cf71dddb2c8d753477b4f11fff0dc34f5f8d6392ba8e965ea1e6bd4730
 
 
 # 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
