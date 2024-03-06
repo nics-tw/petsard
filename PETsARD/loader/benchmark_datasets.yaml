@@ -95,7 +95,7 @@ datasets:
     sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
   # Bank Marketing (02)
   bank-marketing-2:
-    filename: bank_additional__full.csv
+    filename: bank_additional_full.csv
     access: public
     sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
   # Credit score classification
