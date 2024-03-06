@@ -166,11 +166,11 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 <div class="table-wrapper" markdown="block">
 
-| Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Data Science Jobs Salaries Dataset [^24] | ds_salary.csv | Public | 11 | 245 | < 1 MB | CC0 | ✅ |  |  | ✅ | ✅1 | ✅4 |  |
+| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| ds_salary | Data Science Jobs Salaries Dataset [^24] | ds_salary.csv | Public | 11 | 245 | < 1 MB | CC0 | ✅ |  |  | ✅ | ✅1 | ✅4 |  |
 | Candidates_list [^25] | candidates.csv | Public | 24 | 392 | < 1 MB | Unknown | ✅ |  |  | ✅ | ✅3 | ✅9 |  |
-| IBM HR Analytics Employee Attrition & Performance [^26] | attrition.csv | Public | 35 | 1,470 | < 1 MB | DbCL v1.0 | ✅ |  |  | ✅ |  |  |  |
+| ibm-attrition | IBM HR Analytics Employee Attrition & Performance [^26] | attrition.csv | Public | 35 | 1,470 | < 1 MB | DbCL v1.0 | ✅ |  |  | ✅ |  |  |  |
 
 </div>
 
