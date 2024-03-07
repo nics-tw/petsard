@@ -1,5 +1,3 @@
-Module Name should be in Title
-
 Concise introduction.
 
 中文。
