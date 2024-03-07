@@ -29,7 +29,7 @@ Evaluator:
       #   which should include the function
       #   .create(), .eval(), and any method of .get_global/columnwise/pairwise()
       #   You can inherit the class 'EvaluatorBase`
-      filepath: 'user_story/User Story B-2.py'
+      filepath: '../yaml/User Story B-2.py'
       method: 'UserStory_B2'
 Reporter:
   save_report_global:
