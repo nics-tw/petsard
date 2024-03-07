@@ -3,13 +3,13 @@ Splitter:
   custom:
     method: 'custom_data'
     filepath:
-      ori: 'benchmark/adult_uci_ori.csv'
-      control: 'benchmark/adult_uci_control.csv'
+      ori: 'benchmark/adult-income_ori.csv'
+      control: 'benchmark/adult-income_control.csv'
 Synthesizer:
   custom:
     # For syntheisized data that has been prepared in advance
     method: 'custom_data'
-    filepath: 'benchmark/adult_uci_syn.csv'
+    filepath: 'benchmark/adult-income_syn.csv'
 Evaluator:
   demo:
     # defalut of Evaluator is SDMetrics QualityReport

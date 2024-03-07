@@ -1,7 +1,7 @@
 Loader:
   adult:
     # filepath of local data
-    filepath: 'benchmark/adult_uci.csv'
+    filepath: 'benchmark/adult-income.csv'
     # na_values is nessessary for this dataset, but not required for demo
     na_values:
       workclass: '?'
