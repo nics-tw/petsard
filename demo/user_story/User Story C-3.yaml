@@ -1,0 +1,46 @@
+Loader:
+  adult_ori:
+    # filepath of original data
+    filepath: 'benchmark/adult_uci_ori.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    # filepath for syntheisized data that has been prepared in advance
+    filepath: 'benchmark/adult_uci_syn.csv'
+Evaluator:
+  custom:
+    method: 'custom_method'
+    custom_method:
+      # filepath is the path of the *.py file of the custom method
+      # method is the class name in the *.py file
+      #   which should include the function
+      #   .create(), .eval(), and any method of .get_global/columnwise/pairwise()
+      #   You can inherit the class 'EvaluatorBase`
+      filepath: 'user_story/User Story B-2.py'
+      method: 'UserStory_B2'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'User Story C-3'
+    # eval in Reporter means which
+    #   expt_name of Evaluator/Describer should Reporter use
+    eval: 'custom'
+    # granularity = 'global' indicates that the scoring
+    #   covers the entire dataset with a comprehensive level of detail.
+    granularity: 'global'
+  save_report_columnwise:
+    method: 'save_report'
+    output: 'User Story C-3'
+    eval: 'custom'
+    # granularity = 'columnwise' indicates that the scoring
+    #   is performed individually for each column,
+    #   focusing on detailed analysis at the field level.
+    granularity: 'columnwise'
+  save_report_pairwise:
+    method: 'save_report'
+    output: 'User Story C-3'
+    eval: 'custom'
+    # granularity = 'pairwise' indicates that the scoring
+    #   evaluates the relationships or interactions between pairs of columns,
+    #   focusing on the detailed analysis of how fields relate to each other.
+    granularity: 'pairwise'
