@@ -14,5 +14,5 @@
 - demo\User Story D.ipynb
     - Research on Benchmark datasets 利用基準資料集做合成資料方法比較
     - User Story D-1: Synthesizing on default data
-    - User Story D-2: Synthesizing on default data
+    - User Story D-2: Synthesizing on multiple data
     - User Story D-3: Synthesizing and Evaluating on default data
