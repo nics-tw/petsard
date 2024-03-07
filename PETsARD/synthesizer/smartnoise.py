@@ -1,8 +1,7 @@
 import time
 
 import pandas as pd
-from snsynth.transform import NoTransformer, TableTransformer
-from snsynth.transform.identity import IdentityTransformer
+from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
 from PETsARD.error import UnfittedError, UnsupportedMethodError
@@ -16,6 +15,9 @@ class SmartNoise:
     that all the "SmartNoise" need to implement, 
     as well as common functionality.
     """
+
+    CUBE = ['aim', 'mwem', 'mst', 'pacsynth']
+    GAN = ['dpctgan', 'patectgan']
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         """
@@ -39,7 +41,21 @@ class SmartNoise:
 
             # TODO - Only support cube-style synthesizer. 
             # GAN-style synthesizer needed to be implemented.
-            self._Synthesizer.fit(self.data, categorical_columns=self.data.columns)
+
+            if self.syn_method in self.CUBE:
+                self._Synthesizer.fit(
+                    self.data,
+                    categorical_columns=self.data.columns
+                )
+            else:
+                tt = TableTransformer([
+                    MinMaxTransformer(lower=self.data[col].min(),
+                                      upper=self.data[col].max(),
+                                      negative=False) 
+                    for col in self.data.columns
+                ])
+
+                self._Synthesizer.fit(self.data, transformer=tt)
             print(
                 f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
