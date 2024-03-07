@@ -50,7 +50,7 @@ class DiscretizingHandler:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
         
-        return pd.Categorical(self._transform(data))
+        return self._transform(data)
     
     def _transform():
         """
