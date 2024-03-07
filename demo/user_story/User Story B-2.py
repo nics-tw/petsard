@@ -6,9 +6,9 @@ import pandas as pd
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 
 
-class UserStory_05(EvaluatorBase):
+class UserStory_B2(EvaluatorBase):
     """
-    This class demo User Story 5: custom_method
+    This class demo User Story B-2: custom_method
     """
 
     def __init__(self, config: dict):
