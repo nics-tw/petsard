@@ -137,8 +137,8 @@ class Loader:
             raise ConfigError
         elif method:
             if method == 'default':
-                # default will use adult
-                filepath = 'benchmark://adult'
+                # default will use adult-income
+                filepath = 'benchmark://adult-income'
             else:
                 raise UnsupportedMethodError
         else:
