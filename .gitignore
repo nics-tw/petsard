@@ -10,9 +10,6 @@ demo/dev/benchmark/
 **/*.csv
 **/log.txt
 
-# but kept /demo/UserStory*.csv for demo
-!/demo/UserStory*.csv
-
 
 ###### ###### ###### ###### ###### ######
 # 3rd-party temporary
