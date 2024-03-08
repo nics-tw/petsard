@@ -11,7 +11,7 @@ It is recommended to refer to the `demo/User Story...ipynb` user story scenarios
 
 In `PETsARD`, the only thing you need to do is to prepare a YAML file following the example and execute the `Executor`.
 
-Assuming your YAML file is named config.yaml, your Python code would be:
+Assuming your YAML file is `config.yaml`, your Python code would be:
 
 在 `PETsARD` 中，您唯一所需要做的，便是參考範例準備 YAML 檔案，並執行 `Executor`。
 
