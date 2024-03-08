@@ -30,13 +30,13 @@ This demo will show how to generate privacy-enhanced data using `PETsARD`.
 
 In this demonstration, you, as the user, already possess a data file locally, and `PETsARD` will assist you in loading that file and then generating a privacy-enhanced version of it.
 
-At the same time, privacy-enhancing algorithms often have format restrictions and require specific pre-processing and post-processing procedures to function correctly. However, `PETsARD` has taken this into account for the user. `PETsARD` offers both default and customizable preprocessing and postprocessing workflows to help users get started quickly.
+Besides, privacy-enhancing algorithms often have restrictions on specific formats and/or specific data processing procedures. `PETsARD` takes care of these as well. `PETsARD` offers both default and customizable preprocessing and postprocessing workflows to help users get started quickly.
 
 本示範將展示如何使用 `PETsARD` 生成隱私強化資料。
 
 在這個示範中，您作為使用者，在本機上已經擁有一份資料檔案，而 `PETsARD` 將幫助您讀取該檔案、然後生成經隱私強化後的版本。
 
-同時，隱私強化演算法通常都有格式的限制，必須經過特定的前處理 (Pre-processing) 與後處理 (Post-processing) 程序才能正確運作，但 `PETsARD` 已經為使用者考慮到這點，`PETsARD` 提供預設與可客製化的前後處理流程，幫助使用者快速上手。
+同時，隱私強化演算法通常都有特定資料格式、以及特定資料處理程序的限制，`PETsARD` 已經為使用者考慮到這點，`PETsARD` 提供預設與可客製化的前後處理流程，幫助使用者快速上手。
 
 
 ## User Story A-1
