@@ -42,7 +42,7 @@ At the same time, privacy-enhancing algorithms often have format restrictions an
 ## User Story A-1
 **Default Synthesizing**
 
-Given an original dataset without specified algorithm, the pipeline will generate a list of privacy enhanced datasets using the default algorithms.
+Given an original dataset without specified any algorithm, the pipeline will generate a list of privacy-enhanced datasets using the default algorithms.
 
 給定一個原始資料集、但未指定演算法，該流程會利用預設的演算法生成一組隱私強化資料集。
 
@@ -53,7 +53,7 @@ Given an original dataset without specified algorithm, the pipeline will generat
 ## User Story A-2
 **Customized Synthesizing**
 
-Given an original dataset, specified privacy enhancing data generation algorithms and parameters, the pipeline will generate a privacy enhanced dataset.
+Given an original dataset, specified privacy enhancing data generation algorithms and parameters, the pipeline will generate a privacy-enhanced dataset.
 
 給定一個原始資料集，並指定隱私強化技術生成演算法與參數，該流程會依此產生隱私強化資料集。
 
@@ -122,7 +122,7 @@ Given a dataset as an input, the pipeline can go through the "describe" module t
 ## User Story C-2
 **Given data evaluating**
 
-Given an original dataset and a privacy enhanced dataset to the evaluation module, the pipeline will create a report covering default/general metrics of privacy risk and utility.
+Given an original dataset and a privacy-enhanced dataset to the evaluation module, the pipeline will create a report covering default/general metrics of privacy risk and utility.
 
 給定原始資料集與對應的隱私強化資料集到評估模組中，該流程會產生一份涵蓋預設/一般指標的隱私風險與效用的報告。
 
@@ -184,7 +184,7 @@ PETsARD provides a complete platform that, by integrating commonly used benchmar
 ## User Story D-1
 **Synthesizing on default data**
 
-With a specified data generation algorithm, a default benchmark dataset collection will serve as inputs, and the pipeline will generate the corresponding privacy enhanced datasets as output, using the selected algorithm.
+With a specified data generation algorithm, a default benchmark dataset collection will serve as inputs, and the pipeline will generate the corresponding privacy-enhanced datasets as output, using the selected algorithm.
 
 指定資料生成演算法後，預設的經典資料集會用作輸入，並且該流程將使用該演算法輸出對應的隱私強化資料集。
 
