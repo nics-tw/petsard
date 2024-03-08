@@ -61,7 +61,6 @@ Pygments==2.17.2
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 pytz==2024.1
-pywin32==306
 PyYAML==6.0.1
 pyzmq==25.1.2
 rdt==1.9.2
