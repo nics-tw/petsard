@@ -41,8 +41,17 @@ jobs:
         pip install git+https://github.com/ryan112358/private-pgm.git
         pip install --upgrade torch # Error can be ignored
         pip install requests
+
         # pip install flake8 pytest
         # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Handmade Test for Synthesizer
+      run: |
+        python -c "
+        import PETsARD
+        from PETsARD import Loader
+        load = Loader(filepath='benchmark://adult-income')
+        load.load()
+        "
     # - name: Lint with flake8
     #   run: |
     #     # stop the build if there are Python syntax errors or undefined names
