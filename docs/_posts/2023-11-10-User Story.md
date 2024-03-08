@@ -9,7 +9,7 @@ It is recommended to refer to the `demo/User Story...ipynb` user story scenarios
 
 ## Environment
 
-In `PETsARD`, the only thing you need to do is prepare a YAML file following the example and execute the `Executor`.
+In `PETsARD`, the only thing you need to do is to prepare a YAML file following the example and execute the `Executor`.
 
 Assuming your YAML file is named config.yaml, your Python code would be:
 
