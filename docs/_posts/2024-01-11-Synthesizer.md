@@ -203,3 +203,4 @@ Use the PATE-CTGAN algorithm provided in `smartnoise`. See [document](https://do
 **Parameters**
 
 See [document](https://docs.smartnoise.org/synth/synthesizers/patectgan.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
+
