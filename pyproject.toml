@@ -106,24 +106,6 @@ authors = [
 ]
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = ">=3.8,<3.11"
-wheel = "^0.42.0"
-pyyaml = "^5.4.1"
-sdv = "^1.9.0"
-smartnoise-synth = "^0.3.3"
-anonymeter = "^1.0.0"
-sdmetrics = "^0.13.0"
-requests = "^2.31.0"
-boto3 = "^1.34.37"
-toml = "^0.10.2"
-tqdm = "^4.66.1"
-urllib3 = "<2" # https://github.com/python-poetry/poetry-plugin-export/issues/239
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.2"
-pytest = "^8.0.0"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
