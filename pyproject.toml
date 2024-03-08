@@ -17,6 +17,9 @@
 #    - Activate virtual environment.
 #    - 啟動虛擬環境。
 # 4. poetry lock
+#    - update poetry.lock based on the current pyproject.toml.
+#    - 根據當前的 pyproject.toml 更新 poetry.lock。
+# 5. poetry install
 #    - Install the required packages based on poetry.lock.
 #    - 依據 poetry.lock 安裝所需的套件。
 #
