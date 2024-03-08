@@ -46,19 +46,19 @@ jobs:
         # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Handmade Test for Synthesizer
       run: |
-        python -c "
-        import pprint
+        python -c "import pprint"
         
-        from PETsARD import Loader, Processor, Synthesizer
+        python -c "from PETsARD import Loader, Processor, Synthesizer"
         
-        pp = pprint.PrettyPrinter(depth=2)
+        python -c "pp = pprint.PrettyPrinter(depth=2)"
         
-        load = Loader(filepath='benchmark://adult-income')
-        load.load()
-        load.data = load.data.loc[:1000, :]
-        print(load.data.head(1))
+        python -c "load = Loader(filepath='benchmark://adult-income')"
+        python -c "load.load()"
+        python -c "load.data = load.data.loc[:1000, :]"
+        python -c "print(load.data.head(1))"
 
-        syn_list = ['smartnoise-aim', 'smartnoise-mst', 'smartnoise-dpctgan', 'smartnoise-patectgan']
+        python -c "syn_list = ['smartnoise-aim', 'smartnoise-mst', 'smartnoise-dpctgan', 'smartnoise-patectgan']"
+        python -c "
         for synthesizing_method in syn_list:
           print(synthesizing_metho
           proc_discretizing = Processor(metadata=load.metadata,)
@@ -73,33 +73,33 @@ jobs:
             )
             print("Preproc config of Outlier before after as ...")
             pp.pprint(proc_discretizing.get_config()['scaler'])
-
-        #   proc_discretizing.fit(
-        #       data=load.data,
-        #       sequence=[
-        #           'missing',
-        #           'outlier',
-        #           'scaler',
-        #           'discretizing'
-        #       ]
-        #   )
-        #   preproc_discretizing_data = proc_discretizing.transform(data=load.data)
-        #   print("Preproc data as ...")
-        #   print(preproc_discretizing_data.head(1))
-
-        #   syn = Synthesizer(
-        #       method=synthesizing_method,
-        #       epsilon=10.0,
-        #   )
-        #   syn.create(data=preproc_discretizing_data)
-        #   syn.fit_sample()
-        #   print("Sync data as ...")
-        #   print(syn.data_syn.head(1))
-        #   postproc_discretizing_data = proc_discretizing.inverse_transform(
-        #       data=syn.data_syn
-        #   )
-        #   print(postproc_discretizing_data.head(1))
         "
+
+      #   proc_discretizing.fit(
+      #       data=load.data,
+      #       sequence=[
+      #           'missing',
+      #           'outlier',
+      #           'scaler',
+      #           'discretizing'
+      #       ]
+      #   )
+      #   preproc_discretizing_data = proc_discretizing.transform(data=load.data)
+      #   print("Preproc data as ...")
+      #   print(preproc_discretizing_data.head(1))
+
+      #   syn = Synthesizer(
+      #       method=synthesizing_method,
+      #       epsilon=10.0,
+      #   )
+      #   syn.create(data=preproc_discretizing_data)
+      #   syn.fit_sample()
+      #   print("Sync data as ...")
+      #   print(syn.data_syn.head(1))
+      #   postproc_discretizing_data = proc_discretizing.inverse_transform(
+      #       data=syn.data_syn
+      #   )
+      #   print(postproc_discretizing_data.head(1))
     # - name: Lint with flake8
     #   run: |
     #     # stop the build if there are Python syntax errors or undefined names
