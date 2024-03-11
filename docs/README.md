@@ -63,9 +63,9 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 
 # Getting Started 入門指南
 
-We recommend that users refer to the [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (see [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
+We recommend that users write the experimental planning in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), which details in the [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/), and use [Executor](https://nics-tw.github.io/PETsARD/Executor.html) in `PETsARD` to conduct the experiment.
 
-我們建議使用者將自己的實驗規劃參考 [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（請參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
+我們建議使用者將自己的實驗規劃撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)，呼叫 `PETsARD` 的 [Executor](https://nics-tw.github.io/PETsARD/Executor.html) 讀取執行實驗，以上的細節可參見 [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)。
 
 
 
