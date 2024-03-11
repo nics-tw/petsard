@@ -26,7 +26,7 @@ exec.run()
 # User Story A
 **Privacy Enhancing Data Generation**
 
-This demo will show how to generate privacy-enhanced data using `PETsARD`.
+This demo illustrates how to generate privacy-enhanced data using `PETsARD`.
 
 In this demonstration, you, as the user, already possess a data file locally, and `PETsARD` will assist you in loading that file and then generating a privacy-enhanced version of it.
 
