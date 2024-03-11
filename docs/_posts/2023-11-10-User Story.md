@@ -105,7 +105,7 @@ Given a dataset as an input, the pipeline can go through the "describe" module t
 
 
 ## User Story C-2
-**Given data evaluating**
+**Evaluating based on given data**
 
 Given an original dataset and a privacy-enhanced dataset to the evaluation module, the pipeline will create a report covering default/general metrics of privacy risk and utility.
 
