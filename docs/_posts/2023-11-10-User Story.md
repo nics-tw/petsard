@@ -42,7 +42,7 @@ Besides, privacy-enhancing algorithms often have restrictions on specific format
 ## User Story A-1
 **Default Synthesizing**
 
-Given an original dataset without specified any algorithm, the pipeline will generate a list of privacy-enhanced datasets using the default algorithms.
+Given an original dataset without specifying any algorithm, the pipeline will generate a list of privacy-enhanced datasets using the default algorithms.
 
 給定一個原始資料集、但未指定演算法，該流程會利用預設的演算法生成一組隱私強化資料集。
 
