@@ -152,5 +152,12 @@ Undefined 未定
 
 # Citation 引用
 
-Undefined 未定
+- `Synthesizer` module:
+  - SDV - [sdv-dev/SDV](https://github.com/sdv-dev/SDV):
+      - Patki, N., Wedge, R., & Veeramachaneni, K. (2016). The Synthetic Data Vault. IEEE International Conference on Data Science and Advanced Analytics (DSAA), 399–410. https://doi.org/10.1109/DSAA.2016.49
+  - smartnoise - [opendp/smartnoise-sdk](https://github.com/opendp/smartnoise-sdk):
+- `Evaluator` module:
+  - Anonymeter - [statice/anonymeter](https://github.com/statice/anonymeter):
+      - Giomi, M., Boenisch, F., Wehmeyer, C., & Tasnádi, B. (2023). A Unified Framework for Quantifying Privacy Risk in Synthetic Data. Proceedings of Privacy Enhancing Technologies Symposium. https://doi.org/10.56553/popets-2023-0055
+  - SDMetrics - [sdv-dev/SDMetrics](https://github.com/sdv-dev/SDMetrics)
 
