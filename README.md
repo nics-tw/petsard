@@ -16,7 +16,7 @@ PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資�
 - [HISTORY.md](https://github.com/nics-tw/PETsARD/blob/main/HISTORY.md)
     - The History document provide the changelog for understand the evolution of the `PETsARD` over time.
     - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
-- [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/)
+- [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)
     - The User Guide is designed to assist developers in rapidly acquiring the skills necessary to employ `PETsARD` for data synthesis, the evaluation of synthesized data, and the improvement of their research efficiency in privacy enhancement-related fields.
     - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及在隱私增強相關領域提升他們的研究效率。
 
@@ -55,9 +55,9 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 
 # Getting Started 入門指南
 
-We recommend that users refer to the [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (also refer to [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
+We recommend that users refer to the [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (also refer to [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
 
-我們建議使用者將自己的實驗規劃參考 [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
+我們建議使用者將自己的實驗規劃參考 [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
 
 
 
