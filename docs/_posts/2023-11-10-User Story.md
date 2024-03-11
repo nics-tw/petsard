@@ -40,7 +40,7 @@ Besides, privacy-enhancing algorithms often have restrictions on specific format
 
 
 ## User Story A-1
-**Default Synthesizing**
+**Default Synthesizing Procedure**
 
 Given an original dataset without specifying any algorithm, the pipeline will generate a list of privacy-enhanced datasets using the default algorithms.
 
@@ -48,7 +48,7 @@ Given an original dataset without specifying any algorithm, the pipeline will ge
 
 
 ## User Story A-2
-**Customized Synthesizing**
+**Customized Synthesizing Procedure**
 
 Given an original dataset, specified privacy enhancing data generation algorithms and parameters, the pipeline will generate a privacy-enhanced dataset.
 
@@ -68,7 +68,7 @@ In this demonstration, you, as the user, already possess a data file locally, an
 
 
 ## User Story B-1
-**Default Evaluating**
+**Default Evaluating Procedure**
 
 Following User Story A, if users enable the "evaluate" step, the evaluation module will create a report covering default privacy risk and utility metrics.
 
@@ -76,7 +76,7 @@ Following User Story A, if users enable the "evaluate" step, the evaluation modu
 
 
 ## User Story B-2
-**Customized Evaluating**
+**Customized Evaluating Procedure**
 
 Following User Story B-1, if specific types of metrics are set or a customized evaluation script is provided, the module will create a customized evaluation report.
 
@@ -97,7 +97,7 @@ In this demonstration, you, as the user, already have a data file on your local 
 
 
 ## User Story C-1
-**Default Describing**
+**Describing Procedure**
 
 Given a dataset as an input, the pipeline can go through the "describe" module to get a summary of the dataset.
 
