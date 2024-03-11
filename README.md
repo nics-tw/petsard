@@ -2,11 +2,23 @@
 
 PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitates data generation algorithm and their evaluation processes.
 
-PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法及其評估過程而設計的 Python 程式庫。
-
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
+
+PETsARD（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法及其評估過程而設計的 Python 程式庫。
+
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
+
+
+- [Milestone - 0.7.0](https://github.com/nics-tw/PETsARD/releases/tag/v0.7.0)
+    - The Milestone document provide detailed information about the latest version of `PETsARD`.
+    - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
+- [HISTORY.md](https://github.com/nics-tw/PETsARD/blob/main/HISTORY.md)
+    - The History document provide the changelog for understand the evolution of the `PETsARD` over time.
+    - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
+- [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/)
+    - The User Guide is designed to assist developers in rapidly acquiring the skills necessary to employ `PETsARD` for data synthesis, the evaluation of synthesized data, and the improvement of their research efficiency in privacy enhancement-related fields.
+    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及在隱私增強相關領域提升他們的研究效率。
 
 
 # Installation 安裝
@@ -43,13 +55,13 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 
 # Getting Started 入門指南
 
-We recommend that users refer to the [PETsARD-Gitbook manual](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (also refer to [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
+We recommend that users refer to the [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (also refer to [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
 
-我們建議使用者將自己的實驗規劃參考 [PETsARD-Gitbook 手冊](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
+我們建議使用者將自己的實驗規劃參考 [PETsARD-User Guide](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
 
 
 
-### `Executor`
+## `Executor`
 
 Here is the simplest way to get started with `PETsARD`:
 
@@ -64,7 +76,7 @@ exec.run()
 ```
 
 
-### YAML
+## YAML
 
 
 Here, we use the default methods of each module to construct the simplest 'Exec_Design.yaml'. For specific settings of each module, please refer to the [YAML page](https://nics-tw.github.io/PETsARD/YAML.html).
@@ -112,6 +124,20 @@ Reporter:
     granularity: 'global'
 ```
 
+
+## Every Module 各模組
+
+- `Loader`：讀取資料的模組，見 [Loader 頁面](https://nics-tw.github.io/PETsARD/Loader.html)。
+    - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html)。
+- `Splitter`：把資料切分成實驗組與控制組的模組，見 [Splitter 頁面](https://nics-tw.github.io/PETsARD/Splitter.html)。
+- `Processor`：對資料進行前處理跟後處理的模組，見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html)。
+- `Synthesizer`：對資料做合成資料等隱私強化處理的模組，見 [Synthesizer 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html)。
+- `Evaluator`：對合成資料結果做評估的模組，見[Evaluator 頁面](https://nics-tw.github.io/PETsARD/Evaluator.html)。
+- `Describer`：對資料本身做描述的模組，見[Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html)。
+- `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見[Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
+
+
+
 # Contributing 貢獻
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. And please make sure to update tests as appropriate.
@@ -128,7 +154,3 @@ Undefined 未定
 
 Undefined 未定
 
-
-> The format of version number follows [Semantic Versioning](https://semver.org/).
->
-> 版本號格式依照[語意化版本](https://semver.org/lang/zh-TW/)規則設定。
