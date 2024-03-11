@@ -9,7 +9,7 @@ The main functionalities include dataset description, various dataset generation
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
 
-## Installation 安裝
+# Installation 安裝
 
 This package has encountered dependency conflicts due to third-party packages, therefore we are unable to provide installation methods such as `requirements.txt`. However, the functionality within this package itself operates normally. We kindly request users to follow the `pip install` instructions below to set up their environment:
 
@@ -41,26 +41,90 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 > smartnoise-synth 1.0.3 requires torch<2.0.0, but you have torch 2.2.1 which is incompatible.
 
 
-## Getting Started 入門指南
+# Getting Started 入門指南
+
+We recommend that users refer to the [PETsARD-Gitbook manual](https://nics-tw.github.io/PETsARD/) for their experimental planning, write it in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), and then call the `Executor` of `PETsARD` to read it (also refer to [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)):
+
+我們建議使用者將自己的實驗規劃參考 [PETsARD-Gitbook 手冊](https://nics-tw.github.io/PETsARD/)說明，撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)後，呼叫 `PETsARD` 的 `Executor` 讀取即可（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）：
+
+
+
+### `Executor`
+
+Here is the simplest way to get started with `PETsARD`:
+
+以下是最簡單入門的 `PETsARD` 使用方式：
 
 ```python
-待更新
+from PETsARD import Executor
+
+filename = 'Exec_Design.yaml'
+exec = Executor(config=filename)
+exec.run()
 ```
 
 
-## Contributing 貢獻
+### YAML
+
+
+Here, we use the default methods of each module to construct the simplest 'Exec_Design.yaml'. For specific settings of each module, please refer to the [YAML page](https://nics-tw.github.io/PETsARD/YAML.html).
+
+這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html)。
+
+
+```
+Loader:
+  demo:
+    # default of Loader is Adult Income dataset
+    method: 'default'
+Preprocessor:
+  demo:
+    # default of Preprocessor automatically determines the data type
+    #   and uses the corresponding method.
+    method: 'default'
+Synthesizer:
+  demo:
+    # default of Synthesizer is SDV Gaussian Copula
+    method: 'default'
+Postprocessor:
+  # make sure the expt_name of Postprocessor is same as the Preprocessor
+  demo:
+    method: 'default'
+Evaluator:
+  demo:
+    # defalut of Evaluator is SDMetrics QualityReport
+    method: 'default'
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'YAML Demo'
+    # source of Reporter means which result of module/expt_name should Reporter use
+    #   accept string (for only one) and list of string (for multiple result)
+    source: 'Postprocessor'
+  save_report_global:
+    method: 'save_report'
+    output: 'YAML Demo'
+    # eval in Reporter means which
+    #   expt_name of Evaluator/Describer should Reporter use
+    eval: 'demo'
+    # granularity = 'global' indicates that
+    #   the scoring covers the entire dataset with a comprehensive level of detail.
+    granularity: 'global'
+```
+
+# Contributing 貢獻
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. And please make sure to update tests as appropriate.
 
 歡迎提交拉取請求。對於重大變更，請先開啟一個議題來討論您想做的改變。並請確保適當地更新測試。
 
 
-## License
+# License 授權
 
 Undefined 未定
 
 
-## Citation 引用
+# Citation 引用
 
 Undefined 未定
 
