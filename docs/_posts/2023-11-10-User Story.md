@@ -182,5 +182,5 @@ Following User Story D-1, the user can specify a list of datasets instead.
 ## User Story D-3
 **Synthesizing and Evaluating on default data**
 
-Following User Story D-1, if users enable the evaluation step,  the evaluation module will create a report covering default privacy risk and utility metrics for all datasets.
+Following User Story D-1, if users enable the evaluation step, the evaluation module will create a report covering default privacy risk and utility metrics for all datasets.
 根據用戶故事 D-1，如果使用者啟用評估步驟，評估模組將會產生一份涵蓋所有資料集的隱私風險與效用指標報告。
