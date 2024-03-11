@@ -8,7 +8,7 @@ TODO Git
 -->
 
 
-`PETsARD` (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitates data generation algorithm and their evaluation processes.
+`PETsARD` (Privacy Enhancing Technologies Analysis, Research, and Development) is a Python library for facilitating data generation algorithm and their evaluation processes.
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
