@@ -136,15 +136,15 @@ C-2a 展示的是 `Evaluator` 使用「原始資料」對照「合成資料」�
 
 C-2b demonstrates the evaluation approach of the Evaluator that comparing "original data used in synthesis" (abbreviated as ori), "original data not used in synthesis" (abbreviated as control), and "synthesized data" (abbreviated as syn) at the same time, for example, using tools starting with `method ='anonymeter-'` from Anonymeter.
 
-"Used in synthesis" and "Not used in synthesis" are achieved by using the `Splitter` module. Therefore, please apply `method = 'custom_data'` to the Splitter, where `filepath` requires two inputs: `'ori'` corresponds to "original data used in synthesis," and `'control'` corresponds to "original data not used in synthesis." The setting method for "synthesized data" in the Synthesizer remains the same as C-2a.
+"Used in synthesis" and "Not used in synthesis" are achieved by using the `Splitter` module. Therefore, please apply `method = 'custom_data'` to the `Splitter`, where `filepath` requires two inputs: `'ori'` corresponds to "original data used in synthesis," and `'control'` corresponds to "original data not used in synthesis." The setting method for "synthesized data" in the `Synthesizer` remains the same as C-2a.
 
-Here, we specifically also demonstrate the evaluation with `method = 'default'`. For scenarios directly comparing "original data" and "synthesized data," C-2b automatically considers the `'ori'` in the Splitter as "original data" for comparison, obtaining results from both SDMetrics and Anonymeter. Users should evaluate their own data partitioning method to ensure it has sufficient representativeness of the original data.
+Here, we also demonstrate the evaluation with `method = 'default'`. For scenarios directly comparing "original data" and "synthesized data," C-2b automatically considers the `'ori'` in the `Splitter` as "original data" for comparison, obtaining results from both SDMetrics and Anonymeter. User should take care of their own data partition method to ensure the representativeness of the original data.
 
-C-2b 展示的是 Evaluator 使用「參與合成的原始資料」(original data, 縮寫為 ori)、「不參與合成的原始資料」(control data, 縮寫為 control)、與「合成資料」(synthesized data, 縮寫為 syn) 三者一起進行比較的合成方式，例如 `method ='anonymeter-'` 開頭的 Anonymeter 評測工具。
+C-2b 展示的是 `Evaluator` 使用「參與合成的原始資料」(original data, 縮寫為 ori)、「不參與合成的原始資料」(control data, 縮寫為 control)、與「合成資料」(synthesized data, 縮寫為 syn) 三者一起進行比較的合成方式，例如 `method ='anonymeter-'` 開頭的 Anonymeter 評測工具。
 
-「參與合成」跟「不參與合成」是利用了 Splitter 模組進行切割，所以請對 Splitter 使用 `method = 'custom_data'`，此時 `filepath` 需要兩個輸入，`'ori'` 對應了「參與合成的原始資料」，`'control'` 對應了「不參與合成的原始資料」。「合成資料」在 Synthesizer 的設定方法與 C-2a 一樣，
+「參與合成」跟「不參與合成」是利用了 `Splitter` 模組進行切割，所以請對 Splitter 使用 `method = 'custom_data'`，此時 `filepath` 需要兩個輸入，`'ori'` 對應了「參與合成的原始資料」，`'control'` 對應了「不參與合成的原始資料」。「合成資料」在 `Synthesizer` 的設定方法與 C-2a 一樣，
 
-這裡我們特意同時展現了 `method = 'default'` 的評測。針對直接比對「原始資料」與「合成資料」的 C-2a 情境，C-2b 會自動地將 Splitter 當中的 `'ori'` 視作「原始資料」來比對，同時得到 SDMetrics 跟 Anonymeter 的結果。使用者應自行評估自己的資料切分方式，是否具有足夠的原始資料代表性。
+這裡我們特意同時展現了 `method = 'default'` 的評測。針對直接比對「原始資料」與「合成資料」的 C-2a 情境，C-2b 會自動地將 `Splitter` 當中的 `'ori'` 視作「原始資料」來比對，同時得到 SDMetrics 跟 Anonymeter 的結果。使用者應自行評估自己的資料切分方式，是否具有足夠的原始資料代表性。
 
 
 # User Story D
