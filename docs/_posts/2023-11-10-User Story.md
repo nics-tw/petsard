@@ -154,7 +154,7 @@ This demo will show how to use `PETsARD`'s benchmark datasets to evaluate synthe
 
 In this demonstration, as an advanced user with a basic understanding of different differential privacy/synthetic data technologies and their corresponding evaluation metrics, you aim to assess the differences between technologies and other academic and practical issues.
 
-PETsARD provides a complete platform that, by integrating commonly used benchmark datasets in academics, competitions, or practical applications, allows for easy setup of different benchmark datasets, execution on various synthetic algorithms, and execution of different evaluation combinations. This enables you to easily obtain comprehensive data support, focusing on your academic or development work.
+PETsARD provides a complete platform that, which helps you to obtain comprehensive data support at ease on academic work or development. This enables you to easily obtain comprehensive data support, focusing on your academic or development work.
 
 本示範將展示如何使用 `PETsARD` 的基準資料集來評估合成演算法。
 
