@@ -118,17 +118,17 @@ The concept of custom data is that, in the complete User Story B which involves 
 
 ### User Story C-2a
 
-C-2a demonstrates the evaluation approach of the Evaluator as comparing "original data" with "synthetic data," for instance, using`method = 'default'` or tools starting with `'sdmetrics-'` from SDMetrics.
+C-2a demonstrates the evaluation approach of the `Evaluator` as comparing "original data" with "synthetic data," for instance, using`method = 'default'` or tools starting with `'sdmetrics-'` from SDMetrics.
 
-The "original data" can be directly loaded using the Loader. At this point, the "synthetic data" needs to be placed in the Synthesizer, using `method = 'custom_data'` to specify custom data.
+The "original data" can be directly loaded using the `Loader`. At this point, the "synthetic data" needs to be placed in the `Synthesizer`, using `method = 'custom_data'` to specify custom data.
 
-After using `method = 'custom_data'`, similar to the Loader, the file location is specified using `filepath`.
+After using `method = 'custom_data'`, similar to the `Loader`, the file location is specified using `filepath`.
 
-C-2a 展示的是 Evaluator 的評測方式是「原始資料」對照「合成資料」，例如 `method = 'default'` 或 `'sdmetrics-'` 開頭的 SDMetrics 評測工具。
+C-2a 展示的是 `Evaluator` 使用「原始資料」對照「合成資料」進行比較的評測方式，例如 `method = 'default'` 或 `'sdmetrics-'` 開頭的 SDMetrics 評測工具。
 
-「原始資料」可以直接用 Loader 讀入，此時「合成資料」需要放到 Synthesizer 當中、使用 `method = 'custom_data'` 來指定自訂資料，
+「原始資料」可以直接用 `Loader` 讀入，此時「合成資料」需要放到 `Synthesizer` 當中、使用 `method = 'custom_data'` 來指定自訂資料，
 
-當使用 `method = 'custom_data'` 之後，跟 Loader 一樣，使用 `filepath` 指定檔案位置。
+當使用 `method = 'custom_data'` 之後，跟 `Loader` 一樣，使用 `filepath` 指定檔案位置。
 
 
 ### User Story C-2b
