@@ -1,6 +1,6 @@
 User Story demo is designed to assist users in setting their own configuration file. Enjoy : )
 
-It is recommended to refer to the `demo/User Story...ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented.
+It is recommended to refer to the `demo/User Story...ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo) and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which helps clarify the implementation of your requirements.
 
 用戶故事的示範旨在協助使用者設定您自身的設定檔案。祝您使用愉快 : )
 
