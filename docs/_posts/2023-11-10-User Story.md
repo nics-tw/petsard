@@ -46,9 +46,6 @@ Given an original dataset without specified any algorithm, the pipeline will gen
 
 給定一個原始資料集、但未指定演算法，該流程會利用預設的演算法生成一組隱私強化資料集。
 
-> Aligning with User Story 3 of the Spec
-> 對標規格說明 (Spec) 的 User Story 3
-
 
 ## User Story A-2
 **Customized Synthesizing**
@@ -56,9 +53,6 @@ Given an original dataset without specified any algorithm, the pipeline will gen
 Given an original dataset, specified privacy enhancing data generation algorithms and parameters, the pipeline will generate a privacy-enhanced dataset.
 
 給定一個原始資料集，並指定隱私強化技術生成演算法與參數，該流程會依此產生隱私強化資料集。
-
-> Aligning with User Story 2 of the Spec
-> 對標規格說明 (Spec) 的 User Story 2
 
 
 # User Story B
@@ -80,9 +74,6 @@ Following User Story A, if users enable the "evaluate" step ,  the evaluation mo
 
 根據用戶故事 A，如果使用者啟用了 "evaluate" 步驟，評估模組會產生涵蓋預設的隱私風險與效用指標的報告。
 
-> Aligning with User Story 4 of the Spec
-> 對標規格說明 (Spec) 的 User Story 4
-
 
 ## User Story B-2
 **Customized Evaluating**
@@ -90,9 +81,6 @@ Following User Story A, if users enable the "evaluate" step ,  the evaluation mo
 Following User Story B-1, if specific types of metrics are set or a customized evaluation script is provided, the module will create a customized evaluation report.
 
 根據用戶故事 B-1，如果指定特定的指標、或是提供用戶自定義的評估腳本，模組會產生客製化的評估報告。
-
-> Aligning with User Story 5 of the Spec
-> 對標規格說明 (Spec) 的 User Story 5
 
 
 # User Story C
@@ -115,9 +103,6 @@ Given a dataset as an input, the pipeline can go through the "describe" module t
 
 給定一個資料集做輸入，該流程可以藉由調用 "describe" 模組而得到該資料集的摘要
 
-> Aligning with User Story 1 of the Spec
-> 對標規格說明 (Spec) 的 User Story 1
-
 
 ## User Story C-2
 **Given data evaluating**
@@ -125,9 +110,6 @@ Given a dataset as an input, the pipeline can go through the "describe" module t
 Given an original dataset and a privacy-enhanced dataset to the evaluation module, the pipeline will create a report covering default/general metrics of privacy risk and utility.
 
 給定原始資料集與對應的隱私強化資料集到評估模組中，該流程會產生一份涵蓋預設/一般指標的隱私風險與效用的報告。
-
-> Aligning with User Story 6 of the Spec
-> 對標規格說明 (Spec) 的 User Story 6
 
 The concept of custom data is that, in the complete User Story B which involves "generating privacy-enhanced data" + "evaluating data", wherever the synthesized data or the partitioned data is generated in the process, that particular module is where `method = 'custom_data'` is applied.
 
@@ -188,9 +170,6 @@ With a specified data generation algorithm, a default benchmark dataset collecti
 
 指定資料生成演算法後，預設的經典資料集會用作輸入，並且該流程將使用該演算法輸出對應的隱私強化資料集。
 
-> Aligning with User Story 8 of the Spec
-> 對標規格說明 (Spec) 的 User Story 8
-
 
 ## User Story D-2
 **Synthesizing on default data**
@@ -199,15 +178,9 @@ Following User Story D-1, the user can specify a list of datasets instead.
 
 根據用戶故事 D-1，使用者可以改為指定一個資料集列表。
 
-> Aligning with User Story 9 of the Spec
-> 對標規格說明 (Spec) 的 User Story 9
-
 
 ## User Story D-3
 **Synthesizing and Evaluating on default data**
 
 Following User Story D-1, if users enable the evaluation step,  the evaluation module will create a report covering default privacy risk and utility metrics for all datasets.
 根據用戶故事 D-1，如果使用者啟用評估步驟，評估模組將會產生一份涵蓋所有資料集的隱私風險與效用指標報告。
-
-> Aligning with User Story 10 of the Spec
-> 對標規格說明 (Spec) 的 User Story 10
