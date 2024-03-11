@@ -111,9 +111,9 @@ Given an original dataset and a privacy-enhanced dataset to the evaluation modul
 
 給定原始資料集與對應的隱私強化資料集到評估模組中，該流程會產生一份涵蓋預設/一般指標的隱私風險與效用的報告。
 
-The concept of custom data is that, in the complete User Story B which involves "generating privacy-enhanced data" + "evaluating data", wherever the synthesized data or the partitioned data is generated in the process, that particular module is where `method = 'custom_data'` is applied.
+The "custom data" here indicates the situation that users already have synthesizing data, and you require `PETsARD` for the evaluation only. Therefore, please refer to C-1 and C-2 for the usage of `'custom_data'` on different module given certain `Evaluator`.
 
-自訂資料的概念是，原本完整的 User Story B 「生成隱私強化資料」+「評測資料」，這個流程當中，合成後的資料、切分後的資料會產生在流程的哪個模組，便對哪個模組使用 `method = 'custom_data'`。
+這裡「自訂資料」的概念是，使用者已經擁有合成資料，您只需要使用 `PETsARD` 做評測，不用跑整套 `PETsARD` 合成資料的流程。此時請參考 C-1、C-2 的說明，依照不同的 `Evaluator`，來對不同模組使用 `'custom_data'` 的設定：
 
 
 ### User Story C-2a
