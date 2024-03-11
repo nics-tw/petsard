@@ -1,8 +1,8 @@
-User Story demo is a presentation of "User Stories" of PETsARD Spec. Also it can help users to set their own config file. Enjoy : )
+User Story demo is designed to assist users in setting their own configuration file. Enjoy : )
 
 It is recommended to refer to the `demo/User Story...ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented.
 
-用戶故事示例為【資料生成演算法分析與評估系統 Spec】當中【用戶故事 User Stories】的呈現。它還可以幫助用戶設置自己的配置文件。祝您使用愉快 : )
+用戶故事的示範旨在協助使用者設定您自身的設定檔案。祝您使用愉快 : )
 
 建議搭配 GitHub 倉儲中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/User Story A/B/C/D.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現。
 
