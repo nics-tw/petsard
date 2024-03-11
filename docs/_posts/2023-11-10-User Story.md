@@ -70,7 +70,7 @@ In this demonstration, you, as the user, already possess a data file locally, an
 ## User Story B-1
 **Default Evaluating**
 
-Following User Story A, if users enable the "evaluate" step ,  the evaluation module will create a report covering default privacy risk and utility metrics.
+Following User Story A, if users enable the "evaluate" step, the evaluation module will create a report covering default privacy risk and utility metrics.
 
 根據用戶故事 A，如果使用者啟用了 "evaluate" 步驟，評估模組會產生涵蓋預設的隱私風險與效用指標的報告。
 
