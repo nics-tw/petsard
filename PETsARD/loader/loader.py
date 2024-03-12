@@ -53,54 +53,10 @@ class LoaderFileExt():
 class Loader:
     """
     Loader
-        Check the target file for the Loader,
+
+    Check the target file for the Loader,
         implement different Loader instances using a factory method,
         and read files with a module optimized for dtypes and storage.
-
-    Methods:
-        Loader(filepath)
-        Returns:
-            pandas.DataFrame: A pandas DataFrame
-                containing the loaded data which already casting
-
-    Args:
-        filepath (str):
-            The fullpath of dataset.
-        header_exist (bool ,optional):
-            Is header as 1st row of data or NOT. Default is True.
-        header_names (list ,optional):
-            Header list of data.
-            It will be replacement if header_exist is True,
-            and generating if header_exist is False. Default is empty list [].
-        sep (str ,optional):
-            Character or regex pattern to treat as the delimiter.
-            Default is comma ",".
-        sheet_name (str | int ,optional):
-            Strings are used for sheet names.
-            Integers are used in zero-indexed sheet positions
-            (chart sheets do not count as a sheet position).
-            Specify None to get all worksheets.
-        colnames_discrete (list ,optional):
-            List of column names that are discrete.
-            They will be forcibly treated as strings,
-            and convert to categorical later. Default is empty list [].
-        colnames_datetime (list ,optional):
-            List of column names that are date/datetime.
-            They will be forcibly treated as strings,
-            and convert to date or datetime later. Default is empty list [].
-        dtype (dict ,optional):
-            Dictionary of columns data type force assignment.
-            Format as {colname: col_dtype}.
-            Default is None, means no se empty dict {}.
-
-        na_values (str | list | dict ,optional):
-            Extra string to recognized as NA/NaN.
-            If dictionary passed, value will be specific per-column NA values.
-            Format as {colname: na_values}.
-            Default is None, means no extra.
-            Check pandas document for Default NA string list.
-
-    TODO Duplicated function between dtype n' colnames_xxx
     """
 
     def __init__(
@@ -116,6 +72,46 @@ class Loader:
         colnames_datetime: Optional[List[str]] = None,
         dtype: Optional[Dict[str, Any]] = {},
     ):
+        """
+        Args:
+            filepath (str):
+                The fullpath of dataset.
+            header_exist (bool ,optional):
+                Is header as 1st row of data or NOT. Default is True.
+            header_names (list ,optional):
+                Header list of data.
+                It will be replacement if header_exist is True,
+                and generating if header_exist is False. Default is empty list [].
+            sep (str ,optional):
+                Character or regex pattern to treat as the delimiter.
+                Default is comma ",".
+            sheet_name (str | int ,optional):
+                Strings are used for sheet names.
+                Integers are used in zero-indexed sheet positions
+                (chart sheets do not count as a sheet position).
+                Specify None to get all worksheets.
+            colnames_discrete (list ,optional):
+                List of column names that are discrete.
+                They will be forcibly treated as strings,
+                and convert to categorical later. Default is empty list [].
+            colnames_datetime (list ,optional):
+                List of column names that are date/datetime.
+                They will be forcibly treated as strings,
+                and convert to date or datetime later. Default is empty list [].
+            dtype (dict ,optional):
+                Dictionary of columns data type force assignment.
+                Format as {colname: col_dtype}.
+                Default is None, means no se empty dict {}.
+
+            na_values (str | list | dict ,optional):
+                Extra string to recognized as NA/NaN.
+                If dictionary passed, value will be specific per-column NA values.
+                Format as {colname: na_values}.
+                Default is None, means no extra.
+                Check pandas document for Default NA string list.
+
+        TODO Duplicated function between dtype n' colnames_xxx
+        """
         self.config: dict = None
         self.Loader = None
         self.dtype = dtype
