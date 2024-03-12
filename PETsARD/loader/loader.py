@@ -27,7 +27,6 @@ from PETsARD.util import df_casting, df_cast_check
 class LoaderFileExt():
     """
     Mapping of File extension.
-        Replace original _loader_mapping_file_ext().
     """
     CSVTYPE: int = 1
     EXCELTYPE: int = 2
@@ -43,14 +42,10 @@ class LoaderFileExt():
     @classmethod
     def getext(cls, file_ext: str) -> int:
         """
-        Get suffixes mapping int value,
-            uses division by ten to obtain
-            a corresponding higher level of abstraction
-            and returns it.
-        ...
+        Get suffixes mapping int value of file extension.
+
         Args:
-            file_ext (str):
-                File extension
+            file_ext (str): File extension
         """
         return cls.__dict__[file_ext[1:].upper()] // 10
 
