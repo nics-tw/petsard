@@ -241,7 +241,7 @@ class Loader:
                 filepath: for records filepath we use.
                 file_ext: file extension of file_ext.
                 benchmark-: benchmark related information,
-                    see _loader_mapping_benchmark() for details.
+                    see benchmark.py for details.
         """
         if filepath.lower().startswith("benchmark://"):
             # Benchmark dataset
