@@ -9,6 +9,8 @@ from pandas.api.types import (
     is_float_dtype
 )
 
+from PETsARD.error import UnsupportedMethodError
+
 
 def df_cast_check(
     df_data:    pd.DataFrame,
@@ -130,14 +132,7 @@ def df_cast_check(
                     force_type.startswith('float'):
                 dict_dtype[col_name] = force_type
             else:
-                # TODO Error.py
-                raise ValueError('\n'.join([
-                    f"Util - df_cast_check: "
-                    f"Unsupported force dtype, "
-                    f"now is {force_type}.",
-                    f"We only support "
-                    f"category/date/datetime/int-/float-."
-                ]))
+                raise UnsupportedMethodError
         else:
             # Otherwise determine by extreme value.
             dict_dtype[col_name] = _col_cast_check(col_data)

@@ -203,10 +203,7 @@ class Loader:
             elif benchmark_access == 'private':
                 BenchmarkerBoto3(self.config).download()
             else:
-                raise ValueError(
-                    f"Loader - Unsupported benchmark access type, "
-                    f"now is {benchmark_access}."
-                )
+                raise UnsupportedMethodError
 
         # Factory method for implementing the specified Loader class
         file_ext = self.config['file_ext'].lower()
@@ -215,9 +212,7 @@ class Loader:
         elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
             self.Loader = LoaderPandasExcel(self.config)
         else:
-            raise ValueError(
-                f"Loader: Unsupported file type, now is {file_ext}."
-            )
+            raise UnsupportedMethodError
 
         self.data: pd.DataFrame = self.Loader.load()
 
@@ -276,9 +271,7 @@ class Loader:
                     'benchmark_sha256':      benchmark_value['sha256'],
                 }
             else:
-                raise FileNotFoundError(
-                    f"Loader: The benchmark dataset is not valid: {filepath}"
-                )
+                raise FileNotFoundError
         else:
             return {
                 'benchmark': False,
