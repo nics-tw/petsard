@@ -251,13 +251,13 @@ class Loader:
         _handle_filepath
             Translate filepath setting,
                 then return necessary information format.
-        ...
+
         Args:
             filepath (str):
                 The fullpath of dataset.
             map_benchmark (Dict[str, Dict[str, str]]):
                 The dictionary for benchmark details.
-        ...
+
         Return:
             (dict):
                 filepath: for records filepath we use.
