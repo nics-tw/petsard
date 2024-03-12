@@ -279,13 +279,13 @@ class Loader:
         _specify_str_dtype
             Force setting discrete and datetime columns
             been load as str at first.
-        ...
+
         Args:
             colnames_discrete (List[str]):
                 The column names of discrete variable.
             colnames_datetime (List[str]):
                 The column names of date/datetime variable.
-        ...
+
         Return:
             self.para['Loader'] (dict):
                 dtype: particular columns been force assign as string
