@@ -91,9 +91,10 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 | `sdv` | `GaussianCopulaSynthesizer` | 'sdv-singletable-gaussiancopula' | | |
 | `sdv` | `TVAESynthesizer` | 'sdv-singletable-tvae' | | |
 | `smartnoise` | `SmartNoiseCreator` (AIM) | 'smartnoise-aim' | ✅ | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (MWEM) | 'smartnoise-mwem' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ | ✅ |
+| `smartnoise` | `SmartNoiseCreator` (DP-CTGAN) | 'smartnoise-dpctgan' | ✅ |  |
+| `smartnoise` | `SmartNoiseCreator` (PATE-CTGAN) | 'smartnoise-patectgan' | ✅ |  |
 
 [^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the `'sequence'`, and `'encoder'` should not be in the `'sequence'`. 若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
 
@@ -145,9 +146,9 @@ See [document](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/
 
 ## SmartNoise
 
-`smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. it's worth noting that we only support the utilization of cube-style (histogram-based) synthesizers, as listed above. Please ensure that your input data is exclusively in categorical format before initiating training. Specifically, in the `Processor` within `PETsARD`, ensure that the last element in the `sequence` is set to `'discretizing'`, and `'encoder'` must not be in the `'sequence'`.
+`smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. It's worth noting that for the methods which `discretizing` is needed, please ensure that your input data is exclusively in categorical format before initiating training. Specifically, in the `Processor` within `PETsARD`, ensure that the last element in the `sequence` is set to `'discretizing'`, and `'encoder'` must not be in the `'sequence'`. Also noted that if you use the method which `discretizing` is not needed, the instance will perform min-max scaling implicitly to make the programme functional.
 
-`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。同時我們也只支援 cube-style (基於長條圖的) 合成資料演算法，如上表所附。在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
+`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。請注意，若您使用需要 `discretizing` 的演算法，在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。另外提醒，若使用不需要 `discretizing` 的演算法，該物件會內隱執行 min-max 轉換，以確保程式能正常執行。
 
 ### `'smartnoise-aim'`
 
@@ -158,12 +159,6 @@ Use the Adaptive Iterative Mechanism (AIM) algorithm provided in `smartnoise`. S
 **Parameters**
 
 See [document](https://docs.smartnoise.org/synth/synthesizers/aim.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
-
-### `'smartnoise-mwem'`
-
-Use the Multiplicative Weights Exponential Mechanism (MWEM) algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/mwem.html) for further details.
-
-使用 `smartnoise` 提供的 Multiplicative Weights Exponential Mechanism (MWEM) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mwem.html)。
 
 **Parameters**
 
@@ -189,4 +184,23 @@ Use the PAC-Synth algorithm provided in `smartnoise`. See [document](https://doc
 
 See [document](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html)。
 
+### `'smartnoise-dpctgan'`
+
+Use the DP-CTGAN algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html) for further details.
+
+使用 `smartnoise` 提供的 DP-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
+
+**Parameters**
+
+See [document](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
+
+### `'smartnoise-patectgan'`
+
+Use the PATE-CTGAN algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/patectgan.html) for further details.
+
+使用 `smartnoise` 提供的 PATE-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
+
+**Parameters**
+
+See [document](https://docs.smartnoise.org/synth/synthesizers/patectgan.html) for further details. 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
 
