@@ -15,7 +15,7 @@ class LoaderPandasCsv(LoaderBase):
     def load(self) -> pd.DataFrame:
         """
         Load and return the data
-        ...
+
         Return:
             (pd.DataFrame)
                 Data in csv by pd.DataFrame format.
@@ -49,7 +49,7 @@ class LoaderPandasExcel(LoaderBase):
     def load(self) -> pd.DataFrame:
         """
         Load and return the data
-        ...
+
         Return:
             (pd.DataFrame)
                 Data in excel by pd.DataFrame format.
