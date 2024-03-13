@@ -113,7 +113,7 @@ class Loader:
         TODO Duplicated function between dtype n' colnames_xxx
         """
         self.config: dict = None
-        self.Loader = None
+        self.loader = None
         self.dtype = dtype
 
         if filepath is None and method is None:
@@ -199,13 +199,13 @@ class Loader:
         # Factory method for implementing the specified Loader class
         file_ext = self.config['file_ext'].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
-            self.Loader = LoaderPandasCsv(self.config)
+            self.loader = LoaderPandasCsv(self.config)
         elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
-            self.Loader = LoaderPandasExcel(self.config)
+            self.loader = LoaderPandasExcel(self.config)
         else:
             raise UnsupportedMethodError
 
-        self.data: pd.DataFrame = self.Loader.load()
+        self.data: pd.DataFrame = self.loader.load()
 
         # Define dtype
         # TODO Still consider how to extract dtype from pd.dateframe directly.
