@@ -1,5 +1,6 @@
 from importlib import resources
 import pathlib
+import re
 from typing import (
     Any,
     Dict,
@@ -61,8 +62,9 @@ class Loader:
 
     def __init__(
         self,
-        filepath:     str = None, # type: ignore
-        method:       str = None, # type: ignore
+        filepath: str = None,
+        method:   str = None,
+
         header_exist: bool = True,
         header_names: Optional[List[str]] = None,
         na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
@@ -74,8 +76,9 @@ class Loader:
     ):
         """
         Args:
-            filepath (str):
-                The fullpath of dataset.
+            filepath (str): The fullpath of dataset.
+            method (str): The method of Loader.
+
             header_exist (bool ,optional):
                 Is header as 1st row of data or NOT. Default is True.
             header_names (list ,optional):
@@ -111,8 +114,22 @@ class Loader:
                 Check pandas document for Default NA string list.
 
         Attr:
-            config (dict):
-                The dictionary of necessary information for Loader.
+            config (dict): The dictionary of necessary information for Loader.
+                filepath (str): The fullpath of dataset.
+                method (str): The method of Loader.
+                ###### from _handle_filepath() ######
+                file_ext (str): file extension of file_ext.
+                benchmark (bool): True if filepath is benchmark dataset.
+                    ###### only included if benchmark is True. ######
+                filepath_raw (str): keep original filepath input by user.
+                benchmark_name (str): The name of benchmark dataset by user
+                benchmark_filename (str): The filename of benchmark dataset
+                benchmark_access (str): The access type of benchmark dataset
+                benchmark_region_name (str): The Amazon region name of benchmark dataset
+                benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset
+                benchmark_sha256 (str): The SHA-256 value of benchmark dataset
+
+
             loader (LoaderPandasCsv | LoaderPandasExcel):
                 The instance of LoaderPandasCsv or LoaderPandasExcel.
 
@@ -123,54 +140,9 @@ class Loader:
         self.loader = None
         self.dtype = dtype
 
-        if filepath is None and method is None:
-            raise ConfigError
-        elif method:
-            if method.lower() == 'default':
-                # default will use adult-income
-                filepath = 'benchmark://adult-income'
-            else:
-                raise UnsupportedMethodError
-        else:
-            # method is None, but filepath exist. continue
-            pass
+        # 1. Load filepath config
+        self.config = self._handle_filepath(filepath=filepath, method=method)
 
-        # organized yaml
-        PETSARD_CONFIG = {}
-        LIST_YAML = [
-            ('benchmark_datasets.yaml', 'benchmark_datasets')
-        ]
-        for yaml_name, config_name in LIST_YAML:
-            with resources.open_text('PETsARD.loader', yaml_name) as file:
-                PETSARD_CONFIG[config_name] = yaml.safe_load(file)
-
-        # Compling PETSARD_CONFIG
-        # 1. update benchmark detail - replace _loader_mapping_benchmark()
-        #     PETSARD_CONFIG['benchmark_datasets'] (dict):
-        #         key (str): benchmark dataset name
-        #             filename (str): Its filename
-        #             access (str):   Belong to public or private bucket.
-        #             region_name (str): Its AWS S3 region.
-        #             bucket_name (str): Its AWS S3 bucket.
-        #             sha256 (str): Its SHA-256 value.
-        REGION_NAME = PETSARD_CONFIG['benchmark_datasets']['region_name']
-        BUCKET_NAME = PETSARD_CONFIG['benchmark_datasets']['bucket_name']
-        PETSARD_CONFIG['benchmark_datasets']['datasets'] = {
-            key: {
-                'filename':    value['filename'],
-                'access':      value['access'],
-                'region_name': REGION_NAME,
-                'bucket_name': BUCKET_NAME[value['access']],
-                'sha256':      value['sha256']
-            }
-            for key, value in PETSARD_CONFIG['benchmark_datasets']['datasets'].items()
-        }
-
-        # Check if file exist
-        self.config = self._handle_filepath(
-            filepath,
-            map_benchmark=PETSARD_CONFIG['benchmark_datasets']['datasets']
-        )
         # Force define the discrete and date/datetime dtype
         self.config.update(
             self._specify_str_dtype(
@@ -227,53 +199,122 @@ class Loader:
         metadata.build_metadata(data=self.data)
         self.metadata: Metadata = metadata
 
-    @staticmethod
-    def _handle_filepath(
-        filepath:      str,
-        map_benchmark: Dict[str, Dict[str, str]] = None
-    ) -> dict:
+    @classmethod
+    def _handle_filepath(cls, filepath: str, method: str) -> dict:
         """
         Translate filepath setting, then return necessary information format.
 
         Args:
-            filepath (str):
-                The fullpath of dataset.
+            filepath (str): The fullpath of dataset.
+            method (str): The method of Loader.
+
             map_benchmark (Dict[str, Dict[str, str]]):
                 The dictionary for benchmark details.
 
         Return:
-            (dict):
-                filepath: for records filepath we use.
-                file_ext: file extension of file_ext.
-                benchmark-: benchmark related information,
-                    see benchmark.py for details.
+            (dict): See __init__ also.
+                filepath (str): The fullpath of dataset.
+                method (str): The method of Loader.
+                file_ext (str): file extension of file_ext.
+                benchmark (bool): True if filepath is benchmark dataset.
+                filepath_raw (str): keep original filepath input by user.
+                ###### only included if benchmark is True. ######
+                benchmark_name (str): The name of benchmark dataset by user
+                filepath_raw (str): keep original filepath input by user.
+                benchmark_name (str): The name of benchmark dataset by user
+                benchmark_filename (str): The filename of benchmark dataset
+                benchmark_access (str): The access type of benchmark dataset
+                benchmark_region_name (str): The Amazon region name of benchmark dataset
+                benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset
+                benchmark_sha256 (str): The SHA-256 value of benchmark dataset
         """
-        if filepath.lower().startswith("benchmark://"):
-            # Benchmark dataset
-            benchmark_name = filepath[len("benchmark://"):]
-            if benchmark_name.lower() in map_benchmark:
-                benchmark_value = map_benchmark[benchmark_name.lower()]
-                benchmark_filename = benchmark_value['filename']
-                return {
-                    'filepath': pathlib.Path('benchmark').joinpath(benchmark_filename),
-                    'file_ext': pathlib.Path(benchmark_filename).suffixes[0].lower(),
-                    'benchmark': True,
-                    'benchmark_filepath':    filepath,
-                    'benchmark_name':        benchmark_name,
-                    'benchmark_filename':    benchmark_filename,
-                    'benchmark_access':      benchmark_value['access'],
-                    'benchmark_region_name': benchmark_value['region_name'],
-                    'benchmark_bucket_name': benchmark_value['bucket_name'],
-                    'benchmark_sha256':      benchmark_value['sha256'],
-                }
+        config: dict = {
+            'filepath': filepath,
+            'method': method,
+            'file_ext': None,
+            'benchmark': False,
+        }
+
+        # 1. set default method if method = 'default'
+        if filepath is None and method is None:
+            raise ConfigError
+        elif method:
+            if method.lower() == 'default':
+                # default will use adult-income
+                config['filepath'] = 'benchmark://adult-income'
             else:
+                raise UnsupportedMethodError
+
+        # 2. check if filepath is specified as a benchmark
+        if filepath.lower().startswith("benchmark://"):
+            config['benchmark'] = True
+            config['benchmark_name'] = re.sub(
+                r'^benchmark://', '',
+                config['filepath'],
+                flags=re.IGNORECASE
+            ).lower()
+
+        if config['benchmark']:
+            # 3. if benchmark, load and organized yaml: BENCHMARK_CONFIG
+            BENCHMARK_CONFIG = cls._load_benchmark_config()
+
+            # 4. if benchmark name exist in BENCHMARK_CONFIG, update config
+            if config['benchmark_name'] not in BENCHMARK_CONFIG:
                 raise FileNotFoundError
-        else:
-            return {
-                'benchmark': False,
-                'filepath': filepath,
-                'file_ext': pathlib.Path(filepath).suffixes[0].lower()
+            benchmark_value = BENCHMARK_CONFIG[config['benchmark_name']]
+            benchmark_filename = benchmark_value['filename']
+            config.update({
+                'filepath_raw': filepath,
+                'filepath': pathlib.Path('benchmark').joinpath(benchmark_filename),
+                'benchmark_filename':    benchmark_filename,
+                'benchmark_access':      benchmark_value['access'],
+                'benchmark_region_name': benchmark_value['region_name'],
+                'benchmark_bucket_name': benchmark_value['bucket_name'],
+                'benchmark_sha256':      benchmark_value['sha256'],
+            })
+
+        # 5. extract file extension
+        config['file_ext'] = pathlib.Path(config['filepath']).suffixes[0].lower()
+
+        return config
+
+
+    @classmethod
+    def _load_benchmark_config(cls) -> dict:
+        """
+        Load benchmark datasets configuration.
+
+        Return:
+            BENCHMARK_CONFIG['datasets'] (dict):
+                key (str): benchmark dataset name
+                    filename (str): Its filename
+                    access (str): Belong to public or private bucket.
+                    region_name (str): Its AWS S3 region.
+                    bucket_name (str): Its AWS S3 bucket.
+                    sha256 (str): Its SHA-256 value.
+        """
+        BENCHMARK_CONFIG = {}
+
+        YAML_FILENAME = 'benchmark_datasets.yaml'
+        with resources.open_text('PETsARD.loader', YAML_FILENAME) as file:
+            BENCHMARK_CONFIG = yaml.safe_load(file)
+
+        REGION_NAME = BENCHMARK_CONFIG['region_name']
+        BUCKET_NAME = BENCHMARK_CONFIG['bucket_name']
+
+        BENCHMARK_CONFIG['datasets'] = {
+            key: {
+                'filename':    value['filename'],
+                'access':      value['access'],
+                'region_name': REGION_NAME,
+                'bucket_name': BUCKET_NAME[value['access']],
+                'sha256':      value['sha256']
             }
+            for key, value in BENCHMARK_CONFIG['datasets'].items()
+        }
+
+        return BENCHMARK_CONFIG['datasets']
+
 
     @staticmethod
     def _specify_str_dtype(
