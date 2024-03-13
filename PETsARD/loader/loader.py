@@ -110,6 +110,13 @@ class Loader:
                 Default is None, means no extra.
                 Check pandas document for Default NA string list.
 
+        Attr:
+            config (dict):
+                The dictionary of necessary information for Loader.
+            loader (LoaderPandasCsv | LoaderPandasExcel):
+                The instance of LoaderPandasCsv or LoaderPandasExcel.
+
+        TODO combine method and filepath to one parameter.
         TODO Duplicated function between dtype n' colnames_xxx
         """
         self.config: dict = None
@@ -119,7 +126,7 @@ class Loader:
         if filepath is None and method is None:
             raise ConfigError
         elif method:
-            if method == 'default':
+            if method.lower() == 'default':
                 # default will use adult-income
                 filepath = 'benchmark://adult-income'
             else:
@@ -226,9 +233,7 @@ class Loader:
         map_benchmark: Dict[str, Dict[str, str]] = None
     ) -> dict:
         """
-        _handle_filepath
-            Translate filepath setting,
-                then return necessary information format.
+        Translate filepath setting, then return necessary information format.
 
         Args:
             filepath (str):
