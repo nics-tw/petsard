@@ -26,9 +26,7 @@ class LoaderPandasCsv(LoaderBase):
         list_setting = ['sep', 'dtype', 'na_values']
         dict_setting.update({k: self.para_Loader[k] for k in list_setting})
 
-        if self.para_Loader['header_exist']:
-            dict_setting['header'] = 0
-        else:
+        if self.para_Loader['header_names'] is not None:
             dict_setting.update({
                 'header': None,
                 'names':  self.para_Loader['header_names']
@@ -60,13 +58,12 @@ class LoaderPandasExcel(LoaderBase):
         list_setting = ['sheet_name', 'dtype', 'na_values']
         dict_setting.update({k: self.para_Loader[k] for k in list_setting})
 
-        if self.para_Loader['header_exist']:
-            dict_setting['header'] = 0
-        else:
+        if self.para_Loader['header_names'] is not None:
             dict_setting.update({
                 'header': None,
                 'names':  self.para_Loader['header_names']
             })
+
 
         try:
             return pd.read_excel(**dict_setting)
