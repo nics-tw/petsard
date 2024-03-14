@@ -23,10 +23,10 @@ from PETsARD.loader.util import (
     ALLOWED_COLUMN_TYPES,
     verify_column_types,
     optimize_dtypes,
+    casting_dataframe,
 )
 from PETsARD.loader.metadata import Metadata
-from PETsARD.error import ConfigError, UnsupportedMethodError
-from PETsARD.util import df_casting
+from PETsARD.error import ConfigError, NoConfigError, UnsupportedMethodError
 
 
 class LoaderFileExt():
@@ -120,6 +120,7 @@ class Loader:
             loader (LoaderPandasCsv | LoaderPandasExcel):
                 The instance of LoaderPandasCsv or LoaderPandasExcel.
             data (pd.DataFrame): The dataset been loaded.
+            metadata (Metadata): The metadata of dataset.
 
         TODO combine method and filepath to one parameter.
         TODO support Minguo calendar (民國紀元)
@@ -127,6 +128,7 @@ class Loader:
         self.config: dict = None
         self.loader = None
         self.data: pd.DataFrame = None
+        self.metadata: Metadata = None
 
         # 1. Load filepath config
         self.config = self._handle_filepath(filepath=filepath, method=method)
@@ -175,18 +177,17 @@ class Loader:
 
         # 4. Optimizing dtype
         self.config['dtype'] = optimize_dtypes(
-            data = data,
-            column_types = self.config['column_types'],
+            data=data,
+            column_types=self.config['column_types'],
         )
 
-        # Casting data for more efficient storage space
-        # self.data = df_casting(data, self.config['dtype'])
-        self.data = data
+        # 5. Casting data for more efficient storage space
+        self.data = casting_dataframe(data, self.config['dtype'])
 
-        # metadata
+        # 6. Setting metadata
         metadata = Metadata()
         metadata.build_metadata(data=self.data)
-        self.metadata: Metadata = metadata
+        self.metadata = metadata
 
     @classmethod
     def _handle_filepath(cls, filepath: str, method: str) -> dict:
@@ -226,7 +227,7 @@ class Loader:
 
         # 1. set default method if method = 'default'
         if filepath is None and method is None:
-            raise ConfigError
+            raise NoConfigError
         elif method:
             if method.lower() == 'default':
                 # default will use adult-income
