@@ -1,6 +1,9 @@
 ## History 歷史
 
 - **Beta testing 外部測試階段**
+  - **0.8.0** (2024-03-14): **Start Beta testing** **外部測試開始**
+    - Provide a deeper description of YAML configurations and user stories in the [new manual website](https://nics-tw.github.io/PETsARD/). Also, address the issues encountered in functional testing across multiple modules.
+    - 在[新手冊網站](https://nics-tw.github.io/PETsARD/)上對 YAML 設定、以及用戶故事有更深入的描述。並解決多個模組在功能測試上遇到的問題。
   - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
     - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
     - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
@@ -9,7 +12,7 @@
     - Introduced two new module `Config` and `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
     - 新增兩個模組：`Config` 與 `Operator`，以及進行變數及檔案名稱統一，並進行 SDV 及 Anonymeter 檔案的整併。
   - **0.5.0-alpha** (2024-01-30): **Transition to new modules** **新模組轉換**
-    - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html).
+    - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://nics-tw.github.io/PETsARD//Evaluator-Anonymeter.html).
     - 導入 Metadata 與 Processor 兩個新模組，同時下架 Pre/Postprocessor，同時新增 [Anonymeter 手冊](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html)。
   - **0.4.0-alpha** (2024-01-12): **Enriching README** **充實讀我檔案**
     - Develop coding standards, improve existing code, create a [demo website](https://matheme-justyn.github.io/PETsARD-Gitbook/) to store and showcase team's markdown format guidelines, and expand support for SDMetrics evaluation.
