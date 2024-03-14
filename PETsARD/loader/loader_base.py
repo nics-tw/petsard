@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import pandas as pd
+
 
 class LoaderBase(ABC):
     """
@@ -21,7 +23,7 @@ class LoaderBase(ABC):
         self.config = config
 
     @abstractmethod
-    def load(self):
+    def load(self) -> pd.DataFrame:
         """
         Load and return the data
         """
