@@ -79,7 +79,6 @@ class Loader:
                 Format as {type: [colname]}
                 Only below types are supported (case-insensitive):
                 - 'category': The column will be treated as categorical.
-                - 'date': The column will be treated as date.
                 - 'datetime': The column will be treated as datetime.
                 Default is None, indicating no custom column types will be applied.
             header_names (list ,optional):
@@ -133,7 +132,7 @@ class Loader:
         # 1. Load filepath config
         self.config = self._handle_filepath(filepath=filepath, method=method)
 
-        # 2. Define the category (discrete), date ,and datetime columns
+        # 2. Define the category (discrete), and datetime columns
         #    set dtype for these columns as str at first.
         self.config['column_types'] = None
         self.config['dtype'] = None
