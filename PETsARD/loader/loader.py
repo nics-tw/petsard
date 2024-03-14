@@ -59,42 +59,32 @@ class Loader:
         implement different Loader instances using a factory method,
         and read files with a module optimized for dtypes and storage.
     """
+    ALLOWED_COLUMN_TYPES: List[str] = ['category', 'date', 'datetime']
 
     def __init__(
         self,
         filepath: str = None,
-        method:   str = None,
+        method: str = None,
+        column_types: Optional[Dict[str, List[str]]] = None,
         header_names: Optional[List[str]] = None,
-
-        colnames_discrete: Optional[List[str]] = None,
-        colnames_datetime: Optional[List[str]] = None,
-        dtype: Optional[Dict[str, Any]] = {},
-
-        na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
+        na_values: Optional[Union[str, List[str], Dict[str, str]]] = None,
     ):
         """
         Args:
             filepath (str): The fullpath of dataset.
             method (str): The method of Loader.
-
+            column_types (dict ,optional):
+                The dictionary of column names and their types.
+                Format as {type: [colname]}
+                Only below types are supported (case-insensitive):
+                - 'category': The column will be treated as categorical.
+                - 'date': The column will be treated as date.
+                - 'datetime': The column will be treated as datetime.
+                Default is None, indicating no custom column types will be applied.
             header_names (list ,optional):
                 Specifies a list of headers for the data.
                 If set, this list will replace the existing headers.
                 Default is None, indicating no custom headers will be applied.
-
-            colnames_discrete (list ,optional):
-                List of column names that are discrete.
-                They will be forcibly treated as strings,
-                and convert to categorical later. Default is empty list [].
-            colnames_datetime (list ,optional):
-                List of column names that are date/datetime.
-                They will be forcibly treated as strings,
-                and convert to date or datetime later. Default is empty list [].
-            dtype (dict ,optional):
-                Dictionary of columns data type force assignment.
-                Format as {colname: col_dtype}.
-                Default is None, means no se empty dict {}.
-
             na_values (str | list | dict ,optional):
                 Extra string to recognized as NA/NaN.
                 If dictionary passed, value will be specific per-column NA values.
@@ -104,54 +94,65 @@ class Loader:
 
         Attr:
             config (dict): The dictionary of necessary information for Loader.
-                filepath (str): The fullpath of dataset.
-                method (str): The method of Loader.
-                ###### from _handle_filepath() ######
-                file_ext (str): file extension of file_ext.
-                benchmark (bool): True if filepath is benchmark dataset.
-                    ###### only included if benchmark is True. ######
-                filepath_raw (str): keep original filepath input by user.
-                benchmark_name (str): The name of benchmark dataset by user
-                benchmark_filename (str): The filename of benchmark dataset
-                benchmark_access (str): The access type of benchmark dataset
-                benchmark_region_name (str): The Amazon region name of benchmark dataset
-                benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset
-                benchmark_sha256 (str): The SHA-256 value of benchmark dataset
-
-
+                    filepath (str): The fullpath of dataset.
+                    method (str): The method of Loader.
+                - from _handle_filepath()
+                    file_ext (str): file extension of file_ext.
+                    benchmark (bool): True if filepath is benchmark dataset.
+                - from _handle_filepath(): only included if benchmark is True.
+                    filepath_raw (str): keep original filepath input by user.
+                    benchmark_name (str): The name of benchmark dataset by user
+                    benchmark_filename (str): The filename of benchmark dataset
+                    benchmark_access (str): The access type of benchmark dataset
+                    benchmark_region_name (str): The Amazon region name of benchmark dataset
+                    benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset
+                    benchmark_sha256 (str): The SHA-256 value of benchmark dataset
+                - from input
+                    column_types (dict, optional):
+                        The dictionary of special column type and their column names.
+                    dtype (dict, optional):
+                        The dictionary of column names and their types as format.
+                    header_names (list ,optional):
+                        Specifies a list of headers for the data.
+                    na_values (str | list | dict ,optional):
+                        Extra string to recognized as NA/NaN.
             loader (LoaderPandasCsv | LoaderPandasExcel):
                 The instance of LoaderPandasCsv or LoaderPandasExcel.
+            data (pd.DataFrame): The dataset been loaded.
 
         TODO combine method and filepath to one parameter.
-        TODO Duplicated function between dtype n' colnames_xxx
+        TODO support Minguo calendar (民國紀元)
         """
-        self.config: dict = None
         self.loader = None
-        self.dtype = dtype
+        self.config: dict = None
+        self.data: pd.DataFrame = None
 
         # 1. Load filepath config
         self.config = self._handle_filepath(filepath=filepath, method=method)
 
-        # Force define the discrete and date/datetime dtype
-        self.config.update(
-            self._specify_str_dtype(
-                colnames_discrete,
-                colnames_datetime
-            )
-        )
-        # recoded remain parameter
-        # TODO sunset colnames_discrete/datetime, it is duplicated to dtype
-        self.config.update({
-            'header_names': header_names,
-            'na_values':    na_values
-        })
+        # 2. Define the category (discrete), date ,and datetime columns
+        #    set dtype for these columns as str at first.
+        self.config['column_types'] = None
+        self.config['dtype'] = None
+        if column_types is not None:
+            if any(coltype.lower() not in self.ALLOWED_COLUMN_TYPES
+                   for coltype in column_types):
+                raise ConfigError
+            self.config['column_types'] = column_types
+            self.config['dtype'] = self._assign_str_dtype(column_types)
+
+        # 3. Collect remain configuration (for loader_pandas)
+        self.config['header_names'] = header_names
+        self.config['na_values'] = na_values
 
     def load(self):
         """
         load
             load data, dtype confirm and casting, and build metadata
         """
-        # If benchmark, download benchmark dataset, and execute as local file.
+
+        # 1. if set as load benchmark
+        #       download benchmark dataset, and execute as local file.
         if self.config['benchmark']:
             benchmark_access = self.config['benchmark_access']
             if benchmark_access == 'public':
@@ -161,7 +162,7 @@ class Loader:
             else:
                 raise UnsupportedMethodError
 
-        # Factory method for implementing the specified Loader class
+        # 2. set self.loader as specified Loader class by file extension
         file_ext = self.config['file_ext'].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
             self.loader = LoaderPandasCsv(config=self.config)
@@ -175,10 +176,10 @@ class Loader:
         # Define dtype
         # TODO Still consider how to extract dtype from pd.dateframe directly.
         #      Consider to combind to Metadata
-        self.dtype.update(df_cast_check(self.data, self.dtype))
+        self.config['dtype'] = df_cast_check(self.data, self.config['dtype'])
 
         # Casting data for more efficient storage space
-        self.data = df_casting(self.data, self.dtype)
+        self.data = df_casting(self.data, self.config['dtype'])
 
         # metadata
         metadata = Metadata()
@@ -260,10 +261,10 @@ class Loader:
             })
 
         # 5. extract file extension
-        config['file_ext'] = pathlib.Path(config['filepath']).suffixes[0].lower()
+        config['file_ext'] = pathlib.Path(
+            config['filepath']).suffixes[0].lower()
 
         return config
-
 
     @classmethod
     def _load_benchmark_config(cls) -> dict:
@@ -301,35 +302,25 @@ class Loader:
 
         return BENCHMARK_CONFIG['datasets']
 
-
-    @staticmethod
-    def _specify_str_dtype(
-        colnames_discrete: Optional[List[str]],
-        colnames_datetime: Optional[List[str]]
-    ) -> dict:
+    @classmethod
+    def _assign_str_dtype(
+        cls,
+        column_types: Optional[Dict[str, List[str]]]
+    ) -> Dict[str, str]:
         """
         _specify_str_dtype
-            Force setting discrete and datetime columns
-            been load as str at first.
+            Force setting discrete and datetime columns been load as str at first.
 
         Args:
-            colnames_discrete (List[str]):
-                The column names of discrete variable.
-            colnames_datetime (List[str]):
-                The column names of date/datetime variable.
-
+            column_types (dict):
+                The dictionary of column names and their types as format.
+                See __init__ for detail.
         Return:
-            self.para['Loader'] (dict):
+            dtype (dict):
                 dtype: particular columns been force assign as string
         """
-        colnames_discrete = colnames_discrete or []
-        colnames_datetime = colnames_datetime or []
+        str_colname: List[str] = []
+        for coltype in cls.ALLOWED_COLUMN_TYPES:
+            str_colname.extend(column_types.get(coltype, []))
 
-        return {
-            'colnames_discrete': colnames_discrete,
-            'colnames_datetime': colnames_datetime,
-            'dtype': {
-                colname: str for colname
-                in colnames_discrete + colnames_datetime
-            }
-        }
+        return {colname: 'str' for colname in str_colname}
