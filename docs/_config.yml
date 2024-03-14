@@ -1,10 +1,10 @@
 # Configurations
-title:            PETsARD - Gitbook
-longtitle:        PETsARD - Gitbook
+title:            PETsARD - User Guide
+longtitle:        PETsARD - User Guide
 author:           NICS - PETs
 email:            matheme.justyn@gmail.com
 description: >
-  Build PETsARD Gitbook site with Jekyll Gitbook.
+  Build PETsARD User Guide site with Jekyll Gitbook.
 
 version:          1.0
 gitbook_version:  3.2.3

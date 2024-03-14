@@ -59,9 +59,6 @@ class Config:
                 # any expt_name should not be postfix with "_[xxx]"
                 if pattern.search(expt_name):
                     raise ConfigError
-                # any expt_name should not contain "," for avoid report csv error
-                if ',' in expt_name:
-                    raise ConfigError
 
         if 'Splitter' in self.yaml:
             if 'method' not in self.yaml['Splitter']:

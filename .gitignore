@@ -4,13 +4,11 @@
 
 # benchmark datasets
 demo/benchmark/
+demo/dev/benchmark/
 
 # temporary
 **/*.csv
 **/log.txt
-
-# but kept /demo/UserStory*.csv for demo
-!/demo/UserStory*.csv
 
 
 ###### ###### ###### ###### ###### ######
