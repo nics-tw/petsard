@@ -189,3 +189,28 @@ def _optimized_numeric_dtypes(col_data: pd.Series) -> str:
         opt_dtype = ori_dtype
 
     return opt_dtype
+
+
+def casting_dataframe(data: pd.DataFrame, optimized_dtypes: dict) -> pd.DataFrame:
+    """
+    Casts the columns of a DataFrame to their optimized data types.
+
+    Args:
+        data (pd.DataFrame): The DataFrame to be casted.
+        optimized_dtypes (dict): A dictionary mapping column names to their optimized data types.
+
+    Returns:
+        pd.DataFrame: The DataFrame with columns casted to their optimized data types.
+    """
+    for col_name in data.columns:
+        optimized_dtype: str = optimized_dtypes.get(col_name, None)
+        if optimized_dtype is None:
+            raise ConfigError
+        elif optimized_dtype == 'date':
+            data[col_name] = pd.to_datetime(data[col_name], errors='coerce').dt.date
+        elif optimized_dtype == 'datatime':
+            data[col_name] = pd.to_datetime(data[col_name], errors='coerce')
+        else:
+            data[col_name] = data[col_name].astype(optimized_dtype)
+
+    return data
