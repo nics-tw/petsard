@@ -7,10 +7,10 @@ class Metadata:
 
     def build_metadata(self, data: pd.DataFrame) -> None:
         """
-        Create metadata from the data and infer data types from the metadata, 
+        Create metadata from the data and infer data types from the metadata,
         which is used for generating config and `to_sdv` method.
 
-        The infer data types can be one of the following: 
+        The infer data types can be one of the following:
         'numerical', 'categorical', 'datetime', and 'object'.
 
         Args:
