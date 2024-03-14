@@ -27,19 +27,24 @@ class LoaderPandasCsv(LoaderBase):
             (pd.DataFrame)
                 Data in csv by pd.DataFrame format.
         """
-        dict_setting = {}
-        dict_setting['filepath_or_buffer'] = self.config['filepath']
+        pandas_config = {}
 
-        list_setting = ['sep', 'dtype', 'na_values']
-        dict_setting.update({k: self.config[k] for k in list_setting})
+        # 1. set the filepath
+        pandas_config['filepath_or_buffer'] = self.config['filepath']
 
+        # 2. If header_names is not None, setting custom header names
         if self.config['header_names'] is not None:
-            dict_setting.update({
+            pandas_config.update({
                 'header': None,
                 'names':  self.config['header_names']
             })
 
-        return pd.read_csv(**dict_setting)
+
+        list_setting = ['sep', 'dtype', 'na_values']
+        pandas_config.update({k: self.config[k] for k in list_setting})
+
+
+        return pd.read_csv(**pandas_config)
 
 
 class LoaderPandasExcel(LoaderBase):
@@ -66,26 +71,36 @@ class LoaderPandasExcel(LoaderBase):
             (pd.DataFrame)
                 Data in excel by pd.DataFrame format.
         """
-        dict_setting = {}
-        dict_setting['io'] = self.config['filepath']
+        pandas_config = {}
+
+        # 1. set the filepath
+        pandas_config['io'] = self.config['filepath']
+
+        # 2. If header_names is not None, setting custom header names
+        if self.config['header_names'] is not None:
+            pandas_config.update({
+                'header': None,
+                'names':  self.config['header_names']
+            })
+
 
         list_setting = ['sheet_name', 'dtype', 'na_values']
-        dict_setting.update({k: self.config[k] for k in list_setting})
+        pandas_config.update({k: self.config[k] for k in list_setting})
 
         if self.config['header_names'] is not None:
-            dict_setting.update({
+            pandas_config.update({
                 'header': None,
                 'names':  self.config['header_names']
             })
 
 
         try:
-            return pd.read_excel(**dict_setting)
+            return pd.read_excel(**pandas_config)
         except ValueError as ex:
             if "Worksheet named" in str(ex) and "not found" in str(ex):
                 print(
                     f"Loader (PandasExcel): "
-                    f"Sheet name {dict_setting['sheet_name']} "
+                    f"Sheet name {pandas_config['sheet_name']} "
                     f"does NOT exist."
                 )
             else:
