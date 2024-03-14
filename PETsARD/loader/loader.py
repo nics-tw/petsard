@@ -64,27 +64,25 @@ class Loader:
         self,
         filepath: str = None,
         method:   str = None,
-
-        header_exist: bool = True,
         header_names: Optional[List[str]] = None,
-        na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
         sep: str = ',',
         sheet_name: Union[str, int] = 0,
         colnames_discrete: Optional[List[str]] = None,
         colnames_datetime: Optional[List[str]] = None,
         dtype: Optional[Dict[str, Any]] = {},
+
+        na_values:    Optional[Union[str, List[str], Dict[str, str]]] = None,
     ):
         """
         Args:
             filepath (str): The fullpath of dataset.
             method (str): The method of Loader.
 
-            header_exist (bool ,optional):
-                Is header as 1st row of data or NOT. Default is True.
             header_names (list ,optional):
-                Header list of data.
-                It will be replacement if header_exist is True,
-                and generating if header_exist is False. Default is empty list [].
+                Specifies a list of headers for the data.
+                If set, this list will replace the existing headers.
+                Default is None, indicating no custom headers will be applied.
+
             sep (str ,optional):
                 Character or regex pattern to treat as the delimiter.
                 Default is comma ",".
