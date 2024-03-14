@@ -9,8 +9,15 @@ class LoaderPandasCsv(LoaderBase):
         pandas.read_csv implementing of Loader
     """
 
-    def __init__(self, para_Loader: dict):
-        super().__init__(para_Loader)
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration for the loader modules.
+
+        Attr:
+            config (dict): The configuration for the loader modules.
+        """
+        super().__init__(config)
 
     def load(self) -> pd.DataFrame:
         """
@@ -21,15 +28,15 @@ class LoaderPandasCsv(LoaderBase):
                 Data in csv by pd.DataFrame format.
         """
         dict_setting = {}
-        dict_setting['filepath_or_buffer'] = self.para_Loader['filepath']
+        dict_setting['filepath_or_buffer'] = self.config['filepath']
 
         list_setting = ['sep', 'dtype', 'na_values']
-        dict_setting.update({k: self.para_Loader[k] for k in list_setting})
+        dict_setting.update({k: self.config[k] for k in list_setting})
 
-        if self.para_Loader['header_names'] is not None:
+        if self.config['header_names'] is not None:
             dict_setting.update({
                 'header': None,
-                'names':  self.para_Loader['header_names']
+                'names':  self.config['header_names']
             })
 
         return pd.read_csv(**dict_setting)
@@ -41,8 +48,15 @@ class LoaderPandasExcel(LoaderBase):
         pandas.read_csv implementing of Loader
     """
 
-    def __init__(self, para_Loader: dict):
-        super().__init__(para_Loader)
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration for the loader modules.
+
+        Attr:
+            config (dict): The configuration for the loader modules.
+        """
+        super().__init__(config)
 
     def load(self) -> pd.DataFrame:
         """
@@ -53,15 +67,15 @@ class LoaderPandasExcel(LoaderBase):
                 Data in excel by pd.DataFrame format.
         """
         dict_setting = {}
-        dict_setting['io'] = self.para_Loader['filepath']
+        dict_setting['io'] = self.config['filepath']
 
         list_setting = ['sheet_name', 'dtype', 'na_values']
-        dict_setting.update({k: self.para_Loader[k] for k in list_setting})
+        dict_setting.update({k: self.config[k] for k in list_setting})
 
-        if self.para_Loader['header_names'] is not None:
+        if self.config['header_names'] is not None:
             dict_setting.update({
                 'header': None,
-                'names':  self.para_Loader['header_names']
+                'names':  self.config['header_names']
             })
 
 
