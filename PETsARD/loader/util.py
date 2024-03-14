@@ -13,10 +13,9 @@ from pandas.api.types import (
 from PETsARD.error import ConfigError
 
 
-ALLOWED_COLUMN_TYPES: list = ['category', 'date', 'datetime']
+ALLOWED_COLUMN_TYPES: list = ['category', 'datetime']
 OPTIMIZED_DTYPES: dict = {
     'category': 'category',
-    'date': 'datetime64[D]',
     'datetime': 'datetime64[s]',
     'int': 'int64',
     'float': 'float64',
@@ -33,7 +32,6 @@ def verify_column_types(column_types: Dict[str, list] = None) -> bool:
             Format as {type: [colname]}
             Only below types are supported (case-insensitive):
             - 'category': The column will be treated as categorical.
-            - 'date': The column will be treated as date.
             - 'datetime': The column will be treated as datetime.
     """
     return all(
@@ -104,8 +102,6 @@ def _optimized_object_dtypes(col_data: pd.Series) -> str:
         by trying to convert it to datetime.
         - If any of it cannot be recognized as a datetime,
               then it will be recognized as a category.
-        - If all of time information is '00:00:00',
-              then it will be recognized as a date.
         - Otherwise, it will be recognized as a datetime.
 
     Parameters:
@@ -127,15 +123,10 @@ def _optimized_object_dtypes(col_data: pd.Series) -> str:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
         col_as_datetime: pd.Series = pd.to_datetime(col_data, errors='coerce')
-    if col_as_datetime.notna().any():
-        if (col_as_datetime.dt.hour == 0).all() \
-                and (col_as_datetime.dt.minute == 0).all() \
-                and (col_as_datetime.dt.second == 0).all():
-            return OPTIMIZED_DTYPES['date']
-        else:
-            return OPTIMIZED_DTYPES['datetime']
-    else:
+    if col_as_datetime.isna().any():
         return OPTIMIZED_DTYPES['category']
+    else:
+        return OPTIMIZED_DTYPES['datetime']
 
 
 def _optimized_numeric_dtypes(col_data: pd.Series) -> str:
@@ -204,13 +195,12 @@ def casting_dataframe(data: pd.DataFrame, optimized_dtypes: dict) -> pd.DataFram
     """
     for col_name in data.columns:
         optimized_dtype: str = optimized_dtypes.get(col_name, None)
+
         if optimized_dtype is None:
             raise ConfigError
-        elif optimized_dtype == 'date':
-            data[col_name] = pd.to_datetime(data[col_name], errors='coerce').dt.date
-        elif optimized_dtype == 'datatime':
-            data[col_name] = pd.to_datetime(data[col_name], errors='coerce')
-        else:
-            data[col_name] = data[col_name].astype(optimized_dtype)
+        elif optimized_dtype == 'datetime':
+            optimize_dtype = OPTIMIZED_DTYPES['datetime']
+
+        data[col_name] = data[col_name].astype(optimized_dtype)
 
     return data
