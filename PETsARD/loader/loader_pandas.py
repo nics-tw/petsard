@@ -42,7 +42,10 @@ class LoaderPandasCsv(LoaderBase):
         list_setting = ['dtype', 'na_values']
         pandas_config.update({k: self.config[k] for k in list_setting})
 
-        return pd.read_csv(**pandas_config)
+        try:
+            return pd.read_csv(**pandas_config)
+        except Exception:
+            raise FileNotFoundError
 
 
 class LoaderPandasExcel(LoaderBase):
@@ -86,16 +89,5 @@ class LoaderPandasExcel(LoaderBase):
 
         try:
             return pd.read_excel(**pandas_config)
-        except ValueError as ex:
-            if "Worksheet named" in str(ex) and "not found" in str(ex):
-                print(
-                    f"Loader (PandasExcel): "
-                    f"Sheet name {pandas_config['sheet_name']} "
-                    f"does NOT exist."
-                )
-            else:
-                print(
-                    f"Loader (PandasExcel): "
-                    f"An unknown ValueError occurred: \n"
-                    f"{ex}"
-                )
+        except Exception:
+            raise FileNotFoundError
