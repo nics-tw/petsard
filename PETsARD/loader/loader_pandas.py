@@ -39,10 +39,8 @@ class LoaderPandasCsv(LoaderBase):
                 'names':  self.config['header_names']
             })
 
-
-        list_setting = ['sep', 'dtype', 'na_values']
+        list_setting = ['dtype', 'na_values']
         pandas_config.update({k: self.config[k] for k in list_setting})
-
 
         return pd.read_csv(**pandas_config)
 
@@ -83,16 +81,8 @@ class LoaderPandasExcel(LoaderBase):
                 'names':  self.config['header_names']
             })
 
-
-        list_setting = ['sheet_name', 'dtype', 'na_values']
+        list_setting = ['dtype', 'na_values']
         pandas_config.update({k: self.config[k] for k in list_setting})
-
-        if self.config['header_names'] is not None:
-            pandas_config.update({
-                'header': None,
-                'names':  self.config['header_names']
-            })
-
 
         try:
             return pd.read_excel(**pandas_config)

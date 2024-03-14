@@ -65,8 +65,7 @@ class Loader:
         filepath: str = None,
         method:   str = None,
         header_names: Optional[List[str]] = None,
-        sep: str = ',',
-        sheet_name: Union[str, int] = 0,
+
         colnames_discrete: Optional[List[str]] = None,
         colnames_datetime: Optional[List[str]] = None,
         dtype: Optional[Dict[str, Any]] = {},
@@ -83,14 +82,6 @@ class Loader:
                 If set, this list will replace the existing headers.
                 Default is None, indicating no custom headers will be applied.
 
-            sep (str ,optional):
-                Character or regex pattern to treat as the delimiter.
-                Default is comma ",".
-            sheet_name (str | int ,optional):
-                Strings are used for sheet names.
-                Integers are used in zero-indexed sheet positions
-                (chart sheets do not count as a sheet position).
-                Specify None to get all worksheets.
             colnames_discrete (list ,optional):
                 List of column names that are discrete.
                 They will be forcibly treated as strings,
@@ -151,10 +142,7 @@ class Loader:
         # recoded remain parameter
         # TODO sunset colnames_discrete/datetime, it is duplicated to dtype
         self.config.update({
-            'header_exist': header_exist,
             'header_names': header_names,
-            'sep':          sep,
-            'sheet_name':   sheet_name,
             'na_values':    na_values
         })
 
@@ -176,9 +164,9 @@ class Loader:
         # Factory method for implementing the specified Loader class
         file_ext = self.config['file_ext'].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
-            self.loader = LoaderPandasCsv(self.config)
+            self.loader = LoaderPandasCsv(config=self.config)
         elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
-            self.loader = LoaderPandasExcel(self.config)
+            self.loader = LoaderPandasExcel(config=self.config)
         else:
             raise UnsupportedMethodError
 
