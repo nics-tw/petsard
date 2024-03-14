@@ -2,7 +2,6 @@ from importlib import resources
 import pathlib
 import re
 from typing import (
-    Any,
     Dict,
     List,
     Optional,
@@ -20,9 +19,14 @@ from PETsARD.loader.loader_pandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
+from PETsARD.loader.util import (
+    ALLOWED_COLUMN_TYPES,
+    verify_column_types,
+    optimize_dtype,
+)
 from PETsARD.loader.metadata import Metadata
 from PETsARD.error import ConfigError, UnsupportedMethodError
-from PETsARD.util import df_casting, df_cast_check
+from PETsARD.util import df_casting
 
 
 class LoaderFileExt():
@@ -53,13 +57,10 @@ class LoaderFileExt():
 
 class Loader:
     """
-    Loader
-
     Check the target file for the Loader,
         implement different Loader instances using a factory method,
         and read files with a module optimized for dtypes and storage.
     """
-    ALLOWED_COLUMN_TYPES: List[str] = ['category', 'date', 'datetime']
 
     def __init__(
         self,
@@ -123,8 +124,8 @@ class Loader:
         TODO combine method and filepath to one parameter.
         TODO support Minguo calendar (民國紀元)
         """
-        self.loader = None
         self.config: dict = None
+        self.loader = None
         self.data: pd.DataFrame = None
 
         # 1. Load filepath config
@@ -135,8 +136,7 @@ class Loader:
         self.config['column_types'] = None
         self.config['dtype'] = None
         if column_types is not None:
-            if any(coltype.lower() not in self.ALLOWED_COLUMN_TYPES
-                   for coltype in column_types):
+            if not verify_column_types(column_types):
                 raise ConfigError
             self.config['column_types'] = column_types
             self.config['dtype'] = self._assign_str_dtype(column_types)
@@ -147,12 +147,11 @@ class Loader:
 
     def load(self):
         """
-        load
-            load data, dtype confirm and casting, and build metadata
+        load data, dtype confirm and casting, and build metadata
         """
 
-        # 1. if set as load benchmark
-        #       download benchmark dataset, and execute as local file.
+        # 1. If set as load benchmark
+        #       downloading benchmark dataset, and executing on local file.
         if self.config['benchmark']:
             benchmark_access = self.config['benchmark_access']
             if benchmark_access == 'public':
@@ -162,7 +161,7 @@ class Loader:
             else:
                 raise UnsupportedMethodError
 
-        # 2. set self.loader as specified Loader class by file extension
+        # 2. Setting self.loader as specified Loader class by file extension
         file_ext = self.config['file_ext'].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
             self.loader = LoaderPandasCsv(config=self.config)
@@ -171,20 +170,22 @@ class Loader:
         else:
             raise UnsupportedMethodError
 
-        self.data: pd.DataFrame = self.loader.load()
+        # 3. Loading data
+        data: pd.DataFrame = self.loader.load()
 
-        # Define dtype
-        # TODO Still consider how to extract dtype from pd.dateframe directly.
-        #      Consider to combind to Metadata
-        self.config['dtype'] = df_cast_check(self.data, self.config['dtype'])
-
-        # Casting data for more efficient storage space
-        self.data = df_casting(self.data, self.config['dtype'])
+        # 4. Optimizing dtype
+        self.config['dtype'] = optimize_dtype(
+            data = data,
+            column_types = self.config['column_types'],
+        )
 
         # metadata
         metadata = Metadata()
         metadata.build_metadata(data=self.data)
         self.metadata: Metadata = metadata
+
+        # Casting data for more efficient storage space
+        self.data = df_casting(self.data, self.config['dtype'])
 
     @classmethod
     def _handle_filepath(cls, filepath: str, method: str) -> dict:
@@ -308,8 +309,7 @@ class Loader:
         column_types: Optional[Dict[str, List[str]]]
     ) -> Dict[str, str]:
         """
-        _specify_str_dtype
-            Force setting discrete and datetime columns been load as str at first.
+        Force setting discrete and datetime columns been load as str at first.
 
         Args:
             column_types (dict):
@@ -320,7 +320,7 @@ class Loader:
                 dtype: particular columns been force assign as string
         """
         str_colname: List[str] = []
-        for coltype in cls.ALLOWED_COLUMN_TYPES:
+        for coltype in ALLOWED_COLUMN_TYPES.keys():
             str_colname.extend(column_types.get(coltype, []))
 
         return {colname: 'str' for colname in str_colname}
