@@ -22,7 +22,7 @@ from PETsARD.loader.loader_pandas import (
 from PETsARD.loader.util import (
     ALLOWED_COLUMN_TYPES,
     verify_column_types,
-    optimize_dtype,
+    optimize_dtypes,
 )
 from PETsARD.loader.metadata import Metadata
 from PETsARD.error import ConfigError, UnsupportedMethodError
@@ -111,7 +111,7 @@ class Loader:
                 - from input
                     column_types (dict, optional):
                         The dictionary of special column type and their column names.
-                    dtype (dict, optional):
+                    dtypes (dict, optional):
                         The dictionary of column names and their types as format.
                     header_names (list ,optional):
                         Specifies a list of headers for the data.
@@ -174,18 +174,19 @@ class Loader:
         data: pd.DataFrame = self.loader.load()
 
         # 4. Optimizing dtype
-        self.config['dtype'] = optimize_dtype(
+        self.config['dtype'] = optimize_dtypes(
             data = data,
             column_types = self.config['column_types'],
         )
+
+        # Casting data for more efficient storage space
+        # self.data = df_casting(data, self.config['dtype'])
+        self.data = data
 
         # metadata
         metadata = Metadata()
         metadata.build_metadata(data=self.data)
         self.metadata: Metadata = metadata
-
-        # Casting data for more efficient storage space
-        self.data = df_casting(self.data, self.config['dtype'])
 
     @classmethod
     def _handle_filepath(cls, filepath: str, method: str) -> dict:
@@ -320,7 +321,7 @@ class Loader:
                 dtype: particular columns been force assign as string
         """
         str_colname: List[str] = []
-        for coltype in ALLOWED_COLUMN_TYPES.keys():
+        for coltype in ALLOWED_COLUMN_TYPES:
             str_colname.extend(column_types.get(coltype, []))
 
         return {colname: 'str' for colname in str_colname}

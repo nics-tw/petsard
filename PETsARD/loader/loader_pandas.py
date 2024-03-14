@@ -39,6 +39,7 @@ class LoaderPandasCsv(LoaderBase):
                 'names':  self.config['header_names']
             })
 
+        # 3. assign dtype and na_values
         list_setting = ['dtype', 'na_values']
         pandas_config.update({k: self.config[k] for k in list_setting})
 
