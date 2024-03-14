@@ -55,7 +55,7 @@ datasets:
   acs-person:
     filename: ss15pusab.csv
     access: public
-    sha256: 4c70c3cbc7f55906de8347016a6c197e1fb36f10d8bb80b9f2246152a8adbd86
+    sha256: 82d91749f408594b94336a0e924fa5e039697bc1d2d94764e90ef39efb94f0a7
   # American Community Survey: Household-level
   acs-household:
     filename: ss15husab.csv
