@@ -224,7 +224,7 @@ class ML(AutoML):
             'gradient_boosting': []
         }
 
-        pos = self.config['pos_label']
+        # pos = self.config['pos_label']
         
         kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         
@@ -250,16 +250,16 @@ class ML(AutoML):
 
             result['logistic_regression'].append(f1_score(target_test, 
                                                           lr.predict(data_test),
-                                                          pos_label=pos))
+                                                          average='micro'))
             result['svc'].append(f1_score(target_test, 
                                           svc.predict(data_test),
-                                          pos_label=pos))
+                                          average='micro'))
             result['random_forest'].append(f1_score(target_test, 
                                                     rf.predict(data_test),
-                                                    pos_label=pos))
+                                                    average='micro'))
             result['gradient_boosting'].append(f1_score(target_test, 
                                                         gb.predict(data_test),
-                                                        pos_label=pos))
+                                                        average='micro'))
             
         return result
             
