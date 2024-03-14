@@ -38,11 +38,11 @@ class AutoML:
 
     def create(self, data):
         """
-        Create the worker and send the data to the worker.
+        Create a worker and send the data to the worker.
 
         Args:
-            data (dict): The data to be described. The key should be 'data', 
-            and the value should be a pandas DataFrame.
+            data (dict): The data to be described. The keys should be 'ori' 
+            and 'syn, and the value should be a pandas DataFrame.
         """
         self.data = data
         self.ml = ML(self.config)
@@ -56,33 +56,35 @@ class AutoML:
 
     def get_global(self):
         """
-        Get the global result of the description/evaluation.
+        Get the global result of the evaluation.
         """
         return self.ml.get_global()
 
     def get_columnwise(self):
         """
-        Get the column-wise result of the description/evaluation.
+        Get the column-wise result of the evaluation. Dummy method.
         """
         return self.ml.get_columnwise()
 
     def get_pairwise(self):
         """
-        Get the pair-wise result of the description/evaluation.
+        Get the pair-wise result of the evaluation. Dummy method.
         """
         return self.ml.get_pairwise()
 
 
 class ML(AutoML):
     """
-    Aggregates the results of multiple Describers. The worker of Describer.
+    Train and evaluate the models based on the original data and the synthetic 
+    data. The worker of AutoML.
 
     Args:
         config (dict): A dictionary containing the configuration settings.
             - method (str): The method name of how you evaluating data.
-            - describe (list): A list of methods to describe the data. 
-            If the method requires a parameter, it should be a dictionary 
-            with the method name as the key and the parameter as the value.
+            - task (str): The downstream task of the data.
+            - target (str): The target column of the data.
+            - pos_label (str): The positive label of the target column. Used in
+            classification task.
     """
 
     def __init__(self, config: dict):
@@ -95,10 +97,10 @@ class ML(AutoML):
 
     def create(self, data):
         """
-        Store the data in the aggregator.
+        Store the data in the instance.
 
         Args:
-            data (pd.DataFrame): The data to be described.
+            data (pd.DataFrame): The data to be trained on.
         """
         self.data_content = data
 
@@ -107,7 +109,7 @@ class ML(AutoML):
         Data preprocessing and model fitting and evaluation.
 
         Data preprocessing process: remove missing values, one-hot encoding for
-        categorical variables, and normalization.
+        categorical variables, and normalisation.
         """
         data_ori = self.data_content['ori']
         data_syn = self.data_content['syn']
@@ -144,7 +146,7 @@ class ML(AutoML):
         and gradient boosting.
 
         For the robustness of the results, the model is trained 
-        and evaluated 10 times, and the average of the results 
+        and evaluated 5 times, and the average of the results 
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -201,7 +203,7 @@ class ML(AutoML):
         and gradient boosting.
 
         For the robustness of the results, the model is trained 
-        and evaluated 10 times, and the average of the results 
+        and evaluated 5 times, and the average of the results 
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -267,7 +269,7 @@ class ML(AutoML):
         The models used are KMeans with different number of clusters.
 
         For the robustness of the results, the model is trained 
-        and evaluated 10 times, and the average of the results 
+        and evaluated 5 times, and the average of the results 
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -318,11 +320,10 @@ class ML(AutoML):
 
     def get_global(self) -> pd.DataFrame:
         """
-        Get the global result of the description/evaluation.
-            Only one row, and every property/metrics is columns.
+        Get the global result of the evaluation.
 
         Returns:
-            (pd.DataFrame): The global result of the description/evaluation.
+            (pd.DataFrame): The global result of the evaluation.
         """
         syn_value = []
 
