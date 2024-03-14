@@ -1,19 +1,25 @@
-from dateutil.parser import parse
-from typing import (
-    Dict,
-)
+from typing import Dict
 import warnings
 
+import numpy as np
 import pandas as pd
-from pandas.api.types import is_object_dtype
+from pandas.api.types import (
+    is_float_dtype,
+    is_integer_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
 
 from PETsARD.error import ConfigError
 
 
-ALLOWED_COLUMN_TYPES: dict = {
+ALLOWED_COLUMN_TYPES: list = ['category', 'date', 'datetime']
+OPTIMIZED_DTYPES: dict = {
     'category': 'category',
     'date': 'datetime64[D]',
     'datetime': 'datetime64[s]',
+    'int': 'int64',
+    'float': 'float64',
 }
 
 
@@ -31,12 +37,12 @@ def verify_column_types(column_types: Dict[str, list] = None) -> bool:
             - 'datetime': The column will be treated as datetime.
     """
     return all(
-        coltype.lower() in ALLOWED_COLUMN_TYPES.keys()
+        coltype.lower() in ALLOWED_COLUMN_TYPES
         for coltype in column_types.keys()
     )
 
 
-def optimize_dtype(
+def optimize_dtypes(
     data: pd.DataFrame,
     column_types: Dict[str, list] = None
 ) -> Dict[str, str]:
@@ -48,57 +54,71 @@ def optimize_dtype(
         column_types (dict): The column types to be forced assigned.
 
     Return:
-        optimize_dtype (dict):
+        optimize_dtypes (dict):
             dtype: particular columns been force assign as string
     """
-    original_dtype = data.dtypes
-    optimize_dtype: Dict[str, str] = {}
+    original_dtypes = data.dtypes
+    optimize_dtypes: Dict[str, str] = {}
 
     # 1. if column_types is setting, force assign dtype
     if column_types is not None:
         if not verify_column_types(column_types):
             raise ConfigError
-        for coltype in ALLOWED_COLUMN_TYPES.keys():
+        for coltype in ALLOWED_COLUMN_TYPES:
             if coltype in column_types:
                 for colname in column_types[coltype]:
-                    optimize_dtype[colname] = ALLOWED_COLUMN_TYPES[coltype]
+                    optimize_dtypes[colname] = OPTIMIZED_DTYPES[coltype]
 
     # 2. retrive remain columns not been assigned by column_types
     remain_col: list = list(
-        set(original_dtype.keys()) - set(optimize_dtype.keys())
+        set(original_dtypes.keys()) - set(optimize_dtypes.keys())
     )
 
     # 3. for remain columns
-    for colname, dtype in original_dtype.items():
+    for colname, ori_dtype in original_dtypes.items():
         if colname in remain_col:
             col_data: pd.Series = data[colname]
-            col_data.dropna(inplace=True)
-            # 3-1. if dtype is object, force assign as category
-            if dtype == 'object':
-                optimize_dtype[colname] = _optimized_object_dtype(
-                    col_data=col_data
-                )
-                continue
+            opt_dtype: str = ''
 
-    return optimize_dtype
+            if is_object_dtype(col_data):
+                # 3.1 if dtype from pandas is object, infer the optimized dtype
+                #     by trying to convert it to datetime.
+                opt_dtype = _optimized_object_dtypes(col_data=col_data)
+            elif is_numeric_dtype(col_data):
+                # 3.2 if dtype from pandas is numeric, infer the optimized dtype
+                #     by comparing the range of the column data
+                #     with the ranges of each numeric data type.
+                opt_dtype = _optimized_numeric_dtypes(col_data=col_data)
+            else:
+                # 3.3 otherwise, keep the original dtype
+                opt_dtype = ori_dtype
+
+            optimize_dtypes[colname] = opt_dtype
+
+    return optimize_dtypes
 
 
-def _optimized_object_dtype(col_data: pd.Series) -> str:
+def _optimized_object_dtypes(col_data: pd.Series) -> str:
     """
-    Determine the optimized column type for a given pandas Series of object dtype.
+    Determine the optimized column type for a given pandas Series of object dtype,
+        by trying to convert it to datetime.
+        - If any of it cannot be recognized as a datetime,
+              then it will be recognized as a category.
+        - If all of time information is '00:00:00',
+              then it will be recognized as a date.
+        - Otherwise, it will be recognized as a datetime.
 
     Parameters:
         col_data (pd.Series): The pandas Series containing the column data.
 
     Returns:
         str: The optimized column type.
-
-    Raises:
-        TypeError: If the column data is not of object dtype.
-
     """
-    if not is_object_dtype(col_data.dtype):
-        raise TypeError
+    # if all data in column is NaN, force assign as category
+    if col_data.isna().all():
+        return OPTIMIZED_DTYPES['category']
+
+    col_data.dropna(inplace=True)
 
     # ignore below UserWarning from pandas
     #   UserWarning: Could not infer format,
@@ -108,11 +128,64 @@ def _optimized_object_dtype(col_data: pd.Series) -> str:
         warnings.simplefilter("ignore", UserWarning)
         col_as_datetime: pd.Series = pd.to_datetime(col_data, errors='coerce')
     if col_as_datetime.notna().any():
-        if      (col_as_datetime.dt.hour   == 0).all() \
-            and (col_as_datetime.dt.minute == 0).all() \
-            and (col_as_datetime.dt.second == 0).all():
-                return ALLOWED_COLUMN_TYPES['date']
+        if (col_as_datetime.dt.hour == 0).all() \
+                and (col_as_datetime.dt.minute == 0).all() \
+                and (col_as_datetime.dt.second == 0).all():
+            return OPTIMIZED_DTYPES['date']
         else:
-            return ALLOWED_COLUMN_TYPES['datetime']
+            return OPTIMIZED_DTYPES['datetime']
     else:
-        return ALLOWED_COLUMN_TYPES['category']
+        return OPTIMIZED_DTYPES['category']
+
+
+def _optimized_numeric_dtypes(col_data: pd.Series) -> str:
+    """
+    Determines the optimized numeric data type for a given pandas Series
+        by comparing the range of the column data with the ranges of each numeric data type.
+
+    Spcial Note:
+        Pandas does not support the float16 engine,
+            and certain libraries may attempt to process your column as an index
+            (for example, SDV, Gaussian Copula)
+        Consequently, designating a column as float16 could lead to an error stating:
+            "NotImplementedError: float16 indexes are not supported".
+        As a result, we have chosen to set the minimum float type
+            to float32 to avoid this issue.
+
+    Args:
+        col_data (pd.Series): The pandas Series containing the column data.
+
+    Returns:
+        str: The optimized numeric data type for the column.
+    """
+    ori_dtype: str = col_data.dtype
+    opt_dtype: str = None
+
+    # 1. Setting the ranges for each numeric data type
+    if is_integer_dtype(col_data):
+        RANGES = {
+            'int8':  (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+            'int16': (np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+            'int32': (np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+            'int64': (np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+        }
+    elif is_float_dtype(col_data):
+        RANGES = {
+            'float32': (np.finfo(np.float32).min, np.finfo(np.float32).max),
+            'float64': (np.finfo(np.float64).min, np.finfo(np.float64).max),
+        }
+    # 2. Check the range of the column data
+    col_min, col_max = np.nanmin(col_data), np.nanmax(col_data)
+
+    # 3. Infer the optimized dtype by their ranges
+    for range_dtype, (min_val, max_val) in RANGES.items():
+        if min_val <= col_min and col_max <= max_val:
+            opt_dtype = range_dtype
+            break
+
+    # 3. If none of the ranges match,
+    #    then return the original dtype define by pandas dtype.
+    if opt_dtype is None:
+        opt_dtype = ori_dtype
+
+    return opt_dtype

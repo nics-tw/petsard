@@ -2,7 +2,6 @@
 TODO:
     ResultError  in Anonymeter.py -> or make it as Reporter
     SamplingError in Splitter.py
-    UnsupportDtypeError in df_cast_check.py
 """
 
 
