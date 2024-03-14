@@ -23,8 +23,6 @@ class AutoML:
             - method (str): The method name of how you evaluating data.
             - task (str): The downstream task of the data.
             - target (str): The target column of the data.
-            - pos_label (str): The positive label of the target column. Used in
-            classification task.
     """
 
     def __init__(self, config: dict):
@@ -83,8 +81,6 @@ class ML(AutoML):
             - method (str): The method name of how you evaluating data.
             - task (str): The downstream task of the data.
             - target (str): The target column of the data.
-            - pos_label (str): The positive label of the target column. Used in
-            classification task.
     """
 
     def __init__(self, config: dict):
@@ -223,8 +219,6 @@ class ML(AutoML):
             'random_forest': [], 
             'gradient_boosting': []
         }
-
-        # pos = self.config['pos_label']
         
         kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         
