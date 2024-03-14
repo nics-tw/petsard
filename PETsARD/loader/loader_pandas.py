@@ -9,32 +9,44 @@ class LoaderPandasCsv(LoaderBase):
         pandas.read_csv implementing of Loader
     """
 
-    def __init__(self, para_Loader: dict):
-        super().__init__(para_Loader)
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration for the loader modules.
+
+        Attr:
+            config (dict): The configuration for the loader modules.
+        """
+        super().__init__(config)
 
     def load(self) -> pd.DataFrame:
         """
         Load and return the data
-        ...
+
         Return:
             (pd.DataFrame)
                 Data in csv by pd.DataFrame format.
         """
-        dict_setting = {}
-        dict_setting['filepath_or_buffer'] = self.para_Loader['filepath']
+        pandas_config = {}
 
-        list_setting = ['sep', 'dtype', 'na_values']
-        dict_setting.update({k: self.para_Loader[k] for k in list_setting})
+        # 1. set the filepath
+        pandas_config['filepath_or_buffer'] = self.config['filepath']
 
-        if self.para_Loader['header_exist']:
-            dict_setting['header'] = 0
-        else:
-            dict_setting.update({
+        # 2. If header_names is not None, setting custom header names
+        if self.config['header_names'] is not None:
+            pandas_config.update({
                 'header': None,
-                'names':  self.para_Loader['header_names']
+                'names':  self.config['header_names']
             })
 
-        return pd.read_csv(**dict_setting)
+        # 3. assign dtype and na_values
+        list_setting = ['dtype', 'na_values']
+        pandas_config.update({k: self.config[k] for k in list_setting})
+
+        try:
+            return pd.read_csv(**pandas_config)
+        except Exception:
+            raise FileNotFoundError
 
 
 class LoaderPandasExcel(LoaderBase):
@@ -43,43 +55,40 @@ class LoaderPandasExcel(LoaderBase):
         pandas.read_csv implementing of Loader
     """
 
-    def __init__(self, para_Loader: dict):
-        super().__init__(para_Loader)
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration for the loader modules.
+
+        Attr:
+            config (dict): The configuration for the loader modules.
+        """
+        super().__init__(config)
 
     def load(self) -> pd.DataFrame:
         """
         Load and return the data
-        ...
+
         Return:
             (pd.DataFrame)
                 Data in excel by pd.DataFrame format.
         """
-        dict_setting = {}
-        dict_setting['io'] = self.para_Loader['filepath']
+        pandas_config = {}
 
-        list_setting = ['sheet_name', 'dtype', 'na_values']
-        dict_setting.update({k: self.para_Loader[k] for k in list_setting})
+        # 1. set the filepath
+        pandas_config['io'] = self.config['filepath']
 
-        if self.para_Loader['header_exist']:
-            dict_setting['header'] = 0
-        else:
-            dict_setting.update({
+        # 2. If header_names is not None, setting custom header names
+        if self.config['header_names'] is not None:
+            pandas_config.update({
                 'header': None,
-                'names':  self.para_Loader['header_names']
+                'names':  self.config['header_names']
             })
 
+        list_setting = ['dtype', 'na_values']
+        pandas_config.update({k: self.config[k] for k in list_setting})
+
         try:
-            return pd.read_excel(**dict_setting)
-        except ValueError as ex:
-            if "Worksheet named" in str(ex) and "not found" in str(ex):
-                print(
-                    f"Loader (PandasExcel): "
-                    f"Sheet name {dict_setting['sheet_name']} "
-                    f"does NOT exist."
-                )
-            else:
-                print(
-                    f"Loader (PandasExcel): "
-                    f"An unknown ValueError occurred: \n"
-                    f"{ex}"
-                )
+            return pd.read_excel(**pandas_config)
+        except Exception:
+            raise FileNotFoundError
