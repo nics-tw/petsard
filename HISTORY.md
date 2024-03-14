@@ -3,7 +3,9 @@
 - **Beta testing 外部測試階段**
   - **0.8.0** (2024-03-14): **Start Beta testing** **外部測試開始**
     - Provide a deeper description of YAML configurations and user stories in the [new manual website](https://nics-tw.github.io/PETsARD/). Also, address the issues encountered in functional testing across multiple modules.
+    - DPCTGAN, PATEGAN in smartnoise can be accessed in `Synthesizer` now. Besides, the execution error from aim, mst, and pacsynth are fixed.
     - 在[新手冊網站](https://nics-tw.github.io/PETsARD/)上對 YAML 設定、以及用戶故事有更深入的描述。並解決多個模組在功能測試上遇到的問題。
+    - smartnoise 的 DPCTGAN, PATEGAN 可以於 `Synthesizer` 中使用，並修正 aim、mst、pacsynth 執行過程中的錯誤。
   - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
     - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
     - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
