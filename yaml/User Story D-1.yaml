@@ -1,0 +1,23 @@
+Loader:
+  demo:
+    # default of Loader is Adult Income dataset
+    method: 'default'
+Preprocessor:
+  demo:
+    # default of Preprocessor automatically determines the data type
+    #   and uses the corresponding method.
+    method: 'default'
+Synthesizer:
+  sdv-gaussian:
+    method: 'sdv-single_table-gaussiancopula'
+Postprocessor:
+  # make sure the expt_name of Postprocessor is same as the Preprocessor
+  demo:
+    method: 'default'
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: 'User Story D-1'
+    # source of Reporter means which result of module/expt_name should Reporter use
+    #   accept string (for only one) and list of string (for multiple result)
+    source: 'Postprocessor'
