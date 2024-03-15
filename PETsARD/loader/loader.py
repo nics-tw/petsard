@@ -72,8 +72,8 @@ class Loader:
     ):
         """
         Args:
-            filepath (str): The fullpath of dataset.
-            method (str): The method of Loader.
+            filepath (str, optional): The fullpath of dataset.
+            method (str, optional): The method of Loader.
             column_types (dict ,optional):
                 The dictionary of column names and their types.
                 Format as {type: [colname]}
