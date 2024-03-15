@@ -5,7 +5,7 @@ The `describer` module is responsible for producing descriptive statistical anal
 ```python
 from PETsARD import Describer
 
-data = {'data': loader.data}
+data = {"data": loader.data}
 
 config = {
     'method': 'summary',
