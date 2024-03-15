@@ -125,17 +125,20 @@ class ML(AutoML):
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
         if self.config['task'] == 'regression':
-            self.result_ori = self._regression(data_ori, target_ori)
-            self.result_syn = self._regression(data_syn, target_syn)
+            self.result_ori, self.result_syn = self._regression(
+                data_ori, target_ori, data_syn, target_syn
+            )
         elif self.config['task'] == 'classification':
-            self.result_ori = self._classification(data_ori, target_ori)
-            self.result_syn = self._classification(data_syn, target_syn)
+            self.result_ori, self.result_syn = self._classification(
+                data_ori, target_ori, data_syn, target_syn
+            )
         elif self.config['task'] == 'cluster':
-            self.result_ori = self._cluster(data_ori)
-            self.result_syn = self._cluster(data_syn)
+            self.result_ori, self.result_syn = self._cluster(             
+                data_ori, data_syn
+            )
  
 
-    def _regression(self, data, target):
+    def _regression(self, data_ori, target_ori, data_syn, target_syn):
         """
         Regression model fitting and evaluation.
         The models used are linear regression, random forest, 
@@ -156,7 +159,13 @@ class ML(AutoML):
         Returns:
             result (dict): The result of the evaluation.
         """ 
-        result = {
+        result_ori = {
+            'linear_regression': [], 
+            'random_forest': [], 
+            'gradient_boosting': []
+        }
+
+        result_syn = {
             'linear_regression': [], 
             'random_forest': [], 
             'gradient_boosting': []
@@ -164,35 +173,79 @@ class ML(AutoML):
         
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
         
-        for train_index, test_index in kf.split(data, target):
-            data_train, data_test = data.iloc[train_index, :], \
-                data.iloc[test_index, :]
-            target_train, target_test = target[train_index], \
-                target[test_index]
+        for train_index, test_index in kf.split(data_ori, target_ori):
+            data_ori_train, data_ori_test = data_ori.iloc[train_index, :], \
+                data_ori.iloc[test_index, :]
+            target_ori_train, target_ori_test = target_ori[train_index], \
+                target_ori[test_index]
+            data_syn_train, data_syn_test = data_syn.iloc[train_index, :], \
+                data_syn.iloc[test_index, :]
+            target_syn_train, target_syn_test = target_syn[train_index], \
+                target_syn[test_index]
 
-            ssx = StandardScaler()
-            data_train = ssx.fit_transform(data_train)
-            data_test = ssx.transform(data_test)
+            ssx_ori = StandardScaler()
+            data_ori_train = ssx_ori.fit_transform(data_ori_train)
+            data_ori_test = ssx_ori.transform(data_ori_test)
 
-            ssy = StandardScaler()
-            target_train = ssy.fit_transform(target_train.reshape(-1, 1)).ravel()
-            target_test = ssy.transform(target_test.reshape(-1, 1)).ravel()
+            ssy_ori = StandardScaler()
+            target_ori_train = ssy_ori.fit_transform(
+                target_ori_train.reshape(-1, 1)
+            ).ravel()
+            target_ori_test = ssy_ori.transform(
+                target_ori_test.reshape(-1, 1)
+            ).ravel()
 
-            lr = LinearRegression()
-            rf = RandomForestRegressor(random_state=42)
-            gb = GradientBoostingRegressor(random_state=42)
+            ssx_syn = StandardScaler()
+            data_syn_train = ssx_syn.fit_transform(data_syn_train)
+            data_syn_test = ssx_syn.transform(data_syn_test)
 
-            lr.fit(data_train, target_train)
-            rf.fit(data_train, target_train)
-            gb.fit(data_train, target_train)
+            ssy_syn = StandardScaler()
+            target_syn_train = ssy_syn.fit_transform(
+                target_syn_train.reshape(-1, 1)
+            ).ravel()
+            target_syn_test = ssy_syn.transform(
+                target_syn_test.reshape(-1, 1)
+            ).ravel()
 
-            result['linear_regression'].append(lr.score(data_test, target_test))
-            result['random_forest'].append(rf.score(data_test, target_test))
-            result['gradient_boosting'].append(gb.score(data_test, target_test))
+            lr_ori = LinearRegression()
+            rf_ori = RandomForestRegressor(random_state=42)
+            gb_ori = GradientBoostingRegressor(random_state=42)
 
-        return result
+            lr_syn = LinearRegression()
+            rf_syn = RandomForestRegressor(random_state=42)
+            gb_syn = GradientBoostingRegressor(random_state=42)
 
-    def _classification(self, data, target):
+            lr_ori.fit(data_ori_train, target_ori_train)
+            rf_ori.fit(data_ori_train, target_ori_train)
+            gb_ori.fit(data_ori_train, target_ori_train)
+
+            lr_syn.fit(data_syn_train, target_syn_train)
+            rf_syn.fit(data_syn_train, target_syn_train)
+            gb_syn.fit(data_syn_train, target_syn_train)
+
+            result_ori['linear_regression'].append(
+                lr_ori.score(data_ori_test, target_ori_test)
+            )
+            result_ori['random_forest'].append(
+                rf_ori.score(data_ori_test, target_ori_test)
+            )
+            result_ori['gradient_boosting'].append(
+                gb_ori.score(data_ori_test, target_ori_test)
+            )
+
+            result_syn['linear_regression'].append(
+                lr_syn.score(data_syn_test, target_syn_test)
+            )
+            result_syn['random_forest'].append(
+                rf_syn.score(data_syn_test, target_syn_test)
+            )
+            result_syn['gradient_boosting'].append(
+                gb_syn.score(data_syn_test, target_syn_test)
+            )
+
+        return result_ori, result_syn
+
+    def _classification(self, data_ori, target_ori, data_syn, target_syn):
         """
         Classification model fitting and evaluation.
         The models used are logistic regression, SVC, random forest,
@@ -213,7 +266,14 @@ class ML(AutoML):
         Returns:
             result (dict): The result of the evaluation.
         """ 
-        result = {
+        result_ori = {
+            'logistic_regression': [], 
+            'svc': [],
+            'random_forest': [], 
+            'gradient_boosting': []
+        }
+
+        result_syn = {
             'logistic_regression': [], 
             'svc': [],
             'random_forest': [], 
@@ -222,42 +282,81 @@ class ML(AutoML):
         
         kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         
-        for train_index, test_index in kf.split(data, target):
-            data_train, data_test = data.iloc[train_index, :],\
-                data.iloc[test_index, :]
-            target_train, target_test = target[train_index], \
-                target[test_index]
+        for train_index, test_index in kf.split(data_ori, target_ori):
+            data_ori_train, data_ori_test = data_ori.iloc[train_index, :], \
+                data_ori.iloc[test_index, :]
+            target_ori_train, target_ori_test = target_ori[train_index], \
+                target_ori[test_index]
+            data_syn_train, data_syn_test = data_syn.iloc[train_index, :], \
+                data_syn.iloc[test_index, :]
+            target_syn_train, target_syn_test = target_syn[train_index], \
+                target_syn[test_index]
 
-            ss = StandardScaler()
-            data_train = ss.fit_transform(data_train)
-            data_test = ss.transform(data_test)
+            ssx_ori = StandardScaler()
+            data_ori_train = ssx_ori.fit_transform(data_ori_train)
+            data_ori_test = ssx_ori.transform(data_ori_test)
 
-            lr = LogisticRegression(random_state=42)
-            svc = SVC(random_state=42)
-            rf = RandomForestClassifier(random_state=42)
-            gb = GradientBoostingClassifier(random_state=42)
+            ssx_syn = StandardScaler()
+            data_syn_train = ssx_syn.fit_transform(data_syn_train)
+            data_syn_test = ssx_syn.transform(data_syn_test)
 
-            lr.fit(data_train, target_train)
-            svc.fit(data_train, target_train)
-            rf.fit(data_train, target_train)
-            gb.fit(data_train, target_train)
+            lr_ori = LogisticRegression(random_state=42)
+            svc_ori = SVC(random_state=42)
+            rf_ori = RandomForestClassifier(random_state=42)
+            gb_ori = GradientBoostingClassifier(random_state=42)
 
-            result['logistic_regression'].append(f1_score(target_test, 
-                                                          lr.predict(data_test),
-                                                          average='micro'))
-            result['svc'].append(f1_score(target_test, 
-                                          svc.predict(data_test),
-                                          average='micro'))
-            result['random_forest'].append(f1_score(target_test, 
-                                                    rf.predict(data_test),
-                                                    average='micro'))
-            result['gradient_boosting'].append(f1_score(target_test, 
-                                                        gb.predict(data_test),
-                                                        average='micro'))
+            lr_syn = LogisticRegression(random_state=42)
+            svc_syn = SVC(random_state=42)
+            rf_syn = RandomForestClassifier(random_state=42)
+            gb_syn = GradientBoostingClassifier(random_state=42)
+
+            lr_ori.fit(data_ori_train, target_ori_train)
+            svc_ori.fit(data_ori_train, target_ori_train)
+            rf_ori.fit(data_ori_train, target_ori_train)
+            gb_ori.fit(data_ori_train, target_ori_train)
+
+            lr_syn.fit(data_syn_train, target_syn_train)
+            svc_syn.fit(data_syn_train, target_syn_train)
+            rf_syn.fit(data_syn_train, target_syn_train)
+            gb_syn.fit(data_syn_train, target_syn_train)
+
+            result_ori['logistic_regression'].append(
+                f1_score(target_ori_test, lr_ori.predict(data_ori_test),
+                         average='micro')
+            )
+            result_ori['svc'].append(
+                f1_score(target_ori_test, svc_ori.predict(data_ori_test),
+                         average='micro')
+            )
+            result_ori['random_forest'].append(
+                f1_score(target_ori_test, rf_ori.predict(data_ori_test),
+                         average='micro')
+            )
+            result_ori['gradient_boosting'].append(
+                f1_score(target_ori_test, gb_ori.predict(data_ori_test),
+                         average='micro')
+            )
+
+            result_syn['logistic_regression'].append(
+                f1_score(target_syn_test, lr_syn.predict(data_syn_test),
+                         average='micro')
+            )
+            result_syn['svc'].append(
+                f1_score(target_syn_test, svc_syn.predict(data_syn_test),
+                         average='micro')
+            )
+            result_syn['random_forest'].append(
+                f1_score(target_syn_test, rf_syn.predict(data_syn_test),
+                         average='micro')
+            )
+            result_syn['gradient_boosting'].append(
+                f1_score(target_syn_test, gb_syn.predict(data_syn_test),
+                         average='micro')
+            )
             
-        return result
+        return result_ori, result_syn
             
-    def _cluster(self, data):
+    def _cluster(self, data_ori, data_syn):
         """
         Clustering model fitting and evaluation.
         The models used are KMeans with different number of clusters.
@@ -276,7 +375,13 @@ class ML(AutoML):
         Returns:
             result (dict): The result of the evaluation.
         """ 
-        result = {
+        result_ori = {
+            'KMeans_cluster4': [],
+            'KMeans_cluster5': [],
+            'KMeans_cluster6': []
+        }
+
+        result_syn = {
             'KMeans_cluster4': [],
             'KMeans_cluster5': [],
             'KMeans_cluster6': []
@@ -284,33 +389,57 @@ class ML(AutoML):
         
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
         
-        for train_index, test_index in kf.split(data):
-            data_train, data_test = data.iloc[train_index, :], \
-                data.iloc[test_index, :]
+        for train_index, test_index in kf.split(data_ori):
+            data_ori_train, data_ori_test = data_ori.iloc[train_index, :], \
+                data_ori.iloc[test_index, :]
+            data_syn_train, data_syn_test = data_syn.iloc[train_index, :], \
+                data_syn.iloc[test_index, :]
 
-            ss = StandardScaler()
-            data_train = ss.fit_transform(data_train)
-            data_test = ss.transform(data_test)
+            ss_ori = StandardScaler()
+            data_ori_train = ss_ori.fit_transform(data_ori_train)
+            data_ori_test = ss_ori.transform(data_ori_test)
 
-            k4 = KMeans(random_state=42, n_clusters=4)
-            k5 = KMeans(random_state=42, n_clusters=5)
-            k6 = KMeans(random_state=42, n_clusters=6)
+            ss_syn = StandardScaler()
+            data_syn_train = ss_syn.fit_transform(data_syn_train)
+            data_syn_test = ss_syn.transform(data_syn_test)
 
-            k4.fit(data_train)
-            k5.fit(data_train)
-            k6.fit(data_train)
+            k4_ori = KMeans(random_state=42, n_clusters=4)
+            k5_ori = KMeans(random_state=42, n_clusters=5)
+            k6_ori = KMeans(random_state=42, n_clusters=6)
 
-            result['KMeans_cluster4'].append(
-                silhouette_score(data_test, k4.predict(data_test))
+            k4_syn = KMeans(random_state=42, n_clusters=4)
+            k5_syn = KMeans(random_state=42, n_clusters=5)
+            k6_syn = KMeans(random_state=42, n_clusters=6)
+
+            k4_ori.fit(data_ori_train)
+            k5_ori.fit(data_ori_train)
+            k6_ori.fit(data_ori_train)
+
+            k4_syn.fit(data_syn_train)
+            k5_syn.fit(data_syn_train)
+            k6_syn.fit(data_syn_train)
+
+            result_ori['KMeans_cluster4'].append(
+                silhouette_score(data_ori_test, k4_ori.predict(data_ori_test))
             )
-            result['KMeans_cluster5'].append(
-                silhouette_score(data_test, k5.predict(data_test))
+            result_ori['KMeans_cluster5'].append(
+                silhouette_score(data_ori_test, k5_ori.predict(data_ori_test))
             )
-            result['KMeans_cluster6'].append(
-                silhouette_score(data_test, k6.predict(data_test))
+            result_ori['KMeans_cluster6'].append(
+                silhouette_score(data_ori_test, k6_ori.predict(data_ori_test))
             )
 
-        return result
+            result_syn['KMeans_cluster4'].append(
+                silhouette_score(data_syn_test, k4_syn.predict(data_syn_test))
+            )
+            result_syn['KMeans_cluster5'].append(
+                silhouette_score(data_syn_test, k5_syn.predict(data_syn_test))
+            )
+            result_syn['KMeans_cluster6'].append(
+                silhouette_score(data_syn_test, k6_syn.predict(data_syn_test))
+            )
+
+        return result_ori, result_syn
 
     def get_global(self) -> pd.DataFrame:
         """
