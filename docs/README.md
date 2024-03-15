@@ -1,4 +1,4 @@
-<p align="center"><img width=75% src="assets/images/2023-12-13 11.41.43.jpg"></p>
+![image](assets/images/2023-12-13 11.41.43.jpg)
 
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
