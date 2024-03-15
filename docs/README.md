@@ -52,11 +52,13 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 
 已知的衝突如下。主因是 smartnoise 現有版本的相依性：
 
-> > pip install smartnoise-synth # Error can be ignored
+> \> pip install smartnoise-synth # Error can be ignored
+>
 > ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
 > rdt 1.9.2 requires Faker<20,>=17, but you have faker 15.3.4 which is incompatible.
 
-> > pip install --upgrade torch # Error can be ignored
+> \> pip install --upgrade torch # Error can be ignored
+>
 > ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
 > smartnoise-synth 1.0.3 requires torch<2.0.0, but you have torch 2.2.1 which is incompatible.
 
