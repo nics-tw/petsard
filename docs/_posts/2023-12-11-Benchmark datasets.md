@@ -87,7 +87,7 @@ If the "benchmark" folder already contains a file with the same filename, the pr
 | acs-household | American Community Survey: Household-level [^5] [^6] | ss15husab.csv | Public | 235 | 1,496,678 | 1.1 GB | CC0 |  |  | ✅ |  | ✅75 |  |  |
 | voter2022-family | CPS Youth Voter Data: Family-level [^7] [^8] | ffpub23.csv | Public | 85 | 65,767 | 14.0 MB | Unknown |  |  | ✅ |  | ✅53 |  |  |
 | voter2022-household | CPS Youth Voter Data: Household-level [^7] [^8] | hhpub23.csv | Public | 140 | 88,978 | 28.9 MB | Unknown |  |  | ✅ |  | ✅58 | ✅1 |  |
-| voter2022-household | CPS Youth Voter Data: Person-level [^7] [^8] | pppub23.csv | Public | 829 | 146,133 | 268.0 MB | Unknown |  |  | ✅ |  | ✅513 | ✅1 |  |
+| voter2022-person | CPS Youth Voter Data: Person-level [^7] [^8] | pppub23.csv | Public | 829 | 146,133 | 268.0 MB | Unknown |  |  | ✅ |  | ✅513 | ✅1 |  |
 
 </div>
 
