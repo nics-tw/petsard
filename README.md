@@ -80,7 +80,7 @@ Here is the simplest way to get started with `PETsARD`:
 ```python
 from PETsARD import Executor
 
-filename = 'Exec_Design.yaml'
+filename = "Exec_Design.yaml"
 exec = Executor(config=filename)
 exec.run()
 ```
