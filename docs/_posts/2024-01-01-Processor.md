@@ -4,7 +4,7 @@ The `Processor` module is responsible for managing preprocessing and postprocess
 
 
 ```Python
-from PETsARD.processor import Processor
+from PETsARD import Processor
 
 
 proc = Processor(metadata=load.metadata)
