@@ -55,6 +55,27 @@ If the "benchmark" folder already contains a file with the same filename, the pr
 如果你的 "benchmark" 資料夾裡面已經有該資料集對應的同名檔案了，則程式會檢驗本地端的資料是否與 `PETsARD` 的紀錄一致，如果一致的話，便會省去下載、直接使用本地端資料，方便使用者多次使用。要注意的是如果同檔名但檢驗不一致的話，`Loader` 會告警並停止，此時使用者應該留意到可能儲存到了非原版的基準資料集，這很有可能對實驗結果造成汙染。
 
 
+## Verify SHA256 (optional)
+
+
+The function for calculating the SHA256 of a file in the `PETsARD` package is as follows:
+
+`PETsARD` 套件中計算檔案 SHA256 的函式如下：
+
+
+```Python
+from PETsARD.loader.util import DigestSha256
+
+
+sha256 = DigestSha256(filepath='benchmark/adult-income.csv')
+print(sha256)
+```
+
+```plain_text
+1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+```
+
+
 # Available Benchmark Datasets
 
 
