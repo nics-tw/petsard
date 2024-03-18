@@ -1,3 +1,4 @@
+---
 Splitter:
   # For splitted data that has been prepared in advance
   custom:
@@ -33,3 +34,4 @@ Reporter:
     output: 'User Story C-2b'
     eval: 'anony-singling'
     granularity: 'global'
+...

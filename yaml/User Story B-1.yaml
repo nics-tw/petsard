@@ -1,3 +1,4 @@
+---
 Loader:
   adult:
     # filepath of local data
@@ -38,3 +39,4 @@ Reporter:
     # granularity = 'global' indicates that
     #   the scoring covers the entire dataset with a comprehensive level of detail.
     granularity: 'global'
+...
