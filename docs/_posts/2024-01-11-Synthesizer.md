@@ -91,7 +91,7 @@ A composite of parameters for the  `fit() and `sample()` methods.
 
 The configuration of `Synthesizer` module:
 
-合成模組的參數：
+`Synthesizer` 模組的參數：
 
 
 - For standard usage, it contains `method`, `epsilon`, `method_code` which come from input. 在標準使用情況下，它包括來自輸入參數的 `method`（合成方法）、`epsilon`（隱私預算）與 `method_code`（合成方法代號）。
