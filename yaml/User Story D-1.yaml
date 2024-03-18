@@ -1,3 +1,4 @@
+---
 Loader:
   demo:
     # default of Loader is Adult Income dataset
@@ -21,3 +22,4 @@ Reporter:
     # source of Reporter means which result of module/expt_name should Reporter use
     #   accept string (for only one) and list of string (for multiple result)
     source: 'Postprocessor'
+...
