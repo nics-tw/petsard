@@ -276,6 +276,17 @@ class ReporterSaveReport(ReporterBase):
         """
         super().__init__(config)
 
+        self.ALLOWED_IDX_MODULE: list = [
+            'Loader',
+            'Splitter',
+            'Processor',
+            'Preprocessor',
+            'Synthesizer',
+            'Postprocessor',
+            'Evaluator',
+            'Describer',
+        ]
+
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
@@ -318,8 +329,6 @@ class ReporterSaveReport(ReporterBase):
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
         """
-        full_expt_name: str = ''
-        eval_expt_name: str = ''
         eval: Optional[str] = self.config['eval']
         granularity: str = self.config['granularity'].lower()
 
@@ -327,13 +336,31 @@ class ReporterSaveReport(ReporterBase):
         rpt_data: pd.DataFrame = None
         exist_report: Optional[dict] = None
 
+        idx_final_module: str = ''
+        idx_module_names: list = []
+        full_expt_name: str = ''
+        eval_expt_name: str = ''
+
         if 'exist_report' in self.config:
             exist_report = self.config['exist_report']
             del self.config['exist_report']
 
         for idx_tuple, rpt_data in data.items():
-            # found latest key pairs is Evaluator/Describer
-            if idx_tuple[-2] in ['Evaluator','Describer']:
+            idx_module_names = idx_tuple[::2]
+            idx_final_module = idx_module_names[-1]
+            # Ensure Ensure idx_tuple is of even length,
+            if len(idx_tuple) % 2 != 0:
+                raise ConfigError
+            # all are within a given list ALLOWED_IDX_MODULE.
+            elif not all(
+                module in self.ALLOWED_IDX_MODULE for module in idx_module_names):
+                raise ConfigError
+            # and its module names are unique
+            elif len(idx_module_names) != len(set(idx_module_names)):
+                raise ConfigError
+
+            # found final module is Evaluator/Describer
+            if idx_final_module in ['Evaluator','Describer']:
                 eval_expt_name = idx_tuple[-1]
 
                 # specifiy experiment name
@@ -348,7 +375,8 @@ class ReporterSaveReport(ReporterBase):
                     )
                     return
                 else:
-                    full_expt_name: str = '_'.join([
+                    # module1[expt1]_module2[expt2]_..._moduleN[exptN]
+                    full_expt_name = '_'.join([
                         f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
                         for i in range(0, len(idx_tuple), 2)
                     ])
@@ -368,6 +396,11 @@ class ReporterSaveReport(ReporterBase):
                             'level_0': 'column1',
                             'level_1': 'column2'
                         })
+
+                    # Sequentially insert module names
+                    #   as column names and expt names as values
+                    for i in range(len(idx_tuple) - 2, -1, -2):
+                        rpt_data.insert(0, idx_tuple[i], idx_tuple[i+1])
 
                     # add full_expt_name as first column
                     rpt_data.insert(0, 'full_expt_name', full_expt_name)
