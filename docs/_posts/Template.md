@@ -2,7 +2,7 @@ Concise introduction.
 
 中文。
 
-```python
+```Python
 Short demo # if any, only for interface
 ```
 
@@ -14,7 +14,7 @@ Description.
 
 中文。
 
-```python
+```Python
 # Detailed structure of the class
 processor = Processor(
     metadata
@@ -31,14 +31,14 @@ Description.
 
 中文。
 
-```python
+```Python
 # Detailed structure of the function
 processor.get_config(
     col=None
 )
 ```
 
-```python
+```Python
 # Output (if any)
 'Hello World!'
 ```
@@ -57,7 +57,7 @@ Description.
 
 中文。
 
-```python
+```Python
 # Detailed structure of the function
 processor.get_config(
     col=None
@@ -74,7 +74,7 @@ Description.
 
 中文。
 
-```python
+```Python
 # Detailed structure of the function
 processor.get_config()
 ```
@@ -89,7 +89,7 @@ Description.
 
 中文。
 
-```python
+```Python
 # Detailed structure of the function
 processor.get_config()
 
