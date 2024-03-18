@@ -348,8 +348,6 @@ class ReporterSaveReport(ReporterBase):
                     )
                     return
                 else:
-                    rpt_data = deepcopy(rpt_data)
-
                     full_expt_name: str = '_'.join([
                         f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
                         for i in range(0, len(idx_tuple), 2)
