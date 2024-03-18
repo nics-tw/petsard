@@ -77,7 +77,7 @@ Here is the simplest way to get started with `PETsARD`:
 
 以下是最簡單入門的 `PETsARD` 使用方式：
 
-```python
+```Python
 from PETsARD import Executor
 
 filename = "Exec_Design.yaml"
@@ -94,7 +94,8 @@ Here, we use the default methods of each module to construct the simplest 'Exec_
 這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html)。
 
 
-```
+```YAML
+---
 Loader:
   demo:
     # default of Loader is Adult Income dataset
@@ -132,6 +133,7 @@ Reporter:
     # granularity = 'global' indicates that
     #   the scoring covers the entire dataset with a comprehensive level of detail.
     granularity: 'global'
+...
 ```
 
 
