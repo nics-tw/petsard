@@ -15,7 +15,6 @@ Description.
 
 中文。
 
-
 ```Python
 # Detailed structure of the class
 processor = Processor(
@@ -44,7 +43,6 @@ processor.get_config(
     col=None
 )
 ```
-
 
 ```Python
 # Output (if any)
