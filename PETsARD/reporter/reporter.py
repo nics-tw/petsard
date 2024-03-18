@@ -341,9 +341,10 @@ class ReporterSaveReport(ReporterBase):
         full_expt_name: str = ''
         eval_expt_name: str = ''
 
-        if 'exist_report' in self.config:
-            exist_report = self.config['exist_report']
-            del self.config['exist_report']
+        exist_report_data: pd.DataFrame = None
+
+        if 'exist_report' in data:
+            exist_report = data['exist_report']
 
         for idx_tuple, rpt_data in data.items():
             idx_module_names = idx_tuple[::2]
@@ -360,63 +361,64 @@ class ReporterSaveReport(ReporterBase):
                 raise ConfigError
 
             # found final module is Evaluator/Describer
-            if idx_final_module in ['Evaluator','Describer']:
-                eval_expt_name = idx_tuple[-1]
+            if idx_final_module not in ['Evaluator','Describer']:
+                continue
+            eval_expt_name = idx_tuple[-1]
 
-                # specifiy experiment name
-                #   match the expt_name "{eval}_[{granularity}]"
-                if eval_expt_name != f"{eval}_[{granularity}]":
-                    continue
+            # specifiy experiment name
+            #   match the expt_name "{eval}_[{granularity}]"
+            if eval_expt_name != f"{eval}_[{granularity}]":
+                continue
 
-                if rpt_data is None:
-                    print(
-                        f"There's no {granularity} granularity report in {eval}. "
-                        f"Nothing collect."
+            if rpt_data is None:
+                print(
+                    f"There's no {granularity} granularity report in {eval}. "
+                    f"Nothing collect."
+                )
+                return
+
+            # module1[expt1]_module2[expt2]_..._moduleN[exptN]
+            full_expt_name = '_'.join([
+                f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
+                for i in range(0, len(idx_tuple), 2)
+            ])
+            report_data['full_expt_name'] = full_expt_name
+            report_data['eval_expt_name'] = eval_expt_name
+            report_data['expt_name'] = eval
+            report_data['granularity'] = granularity
+
+            # reset index to represent column
+            granularity_code = self.config['granularity_code']
+            if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={'index': 'column'})
+            elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={
+                    'level_0': 'column1',
+                    'level_1': 'column2'
+                })
+
+            # Sequentially insert module names
+            #   as column names and expt names as values
+            for i in range(len(idx_tuple) - 2, -1, -2):
+                rpt_data.insert(0, idx_tuple[i], idx_tuple[i+1])
+
+            # add full_expt_name as first column
+            rpt_data.insert(0, 'full_expt_name', full_expt_name)
+
+            # Row append if exist_report exist
+            if exist_report is not None:
+                if eval_expt_name in exist_report:
+                    exist_report_data = exist_report[eval_expt_name]
+                    rpt_data = pd.concat(
+                        [exist_report_data, rpt_data],
+                        axis=0
                     )
-                    return
-                else:
-                    # module1[expt1]_module2[expt2]_..._moduleN[exptN]
-                    full_expt_name = '_'.join([
-                        f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                        for i in range(0, len(idx_tuple), 2)
-                    ])
-                    report_data['full_expt_name'] = full_expt_name
-                    report_data['eval_expt_name'] = eval_expt_name
-                    report_data['expt_name'] = eval
-                    report_data['granularity'] = granularity
+            report_data['report'] = deepcopy(rpt_data)
 
-                    # reset index to represent column
-                    granularity_code = self.config['granularity_code']
-                    if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={'index': 'column'})
-                    elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={
-                            'level_0': 'column1',
-                            'level_1': 'column2'
-                        })
-
-                    # Sequentially insert module names
-                    #   as column names and expt names as values
-                    for i in range(len(idx_tuple) - 2, -1, -2):
-                        rpt_data.insert(0, idx_tuple[i], idx_tuple[i+1])
-
-                    # add full_expt_name as first column
-                    rpt_data.insert(0, 'full_expt_name', full_expt_name)
-
-                    # Row append if exist_report exist
-                    if exist_report is not None:
-                        if eval_expt_name in exist_report:
-                            exist_report_data = exist_report[eval_expt_name]
-                            rpt_data = pd.concat(
-                                [exist_report_data, rpt_data],
-                                axis=0
-                            )
-                    report_data['report'] = deepcopy(rpt_data)
-
-                    # only one matched Evaluator/Describer should in the Status.status
-                    break
+            # only one matched Evaluator/Describer should in the Status.status
+            break
 
         self.report_data['Reporter'] = report_data
 
