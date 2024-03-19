@@ -219,7 +219,7 @@ class ReporterSaveData(ReporterBase):
         Raises:
             ConfigError: If the index tuple is not an even number.
         """
-        # last 1 of index shoulde remove postifx "_[xxx]" to match source
+        # last 1 of index should remove postfix "_[xxx]" to match source
         pattern = re.compile(r'_(\[[^\]]*\])$')
         for index, df in data.items():
             # check if last 2 element of index in source
