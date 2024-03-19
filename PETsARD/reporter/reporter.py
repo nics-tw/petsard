@@ -126,12 +126,13 @@ class ReporterBase(ABC):
             report_data (dict): Data for the report.
         """
         self.config: dict = config
+        self.report_data: dict = {}
+
         if 'method' not in self.config:
             raise ConfigError
         if not isinstance(self.config.get('output'), str) \
                 or not self.config['output']:
             self.config['output'] = 'PETsARD'
-        self.report_data: dict = {}
 
     @abstractmethod
     def create(self, data: dict) -> None:
@@ -176,9 +177,9 @@ class ReporterSaveData(ReporterBase):
         Args:
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
+                - source (Union[str, List[str]]): The source of the data.
                 - output (str, optional): The output filename prefix for the report.
                     Default is 'PETsARD'.
-                - source (Union[str, List[str]]): The source of the data.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -192,7 +193,7 @@ class ReporterSaveData(ReporterBase):
         elif not isinstance(self.config['source'], (str, list)) \
             or (isinstance(self.config['source'], list)
                 and not all(isinstance(item, str) for item in self.config['source'])
-                ):
+            ):
             raise ConfigError
 
         # convert source to list if it is string
@@ -316,10 +317,10 @@ class ReporterSaveReport(ReporterBase):
                     If there's multiple result in the Operator, e.g. EvaluatorOperator,
                     Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
                     (..., 'Evaluator', 'default_[global]')
-                  The value is the data of the source.
-                - also the keys exist_report (dict, optional): The existing report data.
-                    The key is the full evaluation experiment name: "{eval}_[{granularity}]"
-                    The value is the data of the report, pd.DataFrame.
+                - The value is the data of the source.
+                - exist_report (dict, optional): The existing report data.
+                    - The key is the full evaluation experiment name: "{eval}_[{granularity}]"
+                    - The value is the data of the report, pd.DataFrame.
 
         Attributes:
             - report_data (dict): Data for the report.
@@ -334,21 +335,27 @@ class ReporterSaveReport(ReporterBase):
 
         report_data: dict = {}
         rpt_data: pd.DataFrame = None
-        exist_report: Optional[dict] = None
 
         idx_final_module: str = ''
         idx_module_names: list = []
         full_expt_name: str = ''
         eval_expt_name: str = ''
 
+        exist_report: dict = None
         exist_report_data: pd.DataFrame = None
 
         if 'exist_report' in data:
             exist_report = data['exist_report']
+            del data['exist_report']
 
         for idx_tuple, rpt_data in data.items():
             idx_module_names = idx_tuple[::2]
             idx_final_module = idx_module_names[-1]
+
+            # found final module is Evaluator/Describer
+            if idx_final_module not in ['Evaluator','Describer']:
+                continue
+
             # Ensure Ensure idx_tuple is of even length,
             if len(idx_tuple) % 2 != 0:
                 raise ConfigError
@@ -360,22 +367,19 @@ class ReporterSaveReport(ReporterBase):
             elif len(idx_module_names) != len(set(idx_module_names)):
                 raise ConfigError
 
-            # found final module is Evaluator/Describer
-            if idx_final_module not in ['Evaluator','Describer']:
-                continue
             eval_expt_name = idx_tuple[-1]
-
             # specifiy experiment name
             #   match the expt_name "{eval}_[{granularity}]"
             if eval_expt_name != f"{eval}_[{granularity}]":
                 continue
 
+            # match granularity
             if rpt_data is None:
                 print(
                     f"There's no {granularity} granularity report in {eval}. "
                     f"Nothing collect."
                 )
-                return
+                continue
 
             # module1[expt1]_module2[expt2]_..._moduleN[exptN]
             full_expt_name = '_'.join([
@@ -417,7 +421,7 @@ class ReporterSaveReport(ReporterBase):
                     )
             report_data['report'] = deepcopy(rpt_data)
 
-            # only one matched Evaluator/Describer should in the Status.status
+            # should only single Evaluator/Describer matched in the Status.status
             break
 
         self.report_data['Reporter'] = report_data
