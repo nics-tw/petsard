@@ -541,9 +541,9 @@ class ReporterOperator(Operator):
 
         self.reporter.create(data=input['data'])
         self.reporter.report()
-        if 'Reporter' in self.reporter.report_data:
+        if 'Reporter' in self.reporter.result:
             # ReporterSaveReport
-            temp = self.reporter.report_data['Reporter']
+            temp = self.reporter.result['Reporter']
             if not all(key in temp for key in ['eval_expt_name', 'report']):
                 raise ConfigError
             eval_expt_name = temp['eval_expt_name']
@@ -551,7 +551,7 @@ class ReporterOperator(Operator):
             self.report[eval_expt_name] = report
         else:
             # ReporterSaveData
-            self.report = self.reporter.report_data
+            self.report = self.reporter.result
 
     def set_input(self, status) -> dict:
         """
