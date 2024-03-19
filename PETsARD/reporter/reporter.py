@@ -70,7 +70,7 @@ class Reporter:
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str): The evaluation method used for reporting.
+                    - eval (str): The evaluation experiment name used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
