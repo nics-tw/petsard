@@ -533,16 +533,22 @@ class ReporterOperator(Operator):
 
         Args:
             input (dict): Input data for the Reporter.
+                - data (dict): The data to be reported.
         """
-        self.reporter.create(**input)
+        temp: dict = None
+        eval_expt_name: str = None
+        report: pd.DataFrame = None
+
+        self.reporter.create(data=input['data'])
         self.reporter.report()
         if 'Reporter' in self.reporter.report_data:
             # ReporterSaveReport
-            temp: dict = self.reporter.report_data['Reporter']
-            if 'eval_expt_name' in temp:
-                eval_expt_name: str = temp['eval_expt_name']
-                report: pd.DataFrame = deepcopy(temp['report'])
-                self.report[eval_expt_name] = report
+            temp = self.reporter.report_data['Reporter']
+            if not all(key in temp for key in ['eval_expt_name', 'report']):
+                raise ConfigError
+            eval_expt_name = temp['eval_expt_name']
+            report = deepcopy(temp['report'])
+            self.report[eval_expt_name] = report
         else:
             # ReporterSaveData
             self.report = self.reporter.report_data
