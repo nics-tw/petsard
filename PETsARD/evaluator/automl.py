@@ -72,7 +72,7 @@ class AutoML:
         return self.ml.get_pairwise()
 
 
-class ML(AutoML):
+class ML:
     """
     Train and evaluate the models based on the original data and the synthetic 
     data. The worker of AutoML.
@@ -86,7 +86,7 @@ class ML(AutoML):
     """
 
     def __init__(self, config: dict):
-        super().__init__(config=config)
+        self.config: dict = config
 
         self.result_ori: dict = {}
         self.result_syn: dict = {}
