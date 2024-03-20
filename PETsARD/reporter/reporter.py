@@ -67,20 +67,20 @@ class Reporter:
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
+                    - eval (str): The evaluation experiment name used for reporting.
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str): The evaluation method used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
             reporter (object): An object representing the specific reporter based on the method.
-            report_data (dict): A dictionary containing the data for the report.
+            result (dict): A dictionary containing the data for the report.
         """
         self.config = kwargs
         self.config['method'] = method.lower()
         self.reporter = None
-        self.report_data: dict = {}
+        self.result: dict = {}
 
         method_code: int = ReporterMap.map(self.config['method'])
         self.config['method_code'] = method_code
@@ -99,13 +99,13 @@ class Reporter:
             data (dict): The data used for creating the report.
         """
         self.reporter.create(data=data)
-        self.report_data = self.reporter.report_data
 
     def report(self) -> None:
         """
         Generates and saves the report.
         """
         self.reporter.report()
+        self.result = self.reporter.result
 
 
 class ReporterBase(ABC):
@@ -123,15 +123,16 @@ class ReporterBase(ABC):
 
         Attributes:
             config (dict): Configuration settings for the report.
-            report_data (dict): Data for the report.
+            result (dict): Data for the report.
         """
         self.config: dict = config
+        self.result: dict = {}
+
         if 'method' not in self.config:
             raise ConfigError
         if not isinstance(self.config.get('output'), str) \
                 or not self.config['output']:
             self.config['output'] = 'PETsARD'
-        self.report_data: dict = {}
 
     @abstractmethod
     def create(self, data: dict) -> None:
@@ -142,6 +143,7 @@ class ReporterBase(ABC):
             data (dict): The data used for creating the report.
         """
         raise NotImplementedError
+
 
     @abstractmethod
     def report(self) -> None:
@@ -176,9 +178,9 @@ class ReporterSaveData(ReporterBase):
         Args:
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
+                - source (Union[str, List[str]]): The source of the data.
                 - output (str, optional): The output filename prefix for the report.
                     Default is 'PETsARD'.
-                - source (Union[str, List[str]]): The source of the data.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -192,7 +194,7 @@ class ReporterSaveData(ReporterBase):
         elif not isinstance(self.config['source'], (str, list)) \
             or (isinstance(self.config['source'], list)
                 and not all(isinstance(item, str) for item in self.config['source'])
-                ):
+            ):
             raise ConfigError
 
         # convert source to list if it is string
@@ -217,7 +219,7 @@ class ReporterSaveData(ReporterBase):
         Raises:
             ConfigError: If the index tuple is not an even number.
         """
-        # last 1 of index shoulde remove postifx "_[xxx]" to match source
+        # last 1 of index should remove postfix "_[xxx]" to match source
         pattern = re.compile(r'_(\[[^\]]*\])$')
         for index, df in data.items():
             # check if last 2 element of index in source
@@ -231,7 +233,7 @@ class ReporterSaveData(ReporterBase):
                     f"{index[i]}[{index[i+1]}]"
                     for i in range(0, len(index), 2)
                 ])
-                self.report_data[full_expt] = df
+                self.result[full_expt] = df
 
     def report(self) -> None:
         """
@@ -240,7 +242,7 @@ class ReporterSaveData(ReporterBase):
         Notes:
             Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
         """
-        for expt_name, df in self.report_data.items():
+        for expt_name, df in self.result.items():
             # Some of the data may be None.
             #   e.g. Evaluator.get_global/columnwise/pairwise
             #   just skip it
@@ -276,6 +278,17 @@ class ReporterSaveReport(ReporterBase):
         """
         super().__init__(config)
 
+        self.ALLOWED_IDX_MODULE: list = [
+            'Loader',
+            'Splitter',
+            'Processor',
+            'Preprocessor',
+            'Synthesizer',
+            'Postprocessor',
+            'Evaluator',
+            'Describer',
+        ]
+
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
@@ -305,108 +318,133 @@ class ReporterSaveReport(ReporterBase):
                     If there's multiple result in the Operator, e.g. EvaluatorOperator,
                     Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
                     (..., 'Evaluator', 'default_[global]')
-                  The value is the data of the source.
-                - also the keys exist_report (dict, optional): The existing report data.
-                    The key is the full evaluation experiment name: "{eval}_[{granularity}]"
-                    The value is the data of the report, pd.DataFrame.
+                - The value is the data of the source.
+                - exist_report (dict, optional): The existing report data.
+                    - The key is the full evaluation experiment name: "{eval}_[{granularity}]"
+                    - The value is the data of the report, pd.DataFrame.
 
         Attributes:
-            - report_data (dict): Data for the report.
+            - result (dict): Data for the report.
                 - Reporter (dict): The report data for the reporter.
                     - full_expt_name (str): The full experiment name.
                     - expt_name (str): The experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
         """
-        full_expt_name: str = ''
-        eval_expt_name: str = ''
         eval: Optional[str] = self.config['eval']
         granularity: str = self.config['granularity'].lower()
 
-        report_data: dict = {}
+        result: dict = {}
         rpt_data: pd.DataFrame = None
-        exist_report: Optional[dict] = None
 
-        if 'exist_report' in self.config:
-            exist_report = self.config['exist_report']
-            del self.config['exist_report']
+        idx_final_module: str = ''
+        idx_module_names: list = []
+        full_expt_name: str = ''
+        eval_expt_name: str = ''
+
+        exist_report: dict = None
+        exist_result: pd.DataFrame = None
+
+        if 'exist_report' in data:
+            exist_report = data['exist_report']
+            del data['exist_report']
 
         for idx_tuple, rpt_data in data.items():
-            # found latest key pairs is Evaluator/Describer
-            if idx_tuple[-2] in ['Evaluator','Describer']:
-                eval_expt_name = idx_tuple[-1]
+            idx_module_names = idx_tuple[::2]
+            idx_final_module = idx_module_names[-1]
 
-                # specifiy experiment name
-                #   match the expt_name "{eval}_[{granularity}]"
-                if eval_expt_name != f"{eval}_[{granularity}]":
-                    continue
+            # found final module is Evaluator/Describer
+            if idx_final_module not in ['Evaluator','Describer']:
+                continue
 
-                if rpt_data is None:
-                    print(
-                        f"There's no {granularity} granularity report in {eval}. "
-                        f"Nothing collect."
+            # Ensure Ensure idx_tuple is of even length,
+            if len(idx_tuple) % 2 != 0:
+                raise ConfigError
+            # all are within a given list ALLOWED_IDX_MODULE.
+            elif not all(
+                module in self.ALLOWED_IDX_MODULE for module in idx_module_names):
+                raise ConfigError
+            # and its module names are unique
+            elif len(idx_module_names) != len(set(idx_module_names)):
+                raise ConfigError
+
+            eval_expt_name = idx_tuple[-1]
+            # specifiy experiment name
+            #   match the expt_name "{eval}_[{granularity}]"
+            if eval_expt_name != f"{eval}_[{granularity}]":
+                continue
+
+            # match granularity
+            if rpt_data is None:
+                print(
+                    f"There's no {granularity} granularity report in {eval}. "
+                    f"Nothing collect."
+                )
+                continue
+
+            # module1[expt1]_module2[expt2]_..._moduleN[exptN]
+            full_expt_name = '_'.join([
+                f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
+                for i in range(0, len(idx_tuple), 2)
+            ])
+            result['full_expt_name'] = full_expt_name
+            result['eval_expt_name'] = eval_expt_name
+            result['expt_name'] = eval
+            result['granularity'] = granularity
+
+            # reset index to represent column
+            granularity_code = self.config['granularity_code']
+            if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={'index': 'column'})
+            elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={
+                    'level_0': 'column1',
+                    'level_1': 'column2'
+                })
+
+            # Sequentially insert module names
+            #   as column names and expt names as values
+            for i in range(len(idx_tuple) - 2, -1, -2):
+                rpt_data.insert(0, idx_tuple[i], idx_tuple[i+1])
+
+            # add full_expt_name as first column
+            rpt_data.insert(0, 'full_expt_name', full_expt_name)
+
+            # Row append if exist_report exist
+            if exist_report is not None:
+                if eval_expt_name in exist_report:
+                    exist_result = exist_report[eval_expt_name]
+                    rpt_data = pd.concat(
+                        [exist_result, rpt_data],
+                        axis=0
                     )
-                    return
-                else:
-                    rpt_data = deepcopy(rpt_data)
+            result['report'] = deepcopy(rpt_data)
 
-                    full_expt_name: str = '_'.join([
-                        f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                        for i in range(0, len(idx_tuple), 2)
-                    ])
-                    report_data['full_expt_name'] = full_expt_name
-                    report_data['eval_expt_name'] = eval_expt_name
-                    report_data['expt_name'] = eval
-                    report_data['granularity'] = granularity
+            # should only single Evaluator/Describer matched in the Status.status
+            break
 
-                    # reset index to represent column
-                    granularity_code = self.config['granularity_code']
-                    if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={'index': 'column'})
-                    elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={
-                            'level_0': 'column1',
-                            'level_1': 'column2'
-                        })
-
-                    # add full_expt_name as first column
-                    rpt_data.insert(0, 'full_expt_name', full_expt_name)
-
-                    # Row append if exist_report exist
-                    if exist_report is not None:
-                        if eval_expt_name in exist_report:
-                            exist_report_data = exist_report[eval_expt_name]
-                            rpt_data = pd.concat(
-                                [exist_report_data, rpt_data],
-                                axis=0
-                            )
-                    report_data['report'] = deepcopy(rpt_data)
-
-                    # only one matched Evaluator/Describer should in the Status.status
-                    break
-
-        self.report_data['Reporter'] = report_data
+        self.result['Reporter'] = result
 
     def report(self) -> None:
         """
         Generates a report based on the provided report data.
             The report is saved to the specified output location.
         """
-        if 'Reporter' not in self.report_data:
+        if 'Reporter' not in self.result:
             raise UnexecutedError
 
-        if 'eval_expt_name' not in self.report_data['Reporter']:
+        if 'eval_expt_name' not in self.result['Reporter']:
             # no {granularity} granularity report in {eval}
             return
 
-        eval_expt_name: str = self.report_data['Reporter']['eval_expt_name']
+        eval_expt_name: str = self.result['Reporter']['eval_expt_name']
 
         # PETsARD[Report]_{eval_expt_name}
         full_output = f"{self.config['output']}[Report]_{eval_expt_name}"
         self._save(
-            data=self.report_data['Reporter']['report'],
+            data=self.result['Reporter']['report'],
             full_output=full_output
         )
 
