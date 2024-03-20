@@ -40,7 +40,7 @@ class AutoML:
         Create a worker and send the data to the worker.
 
         Args:
-            data (dict): The data to be described. The keys should be 'ori' 
+            data (dict): The data to be described. The keys should be 'ori'
             and 'syn, and the value should be a pandas DataFrame.
         """
         self.data = data
@@ -74,7 +74,7 @@ class AutoML:
 
 class ML:
     """
-    Train and evaluate the models based on the original data and the synthetic 
+    Train and evaluate the models based on the original data and the synthetic
     data. The worker of AutoML.
 
     Args:
@@ -137,16 +137,16 @@ class ML:
         elif self.config['task'] == 'cluster':
             self.result_ori = self._cluster(data_ori, k)
             self.result_syn = self._cluster(data_syn, k)
- 
+
 
     def _regression(self, data, target, k):
         """
         Regression model fitting and evaluation.
-        The models used are linear regression, random forest, 
+        The models used are linear regression, random forest,
         and gradient boosting.
 
-        For the robustness of the results, the model is trained 
-        and evaluated 5 times, and the average of the results 
+        For the robustness of the results, the model is trained
+        and evaluated 5 times, and the average of the results
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -160,15 +160,15 @@ class ML:
 
         Returns:
             result (dict): The result of the evaluation.
-        """ 
+        """
         result = {
-            'linear_regression': [], 
-            'random_forest': [], 
+            'linear_regression': [],
+            'random_forest': [],
             'gradient_boosting': []
         }
-        
+
         kf = KFold(n_splits=k, shuffle=True, random_state=42)
-        
+
         for train_index, test_index in kf.split(data, target):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
@@ -203,8 +203,8 @@ class ML:
         The models used are logistic regression, SVC, random forest,
         and gradient boosting.
 
-        For the robustness of the results, the model is trained 
-        and evaluated 5 times, and the average of the results 
+        For the robustness of the results, the model is trained
+        and evaluated 5 times, and the average of the results
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -218,16 +218,16 @@ class ML:
 
         Returns:
             result (dict): The result of the evaluation.
-        """ 
+        """
         result = {
-            'logistic_regression': [], 
+            'logistic_regression': [],
             'svc': [],
-            'random_forest': [], 
+            'random_forest': [],
             'gradient_boosting': []
         }
-        
+
         kf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
-        
+
         for train_index, test_index in kf.split(data, target):
             data_train, data_test = data.iloc[train_index, :],\
                 data.iloc[test_index, :]
@@ -248,28 +248,28 @@ class ML:
             rf.fit(data_train, target_train)
             gb.fit(data_train, target_train)
 
-            result['logistic_regression'].append(f1_score(target_test, 
+            result['logistic_regression'].append(f1_score(target_test,
                                                           lr.predict(data_test),
                                                           average='micro'))
-            result['svc'].append(f1_score(target_test, 
+            result['svc'].append(f1_score(target_test,
                                           svc.predict(data_test),
                                           average='micro'))
-            result['random_forest'].append(f1_score(target_test, 
+            result['random_forest'].append(f1_score(target_test,
                                                     rf.predict(data_test),
                                                     average='micro'))
-            result['gradient_boosting'].append(f1_score(target_test, 
+            result['gradient_boosting'].append(f1_score(target_test,
                                                         gb.predict(data_test),
                                                         average='micro'))
-            
+
         return result
-            
+
     def _cluster(self, data, k):
         """
         Clustering model fitting and evaluation.
         The models used are KMeans with different number of clusters.
 
-        For the robustness of the results, the model is trained 
-        and evaluated 5 times, and the average of the results 
+        For the robustness of the results, the model is trained
+        and evaluated 5 times, and the average of the results
         is used as the final result.
 
         To prevent the data leakage, the normalisation is done inside the loop.
@@ -282,15 +282,15 @@ class ML:
 
         Returns:
             result (dict): The result of the evaluation.
-        """ 
+        """
         result = {
             'KMeans_cluster4': [],
             'KMeans_cluster5': [],
             'KMeans_cluster6': []
         }
-        
+
         kf = KFold(n_splits=k, shuffle=True, random_state=42)
-        
+
         for train_index, test_index in kf.split(data):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
@@ -339,14 +339,14 @@ class ML:
         normalise_range = 2 if self.config['task'] == 'cluster' else 1
 
         compare_df = pd.DataFrame({'Ori_mean': np.mean(ori_value),
-                                   'Ori_std': np.std(ori_value), 
-                                   'Syn_mean': np.mean(syn_value), 
+                                   'Ori_std': np.std(ori_value),
+                                   'Syn_mean': np.mean(syn_value),
                                    'Syn_std': np.std(syn_value)}, index=[0])
-        
-        compare_df['pct_change'] = ((compare_df['Syn_mean'] - 
-                                    compare_df['Ori_mean']) / 
+
+        compare_df['pct_change'] = ((compare_df['Syn_mean'] -
+                                    compare_df['Ori_mean']) /
                                     normalise_range) * 100
-        
+
         return compare_df
 
     def get_columnwise(self) -> None:
