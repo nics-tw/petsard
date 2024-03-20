@@ -395,66 +395,36 @@ class ReporterSaveReport(ReporterBase):
 
         eval: str = self.config['eval']
         granularity: str = self.config['granularity']
-        granularity_code: int = self.config['granularity_code']
         exist_report: dict = data.pop('exist_report', None)
 
-        result: dict = {}
-        full_expt_name: str = ''
-        eval_expt_name: str = ''
-
-        rpt_data: pd.DataFrame = None
-
         idx_final_module: str = ''
-
+        eval_expt_name: str = ''
         exist_report: dict = None
         exist_result: pd.DataFrame = None
         for full_expt_tuple, rpt_data in data.items():
-            # found final module is Evaluator/Describer
+            # 1. Found final module is Evaluator/Describer
             idx_final_module = full_expt_tuple[-2]
             if idx_final_module not in ['Evaluator', 'Describer']:
                 continue
 
+            # 2. match the expt_name "{eval}_[{granularity}]"
             eval_expt_name = full_expt_tuple[-1]
-            # specifiy experiment name match the expt_name "{eval}_[{granularity}]"
             if eval_expt_name != f"{eval}_[{granularity}]":
                 continue
 
-            # match granularity
+            # 3. match granularity
             if rpt_data is None:
                 print(
                     f"There's no {granularity} granularity report in {eval}. "
                     f"Nothing collect."
                 )
                 continue
+            else:
+                rpt_data = self._process_report_data(
+                    self.config['granularity_code'], full_expt_tuple, rpt_data
+                )
 
-            full_expt_name = self.get_full_expt_name(full_expt_tuple)
-            result = {
-                'full_expt_name': full_expt_name,
-                'eval_expt_name': eval_expt_name,
-                'expt_name': eval,
-                'granularity': granularity,
-            }
-
-            # reset index to represent column
-            if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-                rpt_data = rpt_data.reset_index(drop=False)
-                rpt_data = rpt_data.rename(columns={'index': 'column'})
-            elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-                rpt_data = rpt_data.reset_index(drop=False)
-                rpt_data = rpt_data.rename(columns={
-                    'level_0': 'column1',
-                    'level_1': 'column2'
-                })
-
-            # Sequentially insert module names
-            #   as column names and expt names as values
-            for i in range(len(full_expt_tuple) - 2, -1, -2):
-                rpt_data.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
-
-            # add full_expt_name as first column
-            rpt_data.insert(0, 'full_expt_name', full_expt_name)
-
-            # Row append if exist_report exist
+            # 4. Row append if exist_report exist
             if exist_report is not None:
                 if eval_expt_name in exist_report:
                     exist_result = exist_report[eval_expt_name]
@@ -462,12 +432,66 @@ class ReporterSaveReport(ReporterBase):
                         [exist_result, rpt_data],
                         axis=0
                     )
-            result['report'] = deepcopy(rpt_data)
+
+            # 5. Collect result
+            self.result['Reporter'] = {
+                'full_expt_name': self.get_full_expt_name(full_expt_tuple),
+                'eval_expt_name': eval_expt_name,
+                'expt_name': eval,
+                'granularity': granularity,
+                'report': deepcopy(rpt_data)
+            }
 
             # should only single Evaluator/Describer matched in the Status.status
             break
 
-        self.result['Reporter'] = result
+    @classmethod
+    def _process_report_data(
+        cls, granularity_code, full_expt_tuple, rpt_data
+    ) -> pd.DataFrame:
+        """
+        Process the report data by performing the following steps:
+
+        1-1. Reset the index if the granularity is COLUMNWISE.
+            Rename the index column to 'column'.
+        1-2. Reset the index if the granularity is PAIRWISE.
+            Rename the level_0 and level_1 columns to 'column1' and 'column2' respectively.
+        3. Sequentially insert module names as column names and expt names as values.
+        4. Add the full_expt_name as the first column.
+
+        Args:
+            - granularity_code (int):
+                The code representing the granularity of the report.
+            - full_expt_tuple (tuple):
+                The tuple containing module names and expt names.
+            - rpt_data (pd.DataFrame):
+                The report data to be processed.
+
+        Returns:
+            - rpt_data (pd.DataFrame_: The processed report data.
+        """
+        # 1. reset index to represent column
+        if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+            rpt_data = rpt_data.reset_index(drop=False)
+            rpt_data = rpt_data.rename(columns={'index': 'column'})
+        elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+            rpt_data = rpt_data.reset_index(drop=False)
+            rpt_data = rpt_data.rename(columns={
+                'level_0': 'column1',
+                'level_1': 'column2'
+            })
+
+        # 2. Sequentially insert module names
+        #   as column names and expt names as values
+        for i in range(len(full_expt_tuple) - 2, -1, -2):
+            rpt_data.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
+
+        # 3. Add full_expt_name as first column
+        rpt_data.insert(
+            0, 'full_expt_name', cls.get_full_expt_name(full_expt_tuple)
+        )
+
+        return rpt_data
 
     def report(self) -> None:
         """
