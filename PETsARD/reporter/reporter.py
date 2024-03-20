@@ -112,6 +112,16 @@ class ReporterBase(ABC):
     """
     Base class for reporting data.
     """
+    ALLOWED_IDX_MODULE: list = [
+        'Loader',
+        'Splitter',
+        'Processor',
+        'Preprocessor',
+        'Synthesizer',
+        'Postprocessor',
+        'Evaluator',
+        'Describer',
+    ]
 
     def __init__(self, config: dict):
         """
@@ -141,9 +151,64 @@ class ReporterBase(ABC):
 
         Args:
             data (dict): The data used for creating the report.
+                See ReporterBase._verify_create_input() for format requirement.
         """
         raise NotImplementedError
 
+    @classmethod
+    def _verify_create_input(cls, data: dict) -> None:
+        """
+        Verify the input data of create method
+
+        Args:
+            data (dict): The data used for creating the report.
+
+                - The key is the full index tuple of the source,
+                    format is (module_name, experiment_name, )
+                        and concat together. e.g.
+                        ('Loader', 'default'),
+                        ('Loader', 'default', 'Preprocessor', 'default')
+                    If there's multiple result in the Operator,
+                        e.g. EvaluatorOperator,
+                        Their expeirment name will add postfix "_[xxx]"
+                        to distinguish. e.g.
+                        (..., 'Evaluator', 'default_[global]')
+                - The value is the data of the source. pd.DataFrame.
+                - exist_report (dict, optional): The existing report data.
+                    - The key is the full evaluation experiment name:
+                        "{eval}_[{granularity}]"
+                    - The value is the data of the report, pd.DataFrame.
+        """
+        for idx, value in data.items():
+            # 1. data could have a key 'exist_report' (but not neessary),
+            #   which its value is a dict,
+            #   and their key is the full evaluation experiment name,
+            #   and their value is the report from privous Report result, pd.DataFrame.
+            if idx == 'exist_report':
+                if value is not None and not isinstance(value, pd.DataFrame):
+                    raise ConfigError
+            else:
+                # 2. for remains, key-value represent
+                #   module name, experiment name and corresponding data result.
+                #   The key should be the particular tuple format
+                #   and each value should be pd.DataFrame.
+
+                # 2.1. Ensure idx is of even length,
+                if len(idx) % 2 != 0:
+                    raise ConfigError
+
+                # every two elements in idx
+                #   represent a module name and a experiment name.
+                module_names = idx[::2]
+                # 2.2 All are within a given list ALLOWED_IDX_MODULE.
+                if not all(
+                    module in cls.ALLOWED_IDX_MODULE for module in module_names
+                ):
+                    raise ConfigError
+
+                # 2.3 All module names are unique.
+                if len(module_names) != len(set(module_names)):
+                    raise ConfigError
 
     @abstractmethod
     def report(self) -> None:
@@ -194,7 +259,7 @@ class ReporterSaveData(ReporterBase):
         elif not isinstance(self.config['source'], (str, list)) \
             or (isinstance(self.config['source'], list)
                 and not all(isinstance(item, str) for item in self.config['source'])
-            ):
+                ):
             raise ConfigError
 
         # convert source to list if it is string
@@ -206,28 +271,22 @@ class ReporterSaveData(ReporterBase):
         Creates the report data.
 
         Args:
-            data (dict): The data dictionary. Gerenrating by ReporterOperator.set_input()
-                The key is the full index tuple of the source,
-                    format is (module_name, experiment_name, ), and concat together. e.g.
-                    ('Loader', 'default'),
-                    ('Loader', 'default', 'Preprocessor', 'default')
-                    If there's multiple result in the Operator, e.g. EvaluatorOperator,
-                    Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
-                    (..., 'Evaluator', 'default_[global]')
-                The value is the data of the source.
+            data (dict): The data dictionary.
+                Gerenrating by ReporterOperator.set_input()
+                See ReporterBase._verify_create_input() for format requirement.
 
         Raises:
             ConfigError: If the index tuple is not an even number.
         """
+        # verify input data
+        self._verify_create_input(data)
+
         # last 1 of index should remove postfix "_[xxx]" to match source
         pattern = re.compile(r'_(\[[^\]]*\])$')
         for index, df in data.items():
             # check if last 2 element of index in source
             last_module_expt_name = [index[-2], re.sub(pattern, '', index[-1])]
             if any(item in self.config['source'] for item in last_module_expt_name):
-                # index tuple should be even number
-                if len(index) % 2 != 0:
-                    raise ConfigError
 
                 full_expt = '_'.join([
                     f"{index[i]}[{index[i+1]}]"
@@ -278,21 +337,11 @@ class ReporterSaveReport(ReporterBase):
         """
         super().__init__(config)
 
-        self.ALLOWED_IDX_MODULE: list = [
-            'Loader',
-            'Splitter',
-            'Processor',
-            'Preprocessor',
-            'Synthesizer',
-            'Postprocessor',
-            'Evaluator',
-            'Describer',
-        ]
-
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
-        granularity_code = ReporterSaveReportMap.map(self.config['granularity'])
+        granularity_code = ReporterSaveReportMap.map(
+            self.config['granularity'])
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -310,17 +359,11 @@ class ReporterSaveReport(ReporterBase):
         Creating the report data by checking is experiment name of Evaluator exist.
 
         Args:
-            data (dict): The data dictionary. Gerenrating by ReporterOperator.set_input()
-                - The key is the full index tuple of the source,
-                    format is (module_name, experiment_name, ), and concat together. e.g.
-                    ('Loader', 'default'),
-                    ('Loader', 'default', 'Preprocessor', 'default')
-                    If there's multiple result in the Operator, e.g. EvaluatorOperator,
-                    Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
-                    (..., 'Evaluator', 'default_[global]')
-                - The value is the data of the source.
+            data (dict): The data used for creating the report.
+                See ReporterBase._verify_create_input() for format requirement.
                 - exist_report (dict, optional): The existing report data.
-                    - The key is the full evaluation experiment name: "{eval}_[{granularity}]"
+                    - The key is the full evaluation experiment name:
+                        "{eval}_[{granularity}]"
                     - The value is the data of the report, pd.DataFrame.
 
         Attributes:
@@ -331,6 +374,9 @@ class ReporterSaveReport(ReporterBase):
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
         """
+        # verify input data
+        self._verify_create_input(data)
+
         eval: Optional[str] = self.config['eval']
         granularity: str = self.config['granularity'].lower()
 
@@ -354,19 +400,8 @@ class ReporterSaveReport(ReporterBase):
             idx_final_module = idx_module_names[-1]
 
             # found final module is Evaluator/Describer
-            if idx_final_module not in ['Evaluator','Describer']:
+            if idx_final_module not in ['Evaluator', 'Describer']:
                 continue
-
-            # Ensure Ensure idx_tuple is of even length,
-            if len(idx_tuple) % 2 != 0:
-                raise ConfigError
-            # all are within a given list ALLOWED_IDX_MODULE.
-            elif not all(
-                module in self.ALLOWED_IDX_MODULE for module in idx_module_names):
-                raise ConfigError
-            # and its module names are unique
-            elif len(idx_module_names) != len(set(idx_module_names)):
-                raise ConfigError
 
             eval_expt_name = idx_tuple[-1]
             # specifiy experiment name
@@ -447,4 +482,3 @@ class ReporterSaveReport(ReporterBase):
             data=self.result['Reporter']['report'],
             full_output=full_output
         )
-
