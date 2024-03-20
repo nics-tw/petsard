@@ -67,10 +67,10 @@ class Reporter:
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
+                    - eval (str): The evaluation experiment name used for reporting.
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str): The evaluation experiment name used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
@@ -99,13 +99,13 @@ class Reporter:
             data (dict): The data used for creating the report.
         """
         self.reporter.create(data=data)
-        self.result = self.reporter.result
 
     def report(self) -> None:
         """
         Generates and saves the report.
         """
         self.reporter.report()
+        self.result = self.reporter.result
 
 
 class ReporterBase(ABC):
