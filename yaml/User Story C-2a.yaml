@@ -1,3 +1,4 @@
+---
 Loader:
   adult_ori:
     # filepath of original data
@@ -22,3 +23,4 @@ Reporter:
     # granularity = 'global' indicates that the scoring
     #   covers the entire dataset with a comprehensive level of detail.
     granularity: 'global'
+...
