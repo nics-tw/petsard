@@ -158,57 +158,73 @@ class ReporterBase(ABC):
     @classmethod
     def _verify_create_input(cls, data: dict) -> None:
         """
-        Verify the input data of create method
+        Verify the input data for the create method.
+
+        Validates the structure and type of input data intended for creating a report.
 
         Args:
-            data (dict): The data used for creating the report.
-
-                - The key is the full index tuple of the source,
-                    format is (module_name, experiment_name, )
-                        and concat together. e.g.
+            data (dict): Input data for report creation, where:
+                - The key represents the full index tuple of the source,
+                    formatted as (module_name, experiment_name, ...)
+                    concatenated together.
+                    - For multiple results in an operator,
+                        such as EvaluatorOperator, experiment names will
+                        include a postfix "_[xxx]" to distinguish them. e.g.:
                         ('Loader', 'default'),
-                        ('Loader', 'default', 'Preprocessor', 'default')
-                    If there's multiple result in the Operator,
-                        e.g. EvaluatorOperator,
-                        Their expeirment name will add postfix "_[xxx]"
-                        to distinguish. e.g.
-                        (..., 'Evaluator', 'default_[global]')
-                - The value is the data of the source. pd.DataFrame.
-                - exist_report (dict, optional): The existing report data.
-                    - The key is the full evaluation experiment name:
-                        "{eval}_[{granularity}]"
-                    - The value is the data of the report, pd.DataFrame.
+                        ('Loader', 'default', 'Preprocessor', 'default'),
+                        (..., 'Evaluator', 'default_[global]').
+                    - The value is the source data (pd.DataFrame).
+                - 'exist_report' (optional, dict):
+                    Existing report data, where the key is
+                    the full evaluation experiment name
+                    formatted as "{eval}_[{granularity}]",
+                    and the value is the report data (pd.DataFrame).
+
+        Raises:
+            ConfigError: If any validation check fails.
         """
         for idx, value in data.items():
-            # 1. data could have a key 'exist_report' (but not neessary),
-            #   which its value is a dict,
-            #   and their key is the full evaluation experiment name,
-            #   and their value is the report from privous Report result, pd.DataFrame.
+            # 1. The 'exist_report' must be a dict with pd.DataFrame values.
             if idx == 'exist_report':
-                if value is not None and not isinstance(value, pd.DataFrame):
+                if not isinstance(value, dict) \
+                        or not all(isinstance(v, pd.DataFrame) for v in value.values()):
                     raise ConfigError
-            else:
-                # 2. for remains, key-value represent
-                #   module name, experiment name and corresponding data result.
-                #   The key should be the particular tuple format
-                #   and each value should be pd.DataFrame.
+                continue
 
-                # 2.1. Ensure idx is of even length,
-                if len(idx) % 2 != 0:
-                    raise ConfigError
+            # 2. Index must have an even number of elements.
+            if len(idx) % 2 != 0:
+                raise ConfigError
 
-                # every two elements in idx
-                #   represent a module name and a experiment name.
-                module_names = idx[::2]
-                # 2.2 All are within a given list ALLOWED_IDX_MODULE.
-                if not all(
-                    module in cls.ALLOWED_IDX_MODULE for module in module_names
-                ):
-                    raise ConfigError
+            module_names, experiment_names = idx[::2], idx[1::2]
 
-                # 2.3 All module names are unique.
-                if len(module_names) != len(set(module_names)):
-                    raise ConfigError
+            # 3. Every module names should be in ALLOWED_IDX_MODULE.
+            if not all(module in cls.ALLOWED_IDX_MODULE for module in module_names):
+                raise ConfigError
+
+            # 4. Module names in the index must be unique.
+            if len(module_names) != len(set(module_names)):
+                raise ConfigError
+
+            # 5. Each value must be a pd.DataFrame.
+            if not isinstance(value, pd.DataFrame):
+                raise ConfigError
+
+    @staticmethod
+    def get_full_expt_name(full_expt_tuple: tuple) -> str:
+        """
+        Get the full experiment name.
+
+        Args:
+            full_expt_tuple (tuple): The full experiment tuple.
+
+        Returns:
+            (str): The full experiment name.
+                format as "module1[expt1]_module2[expt2]_..._moduleN[exptN]"
+        """
+        return '_'.join([
+            f"{full_expt_tuple[i]}[{full_expt_tuple[i+1]}]"
+            for i in range(0, len(full_expt_tuple), 2)
+        ])
 
     @abstractmethod
     def report(self) -> None:
@@ -283,16 +299,14 @@ class ReporterSaveData(ReporterBase):
 
         # last 1 of index should remove postfix "_[xxx]" to match source
         pattern = re.compile(r'_(\[[^\]]*\])$')
-        for index, df in data.items():
+        for full_expt_tuple, df in data.items():
             # check if last 2 element of index in source
-            last_module_expt_name = [index[-2], re.sub(pattern, '', index[-1])]
+            last_module_expt_name = [
+                full_expt_tuple[-2], re.sub(pattern, '', full_expt_tuple[-1])
+            ]
             if any(item in self.config['source'] for item in last_module_expt_name):
-
-                full_expt = '_'.join([
-                    f"{index[i]}[{index[i+1]}]"
-                    for i in range(0, len(index), 2)
-                ])
-                self.result[full_expt] = df
+                full_expt_name = self.get_full_expt_name(full_expt_tuple)
+                self.result[full_expt_name] = df
 
     def report(self) -> None:
         """
@@ -340,8 +354,10 @@ class ReporterSaveReport(ReporterBase):
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
+        self.config['granularity'] = self.config['granularity'].lower()
         granularity_code = ReporterSaveReportMap.map(
-            self.config['granularity'])
+            self.config['granularity']
+        )
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -377,35 +393,29 @@ class ReporterSaveReport(ReporterBase):
         # verify input data
         self._verify_create_input(data)
 
-        eval: Optional[str] = self.config['eval']
-        granularity: str = self.config['granularity'].lower()
+        eval: str = self.config['eval']
+        granularity: str = self.config['granularity']
+        granularity_code: int = self.config['granularity_code']
+        exist_report: dict = data.pop('exist_report', None)
 
         result: dict = {}
-        rpt_data: pd.DataFrame = None
-
-        idx_final_module: str = ''
-        idx_module_names: list = []
         full_expt_name: str = ''
         eval_expt_name: str = ''
 
+        rpt_data: pd.DataFrame = None
+
+        idx_final_module: str = ''
+
         exist_report: dict = None
         exist_result: pd.DataFrame = None
-
-        if 'exist_report' in data:
-            exist_report = data['exist_report']
-            del data['exist_report']
-
-        for idx_tuple, rpt_data in data.items():
-            idx_module_names = idx_tuple[::2]
-            idx_final_module = idx_module_names[-1]
-
+        for full_expt_tuple, rpt_data in data.items():
             # found final module is Evaluator/Describer
+            idx_final_module = full_expt_tuple[-2]
             if idx_final_module not in ['Evaluator', 'Describer']:
                 continue
 
-            eval_expt_name = idx_tuple[-1]
-            # specifiy experiment name
-            #   match the expt_name "{eval}_[{granularity}]"
+            eval_expt_name = full_expt_tuple[-1]
+            # specifiy experiment name match the expt_name "{eval}_[{granularity}]"
             if eval_expt_name != f"{eval}_[{granularity}]":
                 continue
 
@@ -417,18 +427,15 @@ class ReporterSaveReport(ReporterBase):
                 )
                 continue
 
-            # module1[expt1]_module2[expt2]_..._moduleN[exptN]
-            full_expt_name = '_'.join([
-                f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                for i in range(0, len(idx_tuple), 2)
-            ])
-            result['full_expt_name'] = full_expt_name
-            result['eval_expt_name'] = eval_expt_name
-            result['expt_name'] = eval
-            result['granularity'] = granularity
+            full_expt_name = self.get_full_expt_name(full_expt_tuple)
+            result = {
+                'full_expt_name': full_expt_name,
+                'eval_expt_name': eval_expt_name,
+                'expt_name': eval,
+                'granularity': granularity,
+            }
 
             # reset index to represent column
-            granularity_code = self.config['granularity_code']
             if granularity_code == ReporterSaveReportMap.COLUMNWISE:
                 rpt_data = rpt_data.reset_index(drop=False)
                 rpt_data = rpt_data.rename(columns={'index': 'column'})
@@ -441,8 +448,8 @@ class ReporterSaveReport(ReporterBase):
 
             # Sequentially insert module names
             #   as column names and expt names as values
-            for i in range(len(idx_tuple) - 2, -1, -2):
-                rpt_data.insert(0, idx_tuple[i], idx_tuple[i+1])
+            for i in range(len(full_expt_tuple) - 2, -1, -2):
+                rpt_data.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
 
             # add full_expt_name as first column
             rpt_data.insert(0, 'full_expt_name', full_expt_name)
