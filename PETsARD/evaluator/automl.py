@@ -130,6 +130,8 @@ class ML:
         # store the aggregated result
         self.result: dict = {}
 
+        self.n_splits = self.config.get('k', 5)
+
         self.data_content: pd.DataFrame = None
 
     def create(self, data):
@@ -148,7 +150,6 @@ class ML:
         Data preprocessing process: remove missing values, one-hot encoding for
         categorical variables, and normalisation.
         """
-        n_splits = self.config.get('k', 5)
 
         data_ori = self.data_content['ori']
         data_syn = self.data_content['syn']
@@ -168,16 +169,16 @@ class ML:
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
         if self.config['method_code'] == AutoMLMap.REGRESSION:
-            self.result_ori = self._regression(data_ori, target_ori, n_splits)
-            self.result_syn = self._regression(data_syn, target_syn, n_splits)
+            self.result_ori = self._regression(data_ori, target_ori, self.n_splits)
+            self.result_syn = self._regression(data_syn, target_syn, self.n_splits)
         elif self.config['method'] == AutoMLMap.CLASSIFICATION:
             self.result_ori = self._classification(data_ori, target_ori, 
-                                                   n_splits)
+                                                   self.n_splits)
             self.result_syn = self._classification(data_syn, target_syn, 
-                                                   n_splits)
+                                                   self.n_splits)
         elif self.config['method'] == AutoMLMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, n_splits)
-            self.result_syn = self._cluster(data_syn, n_splits)
+            self.result_ori = self._cluster(data_ori, self.n_splits)
+            self.result_syn = self._cluster(data_syn, self.n_splits)
 
         self.result = {'ori': self.result_ori, 'syn': self.result_syn}
 
