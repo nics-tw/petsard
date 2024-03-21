@@ -413,11 +413,17 @@ class ML:
     def get_columnwise(self) -> None:
         """
         Dummy method for the column-wise result of the evaluation.
+
+        Returns:
+            None: None for ML didn't have columnwise result.
         """
-        raise NotImplementedError
+        return None
 
     def get_pairwise(self) -> None:
         """
         Dummy method for the pair-wise result of the evaluation.
+
+        Returns:
+            None: None for ML didn't have pairwise result.
         """
-        raise NotImplementedError
+        return None
