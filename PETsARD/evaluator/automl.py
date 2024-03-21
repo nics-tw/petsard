@@ -164,7 +164,10 @@ class ML:
             data_ori = data_ori.drop(columns=[target])
             target_syn = data_syn[target].values
             data_syn = data_syn.drop(columns=[target])
-
+        else:
+            if self.config['method_code'] != AutoMLMap.CLUSTER:
+                raise ConfigError
+                      
         data_ori = pd.get_dummies(data_ori, drop_first=True)
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
