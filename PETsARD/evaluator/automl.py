@@ -132,7 +132,7 @@ class ML:
         # store the aggregated result
         self.result: dict = {}
 
-        self.n_splits = self.config.get('k', 5)
+        self.n_splits = self.config.get('n_splits', 5)
 
         self.data_content: pd.DataFrame = None
 
@@ -174,8 +174,10 @@ class ML:
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
         if self.config['method_code'] == AutoMLMap.REGRESSION:
-            self.result_ori = self._regression(data_ori, target_ori, self.n_splits)
-            self.result_syn = self._regression(data_syn, target_syn, self.n_splits)
+            self.result_ori = self._regression(data_ori, target_ori, 
+                                               self.n_splits)
+            self.result_syn = self._regression(data_syn, target_syn, 
+                                               self.n_splits)
         elif self.config['method'] == AutoMLMap.CLASSIFICATION:
             self.result_ori = self._classification(data_ori, target_ori, 
                                                    self.n_splits)
