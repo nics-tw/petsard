@@ -63,7 +63,7 @@ class AutoML(EvaluatorBase):
         super().__init__(config=config)
         self.data: dict = {}
 
-        self.ml = None
+        self.ml = ML(self.config)
 
     def create(self, data):
         """
@@ -74,7 +74,7 @@ class AutoML(EvaluatorBase):
             and 'syn, and the value should be a pandas DataFrame.
         """
         self.data = data
-        self.ml = ML(self.config)
+        
         self.ml.create(self.data)
 
     def eval(self):
