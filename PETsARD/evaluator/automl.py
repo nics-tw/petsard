@@ -11,6 +11,7 @@ from sklearn.metrics import f1_score, silhouette_score
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.util.safe_round import safe_round
 import re
 
 class AutoMLMap():
@@ -388,12 +389,13 @@ class ML:
 
         normalise_range = 2 if self.config['task'] == 'cluster' else 1
 
-        compare_df = pd.DataFrame({'ori_mean': np.mean(ori_value),
-                                   'ori_std': np.std(ori_value),
-                                   'syn_mean': np.mean(syn_value),
-                                   'syn_std': np.std(syn_value)}, index=[0])
+        compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
+                                   'ori_std': safe_round(np.std(ori_value)),
+                                   'syn_mean': safe_round(np.mean(syn_value)),
+                                   'syn_std': safe_round(np.std(syn_value))}, 
+                                   index=[0])
 
-        compare_df['pct_change'] = ((compare_df['Syn_mean'] -
+        compare_df['pct_change'] = safe_round((compare_df['Syn_mean'] -
                                     compare_df['Ori_mean']) /
                                     normalise_range) * 100
 
