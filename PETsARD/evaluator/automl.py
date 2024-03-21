@@ -346,9 +346,9 @@ class ML:
             data_train = ss.fit_transform(data_train)
             data_test = ss.transform(data_test)
 
-            k4 = KMeans(random_state=42, n_clusters=4)
-            k5 = KMeans(random_state=42, n_clusters=5)
-            k6 = KMeans(random_state=42, n_clusters=6)
+            k4 = KMeans(random_state=42, n_clusters=4, n_init='auto')
+            k5 = KMeans(random_state=42, n_clusters=5, n_init='auto')
+            k6 = KMeans(random_state=42, n_clusters=6, n_init='auto')
 
             k4.fit(data_train)
             k5.fit(data_train)
