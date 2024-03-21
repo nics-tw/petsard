@@ -385,10 +385,10 @@ class ML:
 
         normalise_range = 2 if self.config['task'] == 'cluster' else 1
 
-        compare_df = pd.DataFrame({'Ori_mean': np.mean(ori_value),
-                                   'Ori_std': np.std(ori_value),
-                                   'Syn_mean': np.mean(syn_value),
-                                   'Syn_std': np.std(syn_value)}, index=[0])
+        compare_df = pd.DataFrame({'ori_mean': np.mean(ori_value),
+                                   'ori_std': np.std(ori_value),
+                                   'syn_mean': np.mean(syn_value),
+                                   'syn_std': np.std(syn_value)}, index=[0])
 
         compare_df['pct_change'] = ((compare_df['Syn_mean'] -
                                     compare_df['Ori_mean']) /
