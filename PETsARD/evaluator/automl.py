@@ -49,8 +49,11 @@ class AutoML(EvaluatorBase):
         config (dict): A dictionary containing the configuration settings.
             - method (str): The method name of how you evaluating data, which
             is downstream task of the data.
-            - target (str): The target column of the data.
-            - k (int): The parameter for k-fold cross validation.
+            - target (str): The target column of the data. Required for
+            regression and classification. Ignored for clustering. Should be
+            a numerical column for regression.
+            - n_splits (int): The parameter for k-fold cross validation. Should
+            be greater than 1.
     """
 
     def __init__(self, config: dict):
@@ -108,8 +111,11 @@ class ML:
         config (dict): A dictionary containing the configuration settings.
             - method (str): The method name of how you evaluating data.
             - task (str): The downstream task of the data.
-            - target (str): The target column of the data.
-            - k (int): The parameter for k-fold cross validation.
+            - target (str): The target column of the data. Required for
+            regression and classification. Ignored for clustering. Should be
+            a numerical column for regression.
+            - n_splits (int): The parameter for k-fold cross validation. Should
+            be greater than 1.
     """
 
     def __init__(self, config: dict):
@@ -137,7 +143,7 @@ class ML:
         Data preprocessing process: remove missing values, one-hot encoding for
         categorical variables, and normalisation.
         """
-        k = self.config.get('k', 5)
+        n_splits = self.config.get('k', 5)
 
         data_ori = self.data_content['ori']
         data_syn = self.data_content['syn']
@@ -157,17 +163,19 @@ class ML:
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
         if self.config['method_code'] == AutoMLMap.REGRESSION:
-            self.result_ori = self._regression(data_ori, target_ori, k)
-            self.result_syn = self._regression(data_syn, target_syn, k)
+            self.result_ori = self._regression(data_ori, target_ori, n_splits)
+            self.result_syn = self._regression(data_syn, target_syn, n_splits)
         elif self.config['method'] == AutoMLMap.CLASSIFICATION:
-            self.result_ori = self._classification(data_ori, target_ori, k)
-            self.result_syn = self._classification(data_syn, target_syn, k)
+            self.result_ori = self._classification(data_ori, target_ori, 
+                                                   n_splits)
+            self.result_syn = self._classification(data_syn, target_syn, 
+                                                   n_splits)
         elif self.config['method'] == AutoMLMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, k)
-            self.result_syn = self._cluster(data_syn, k)
+            self.result_ori = self._cluster(data_ori, n_splits)
+            self.result_syn = self._cluster(data_syn, n_splits)
 
 
-    def _regression(self, data, target, k):
+    def _regression(self, data, target, n_splits):
         """
         Regression model fitting and evaluation.
         The models used are linear regression, random forest,
@@ -184,7 +192,8 @@ class ML:
         Args:
             data (pd.DataFrame): The data to be fitted.
             target (str): The target column of the data.
-            k (int): The parameter for k-fold cross validation.
+            n_splits (int): The parameter for k-fold cross validation. Should
+            be greater than 1.
 
         Returns:
             result (dict): The result of the evaluation.
@@ -195,7 +204,7 @@ class ML:
             'gradient_boosting': []
         }
 
-        kf = KFold(n_splits=k, shuffle=True, random_state=42)
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in kf.split(data, target):
             data_train, data_test = data.iloc[train_index, :], \
@@ -225,7 +234,7 @@ class ML:
 
         return result
 
-    def _classification(self, data, target, k):
+    def _classification(self, data, target, n_splits):
         """
         Classification model fitting and evaluation.
         The models used are logistic regression, SVC, random forest,
@@ -242,7 +251,8 @@ class ML:
         Args:
             data (pd.DataFrame): The data to be fitted.
             target (str): The target column of the data.
-            k (int): The parameter for k-fold cross validation.
+            n_splits (int): The parameter for k-fold cross validation. Should
+            be greater than 1.
 
         Returns:
             result (dict): The result of the evaluation.
@@ -254,7 +264,7 @@ class ML:
             'gradient_boosting': []
         }
 
-        kf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+        kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in kf.split(data, target):
             data_train, data_test = data.iloc[train_index, :],\
@@ -291,7 +301,7 @@ class ML:
 
         return result
 
-    def _cluster(self, data, k):
+    def _cluster(self, data, n_splits):
         """
         Clustering model fitting and evaluation.
         The models used are KMeans with different number of clusters.
@@ -306,7 +316,8 @@ class ML:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            k (int): The parameter for k-fold cross validation.
+            n_splits (int): The parameter for k-fold cross validation. Should
+            be greater than 1.
 
         Returns:
             result (dict): The result of the evaluation.
@@ -317,7 +328,7 @@ class ML:
             'KMeans_cluster6': []
         }
 
-        kf = KFold(n_splits=k, shuffle=True, random_state=42)
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in kf.split(data):
             data_train, data_test = data.iloc[train_index, :], \
