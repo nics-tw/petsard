@@ -76,7 +76,7 @@ class AutoML(EvaluatorBase):
             and 'syn, and the value should be a pandas DataFrame.
         """
         self.data = data
-        
+
         self.ml.create(self.data)
 
     def eval(self):
@@ -169,21 +169,21 @@ class ML:
         else:
             if self.config['method_code'] != AutoMLMap.CLUSTER:
                 raise ConfigError
-                      
+
         data_ori = pd.get_dummies(data_ori, drop_first=True)
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
         if self.config['method_code'] == AutoMLMap.REGRESSION:
-            self.result_ori = self._regression(data_ori, target_ori, 
+            self.result_ori = self._regression(data_ori, target_ori,
                                                self.n_splits)
-            self.result_syn = self._regression(data_syn, target_syn, 
+            self.result_syn = self._regression(data_syn, target_syn,
                                                self.n_splits)
-        elif self.config['method'] == AutoMLMap.CLASSIFICATION:
-            self.result_ori = self._classification(data_ori, target_ori, 
+        elif self.config['method_code'] == AutoMLMap.CLASSIFICATION:
+            self.result_ori = self._classification(data_ori, target_ori,
                                                    self.n_splits)
-            self.result_syn = self._classification(data_syn, target_syn, 
+            self.result_syn = self._classification(data_syn, target_syn,
                                                    self.n_splits)
-        elif self.config['method'] == AutoMLMap.CLUSTER:
+        elif self.config['method_code'] == AutoMLMap.CLUSTER:
             self.result_ori = self._cluster(data_ori, self.n_splits)
             self.result_syn = self._cluster(data_syn, self.n_splits)
 
@@ -221,7 +221,7 @@ class ML:
 
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-        for train_index, test_index in tqdm(kf.split(data, target), 
+        for train_index, test_index in tqdm(kf.split(data, target),
                                             desc='Regression',
                                             total=n_splits):
             data_train, data_test = data.iloc[train_index, :], \
@@ -401,7 +401,7 @@ class ML:
         compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
                                    'ori_std': safe_round(np.std(ori_value)),
                                    'syn_mean': safe_round(np.mean(syn_value)),
-                                   'syn_std': safe_round(np.std(syn_value))}, 
+                                   'syn_std': safe_round(np.std(syn_value))},
                                    index=[0])
 
         compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
@@ -413,11 +413,17 @@ class ML:
     def get_columnwise(self) -> None:
         """
         Dummy method for the column-wise result of the evaluation.
+
+        Returns:
+            None: None for ML didn't have columnwise result.
         """
-        raise NotImplementedError
+        return None
 
     def get_pairwise(self) -> None:
         """
         Dummy method for the pair-wise result of the evaluation.
+
+        Returns:
+            None: None for ML didn't have pairwise result.
         """
-        raise NotImplementedError
+        return None
