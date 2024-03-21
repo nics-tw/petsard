@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor,\
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.cluster import KMeans
 from sklearn.metrics import f1_score, silhouette_score
+from tqdm import tqdm
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -218,7 +219,8 @@ class ML:
 
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-        for train_index, test_index in kf.split(data, target):
+        for train_index, test_index in tqdm(kf.split(data, target), 
+                                            desc='Regression'):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
             target_train, target_test = target[train_index], \
@@ -278,7 +280,8 @@ class ML:
 
         kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-        for train_index, test_index in kf.split(data, target):
+        for train_index, test_index in tqdm(kf.split(data, target),
+                                            desc='Classification'):
             data_train, data_test = data.iloc[train_index, :],\
                 data.iloc[test_index, :]
             target_train, target_test = target[train_index], \
@@ -342,7 +345,8 @@ class ML:
 
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-        for train_index, test_index in kf.split(data):
+        for train_index, test_index in tqdm(kf.split(data),
+                                            desc='Clustering'):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
 
