@@ -83,6 +83,8 @@ class AutoML(EvaluatorBase):
         """
         self.ml.eval()
 
+        self.result = self.ml.result
+
     def get_global(self):
         """
         Get the global result of the evaluation.
@@ -124,6 +126,9 @@ class ML:
 
         self.result_ori: dict = {}
         self.result_syn: dict = {}
+
+        # store the aggregated result
+        self.result: dict = {}
 
         self.data_content: pd.DataFrame = None
 
@@ -173,6 +178,8 @@ class ML:
         elif self.config['method'] == AutoMLMap.CLUSTER:
             self.result_ori = self._cluster(data_ori, n_splits)
             self.result_syn = self._cluster(data_syn, n_splits)
+
+        self.result = {'ori': self.result_ori, 'syn': self.result_syn}
 
 
     def _regression(self, data, target, n_splits):
