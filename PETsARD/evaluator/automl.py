@@ -222,7 +222,8 @@ class ML:
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in tqdm(kf.split(data, target), 
-                                            desc='Regression'):
+                                            desc='Regression',
+                                            total=n_splits):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
             target_train, target_test = target[train_index], \
@@ -283,7 +284,8 @@ class ML:
         kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in tqdm(kf.split(data, target),
-                                            desc='Classification'):
+                                            desc='Classification',
+                                            total=n_splits):
             data_train, data_test = data.iloc[train_index, :],\
                 data.iloc[test_index, :]
             target_train, target_test = target[train_index], \
@@ -348,7 +350,8 @@ class ML:
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in tqdm(kf.split(data),
-                                            desc='Clustering'):
+                                            desc='Clustering',
+                                            total=n_splits):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
 
