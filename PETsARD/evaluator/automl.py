@@ -178,12 +178,12 @@ class ML:
                                                self.n_splits)
             self.result_syn = self._regression(data_syn, target_syn,
                                                self.n_splits)
-        elif self.config['method'] == AutoMLMap.CLASSIFICATION:
+        elif self.config['method_code'] == AutoMLMap.CLASSIFICATION:
             self.result_ori = self._classification(data_ori, target_ori,
                                                    self.n_splits)
             self.result_syn = self._classification(data_syn, target_syn,
                                                    self.n_splits)
-        elif self.config['method'] == AutoMLMap.CLUSTER:
+        elif self.config['method_code'] == AutoMLMap.CLUSTER:
             self.result_ori = self._cluster(data_ori, self.n_splits)
             self.result_syn = self._cluster(data_syn, self.n_splits)
 
