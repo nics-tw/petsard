@@ -6,6 +6,7 @@ import pandas as pd
 from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.evaluator.sdmetrics import SDMetrics
+from PETsARD.evaluator.automl import AutoML
 from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
@@ -17,6 +18,7 @@ class EvaluatorMap():
     CUSTOM_METHOD: int = 1
     ANONYMETER:    int = 10
     SDMETRICS:     int = 11
+    AUTOML:        int = 12
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -100,6 +102,8 @@ class Evaluator:
             self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
             self.evaluator = SDMetrics(config=self.config)
+        elif method_code == EvaluatorMap.AUTOML:
+            self.evaluator = AutoML(config=self.config)
         else:
             raise UnsupportedMethodError
 
