@@ -9,10 +9,37 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.cluster import KMeans
 from sklearn.metrics import f1_score, silhouette_score
 
-from PETsARD.error import ConfigError
+from PETsARD.error import ConfigError, UnsupportedMethodError
+from PETsARD.evaluator.evaluator_base import EvaluatorBase
+import re
 
+class AutoMLMap():
+    """
+    map of AutoML
+    """
+    REGRESSION:   int = 1
+    CLASSIFICATION: int = 2
+    CLUSTER: int = 3
 
-class AutoML:
+    @classmethod
+    def map(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value
+
+        Args:
+            method (str): evaluating method
+
+        Return:
+            (int): The method code.
+        """
+        try:
+            return cls.__dict__[
+                re.sub(r"^automl-", "", method).upper()
+            ]
+        except KeyError:
+            raise UnsupportedMethodError
+
+class AutoML(EvaluatorBase):
     """
     Interface class for AutoML Models.
 
@@ -20,17 +47,17 @@ class AutoML:
 
     Args:
         config (dict): A dictionary containing the configuration settings.
-            - method (str): The method name of how you evaluating data.
-            - task (str): The downstream task of the data.
+            - method (str): The method name of how you evaluating data, which
+            is downstream task of the data.
             - target (str): The target column of the data.
             - k (int): The parameter for k-fold cross validation.
     """
 
     def __init__(self, config: dict):
-        if 'task' not in config:
+        if 'method' not in config:
             raise ConfigError
 
-        self.config: dict = config
+        super().__init__(config=config)
         self.data: dict = {}
 
         self.ml = None
@@ -87,6 +114,7 @@ class ML:
 
     def __init__(self, config: dict):
         self.config: dict = config
+        self.config['method_code'] = AutoMLMap.map(config['method'])
 
         self.result_ori: dict = {}
         self.result_syn: dict = {}
@@ -128,13 +156,13 @@ class ML:
         data_ori = pd.get_dummies(data_ori, drop_first=True)
         data_syn = pd.get_dummies(data_syn, drop_first=True)
 
-        if self.config['task'] == 'regression':
+        if self.config['method_code'] == AutoMLMap.REGRESSION:
             self.result_ori = self._regression(data_ori, target_ori, k)
             self.result_syn = self._regression(data_syn, target_syn, k)
-        elif self.config['task'] == 'classification':
+        elif self.config['method'] == AutoMLMap.CLASSIFICATION:
             self.result_ori = self._classification(data_ori, target_ori, k)
             self.result_syn = self._classification(data_syn, target_syn, k)
-        elif self.config['task'] == 'cluster':
+        elif self.config['method'] == AutoMLMap.CLUSTER:
             self.result_ori = self._cluster(data_ori, k)
             self.result_syn = self._cluster(data_syn, k)
 
