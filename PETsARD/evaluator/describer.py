@@ -524,4 +524,10 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The pairwise result of the description/evaluation.
         """
-        return pd.concat([d.get_pairwise() for d in self.pairwise_description], axis=1)
+        p_table = pd.concat([d.get_pairwise() 
+                             for d in self.pairwise_description], axis=1)
+        
+        for col in p_table.columns:
+            p_table[col] = safe_round(p_table[col]).fillna(pd.NA)
+
+        return p_table
