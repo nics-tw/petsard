@@ -113,8 +113,8 @@ class ML:
 
     Args:
         config (dict): A dictionary containing the configuration settings.
-            - method (str): The method name of how you evaluating data.
-            - task (str): The downstream task of the data.
+            - method (str): The method name of how you evaluating data, which
+            is downstream task of the data.
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
@@ -391,7 +391,7 @@ class ML:
         for i in self.result_ori.values():
             ori_value += i
 
-        normalise_range = 2 if self.config['task'] == 'cluster' else 1
+        normalise_range = 2 if self.config['method'] == 'cluster' else 1
 
         compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
                                    'ori_std': safe_round(np.std(ori_value)),
