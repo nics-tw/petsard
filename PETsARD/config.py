@@ -195,7 +195,7 @@ class Status:
         temp = {}
         temp['expt'] = expt
         temp['operator'] = operator
-        self.status[module] = deepcopy(temp)
+        self.status[module] = temp
 
     def set_report(self, eval_name: str, report: pd.DataFrame) -> None:
         """
