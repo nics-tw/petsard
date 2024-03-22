@@ -61,7 +61,7 @@ class Processor:
             'outlier': {
                 'numerical': OutlierIQR,
                 'categorical': lambda: None,
-                'datatime': OutlierIQR,
+                'datetime': OutlierIQR,
                 'object': lambda: None
             },
             'encoder': {
