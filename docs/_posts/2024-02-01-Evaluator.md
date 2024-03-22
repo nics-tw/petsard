@@ -42,9 +42,9 @@ evaluator = Evaluator(
 
 ## `create()`
 
-Create an `Evaluator` object with the given data. Three types of data are required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
+Create an `Evaluator` object with the given data. There are three types of data that may be required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Different evaluation methods have different requirements, see the following section for details. Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
 
-利用資料創建 `Evaluator`。需要有 3 種類型的資料：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
+利用資料創建 `Evaluator`。有 3 種類型的資料可能會被用到：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），不同的評估方法需要有不同的資料種類要求（詳見後續章節）。如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
 
 ```python
 evaluator.create(
@@ -68,17 +68,20 @@ Evaluate the synthetic dataset. To retrieve the evaluation result, see the follo
 
 # Available Evaluator Types
 
-In this section, we provide a comprehensive list of supported evaluator types and their `method` name.
+In this section, we provide a comprehensive list of supported evaluator types, their `method` name, and their data requirements.
 
-在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱。
+在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱與所需資料種類。
 
-| Submodule | Class | Alias (`method` name) |
-|---|:---:|:---:|
-| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' |
-| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' |
-| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' |
-| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' |
-| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' |
+| Submodule | Class | Alias (`method` name) | `'ori'` needed | `'syn'` needed | `'control'` needed |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' | ✅ | ✅ | ✅ |
+| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
+| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
+| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
+| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-regression' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-classification' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-cluster' | ✅ | ✅ |  |
 
 ## Anonymeter
 
