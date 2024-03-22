@@ -355,6 +355,65 @@ Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` method
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | (age, workclass) | Column Pair Trends | ContingencySimilarity | 1.0 | NaN | NaN |
 
+## AutoML
+
+To assess the utility of synthetic datasets, one may conduct machine learning model training on these datasets and compare the results with those obtained from training on original datasets. If the scores closely approximate or even surpass those achieved with original datasets, it suggests that the synthetic datasets are suitable for utilisation.
+
+使用者可以透過利用合成資料訓練機器學習模型，並將結果與利用原始資料訓練的模型結果比較，來得知合成資料的實用性。若兩者分數接近，甚至是超過原始資料的表現，代表合成資料具有高度的實用性。
+
+### `'automl-regression'`
+
+Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default settings. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the coefficient of determination ($R^2$).
+
+用回歸任務衡量實用性。使用的機器學習模型包含：線性回歸、隨機森林回歸、Gradient Boosting 回歸，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 $R^2$。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. Should be a numerical column. 資料集中用於預測的目標欄位，需為數值欄位。
+
+`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `'automl-classification'`
+
+Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default settings. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the F1-score.
+
+用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯回歸、支援向量機、隨機森林、Gradient Boosting 分類，四者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 F1 分數。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. 資料集中用於預測的目標欄位。
+
+`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `'automl-cluster'`
+
+Evaluate the utility based on clustering tasks, where the data will undergo training on KMeans with different cluster numbers: 4, 5, and 6. Other settings are the same. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the silhouette score.
+
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6）的 KMeans，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 Silhouette 分數。
+
+**Parameters**
+
+`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `get_global()`
+
+Retrieve the evaluation results from AutoML methods.
+
+獲取 AutoML 方法的評估結果。
+
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
+| ori_mean | ori_std | syn_mean | syn_std | pct_change |
+|:---:|:---:|:---:|:---:|:---:|
+| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -37.8504 |
+
+In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
+
+在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
+
+
 # Refenece
 
 For explanations of the library in this paper and translations of terminologies between Chinese and English, please refer to the following references:
