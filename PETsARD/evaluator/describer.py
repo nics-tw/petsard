@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from PETsARD.error import ConfigError
+from PETsARD.util import safe_round
 
 
 class Describer:
@@ -105,7 +106,7 @@ class DescriberRowCount(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['global'] = {'row_count': self.data.shape[0]}
+        self.result['global'] = {'row_count': int(self.data.shape[0])}
 
 
 class DescriberColumnCount(DescriberBase):
@@ -117,7 +118,7 @@ class DescriberColumnCount(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['global'] = {'col_count': self.data.shape[1]}
+        self.result['global'] = {'col_count': int(self.data.shape[1])}
 
 
 class DescriberGlobalNA(DescriberBase):
@@ -130,7 +131,7 @@ class DescriberGlobalNA(DescriberBase):
 
     def eval(self):
         self.result['global'] = {
-            'na_count': self.data.isna().any(axis=1).sum()}
+            'na_count': int(self.data.isna().any(axis=1).sum())}
 
 
 class DescriberMean(DescriberBase):
@@ -428,6 +429,8 @@ class DescriberAggregator(Describer):
         'corr': ('pairwise', DescriberCorr)
     }
 
+    _INT_DESCRIBER = ['col_na_count', 'nunique']
+
     def __init__(self, config: dict):
         super().__init__(config=config)
 
@@ -501,7 +504,17 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The column-wise result of the description/evaluation.
         """
-        return pd.concat([d.get_columnwise() for d in self.column_description], axis=1)
+        c_table =  pd.concat([d.get_columnwise() 
+                              for d in self.column_description], axis=1)
+        
+        for col in c_table.columns:
+            if col in self._INT_DESCRIBER:
+                c_table[col] = c_table[col].fillna(-1).astype(int)\
+                    .replace(-1, pd.NA)
+            else:
+                c_table[col] = safe_round(c_table[col]).fillna(pd.NA)
+
+        return c_table
 
     def get_pairwise(self) -> pd.DataFrame:
         """
@@ -511,4 +524,10 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The pairwise result of the description/evaluation.
         """
-        return pd.concat([d.get_pairwise() for d in self.pairwise_description], axis=1)
+        p_table = pd.concat([d.get_pairwise() 
+                             for d in self.pairwise_description], axis=1)
+        
+        for col in p_table.columns:
+            p_table[col] = safe_round(p_table[col]).fillna(pd.NA)
+
+        return p_table
