@@ -175,7 +175,7 @@ Stored the `data` input from `.create()` function. See the [create()](https://ni
 ## `self.result`
 
 
-A dictionary for storing evaluator results. The format varies with different modules.
+A dictionary storing evaluator results. The format varies with different modules.
 
 儲存評估器結果的字典。格式隨不同模組而有所不同。
 
