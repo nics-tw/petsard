@@ -121,6 +121,7 @@ class ReporterBase(ABC):
         'Postprocessor',
         'Evaluator',
         'Describer',
+        'Reporter',
     ]
 
     def __init__(self, config: dict):
@@ -194,7 +195,6 @@ class ReporterBase(ABC):
             # 2. Index must have an even number of elements.
             if len(idx) % 2 != 0:
                 raise ConfigError
-
             module_names, experiment_names = idx[::2], idx[1::2]
 
             # 3. Every module names should be in ALLOWED_IDX_MODULE.
@@ -399,8 +399,6 @@ class ReporterSaveReport(ReporterBase):
 
         idx_final_module: str = ''
         eval_expt_name: str = ''
-        exist_report: dict = None
-        exist_result: pd.DataFrame = None
         for full_expt_tuple, rpt_data in data.items():
             # 1. Found final module is Evaluator/Describer
             idx_final_module = full_expt_tuple[-2]
@@ -427,10 +425,10 @@ class ReporterSaveReport(ReporterBase):
             # 4. Row append if exist_report exist
             if exist_report is not None:
                 if eval_expt_name in exist_report:
-                    exist_result = exist_report[eval_expt_name]
                     rpt_data = pd.concat(
-                        [exist_result, rpt_data],
-                        axis=0
+                        [exist_report[eval_expt_name].copy(), rpt_data],
+                        axis=0,
+                        ignore_index=True,
                     )
 
             # 5. Collect result
