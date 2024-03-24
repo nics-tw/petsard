@@ -43,7 +43,7 @@ eval = Evaluator(
 
 `method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
 - `method = 'default'` will use `PETsARD` default evaluation: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). `method = 'default'` 將使用 `PETsARD` 預設的評測方式：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`).
-- `method = 'custom_method'` support users in evaluating with custom Python functions. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
+- `method = 'custom_method'` support custom Python functions for evaluation. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
   - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. Its location is: 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。它的位置在：
 
 ```Python
