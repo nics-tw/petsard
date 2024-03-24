@@ -43,8 +43,8 @@ class Splitter:
         Attr:
             config (dict):
                 The configuration of Splitter.
-                For method is None, it contains num_samples, train_split_ratio, random_state.
-                For method is 'custom_data', it contains method, filepath, and Loader's config.
+                If method is None, it contains num_samples, train_split_ratio, random_state.
+                If method is 'custom_data', it contains method, filepath, and Loader's config.
             data (dict):
                 The split data of train and validation set.
                 Following the format:
