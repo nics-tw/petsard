@@ -159,9 +159,9 @@ The configuration of `Evaluator` module:
 ## `self.evaluator`
 
 
-The evaluator itself, instantiated by a factory method.
+The instantiated evaluator itself.
 
-被工廠方法實例化的評估器本身。
+被實例化的評估器本身。
 
 
 ## `self.data`
