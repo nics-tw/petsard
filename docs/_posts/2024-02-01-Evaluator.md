@@ -153,7 +153,7 @@ The configuration of `Evaluator` module:
 - In standard usage, it includes the `method`, `method_code` from the input parameters, along with other parameters (`kwargs`). 在標準使用情況下，它包括來自輸入參數的 `method`（評測方法）、`method_code`（評測方法代號）、以及其他參數 (`kwargs`)。
 - When `method` is set to `'default'`, the `method` will be replaced by the default evaluation method of `PETsARD`: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). 當 `method` 設為 `'default'` 時，`method` 將會被 `PETsARD` 預設的評測方法取代：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`)。
 - When `method` is set to `'custom_method'`, it encompasses `method` and `custom_method`. 當 `method` 設為 `'custom_method'` 時，它包含 `method`、`custom_method`（自訂方法）。
-    - The `custom_method` dictionary further contains `filepath` and `method` as parameters. 在 `custom_method` 這個字典下又有 `filepath`（自訂方法檔案路徑）與 `method`（自訂方法名稱）兩個參數。
+    - The `custom_method` dictionary contains `filepath` and `method` as parameters. 在 `custom_method` 這個字典下又有 `filepath`（自訂方法檔案路徑）與 `method`（自訂方法名稱）兩個參數。
 
 
 ## `self.evaluator`
