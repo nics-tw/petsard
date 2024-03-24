@@ -203,15 +203,9 @@ class Status:
         if not hasattr(self, 'report'):
             raise UnexecutedError
 
-        # Row combine the report data if the experiment name already exists
+        # Report rows already combine in Reporter
         for eval_expt_name, report_data in report.items():
-            if eval_expt_name in self.report:
-                self.report[eval_expt_name] = pd.concat(
-                    [self.report[eval_expt_name], report_data],
-                    ignore_index=True
-                )
-            else:
-                self.report[eval_expt_name] = report_data
+            self.report[eval_expt_name] = report_data.copy()
 
     def get_pre_module(self, curr_module: str) -> str:
         """
