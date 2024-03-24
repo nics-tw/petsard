@@ -167,7 +167,7 @@ The instantiated evaluator itself.
 ## `self.data`
 
 
-Stored according to the `data` input during `.create()`. See the [create()](https://nics-tw.github.io/PETsARD/Evaluator.html#create) documentation for more information.
+Stored the `data` input from `.create()` function. See the [create()](https://nics-tw.github.io/PETsARD/Evaluator.html#create) documentation for more information.
 
 按照 `.create()` 時所輸入的 `data` 加以保存。見 [create()](https://nics-tw.github.io/PETsARD/Evaluator.html#create) 說明。
 
