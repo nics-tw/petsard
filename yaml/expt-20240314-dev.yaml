@@ -1,0 +1,46 @@
+Loader:
+  adult-income:
+    # filepath of local data
+    filepath: 'benchmark://adult-income'
+    # na_values is nessessary for this dataset, but not required for demo
+    na_values:
+      workclass: '?'
+      occupation: '?'
+      native-country: '?'
+Splitter:
+  '0.8':
+    num_samples: 10
+    train_split_ratio: 0.8
+Preprocessor:
+  default-sdv:
+    # default of Preprocessor automatically determines the data type
+    #   and uses the corresponding method.
+    method: 'default'
+Synthesizer:
+  sdv-gaussian-copula:
+    # default of Synthesizer is SDV Gaussian Copula
+    method: 'default'
+Postprocessor:
+  # make sure the expt_name of Postprocessor is same as the Preprocessor
+  default-sdv:
+    method: 'default'
+Evaluator:
+  sdmetrics-qual:
+    # defalut of Evaluator is SDMetrics QualityReport
+    method: 'default'
+Reporter:
+  save_data:
+    method: 'save_data'
+    output: '20240308_justyn_expt'
+    source:
+      - 'Splitter'
+      - 'Postprocessor'
+  save_report_global:
+    method: 'save_report'
+    output: '20240308_justyn_expt'
+    # eval in Reporter means which
+    #   expt_name of Evaluator/Describer should Reporter use
+    eval: 'sdmetrics-qual'
+    # granularity = 'global' indicates that
+    #   the scoring covers the entire dataset with a comprehensive level of detail.
+    granularity: 'global'
