@@ -390,9 +390,9 @@ Evaluate the utility based on classification tasks, where the data will undergo 
 
 ### `'automl-cluster'`
 
-Evaluate the utility based on clustering tasks, where the data will undergo training on KMeans with different cluster numbers: 4, 5, and 6 (can be changed via `n_clusters`). Other hyper-parameters are the same. The evaluation metric employed will be the silhouette score.
+Evaluate the utility based on clustering tasks, where the data will undergo training on k-means with different cluster numbers: 4, 5, and 6 (can be changed via `n_clusters`). Other hyper-parameters are the same. The evaluation metric employed will be the silhouette score.
 
-用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6，可藉由 `n_clusters` 調整）的 KMeans，三者皆以預設超參數進行訓練。使用的衡量指標為輪廓係數。
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6，可藉由 `n_clusters` 調整）的 k-平均演算法，三者皆以預設超參數進行訓練。使用的衡量指標為輪廓係數。
 
 **Parameters**
 
