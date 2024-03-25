@@ -392,7 +392,7 @@ Evaluate the utility based on classification tasks, where the data will undergo 
 
 Evaluate the utility based on clustering tasks, where the data will undergo training on KMeans with different cluster numbers: 4, 5, and 6. Other hyper-parameters are the same. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the silhouette score.
 
-用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6）的 KMeans，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 Silhouette 分數。
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6）的 KMeans，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為輪廓係數。
 
 **Parameters**
 
