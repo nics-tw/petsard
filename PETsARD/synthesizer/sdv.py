@@ -57,9 +57,10 @@ class SDVFactory:
             method (str): The synthesizer method. Default is None.
     """
 
-    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
+    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         method: str = kwargs.get('method', None)
         method_code = SDVMap.map(method)  # self.config['method']
+        metadata = kwargs.get('metadata', None)
 
         if method_code == SDVMap.COPULAGAN:
             self.Synthesizer = SDVSingleTableCopulaGAN(data=data, 
@@ -130,7 +131,7 @@ class SDVSingleTable(SDV):
         self.metadata = SingleTableMetadata()
         if metadata:
             # if a metadata is provided, load it
-            self.metadata.load_from_dict(metadata)
+            self.metadata = self.metadata.load_from_dict(metadata)
         else:
             # otherwise, detect the metadata from the data
             self.metadata.detect_from_dataframe(self.data)
