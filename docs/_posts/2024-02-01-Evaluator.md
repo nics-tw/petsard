@@ -368,7 +368,7 @@ To assess the utility of synthetic datasets, one may conduct machine learning mo
 
 Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default settings. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the coefficient of determination ($R^2$).
 
-用回歸任務衡量實用性。使用的機器學習模型包含：線性回歸、隨機森林回歸、Gradient Boosting 回歸，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 $R^2$。
+用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、Gradient Boosting 迴歸，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 $R^2$。
 
 **Parameters**
 
@@ -380,7 +380,7 @@ Evaluate the utility based on regression tasks, where the data will undergo trai
 
 Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default settings. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the F1-score.
 
-用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯回歸、支援向量機、隨機森林、Gradient Boosting 分類，四者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 F1 分數。
+用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、Gradient Boosting 分類，四者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 F1 分數。
 
 **Parameters**
 
