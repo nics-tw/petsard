@@ -40,11 +40,13 @@ class Synthesizer:
     as well as generating synthetic data based on the fitted model.
     """
 
-    def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
+    def __init__(self, method: str, epsilon: float = 5.0, metadata=None,
+                  **kwargs) -> None:
         """
         Args:
             method (str): The method to be used for synthesizing the data.
-            epsilon (float): The privacy parameter for the synthesizer. Default: 5.0.
+            epsilon (float, default=5.0): The privacy parameter for the synthesizer.
+            metadata (dict, default=None): The metadata of the data.
 
         Attributes:
             config (dict):
@@ -54,6 +56,7 @@ class Synthesizer:
         self.config['method'] = method.lower()
         self.config['epsilon'] = epsilon
         self.config['method_code'] = SynthesizerMap.map(self.config['method'])
+        self.config['metadata'] = metadata
 
         # result in self.data_syn
         self.data_syn: pd.DataFrame = None
