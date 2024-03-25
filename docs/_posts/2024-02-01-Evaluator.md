@@ -374,7 +374,7 @@ Evaluate the utility based on regression tasks, where the data will undergo trai
 
 `target` (`str`): The target column of the data. Should be a numerical column. 資料集中用於預測的目標欄位，需為數值欄位。
 
-`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
 
 ### `'automl-classification'`
 
@@ -386,7 +386,7 @@ Evaluate the utility based on classification tasks, where the data will undergo 
 
 `target` (`str`): The target column of the data. 資料集中用於預測的目標欄位。
 
-`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
 
 ### `'automl-cluster'`
 
@@ -398,7 +398,7 @@ Evaluate the utility based on clustering tasks, where the data will undergo trai
 
 `n_clusters` (`list`, default=`[4, 5, 6]`): A list of numbers of clusters.
 
-`n_splits` (`int`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
 
 ### `get_global()`
 
