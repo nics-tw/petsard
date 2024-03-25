@@ -366,9 +366,9 @@ To assess the utility of synthetic datasets, one may conduct machine learning mo
 
 ### `'automl-regression'`
 
-Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default hyper-parameters. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the coefficient of determination ($R^2$).
+Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default hyper-parameters. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the coefficient of determination ($R^2$).
 
-用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、梯度提升迴歸，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 $R^2$。
+用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、梯度提升迴歸，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 $R^2$。
 
 **Parameters**
 
@@ -378,9 +378,9 @@ Evaluate the utility based on regression tasks, where the data will undergo trai
 
 ### `'automl-classification'`
 
-Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default hyper-parameters. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the F1-score.
+Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default hyper-parameters. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the F1-score.
 
-用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、梯度提升分類，四者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 F1 分數。
+用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、梯度提升分類，四者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 F1 分數。
 
 **Parameters**
 
@@ -390,9 +390,9 @@ Evaluate the utility based on classification tasks, where the data will undergo 
 
 ### `'automl-cluster'`
 
-Evaluate the utility based on clustering tasks, where the data will undergo training on KMeans with different cluster numbers: 4, 5, and 6. Other hyper-parameters are the same. To ensure the robustness of the results, the model will be trained and evaluated five times, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the silhouette score.
+Evaluate the utility based on clustering tasks, where the data will undergo training on KMeans with different cluster numbers: 4, 5, and 6. Other hyper-parameters are the same. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization. The evaluation metric employed will be the silhouette score.
 
-用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6）的 KMeans，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 Silhouette 分數。
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6）的 KMeans，三者皆以預設超參數進行訓練。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。使用的衡量指標為 Silhouette 分數。
 
 **Parameters**
 
