@@ -52,22 +52,27 @@ class SDVFactory:
 
     Args:
         data (pd.DataFrame): The data to be synthesized from.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
             method (str): The synthesizer method. Default is None.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
         method: str = kwargs.get('method', None)
         method_code = SDVMap.map(method)  # self.config['method']
 
         if method_code == SDVMap.COPULAGAN:
-            self.Synthesizer = SDVSingleTableCopulaGAN(data=data)
+            self.Synthesizer = SDVSingleTableCopulaGAN(data=data, 
+                                                       metadata=metadata)
         elif method_code == SDVMap.CTGAN:
-            self.Synthesizer = SDVSingleTableCTGAN(data=data)
+            self.Synthesizer = SDVSingleTableCTGAN(data=data, 
+                                                   metadata=metadata)
         elif method_code == SDVMap.GAUSSIANCOPULA:
-            self.Synthesizer = SDVSingleTableGaussianCopula(data=data)
+            self.Synthesizer = SDVSingleTableGaussianCopula(data=data, 
+                                                            metadata=metadata)
         elif method_code == SDVMap.TVAE:
-            self.Synthesizer = SDVSingleTableTVAE(data=data)
+            self.Synthesizer = SDVSingleTableTVAE(data=data, 
+                                                  metadata=metadata)
         else:
             raise UnsupportedMethodError
 
@@ -103,26 +108,32 @@ class SDVSingleTable(SDV):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
         super().__init__(data, **kwargs)
 
-        self._SingleTableMetadata()
+        self._SingleTableMetadata(metadata)
 
-    def _SingleTableMetadata(self) -> None:
+    def _SingleTableMetadata(self, metadata) -> None:
         """
         Create metadata for SDV.
         Args:
-            None
+            metadata (dict): The metadata of the data.
         Return:
             None
         """
         time_start = time.time()
 
         self.metadata = SingleTableMetadata()
-        self.metadata.detect_from_dataframe(self.data)
+        if metadata:
+            # if a metadata is provided, load it
+            self.metadata.load_from_dict(metadata)
+        else:
+            # otherwise, detect the metadata from the data
+            self.metadata.detect_from_dataframe(self.data)
         print(
             f"Synthesizer (SDV - SingleTable): "
             f"Metafile loading time: "
@@ -244,8 +255,8 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
         **kwargs: The other parameters.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        super().__init__(data, **kwargs)
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
+        super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'CopulaGAN'
 
         # metadata already create in SDV_SingleTable
@@ -261,8 +272,8 @@ class SDVSingleTableCTGAN(SDVSingleTable):
         **kwargs: The other parameters.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs):
-        super().__init__(data, **kwargs)
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
+        super().__init__(data, metadata, **kwargs)
 
         self.syn_method: str = 'CTGAN'
 
@@ -278,8 +289,8 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
         **kwargs: The other parameters.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs):
-        super().__init__(data, **kwargs)
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
+        super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'GaussianCopula'
 
         self._Synthesizer = GaussianCopulaSynthesizer(self.metadata)
@@ -294,8 +305,8 @@ class SDVSingleTableTVAE(SDVSingleTable):
         **kwargs: The other parameters.
     """
 
-    def __init__(self, data: pd.DataFrame, **kwargs):
-        super().__init__(data, **kwargs)
+    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
+        super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'TVAE'
 
         self._Synthesizer = TVAESynthesizer(self.metadata)
