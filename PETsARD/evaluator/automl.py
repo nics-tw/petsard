@@ -54,10 +54,11 @@ class AutoML(EvaluatorBase):
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int): The parameter for k-fold cross validation. Should
+            - n_splits (int, default=5): The parameter for k-fold cross validation. Should
             be greater than 1.
-            - n_clusters (list): A list of numbers of clusters for clustering. 
-            Required for clustering. Ignored for regression and classification.
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. 
+            Ignored for regression and classification.
     """
 
     def __init__(self, config: dict):
@@ -120,10 +121,11 @@ class ML:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int): The parameter for k-fold cross validation. Should
-            be greater than 1.
-            - n_clusters (list): A list of numbers of clusters for clustering. 
-            Required for clustering. Ignored for regression and classification.
+            - n_splits (int, default=5): The parameter for k-fold cross 
+            validation. Should be greater than 1.
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. Ignored for 
+            regression and classification.
     """
 
     def __init__(self, config: dict):
