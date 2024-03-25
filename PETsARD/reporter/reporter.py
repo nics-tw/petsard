@@ -205,8 +205,8 @@ class ReporterBase(ABC):
             if len(module_names) != len(set(module_names)):
                 raise ConfigError
 
-            # 5. Each value must be a pd.DataFrame.
-            if not isinstance(value, pd.DataFrame):
+            # 5. Each value must be a pd.DataFrame or None.
+            if not isinstance(value, pd.DataFrame) or value is None:
                 raise ConfigError
 
     @staticmethod
