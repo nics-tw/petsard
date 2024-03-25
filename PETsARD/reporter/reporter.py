@@ -206,7 +206,7 @@ class ReporterBase(ABC):
                 raise ConfigError
 
             # 5. Each value must be a pd.DataFrame or None.
-            if not isinstance(value, pd.DataFrame) or value is None:
+            if value is not None and not isinstance(value, pd.DataFrame):
                 raise ConfigError
 
     @staticmethod
