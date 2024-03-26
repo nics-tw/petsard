@@ -279,10 +279,10 @@ class ReporterSaveReport(ReporterBase):
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
-        granularity = self.config['granularity']
-        if not isinstance(granularity, str):
+        if not isinstance(self.config['granularity'], str):
             raise ConfigError
-        granularity_code = ReporterSaveReportMap.map(granularity)
+        self.config['granularity'] = self.config['granularity'].lower()
+        granularity_code = ReporterSaveReportMap.map(self.config['granularity'])
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
