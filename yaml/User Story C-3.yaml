@@ -1,3 +1,4 @@
+---
 Loader:
   adult_ori:
     # filepath of original data
@@ -44,3 +45,4 @@ Reporter:
     #   evaluates the relationships or interactions between pairs of columns,
     #   focusing on the detailed analysis of how fields relate to each other.
     granularity: 'pairwise'
+...
