@@ -1,0 +1,111 @@
+Loader:
+    adult-income:
+        filepath: 'exp7_adult_income.csv'
+Splitter:
+    p80:
+        num_samples: 2
+        train_split_ratio: 0.8
+Preprocessor:
+    default-smartnoise:
+        sequence:
+            - 'missing'
+            - 'outlier'
+            - 'encoder'
+            - 'scaler'
+Synthesizer:
+    smartnoise-dpctgan10:
+        method: 'smartnoise-dpctgan' # ZeroDivisionError: float division by zero
+        epsilon: 10.0
+    smartnoise-dpctgan5:
+        method: 'smartnoise-dpctgan' # ZeroDivisionError: float division by zero
+        epsilon: 5.0
+    smartnoise-dpctgan1:
+        method: 'smartnoise-dpctgan' # ZeroDivisionError: float division by zero
+        epsilon: 1.0
+Postprocessor:
+    default-smartnoise:
+        method: 'default'
+Evaluator:
+    anonymeter-singlingout_univariate:
+        method: 'anonymeter-singlingout_univariate'
+    anonymeter-linkability:
+        method: 'anonymeter-linkability'
+        aux_cols:
+            -   
+                - 'age'
+                - 'gender'
+                - 'native-country'
+            -   
+                - 'race'
+                - 'relationship'
+                - 'occupation'
+    anonymeter-inference:
+        method: 'anonymeter-inference'
+        aux_cols:
+            - 'age'
+            - 'gender'
+            - 'native-country'
+        secret: 'income'
+    sdmetrics-diag:
+        method: 'sdmetrics-diagnosticreport'
+    sdmetrics-qual:
+        # defalut of Evaluator is SDMetrics QualityReport
+        method: 'default'
+    automl-regression:
+        method: 'automl-regression'
+        target: 'fnlwgt'
+        n_splits: 5
+    automl-classification:
+        method: 'automl-classification'
+        target: 'income'
+        n_splits: 5
+    automl-cluster:
+        method: 'automl-cluster'
+        n_splits: 5
+Reporter:
+    save_data:
+        method: 'save_data'
+        output: '20240322_exp7'
+        source:
+            - 'Splitter'
+            - 'Postprocessor'
+    save_report_singlingout:
+        method: 'save_report'
+        output: '20240322_exp7'
+        eval: 'anonymeter-singlingout_univariate'
+        granularity: 'global'
+    save_report_linkability:
+        method: 'save_report'
+        output: '20240322_exp7'
+        eval: 'anonymeter-linkability'
+        granularity: 'global'
+    save_report_inference:
+        method: 'save_report'
+        output: '20240322_exp7'
+        eval: 'anonymeter-inference'
+        granularity: 'global'
+    save_report_sdmetrics-diag:
+        method: 'save_report'
+        output: '20240321_exp7'
+        eval: 'sdmetrics-diag'
+        granularity: 'columnwise'
+    save_report_sdmetrics-qual:
+        method: 'save_report'
+        output: '20240321_exp7'
+        eval: 'sdmetrics-qual'
+        granularity: 'columnwise'
+    save_report_automl-regression:
+        method: 'save_report'
+        output: '20240321_exp7'
+        eval: 'automl-regression'
+        granularity: 'global'
+    save_report_automl-classification:
+        method: 'save_report'
+        output: '20240321_exp7'
+        eval: 'automl-classification'
+        granularity: 'global'
+    save_report_automl-cluster:
+        method: 'save_report'
+        output: '20240321_exp7'
+        eval: 'automl-cluster'
+        granularity: 'global'
