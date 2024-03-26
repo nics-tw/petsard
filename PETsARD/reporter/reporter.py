@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, List
 import re
 
 import pandas as pd
@@ -309,6 +309,11 @@ class ReporterSaveReport(ReporterBase):
         """
         Creating the report data by checking is experiment name of Evaluator exist.
 
+        If config['eval'] have been given,
+            it will only collect the report data of the specified evaluation experiment name.
+        Otherwise,
+            it will collect all the report data of the evaluation experiment name.
+
         Args:
             data (dict): The data dictionary. Gerenrating by ReporterOperator.set_input()
                 - The key is the full index tuple of the source,
@@ -333,8 +338,8 @@ class ReporterSaveReport(ReporterBase):
         """
         full_expt_name: str = ''
         eval_expt_name: str = ''
-        eval: Optional[str] = self.config['eval']
-        granularity: str = self.config['granularity'].lower()
+        eval: Optional[List[str]] = self.config['eval']
+        granularity: str = self.config['granularity']
 
         report_data: dict = {}
         rpt_data: pd.DataFrame = None
@@ -344,14 +349,28 @@ class ReporterSaveReport(ReporterBase):
             exist_report = self.config['exist_report']
             del self.config['exist_report']
 
+        if eval is None:
+            # match every ends of f"_[{granularity}]"
+            eval_pattern = re.escape(f"_[{granularity}]") + "$"
+        else:
+            # it should be match f"{eval}_[{granularity}]", where eval is a list
+            eval_pattern = (
+                "^("
+                + "|".join([re.escape(eval_item) for eval_item in eval])
+                + ")"
+                + re.escape(f"_[{granularity}]")
+                + "$"
+            )
+
+
         for idx_tuple, rpt_data in data.items():
             # found latest key pairs is Evaluator/Describer
             if idx_tuple[-2] not in self.SAVE_REPORT_AVAILABLE_MODULE:
                 continue
 
-            # specifiy experiment name
-            #   match the expt_name "{eval}_[{granularity}]"
-            if eval_expt_name != f"{eval}_[{granularity}]":
+            eval_expt_name = idx_tuple[-1]
+
+            if not re.search(eval_pattern, eval_expt_name):
                 continue
 
             if rpt_data is None:
@@ -422,4 +441,3 @@ class ReporterSaveReport(ReporterBase):
             data=self.report_data['Reporter']['report'],
             full_output=full_output
         )
-
