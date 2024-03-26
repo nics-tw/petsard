@@ -310,6 +310,7 @@ class ReporterSaveReport(ReporterBase):
                 raise ConfigError
         self.config['eval'] = eval
 
+
     def create(self, data: dict = None) -> None:
         """
         Creating the report data by checking is experiment name of Evaluator exist.
@@ -336,8 +337,7 @@ class ReporterSaveReport(ReporterBase):
         Attributes:
             - report_data (dict): Data for the report.
                 - Reporter (dict): The report data for the reporter.
-                    - full_expt_name (str): The full experiment name.
-                    - expt_name (str): The experiment name.
+                    - expt_name (str): The matching experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
 
@@ -347,6 +347,7 @@ class ReporterSaveReport(ReporterBase):
         eval_expt_name: str = ''
         eval: Optional[List[str]] = self.config['eval']
         granularity: str = self.config['granularity']
+        output_eval_name: str = ''
 
         report_data: dict = {}
         rpt_data: pd.DataFrame = None
@@ -359,6 +360,7 @@ class ReporterSaveReport(ReporterBase):
         if eval is None:
             # match every ends of f"_[{granularity}]"
             eval_pattern = re.escape(f"_[{granularity}]") + "$"
+            output_eval_name = f"[{granularity}]"
         else:
             # it should be match f"{eval}_[{granularity}]", where eval is a list
             eval_pattern = (
@@ -367,6 +369,10 @@ class ReporterSaveReport(ReporterBase):
                 + ")"
                 + re.escape(f"_[{granularity}]")
                 + "$"
+            )
+            output_eval_name = (
+                "-".join([eval_item for eval_item in eval])
+                + f"_[{granularity}]"
             )
 
         for idx_tuple, rpt_data in data.items():
@@ -389,13 +395,8 @@ class ReporterSaveReport(ReporterBase):
                 )
                 continue
 
+            # pre-arrange evaluation report data
             rpt_data = deepcopy(rpt_data)
-
-            full_expt_name: str = convert_full_expt_tuple_to_name(idx_tuple)
-            report_data['full_expt_name'] = full_expt_name
-            report_data['eval_expt_name'] = eval_expt_name
-            report_data['expt_name'] = eval
-            report_data['granularity'] = granularity
 
             # reset index to represent column
             granularity_code = self.config['granularity_code']
@@ -410,6 +411,7 @@ class ReporterSaveReport(ReporterBase):
                 })
 
             # add full_expt_name as first column
+            full_expt_name: str = convert_full_expt_tuple_to_name(idx_tuple)
             rpt_data.insert(0, 'full_expt_name', full_expt_name)
 
             # Row append if exist_report exist
@@ -422,7 +424,12 @@ class ReporterSaveReport(ReporterBase):
                     )
             report_data['report'] = deepcopy(rpt_data)
 
+        # store the output evaluation name
+        report_data['eval_expt_name'] = output_eval_name
+
+        # store all information to Reporter
         self.report_data['Reporter'] = report_data
+
 
     def report(self) -> None:
         """
