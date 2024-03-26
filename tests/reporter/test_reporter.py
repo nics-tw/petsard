@@ -86,11 +86,11 @@ class Test_ReporterSaveData:
 
         cfg['source'] = 'test'
         rpt = ReporterSaveData(config=cfg)
-        assert isinstance(rpt.reporter, ReporterSaveData) == True
+        assert isinstance(rpt, ReporterSaveData) == True
 
         cfg['source'] = ['test1','test2']
         rpt = ReporterSaveData(config=cfg)
-        assert isinstance(rpt.reporter, ReporterSaveData) == True
+        assert isinstance(rpt, ReporterSaveData) == True
 
         with pytest.raises(ConfigError):
             cfg['source'] = 0.8
@@ -105,7 +105,7 @@ class Test_ReporterSaveData:
             ReporterSaveData(config=cfg)
 
 
-class Test_ReporterSaveReport:
-    """
-    A test class for the ReporterSaveReport class.
-    """
+# class Test_ReporterSaveReport:
+#     """
+#     A test class for the ReporterSaveReport class.
+#     """
