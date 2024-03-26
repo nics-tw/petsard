@@ -2,10 +2,13 @@ import pytest
 
 from PETsARD import Reporter
 from PETsARD.reporter.reporter import (
-    ReporterSaveData, ReporterSaveReport
+    ReporterSaveData,
+    ReporterSaveReport,
 )
-from PETsARD.error import UnsupportedMethodError
-
+from PETsARD.error import (
+    ConfigError,
+    UnsupportedMethodError,
+)
 
 class Test_Reporter:
 
@@ -18,3 +21,18 @@ class Test_Reporter:
 
         with pytest.raises(UnsupportedMethodError):
             rpt = Reporter(method='invalid_method')
+
+
+    def test_save_data_without_source(self):
+        with pytest.raises(ConfigError):
+            Reporter(method='save_data')
+
+
+    def test_save_report_without_granularity_or_eval(self):
+        with pytest.raises(ConfigError):
+            Reporter(method='save_report')
+        with pytest.raises(ConfigError):
+            Reporter(method='save_report', granularity='global')
+        with pytest.raises(ConfigError):
+            Reporter(method='save_report', eval='test')
+
