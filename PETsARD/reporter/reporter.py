@@ -1,11 +1,18 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Optional, List
+from typing import (
+    List,
+    Optional,
+    Tuple,
+)
 import re
 
 import pandas as pd
 
-from PETsARD.reporter.utils import convert_full_expt_tuple_to_name
+from PETsARD.reporter.utils import (
+    convert_full_expt_tuple_to_name,
+    convert_eval_expt_name_to_tuple,
+)
 from PETsARD.error import (
     ConfigError,
     UnexecutedError,
@@ -316,7 +323,6 @@ class ReporterSaveData(ReporterBase):
                 full_expt_name = self.get_full_expt_name(full_expt_tuple)
                 self.result[full_expt_name] = df
 
-                
     def report(self) -> None:
         """
         Generates the report.
@@ -342,6 +348,19 @@ class ReporterSaveReport(ReporterBase):
     """
     Save evaluating/describing data to file.
     """
+    DEFAULT_FIXED_COLUMNS: list = [
+        'full_expt_name',
+        'Loader',
+        'Splitter',
+        'Preprocessor',
+        'Synthesizer',
+        'Postprocessor',
+        'Evaluator',
+        'Describer',
+        'column',
+        'column1',
+        'column2',
+    ]
 
     def __init__(self, config: dict):
         """
@@ -391,7 +410,6 @@ class ReporterSaveReport(ReporterBase):
                 raise ConfigError
         self.config['eval'] = eval
 
-
     def create(self, data: dict = None) -> None:
         """
         Creating the report data by checking is experiment name of Evaluator exist.
@@ -428,7 +446,7 @@ class ReporterSaveReport(ReporterBase):
         exist_report: dict = data.pop('exist_report', None)
 
         eval_expt_name: str = ''
-          
+
         if eval is None:
             # match every ends of f"_[{granularity}]"
             eval_pattern = re.escape(f"_[{granularity}]") + "$"
@@ -449,7 +467,7 @@ class ReporterSaveReport(ReporterBase):
 
         for full_expt_tuple, rpt_data in data.items():
             # 1. Found final module is Evaluator/Describer
-            if idx_tuple[-2] not in self.SAVE_REPORT_AVAILABLE_MODULE:
+            if full_expt_tuple[-2] not in self.SAVE_REPORT_AVAILABLE_MODULE:
                 continue
 
             # 2. matching granularity (also eval if provided)
@@ -464,9 +482,11 @@ class ReporterSaveReport(ReporterBase):
                     f"Nothing collect."
                 )
                 continue
-                
+
             rpt_data = self._process_report_data(
-                self.config['granularity_code'], full_expt_tuple, rpt_data
+                report=rpt_data,
+                full_expt_tuple=full_expt_tuple,
+                granularity_code=self.config['granularity_code'],
             )
 
             # 4. Row append if exist_report exist
@@ -487,55 +507,71 @@ class ReporterSaveReport(ReporterBase):
                 'report': deepcopy(rpt_data)
             }
 
-            
     @classmethod
     def _process_report_data(
-        cls, granularity_code, full_expt_tuple, rpt_data
+        cls,
+        report: pd.DataFrame,
+        full_expt_tuple: Tuple[str],
+        granularity_code: int,
+        rename: bool = True
     ) -> pd.DataFrame:
         """
         Process the report data by performing the following steps:
 
-        1-1. Reset the index if the granularity is COLUMNWISE.
+        1. Rename the columns as f"{eval_name}_{original column}" if assigned.
+        2-1. Reset the index if the granularity is COLUMNWISE.
             Rename the index column to 'column'.
-        1-2. Reset the index if the granularity is PAIRWISE.
+        2-2. Reset the index if the granularity is PAIRWISE.
             Rename the level_0 and level_1 columns to 'column1' and 'column2' respectively.
         3. Sequentially insert module names as column names and expt names as values.
         4. Add the full_expt_name as the first column.
 
         Args:
-            - granularity_code (int):
-                The code representing the granularity of the report.
+            - report (pd.DataFrame):
+                The report data to be processed.
             - full_expt_tuple (tuple):
                 The tuple containing module names and expt names.
-            - rpt_data (pd.DataFrame):
-                The report data to be processed.
+            - rename (bool, optional):
+                A flag to indicate whether to rename the columns.
+                Default is True.
 
         Returns:
-            - rpt_data (pd.DataFrame_: The processed report data.
+            - rpt_data (pd.DataFrame): The processed report data.
         """
-        # 1. reset index to represent column
+
+        # 1. Rename columns as f"{eval_name}_{original column}" if assigned
+        #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
+        if rename:
+            eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+            eval_name = eval_expt_tuple[0]
+            for col in report.columns:
+                report.rename(
+                    columns={col: f"{eval_name}_{col}"},
+                    inplace=True,
+                )
+
+        # 2. reset index to represent column
         if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-            rpt_data = rpt_data.reset_index(drop=False)
-            rpt_data = rpt_data.rename(columns={'index': 'column'})
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={'index': 'column'})
         elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-            rpt_data = rpt_data.reset_index(drop=False)
-            rpt_data = rpt_data.rename(columns={
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={
                 'level_0': 'column1',
                 'level_1': 'column2'
             })
 
-        # 2. Sequentially insert module names
+        # 3. Sequentially insert module names
         #   as column names and expt names as values
         for i in range(len(full_expt_tuple) - 2, -1, -2):
-            rpt_data.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
+            report.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
 
-        # 3. Add full_expt_name as first column
-        rpt_data.insert(
+        # 4. Add full_expt_name as first column
+        report.insert(
             0, 'full_expt_name', cls.get_full_expt_name(full_expt_tuple)
         )
 
-        return rpt_data
-
+        return report
 
     def report(self) -> None:
         """
