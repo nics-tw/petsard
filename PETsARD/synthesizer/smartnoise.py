@@ -39,9 +39,6 @@ class SmartNoise:
                 f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
             )
 
-            # TODO - Only support cube-style synthesizer. 
-            # GAN-style synthesizer needed to be implemented.
-
             if self.syn_method in self.CUBE:
                 self._Synthesizer.fit(
                     self.data,
