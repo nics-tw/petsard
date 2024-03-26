@@ -70,9 +70,9 @@ In this demonstration, you, as the user, already possess a data file locally, an
 ## User Story B-1
 **Default Evaluating Procedure**
 
-Following User Story A, if users enable the "evaluate" step, the evaluation module will create a report covering default privacy risk and utility metrics.
+Following User Story A, if users enable the 'evaluate' step, the evaluation module will create a report covering default privacy risk and utility metrics.
 
-根據用戶故事 A，如果使用者啟用了 "evaluate" 步驟，評估模組會產生涵蓋預設的隱私風險與效用指標的報告。
+根據用戶故事 A，如果使用者啟用了 'evaluate' 步驟，評估模組會產生涵蓋預設的隱私風險與效用指標的報告。
 
 
 ## User Story B-2
@@ -99,9 +99,9 @@ In this demonstration, you, as the user, already have a data file on your local 
 ## User Story C-1
 **Describing Procedure**
 
-Given a dataset as an input, the pipeline can go through the "describe" module to get a summary of the dataset.
+Given a dataset as an input, the pipeline can go through the 'describe' module to get a summary of the dataset.
 
-給定一個資料集做輸入，該流程可以藉由調用 "describe" 模組而得到該資料集的摘要
+給定一個資料集做輸入，該流程可以藉由調用 'describe' 模組而得到該資料集的摘要
 
 
 ## User Story C-2
@@ -111,16 +111,16 @@ Given an original dataset and a privacy-enhanced dataset to the evaluation modul
 
 給定原始資料集與對應的隱私強化資料集到評估模組中，該流程會產生一份涵蓋預設/一般指標的隱私風險與效用的報告。
 
-The "custom data" here indicates the situation that users already have synthesizing data, and you require `PETsARD` for the evaluation only. Therefore, please refer to C-1 and C-2 for the usage of `'custom_data'` on different module given certain `Evaluator`.
+The 'custom data' here indicates the situation that users already have synthesizing data, and you require `PETsARD` for the evaluation only. Therefore, please refer to C-1 and C-2 for the usage of `'custom_data'` on different module given certain `Evaluator`.
 
 這裡「自訂資料」的概念是，使用者已經擁有合成資料，您只需要使用 `PETsARD` 做評測，不用跑整套 `PETsARD` 合成資料的流程。此時請參考 C-1、C-2 的說明，依照不同的 `Evaluator`，來對不同模組使用 `'custom_data'` 的設定：
 
 
 ### User Story C-2a
 
-C-2a demonstrates the evaluation approach of the `Evaluator` that comparing "original data" with "synthetic data," for instance, using`method = 'default'` or tools starting with `'sdmetrics-'` from SDMetrics.
+C-2a demonstrates the evaluation approach of the `Evaluator` that comparing 'original data' with 'synthetic data', for instance, using`method = 'default'` or tools starting with `'sdmetrics-'` from SDMetrics.
 
-The "original data" can be directly loaded using the `Loader`. At this point, the "synthetic data" needs to be placed in the `Synthesizer`, using `method = 'custom_data'` to specify custom data.
+The 'original data' can be directly loaded using the `Loader`. At this point, the 'synthetic data' needs to be placed in the `Synthesizer`, using `method = 'custom_data'` to specify custom data.
 
 After using `method = 'custom_data'`, similar to the `Loader`, the file location is specified using `filepath`.
 
@@ -134,13 +134,13 @@ C-2a 展示的是 `Evaluator` 使用「原始資料」對照「合成資料」�
 ### User Story C-2b
 
 
-C-2b demonstrates the evaluation approach of the Evaluator that comparing "original data used in synthesis" (abbreviated as ori), "original data not used in synthesis" (abbreviated as control), and "synthesized data" (abbreviated as syn) at the same time, for example, using tools starting with `method ='anonymeter-'` from Anonymeter.
+C-2b demonstrates the evaluation approach of the Evaluator that comparing 'original data used in synthesis' (abbreviated as ori), 'original data not used in synthesis' (abbreviated as control), and 'synthesized data' (abbreviated as syn) at the same time, for example, using tools starting with `method = 'anonymeter-'` from Anonymeter.
 
-"Used in synthesis" and "Not used in synthesis" are achieved by using the `Splitter` module. Therefore, please apply `method = 'custom_data'` to the `Splitter`, where `filepath` requires two inputs: `'ori'` corresponds to "original data used in synthesis," and `'control'` corresponds to "original data not used in synthesis." The setting method for "synthesized data" in the `Synthesizer` remains the same as C-2a.
+'Used in synthesis' and 'Not used in synthesis' are achieved by using the `Splitter` module. Therefore, please apply `method = 'custom_data'` to the `Splitter`, where `filepath` requires two inputs: `'ori'` corresponds to 'original data used in synthesis', and `'control'` corresponds to 'original data not used in synthesis'. The setting method for 'synthesized data' in the `Synthesizer` remains the same as C-2a.
 
-Here, we also demonstrate the evaluation with `method = 'default'`. For scenarios directly comparing "original data" and "synthesized data," C-2b automatically considers the `'ori'` in the `Splitter` as "original data" for comparison, obtaining results from both SDMetrics and Anonymeter. User should take care of their own data partition method to ensure the representativeness of the original data.
+Here, we also demonstrate the evaluation with `method = 'default'`. For scenarios directly comparing 'original data' and 'synthesized data', C-2b automatically considers the `'ori'` in the `Splitter` as 'original data' for comparison, obtaining results from both SDMetrics and Anonymeter. User should take care of their own data partition method to ensure the representativeness of the original data.
 
-C-2b 展示的是 `Evaluator` 使用「參與合成的原始資料」(original data, 縮寫為 ori)、「不參與合成的原始資料」(control data, 縮寫為 control)、與「合成資料」(synthesized data, 縮寫為 syn) 三者一起進行比較的合成方式，例如 `method ='anonymeter-'` 開頭的 Anonymeter 評測工具。
+C-2b 展示的是 `Evaluator` 使用「參與合成的原始資料」(original data, 縮寫為 ori)、「不參與合成的原始資料」(control data, 縮寫為 control)、與「合成資料」(synthesized data, 縮寫為 syn) 三者一起進行比較的合成方式，例如 `method = 'anonymeter-'` 開頭的 Anonymeter 評測工具。
 
 「參與合成」跟「不參與合成」是利用了 `Splitter` 模組進行切割，所以請對 Splitter 使用 `method = 'custom_data'`，此時 `filepath` 需要兩個輸入，`'ori'` 對應了「參與合成的原始資料」，`'control'` 對應了「不參與合成的原始資料」。「合成資料」在 `Synthesizer` 的設定方法與 C-2a 一樣，
 

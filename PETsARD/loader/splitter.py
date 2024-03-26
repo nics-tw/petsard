@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
-from PETsARD.loader.loader import Loader # avoid circular import
+from PETsARD.loader.loader import Loader  # avoid circular import
 from PETsARD.error import ConfigError
 
 
@@ -27,12 +27,29 @@ class Splitter:
     ):
         """
         Args:
-            method (str):
-                Support load exist split data, accepted 'custom_data' only.
+            method (str, optional):
+                Supports loading existing split data, only accepting 'custom_data'.
                 Default is None.
-            num_samples (int): Number of times to resample the data. Default is 1.
-            train_split_ratio (float): Ratio of data to assign to the training set, must between 0 ~ 1. Default is 0.8.
-            random_state (int | float | str): Seed for random number generation. Default is None.
+            num_samples (int, optional):
+                Number of times to resample the data. Default is 1.
+            train_split_ratio (float, optional):
+                Ratio of data to assign to the training set,
+                must between 0 ~ 1. Default is 0.8.
+            random_state (int | float | str, optional):
+                Seed for random number generation. Default is None.
+            **kwargs (optional):
+                For method 'custom_data' only. Apply Loader's config.
+
+        Attr:
+            config (dict):
+                The configuration of Splitter.
+                If method is None, it contains num_samples, train_split_ratio, random_state.
+                If method is 'custom_data', it contains method, filepath, and Loader's config.
+
+            data (dict):
+                The split data of train and validation set.
+                Following the format:
+                {sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}
         """
 
         # Normal Splitter use case
@@ -67,8 +84,9 @@ class Splitter:
             config['method'] = method
             config['filepath'] = filepath
             self.config = config
+        self.data: dict = {}
 
-    def split(self, data: pd.DataFrame, exclude_index: List[int] = None):
+    def split(self, data: pd.DataFrame = None, exclude_index: List[int] = None):
         """
         Perform index bootstrapping on the Splitter-initialized data
             and split it into train and validation sets using the generated index samples.
@@ -76,11 +94,9 @@ class Splitter:
         When method is 'custom_data', the data will be loaded from the filepath.
 
         Args:
-            data (pd.DataFrame): The dataset which wait for split.
+            data (pd.DataFrame, optional): The dataset which wait for split.
             exclude_index (List[int]): The exist index we want to exclude them from our sampling.
         """
-        self.data: dict = {}
-
         if 'method' in self.config:
             self.loader['ori'].load()
             self.loader['control'].load()
@@ -103,10 +119,13 @@ class Splitter:
                 }
 
     def _index_bootstrapping(
-        self, index: list, exclude_index: List[int] = None) -> Dict[int, List[int]]:
+        self,
+        index: list,
+        exclude_index: List[int] = None
+    ) -> Dict[int, List[int]]:
         """
         Generate randomized index samples for splitting data.
-        ...
+
         Args
             index (list)
                 The index list of dataset which wait for split.
