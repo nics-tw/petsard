@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 import pytest
 
@@ -5,10 +7,12 @@ from PETsARD import Reporter
 from PETsARD.reporter.reporter import (
     ReporterSaveData,
     ReporterSaveReport,
+    ReporterSaveReportMap,
 )
 from PETsARD.reporter.utils import (
     convert_full_expt_tuple_to_name,
     convert_full_expt_name_to_tuple,
+    convert_eval_expt_name_to_tuple,
 )
 from PETsARD.error import (
     ConfigError,
@@ -21,54 +25,118 @@ from PETsARD.error import (
 def sample_reporter_input():
     data: dict = {}
     data['data'] = {}
-    data['data'][('Evaluator', 'test1_[global]')] = \
-        pd.DataFrame({
-            'Evaluator': ['test1_[global]'],
-            'Score': [0.9],
-            'ScoreA': [0.8],
-        })
-    data['data'][('Evaluator', 'test2_[global]')] = \
-        pd.DataFrame({
-            'Evaluator': ['test2_[global]'],
-            'Score': [0.1],
-            'ScoreB': [0.2],
-        })
-    data['data'][('Evaluator', 'test1_[columnwise]')] = \
-        pd.DataFrame({
-            'Evaluator': ['test1_[columnwise]', 'test1_[columnwise]'],
-            'column': ['col1', 'col2'],
-            'Score': [0.9, 0.8],
-            'ScoreA': [0.7, 0.6],
-        })
-    data['data'][('Evaluator', 'test2_[columnwise]')] = \
-        pd.DataFrame({
-            'Evaluator': ['test2_[columnwise]', 'test2_[columnwise]'],
-            'column': ['col1', 'col2'],
-            'Score': [0.1, 0.2],
-            'ScoreB': [0.3, 0.4],
-        })
+    temp_data = {}
+
+    test1_global_name = ('Evaluator', 'test1_[global]')
+    test1_global = pd.DataFrame({
+        'Score': [0.9],
+        'ScoreA': [0.8],
+    })
+
+    test2_global_name = ('Evaluator', 'test2_[global]')
+    test2_global = pd.DataFrame({
+        'Score': [0.1],
+        'ScoreB': [0.2],
+    })
+
+    test1_columnwise_name = ('Evaluator', 'test1_[columnwise]')
+    test1_columnwise = pd.DataFrame({
+        'index': ['col1','col2'],
+        'Score': [0.9, 0.8],
+        'ScoreA': [0.7, 0.6],
+    })
+    test1_columnwise.set_index('index', inplace=True)
+
+    test2_columnwise_name = ('Evaluator', 'test2_[columnwise]')
+    test2_columnwise = pd.DataFrame({
+        'index': ['col1','col2'],
+        'Score': [0.1, 0.2],
+        'ScoreB': [0.3, 0.4],
+    })
+    test2_columnwise.set_index('index', inplace=True)
+
+    test1_pairwise_name = ('Evaluator', 'test1_[pairwise]')
+    test1_pairwise = pd.DataFrame({
+        'level_0': ['col1','col1','col2','col2'],
+        'level_1': ['col1','col2','col1','col2'],
+        'Score': [0.9, 0.8, 0.7, 0.6],
+        'ScoreA': [0.5, 0.4, 0.3, 0.2],
+    })
+    test1_pairwise.set_index(['level_0','level_1'],inplace=True)
+
+    test2_pairwise_name = ('Evaluator', 'test2_[pairwise]')
+    test2_pairwise = pd.DataFrame({
+        'level_0': ['col1','col1','col2','col2'],
+        'level_1': ['col1','col2','col1','col2'],
+        'Score': [0.1, 0.2, 0.3, 0.4],
+        'ScoreA': [0.5, 0.6, 0.7, 0.8],
+    })
+    test2_pairwise.set_index(['level_0','level_1'],inplace=True)
+
+    test3_name = ('Postprocessor', 'test3')
+    test3 = pd.DataFrame({
+        'col1': [0.1, 0.2, 0.3],
+        'col2': [0.9, 0.8, 0.7],
+    })
+
+    temp_data_dict = {
+        test1_global_name: test1_global,
+        test2_global_name: test2_global,
+        test1_columnwise_name: test1_columnwise,
+        test2_columnwise_name: test2_columnwise,
+        test1_pairwise_name: test1_pairwise,
+        test2_pairwise_name: test2_pairwise,
+        test3_name: test3,
+    }
+    for key, value in temp_data_dict.items():
+        temp_data[key] = value
+    data['data'] = temp_data
 
     return data
 
 
 @pytest.fixture
-def sample_full_expt_tuple_1():
-    def _sample_full_expt_tuple_1(case: int):
+def sample_full_expt_tuple():
+    def _sample_full_expt_tuple(case: int):
         if case == 2:
             return ('Loader', 'default', 'Preprocessor', 'test_low_dash')
         else: # case 1
             return ('Loader', 'default', 'Preprocessor', 'default')
-    return _sample_full_expt_tuple_1
+    return _sample_full_expt_tuple
 
 
 @pytest.fixture
-def sample_full_expt_name_1():
-    def _sample_full_expt_name_1(case: int):
+def sample_full_expt_name():
+    def _sample_full_expt_name(case: int):
         if case == 2:
             return 'Loader[default]_Preprocessor[test_low_dash]'
         else: # case 1
             return 'Loader[default]_Preprocessor[default]'
-    return _sample_full_expt_name_1
+    return _sample_full_expt_name
+
+
+@pytest.fixture
+def sample_eval_expt_tuple():
+    def _sample_eval_expt_tuple(case: int):
+        if case == 2:
+            return ('desc', 'columnwise')
+        elif case == 3:
+            return ('desc', 'pairwise')
+        else: # case 1
+            return ('sdmetrics-qual', 'global')
+    return _sample_eval_expt_tuple
+
+
+@pytest.fixture
+def sample_eval_expt_name():
+    def _sample_eval_expt_name(case: int):
+        if case == 2:
+            return 'desc_[columnwise]'
+        elif case == 3:
+            return 'desc_[pairwise]'
+        else: # case 1
+            return 'sdmetrics-qual_[global]'
+    return _sample_eval_expt_name
 
 
 class Test_Reporter:
@@ -257,6 +325,73 @@ class Test_ReporterSaveReport:
             cfg['eval'] = ('test1', 'test2')
             ReporterSaveReport(config=cfg)
 
+    def test_process_report_data(self, sample_reporter_input):
+        """
+        Test case for the _process_report_data function.
+
+        - The column names of the input DataFrame will correctly
+            rename columns and add column when:
+            - the input DataFrame is a global granularity
+            - the input DataFrame is a columnwise granularity
+            - the input DataFrame is a pairwise granularity
+        """
+        def _test_process_report_data(
+            report: pd.DataFrame,
+            full_expt_tuple: tuple
+        ):
+            try:
+                granularity: str = convert_eval_expt_name_to_tuple(full_expt_tuple[1])[1]
+            except TypeError:
+                granularity = 'global'
+            skip_flag, rpt = ReporterSaveReport._process_report_data(
+                report=report,
+                full_expt_tuple=full_expt_tuple,
+                eval_pattern=re.escape(f"_[{granularity}]") + "$",
+                granularity=granularity
+            )
+            return skip_flag, rpt
+
+        data = sample_reporter_input
+
+        full_expt_tuple: tuple = ('Evaluator', 'test1_[global]')
+        skip_flag, rpt = _test_process_report_data(
+            report=data['data'][full_expt_tuple],
+            full_expt_tuple=full_expt_tuple,
+        )
+        assert skip_flag == False
+        assert rpt.columns.tolist() == [
+            'full_expt_name', 'Evaluator', 'test1_Score', 'test1_ScoreA'
+        ]
+
+        full_expt_tuple: tuple = ('Evaluator', 'test1_[columnwise]')
+        skip_flag, rpt = _test_process_report_data(
+            report=data['data'][full_expt_tuple],
+            full_expt_tuple=full_expt_tuple,
+        )
+        assert skip_flag == False
+        assert rpt.columns.tolist() == [
+            'full_expt_name', 'Evaluator', 'column', 'test1_Score', 'test1_ScoreA'
+        ]
+
+        full_expt_tuple: tuple = ('Evaluator', 'test1_[pairwise]')
+        skip_flag, rpt = _test_process_report_data(
+            report=data['data'][full_expt_tuple],
+            full_expt_tuple=full_expt_tuple,
+        )
+        assert skip_flag == False
+        assert rpt.columns.tolist() == [
+            'full_expt_name', 'Evaluator', 'column1', 'column2',
+            'test1_Score', 'test1_ScoreA'
+        ]
+
+        full_expt_tuple: tuple = ('Postprocessor', 'test3')
+        skip_flag, rpt = _test_process_report_data(
+            report=data['data'][full_expt_tuple],
+            full_expt_tuple=full_expt_tuple,
+        )
+        assert skip_flag == True
+        assert rpt is None
+
 class Test_utils:
     """
     A test class for the utility functions in the reporter module.
@@ -264,8 +399,8 @@ class Test_utils:
 
     def test_convert_full_expt_tuple_to_name(
         self,
-        sample_full_expt_tuple_1,
-        sample_full_expt_name_1,
+        sample_full_expt_tuple,
+        sample_full_expt_name,
     ):
         """
         Test case for the convert_full_expt_tuple_to_name function.
@@ -278,15 +413,15 @@ class Test_utils:
         # ('Loader', 'default', 'Preprocessor', 'default')
         # ('Loader', 'default', 'Preprocessor', 'test_low_dash')
         for case in range(1,2+1,1):
-            full_expt_tuple: tuple = sample_full_expt_tuple_1(case=case)
-            full_expt_name: str = sample_full_expt_name_1(case=case)
+            full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
+            full_expt_name: str = sample_full_expt_name(case=case)
             assert convert_full_expt_tuple_to_name(full_expt_tuple) \
                 == full_expt_name
 
     def test_convert_full_expt_name_to_tuple(
         self,
-        sample_full_expt_name_1,
-        sample_full_expt_tuple_1,
+        sample_full_expt_name,
+        sample_full_expt_tuple,
     ):
         """
         Test case for the convert_full_expt_name_to_tuple function.
@@ -299,7 +434,30 @@ class Test_utils:
         # 'Loader[default]_Preprocessor[default]'
         # 'Loader[default]_Preprocessor[test_low_dash]'
         for case in range(1,2+1,1):
-            full_expt_name: str = sample_full_expt_name_1(case=case)
-            full_expt_tuple: tuple = sample_full_expt_tuple_1(case=case)
+            full_expt_name: str = sample_full_expt_name(case=case)
+            full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
             assert convert_full_expt_name_to_tuple(full_expt_name) \
                 == full_expt_tuple
+
+    def convert_eval_expt_name_to_tuple(
+        self,
+        sample_eval_expt_name,
+        sample_eval_expt_tuple,
+    ):
+        """
+        Test case for the convert_eval_expt_name_to_tuple function.
+
+        - convert_eval_expt_name_to_tuple(expt_name: str):
+            will be converted to correct format tuple when:
+            - expt_name = 'sdmetrics-qual_[global]'
+            - expt_name = 'desc_[columnwise]'
+            - expt_name = 'desc_[pairwise]'
+        """
+        # 'sdmetrics-qual_[global]'
+        # 'desc_[columnwise]'
+        # 'desc_[pairwise]'
+        for case in range(1,3+1,1):
+            eval_expt_name: str = sample_eval_expt_name(case=case)
+            eval_expt_tuple: tuple = sample_eval_expt_tuple(case=case)
+            assert convert_eval_expt_name_to_tuple(eval_expt_name) \
+                == eval_expt_tuple
