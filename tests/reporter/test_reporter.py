@@ -20,7 +20,7 @@ class Test_Reporter:
         assert isinstance(rpt.reporter, ReporterSaveReport) == True
 
         with pytest.raises(UnsupportedMethodError):
-            rpt = Reporter(method='invalid_method')
+            Reporter(method='invalid_method')
 
 
     def test_save_data_without_source(self):
@@ -35,4 +35,32 @@ class Test_Reporter:
             Reporter(method='save_report', granularity='global')
         with pytest.raises(ConfigError):
             Reporter(method='save_report', eval='test')
+
+
+class Test_ReporterSaveData:
+
+    def test_save_data_source_is_str_or_list_of_str(self):
+        cfg = {}
+        cfg['method'] = 'save_data'
+
+        cfg['source'] = 'test'
+        rpt = Reporter(**cfg)
+        assert isinstance(rpt.reporter, ReporterSaveData) == True
+
+        cfg['source'] = ['test1','test2']
+        rpt = Reporter(**cfg)
+        assert isinstance(rpt.reporter, ReporterSaveData) == True
+
+        with pytest.raises(ConfigError):
+            cfg['source'] = 0.8
+            Reporter(**cfg)
+
+        with pytest.raises(ConfigError):
+            cfg['source'] = ['test', 0.8]
+            Reporter(**cfg)
+
+        with pytest.raises(ConfigError):
+            cfg['source'] = ('test1','test2')
+            Reporter(**cfg)
+
 
