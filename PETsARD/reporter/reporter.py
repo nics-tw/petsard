@@ -335,6 +335,8 @@ class ReporterSaveReport(ReporterBase):
                     - expt_name (str): The experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
+
+        TODO Log record if rpt_data is None
         """
         full_expt_name: str = ''
         eval_expt_name: str = ''
@@ -370,54 +372,57 @@ class ReporterSaveReport(ReporterBase):
 
             eval_expt_name = idx_tuple[-1]
 
+            # matching granularity (also eval if provided)
             if not re.search(eval_pattern, eval_expt_name):
                 continue
 
+            # check if rpt_data is None
             if rpt_data is None:
                 print(
+                    f"Reporter: "
                     f"There's no {granularity} granularity report in {eval}. "
                     f"Nothing collect."
                 )
-                return
-            else:
-                rpt_data = deepcopy(rpt_data)
+                continue
 
-                full_expt_name: str = '_'.join([
-                    f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                    for i in range(0, len(idx_tuple), 2)
-                ])
-                report_data['full_expt_name'] = full_expt_name
-                report_data['eval_expt_name'] = eval_expt_name
-                report_data['expt_name'] = eval
-                report_data['granularity'] = granularity
+            rpt_data = deepcopy(rpt_data)
 
-                # reset index to represent column
-                granularity_code = self.config['granularity_code']
-                if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-                    rpt_data = rpt_data.reset_index(drop=False)
-                    rpt_data = rpt_data.rename(columns={'index': 'column'})
-                elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-                    rpt_data = rpt_data.reset_index(drop=False)
-                    rpt_data = rpt_data.rename(columns={
-                        'level_0': 'column1',
-                        'level_1': 'column2'
-                    })
+            full_expt_name: str = '_'.join([
+                f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
+                for i in range(0, len(idx_tuple), 2)
+            ])
+            report_data['full_expt_name'] = full_expt_name
+            report_data['eval_expt_name'] = eval_expt_name
+            report_data['expt_name'] = eval
+            report_data['granularity'] = granularity
 
-                # add full_expt_name as first column
-                rpt_data.insert(0, 'full_expt_name', full_expt_name)
+            # reset index to represent column
+            granularity_code = self.config['granularity_code']
+            if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={'index': 'column'})
+            elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+                rpt_data = rpt_data.reset_index(drop=False)
+                rpt_data = rpt_data.rename(columns={
+                    'level_0': 'column1',
+                    'level_1': 'column2'
+                })
 
-                # Row append if exist_report exist
-                if exist_report is not None:
-                    if eval_expt_name in exist_report:
-                        exist_report_data = exist_report[eval_expt_name]
-                        rpt_data = pd.concat(
-                            [exist_report_data, rpt_data],
-                            axis=0
-                        )
-                report_data['report'] = deepcopy(rpt_data)
+            # add full_expt_name as first column
+            rpt_data.insert(0, 'full_expt_name', full_expt_name)
 
-                # only one matched Evaluator/Describer should in the Status.status
-                break
+            # Row append if exist_report exist
+            if exist_report is not None:
+                if eval_expt_name in exist_report:
+                    exist_report_data = exist_report[eval_expt_name]
+                    rpt_data = pd.concat(
+                        [exist_report_data, rpt_data],
+                        axis=0
+                    )
+            report_data['report'] = deepcopy(rpt_data)
+
+            # only one matched Evaluator/Describer should in the Status.status
+            break
 
         self.report_data['Reporter'] = report_data
 
