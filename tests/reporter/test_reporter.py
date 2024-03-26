@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from PETsARD import Reporter
@@ -5,10 +6,70 @@ from PETsARD.reporter.reporter import (
     ReporterSaveData,
     ReporterSaveReport,
 )
+from PETsARD.reporter.utils import (
+    convert_full_expt_tuple_to_name,
+    convert_full_expt_name_to_tuple,
+)
 from PETsARD.error import (
     ConfigError,
     UnsupportedMethodError,
 )
+
+
+# shared evaluation data
+@pytest.fixture
+def sample_reporter_input():
+    data: dict = {}
+    data['data'] = {}
+    data['data'][('Evaluator', 'test1_[global]')] = \
+        pd.DataFrame({
+            'Evaluator': ['test1_[global]'],
+            'Score': [0.9],
+            'ScoreA': [0.8],
+        })
+    data['data'][('Evaluator', 'test2_[global]')] = \
+        pd.DataFrame({
+            'Evaluator': ['test2_[global]'],
+            'Score': [0.1],
+            'ScoreB': [0.2],
+        })
+    data['data'][('Evaluator', 'test1_[columnwise]')] = \
+        pd.DataFrame({
+            'Evaluator': ['test1_[columnwise]', 'test1_[columnwise]'],
+            'column': ['col1', 'col2'],
+            'Score': [0.9, 0.8],
+            'ScoreA': [0.7, 0.6],
+        })
+    data['data'][('Evaluator', 'test2_[columnwise]')] = \
+        pd.DataFrame({
+            'Evaluator': ['test2_[columnwise]', 'test2_[columnwise]'],
+            'column': ['col1', 'col2'],
+            'Score': [0.1, 0.2],
+            'ScoreB': [0.3, 0.4],
+        })
+
+    return data
+
+
+@pytest.fixture
+def sample_full_expt_tuple_1():
+    def _sample_full_expt_tuple_1(case: int):
+        if case == 2:
+            return ('Loader', 'default', 'Preprocessor', 'test_low_dash')
+        else: # case 1
+            return ('Loader', 'default', 'Preprocessor', 'default')
+    return _sample_full_expt_tuple_1
+
+
+@pytest.fixture
+def sample_full_expt_name_1():
+    def _sample_full_expt_name_1(case: int):
+        if case == 2:
+            return 'Loader[default]_Preprocessor[test_low_dash]'
+        else: # case 1
+            return 'Loader[default]_Preprocessor[default]'
+    return _sample_full_expt_name_1
+
 
 class Test_Reporter:
     """
@@ -35,7 +96,6 @@ class Test_Reporter:
         with pytest.raises(UnsupportedMethodError):
             Reporter(method='invalid_method')
 
-
     def test_method_save_data(self):
         """
         Test case for the arg. `method` = 'save_data' of Reporter class.
@@ -45,7 +105,6 @@ class Test_Reporter:
         """
         with pytest.raises(ConfigError):
             Reporter(method='save_data')
-
 
     def test_method_save_report(self):
         """
@@ -95,7 +154,7 @@ class Test_ReporterSaveData:
         rpt = ReporterSaveData(config=cfg)
         assert isinstance(rpt, ReporterSaveData) == True
 
-        cfg['source'] = ['test1','test2']
+        cfg['source'] = ['test1', 'test2']
         rpt = ReporterSaveData(config=cfg)
         assert isinstance(rpt, ReporterSaveData) == True
 
@@ -108,7 +167,7 @@ class Test_ReporterSaveData:
             ReporterSaveData(config=cfg)
 
         with pytest.raises(ConfigError):
-            cfg['source'] = ('test1','test2')
+            cfg['source'] = ('test1', 'test2')
             ReporterSaveData(config=cfg)
 
 
@@ -154,7 +213,7 @@ class Test_ReporterSaveReport:
             ReporterSaveReport(config=cfg)
 
         with pytest.raises(ConfigError):
-            cfg['granularity'] = ['global','columnwise']
+            cfg['granularity'] = ['global', 'columnwise']
             ReporterSaveReport(config=cfg)
 
     def test_eval(self):
@@ -182,7 +241,7 @@ class Test_ReporterSaveReport:
         rpt = ReporterSaveReport(config=cfg)
         assert isinstance(rpt, ReporterSaveReport) == True
 
-        cfg['eval'] = ['test1','test2']
+        cfg['eval'] = ['test1', 'test2']
         rpt = ReporterSaveReport(config=cfg)
         assert isinstance(rpt, ReporterSaveReport) == True
 
@@ -195,5 +254,52 @@ class Test_ReporterSaveReport:
             ReporterSaveReport(config=cfg)
 
         with pytest.raises(ConfigError):
-            cfg['eval'] = ('test1','test2')
+            cfg['eval'] = ('test1', 'test2')
             ReporterSaveReport(config=cfg)
+
+class Test_utils:
+    """
+    A test class for the utility functions in the reporter module.
+    """
+
+    def test_convert_full_expt_tuple_to_name(
+        self,
+        sample_full_expt_tuple_1,
+        sample_full_expt_name_1,
+    ):
+        """
+        Test case for the convert_full_expt_tuple_to_name function.
+
+        - convert_full_expt_tuple_to_name(expt_tuple: tuple):
+            will be converted to correct format string when:
+            - expt_tuple = ('Loader', 'default', 'Preprocessor', 'default')
+            - expt_tuple = ('Loader', 'default', 'Preprocessor', 'test_low_dash')
+        """
+        # ('Loader', 'default', 'Preprocessor', 'default')
+        # ('Loader', 'default', 'Preprocessor', 'test_low_dash')
+        for case in range(1,2+1,1):
+            full_expt_tuple: tuple = sample_full_expt_tuple_1(case=case)
+            full_expt_name: str = sample_full_expt_name_1(case=case)
+            assert convert_full_expt_tuple_to_name(full_expt_tuple) \
+                == full_expt_name
+
+    def test_convert_full_expt_name_to_tuple(
+        self,
+        sample_full_expt_name_1,
+        sample_full_expt_tuple_1,
+    ):
+        """
+        Test case for the convert_full_expt_name_to_tuple function.
+
+        - convert_full_expt_name_to_tuple(expt_name: str):
+            will be converted to correct format tuple when:
+            - expt_name = 'Loader[default]_Preprocessor[default]'
+            - expt_name = 'Loader[default]_Preprocessor[test_low_dash]'.
+        """
+        # 'Loader[default]_Preprocessor[default]'
+        # 'Loader[default]_Preprocessor[test_low_dash]'
+        for case in range(1,2+1,1):
+            full_expt_name: str = sample_full_expt_name_1(case=case)
+            full_expt_tuple: tuple = sample_full_expt_tuple_1(case=case)
+            assert convert_full_expt_name_to_tuple(full_expt_name) \
+                == full_expt_tuple
