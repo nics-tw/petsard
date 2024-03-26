@@ -54,8 +54,11 @@ class AutoML(EvaluatorBase):
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int): The parameter for k-fold cross validation. Should
+            - n_splits (int, default=5): The parameter for k-fold cross validation. Should
             be greater than 1.
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. 
+            Ignored for regression and classification.
     """
 
     def __init__(self, config: dict):
@@ -118,8 +121,11 @@ class ML:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int): The parameter for k-fold cross validation. Should
-            be greater than 1.
+            - n_splits (int, default=5): The parameter for k-fold cross 
+            validation. Should be greater than 1.
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. Ignored for 
+            regression and classification.
     """
 
     def __init__(self, config: dict):
@@ -133,6 +139,7 @@ class ML:
         self.result: dict = {}
 
         self.n_splits = self.config.get('n_splits', 5)
+        self.n_clusters = self.config.get('n_clusters', [4, 5, 6])
 
         self.data_content: pd.DataFrame = None
 
@@ -184,8 +191,10 @@ class ML:
             self.result_syn = self._classification(data_syn, target_syn,
                                                    self.n_splits)
         elif self.config['method_code'] == AutoMLMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, self.n_splits)
-            self.result_syn = self._cluster(data_syn, self.n_splits)
+            self.result_ori = self._cluster(data_ori, self.n_splits,
+                                            self.n_clusters)
+            self.result_syn = self._cluster(data_syn, self.n_splits,
+                                            self.n_clusters)
 
         self.result = {'ori': self.result_ori, 'syn': self.result_syn}
 
@@ -320,7 +329,7 @@ class ML:
 
         return result
 
-    def _cluster(self, data, n_splits):
+    def _cluster(self, data, n_splits, n_clusters):
         """
         Clustering model fitting and evaluation.
         The models used are KMeans with different number of clusters.
@@ -337,20 +346,19 @@ class ML:
             data (pd.DataFrame): The data to be fitted.
             n_splits (int): The parameter for k-fold cross validation. Should
             be greater than 1.
+            n_clusters (list): A list of numbers of clusters for clustering.
 
         Returns:
             result (dict): The result of the evaluation.
         """
         result = {
-            'KMeans_cluster4': [],
-            'KMeans_cluster5': [],
-            'KMeans_cluster6': []
+            f'KMeans_cluster{k}': [] for k in n_clusters
         }
 
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
         for train_index, test_index in tqdm(kf.split(data),
-                                            desc='Clustering',
+                                            desc='Cluster',
                                             total=n_splits):
             data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
@@ -359,23 +367,14 @@ class ML:
             data_train = ss.fit_transform(data_train)
             data_test = ss.transform(data_test)
 
-            k4 = KMeans(random_state=42, n_clusters=4, n_init='auto')
-            k5 = KMeans(random_state=42, n_clusters=5, n_init='auto')
-            k6 = KMeans(random_state=42, n_clusters=6, n_init='auto')
+            for k in n_clusters:
+                k_model = KMeans(random_state=42, n_clusters=k, n_init='auto')
 
-            k4.fit(data_train)
-            k5.fit(data_train)
-            k6.fit(data_train)
+                k_model.fit(data_train)
 
-            result['KMeans_cluster4'].append(
-                silhouette_score(data_test, k4.predict(data_test))
-            )
-            result['KMeans_cluster5'].append(
-                silhouette_score(data_test, k5.predict(data_test))
-            )
-            result['KMeans_cluster6'].append(
-                silhouette_score(data_test, k6.predict(data_test))
-            )
+                result[f'KMeans_cluster{k}'].append(
+                    silhouette_score(data_test, k_model.predict(data_test))
+                )
 
         return result
 

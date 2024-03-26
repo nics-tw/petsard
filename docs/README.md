@@ -1,4 +1,4 @@
-<p align="center"><img width=12.5% src="assets/images/2023-12-13 11.41.43.jpg"></p>
+![image](assets/images/2023-12-13 11.41.43.jpg)
 
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
@@ -52,7 +52,8 @@ The known conflicts are as follows. The primary cause is the dependencies of the
 
 已知的衝突如下。主因是 smartnoise 現有版本的相依性：
 
-> > pip install smartnoise-synth # Error can be ignored
+> \> pip install smartnoise-synth # Error can be ignored
+>
 > ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
 > rdt 1.9.2 requires Faker<20,>=17, but you have faker 15.3.4 which is incompatible.
 
@@ -75,10 +76,10 @@ Here is the simplest way to get started with `PETsARD`:
 
 以下是最簡單入門的 `PETsARD` 使用方式：
 
-```python
+```Python
 from PETsARD import Executor
 
-filename = 'Exec_Design.yaml'
+filename = "Exec_Design.yaml"
 exec = Executor(config=filename)
 exec.run()
 ```
@@ -92,7 +93,8 @@ Here, we use the default methods of each module to construct the simplest 'Exec_
 這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html)。
 
 
-```
+```YAML
+---
 Loader:
   demo:
     # default of Loader is Adult Income dataset
@@ -130,6 +132,7 @@ Reporter:
     # granularity = 'global' indicates that
     #   the scoring covers the entire dataset with a comprehensive level of detail.
     granularity: 'global'
+...
 ```
 
 
