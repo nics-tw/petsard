@@ -69,7 +69,7 @@ class Test_ReporterSaveData:
     A test class for the ReporterSaveData class.
     """
 
-    def test_save_data_source(self):
+    def test_source(self):
         """
         Test case for the arg. `source` of ReporterSaveData class.
 
@@ -77,12 +77,16 @@ class Test_ReporterSaveData:
             - a string
             - a list of strings
         - ReporterSaveData will raise a ConfigError when `source` is set to:
+            - didn't setting
             - a float value
             - a list containing a float value
             - a tuple
         """
         cfg = {}
         cfg['method'] = 'save_data'
+
+        with pytest.raises(ConfigError):
+            ReporterSaveData(config=cfg)
 
         cfg['source'] = 'test'
         rpt = ReporterSaveData(config=cfg)
@@ -105,7 +109,47 @@ class Test_ReporterSaveData:
             ReporterSaveData(config=cfg)
 
 
-# class Test_ReporterSaveReport:
-#     """
-#     A test class for the ReporterSaveReport class.
-#     """
+class Test_ReporterSaveReport:
+    """
+    A test class for the ReporterSaveReport class.
+    """
+
+    def test_granularity(self):
+        """
+        Test case for the arg. `granularity` of ReporterSaveReport class.
+
+        - ReporterSaveReport will be created when `granularity` is set to:
+            - 'global'
+            - 'columnwise'
+            - 'pairwise'
+        - ReporterSaveReport will raise a ConfigError when `granularity` is set to:
+            - didn't setting
+            - other string such as 'invalid_method'
+            - other non-str format, e.g. a list
+        """
+        cfg = {}
+        cfg['method'] = 'save_report'
+        cfg['eval'] = 'test'
+
+        with pytest.raises(ConfigError):
+            ReporterSaveReport(config=cfg)
+
+        cfg['granularity'] = 'global'
+        rpt = ReporterSaveReport(config=cfg)
+        assert isinstance(rpt, ReporterSaveReport) == True
+
+        cfg['granularity'] = 'columnwise'
+        rpt = ReporterSaveReport(config=cfg)
+        assert isinstance(rpt, ReporterSaveReport) == True
+
+        cfg['granularity'] = 'pairwise'
+        rpt = ReporterSaveReport(config=cfg)
+        assert isinstance(rpt, ReporterSaveReport) == True
+
+        with pytest.raises(UnsupportedMethodError):
+            cfg['granularity'] = 'invalid_method'
+            ReporterSaveReport(config=cfg)
+
+        with pytest.raises(ConfigError):
+            cfg['granularity'] = ['global','columnwise']
+            ReporterSaveReport(config=cfg)
