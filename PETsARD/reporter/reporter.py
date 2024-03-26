@@ -421,9 +421,6 @@ class ReporterSaveReport(ReporterBase):
                     )
             report_data['report'] = deepcopy(rpt_data)
 
-            # only one matched Evaluator/Describer should in the Status.status
-            break
-
         self.report_data['Reporter'] = report_data
 
     def report(self) -> None:
