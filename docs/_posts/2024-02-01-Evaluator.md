@@ -43,8 +43,8 @@ eval = Evaluator(
 
 `method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
 - `method = 'default'` will use `PETsARD` default evaluation: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). `method = 'default'` 將使用 `PETsARD` 預設的評測方式：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`).
-- `method = 'custom_method'` support custom Python functions for evaluation. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
-  - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. Its location is: 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。它的位置在：
+- `method = 'custom_method'` support users in evaluating with custom Python functions. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
+  - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. You can import from here: 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。您可以從這裡導入：
 
 ```Python
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -55,7 +55,6 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
     - `method` (`str`): The method name in the custom method file. 自定義方法檔案中的方法名稱。
 
 `**kwargs` (`dict`, optional): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
-
 
 
 ## `create()`
@@ -154,15 +153,13 @@ The configuration of `Evaluator` module:
 
 `Evaluator` 模組的參數：
 
-
-- In standard usage, it includes the `method` and `method_code` from the input parameters, along with other parameters (`kwargs`). 在標準使用情況下，它包括來自輸入參數的 `method`（評測方法）、`method_code`（評測方法代號）、以及其他參數 (`kwargs`)。
+- In standard usage, it includes the `method`, `method_code` from the input parameters, along with other parameters (`kwargs`). 在標準使用情況下，它包括來自輸入參數的 `method`（評測方法）、`method_code`（評測方法代號）、以及其他參數 (`kwargs`)。
 - When `method` is set to `'default'`, the `method` will be replaced by the default evaluation method of `PETsARD`: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). 當 `method` 設為 `'default'` 時，`method` 將會被 `PETsARD` 預設的評測方法取代：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`)。
-- When `method` is set to `'custom_method'`, it encompasses `method` and `custom_method`. 當 `method` 設為 `'custom_method'` 時，它包含 `method`、`custom_method`（自訂方法）。
-    - The `custom_method` dictionary contains `filepath` and `method` as parameters. 在 `custom_method` 這個字典下又有 `filepath`（自訂方法檔案路徑）與 `method`（自訂方法名稱）兩個參數。
+- When `method` is set to `'custom_method'`, it encompasses `method`, `custom_method`. 當 `method` 設為 `'custom_method'` 時，它包含 `method`、`custom_method`（自訂方法）。
+    - The `custom_method` dictionary further contains `filepath` and `method` as parameters. 在 `custom_method` 這個字典下又有 `filepath`（自訂方法檔案路徑）與 `method`（自訂方法名稱）兩個參數。
 
 
 ## `self.evaluator`
-
 
 The instantiated evaluator itself.
 
@@ -171,14 +168,12 @@ The instantiated evaluator itself.
 
 ## `self.data`
 
+Stored the `data` input from `.create()` function. See the [`create()`](https://nics-tw.github.io/PETsARD/Evaluator.html#create) documentation for more information.
 
-Stored the `data` input from `.create()` function. See the [create()](https://nics-tw.github.io/PETsARD/Evaluator.html#create) documentation for more information.
-
-按照 `.create()` 時所輸入的 `data` 加以保存。見 [create()](https://nics-tw.github.io/PETsARD/Evaluator.html#create) 說明。
+按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](https://nics-tw.github.io/PETsARD/Evaluator.html#create) 說明。
 
 
 ## `self.result`
-
 
 A dictionary storing evaluator results. The format varies with different modules.
 
@@ -186,7 +181,6 @@ A dictionary storing evaluator results. The format varies with different modules
 
 
 # Available Evaluator Types
-
 
 In this section, we provide a comprehensive list of supported evaluator types, their `method` name, and their data requirements.
 
@@ -564,7 +558,6 @@ Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` method
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | (age, workclass) | Column Pair Trends | ContingencySimilarity | 1.0 | NaN | NaN |
 
-
 </div>
 
 ## AutoML
@@ -626,7 +619,6 @@ Retrieve the evaluation results from AutoML methods.
 In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
 
 在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
-
 
 # Refenece
 
