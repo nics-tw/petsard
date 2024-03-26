@@ -57,7 +57,12 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 `**kwargs` (`dict`, optional): The parameters defined by each evaluation methods. See the following sections. 評估方法的自定義參數。詳見後續章節。
 
 
+
 ## `create()`
+
+Create an `Evaluator` object with the given data. There are three types of data that may be required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Different evaluation methods have different requirements, see the following section for details. Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
+
+利用資料創建 `Evaluator`。有 3 種類型的資料可能會被用到：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），不同的評估方法需要有不同的資料種類要求（詳見後續章節）。如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
 
 
 Create an `Evaluator` object with the given data.
@@ -183,20 +188,23 @@ A dictionary storing evaluator results. The format varies with different modules
 # Available Evaluator Types
 
 
-In this section, we provide a comprehensive list of supported evaluator types and their `method` name.
+In this section, we provide a comprehensive list of supported evaluator types, their `method` name, and their data requirements.
 
-在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱。
+在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱與所需資料種類。
 
 
 <div class="table-wrapper" markdown="block">
 
-| Submodule | Class | Alias (`method` name) |
-|---|:---:|:---:|
-| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' |
-| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' |
-| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' |
-| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' |
-| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' |
+| Submodule | Class | Alias (`method` name) | `'ori'` needed | `'syn'` needed | `'control'` needed |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' | ✅ | ✅ | ✅ |
+| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
+| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
+| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
+| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-regression' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-classification' | ✅ | ✅ |  |
+| `automl` | `ML` | 'automl-cluster' | ✅ | ✅ |  |
 
 </div>
 
@@ -556,7 +564,68 @@ Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` method
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | (age, workclass) | Column Pair Trends | ContingencySimilarity | 1.0 | NaN | NaN |
 
+
 </div>
+
+## AutoML
+
+To assess the utility of synthetic datasets, one may conduct machine learning model training on these datasets and compare the results with those obtained from training on original datasets. If the scores closely approximate or even surpass those achieved with original datasets, it suggests that the synthetic datasets are suitable for utilisation. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization.
+
+使用者可以透過利用合成資料訓練機器學習模型，並將結果與利用原始資料訓練的模型結果比較，來得知合成資料的實用性。若兩者分數接近，甚至是超過原始資料的表現，代表合成資料具有高度的實用性。每個模型會用不同的資料切分訓練、衡量五次（次數為預設值，可藉由 `n_splits` 調整），並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。
+
+### `'automl-regression'`
+
+Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default hyper-parameters. The evaluation metric employed will be the coefficient of determination ($R^2$).
+
+用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、梯度提升迴歸，三者皆以預設超參數進行訓練。使用的衡量指標為 $R^2$。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. Should be a numerical column. 資料集中用於預測的目標欄位，需為數值欄位。
+
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `'automl-classification'`
+
+Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default hyper-parameters. The evaluation metric employed will be the F1-score.
+
+用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、梯度提升分類，四者皆以預設超參數進行訓練。使用的衡量指標為 F1 分數。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. 資料集中用於預測的目標欄位。
+
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `'automl-cluster'`
+
+Evaluate the utility based on clustering tasks, where the data will undergo training on k-means with different cluster numbers: 4, 5, and 6 (can be changed via `n_clusters`). Other hyper-parameters are the same. The evaluation metric employed will be the silhouette score.
+
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6，可藉由 `n_clusters` 調整）的 k-平均演算法，三者皆以預設超參數進行訓練。使用的衡量指標為輪廓係數。
+
+**Parameters**
+
+`n_clusters` (`list`, default=`[4, 5, 6]`): A list of numbers of clusters.
+
+`n_splits` (`int`, default=`5`): The parameter for k-fold cross validation. Should be greater than 1. 在 k-fold 交叉驗證時的 k 值。需大於 1。
+
+### `get_global()`
+
+Retrieve the evaluation results from AutoML methods.
+
+獲取 AutoML 方法的評估結果。
+
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
+| ori_mean | ori_std | syn_mean | syn_std | pct_change |
+|:---:|:---:|:---:|:---:|:---:|
+| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -37.8504 |
+
+In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
+
+在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
 
 
 # Refenece
