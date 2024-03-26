@@ -186,30 +186,26 @@ class Status:
                 del self.status[exist_module]
 
         if module == 'Reporter':
-            result: dict = operator.get_result()
-            if 'Reporter' in result:
-                full_eval_expt_name: str = result['Reporter']['full_expt_name']
-                report: pd.DataFrame = result['Reporter']['report']
-                self.set_report(eval_name=full_eval_expt_name, report=report)
+            self.set_report(report=operator.get_result())
 
         temp = {}
         temp['expt'] = expt
         temp['operator'] = operator
         self.status[module] = temp
 
-    def set_report(self, eval_name: str, report: pd.DataFrame) -> None:
+    def set_report(self, report: dict) -> None:
         """
         Add report data to the report dictionary.
 
         Args:
-            eval_name (str): The evaluation name.
-            report (pd.DataFrame): The report data.
+            report (dict): The report data.
         """
         if not hasattr(self, 'report'):
             raise UnexecutedError
 
-        # Row combine should happens in Reporter, here directly replacement
-        self.report[eval_name] = deepcopy(report)
+        # Report rows already combine in Reporter
+        for eval_expt_name, report_data in report.items():
+            self.report[eval_expt_name] = report_data.copy()
 
     def get_pre_module(self, curr_module: str) -> str:
         """
