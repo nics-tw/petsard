@@ -1,16 +1,11 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Optional, List
+from typing import Optional
 import re
 
 import pandas as pd
 
-from PETsARD.reporter.utils import convert_full_expt_tuple_to_name
-from PETsARD.error import (
-    ConfigError,
-    UnexecutedError,
-    UnsupportedMethodError
-)
+from PETsARD.error import ConfigError, UnexecutedError, UnsupportedMethodError
 
 
 class ReporterMap():
@@ -76,8 +71,6 @@ class Reporter:
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str | List[str], optional):
-                        The evaluation method used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
@@ -130,7 +123,6 @@ class ReporterBase(ABC):
         'Describer',
         'Reporter',
     ]
-    SAVE_REPORT_AVAILABLE_MODULE: list = ['Evaluator', 'Describer']
 
     def __init__(self, config: dict):
         """
@@ -267,7 +259,7 @@ class ReporterSaveData(ReporterBase):
         Args:
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
-                - source (str | List[str]): The source of the data.
+                - source (Union[str, List[str]]): The source of the data.
                 - output (str, optional): The output filename prefix for the report.
                     Default is 'PETsARD'.
 
@@ -316,15 +308,12 @@ class ReporterSaveData(ReporterBase):
                 full_expt_name = self.get_full_expt_name(full_expt_tuple)
                 self.result[full_expt_name] = df
 
-                
     def report(self) -> None:
         """
         Generates the report.
 
         Notes:
-            Some of the data may be None,
-            such as Evaluator.get_global/columnwise/pairwise.
-            These will be skipped.
+            Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
         """
         for expt_name, df in self.result.items():
             # Some of the data may be None.
@@ -353,9 +342,8 @@ class ReporterSaveReport(ReporterBase):
                 - granularity (str): The granularity of reporting.
                     It should be one of 'global', 'columnwise', or 'pairwise'.
                     Case-insensitive.
-                - eval (str | List[str], optional):
-                    The evaluation experiment name for export reporting.
-                    Case-sensitive. Default is None
+                - eval (str): The evaluation experiment name for export reporting.
+                    Case-sensitive.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -366,12 +354,10 @@ class ReporterSaveReport(ReporterBase):
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
-        if not isinstance(self.config['granularity'], str):
-            raise ConfigError
         self.config['granularity'] = self.config['granularity'].lower()
         granularity_code = ReporterSaveReportMap.map(
-            self.config['granularity'])
-
+            self.config['granularity']
+        )
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -380,26 +366,13 @@ class ReporterSaveReport(ReporterBase):
             raise ConfigError
         self.config['granularity_code'] = granularity_code
 
-        # set eval to None if not exist,
-        #   otherwise verify it should be str or List[str]
-        eval = self.config.get('eval')
-        if isinstance(eval, str):
-            eval = [eval]
-        if not isinstance(eval, list)\
-                or not all(isinstance(item, str) for item in eval):
-            if eval is not None:
-                raise ConfigError
-        self.config['eval'] = eval
-
+        # set eval to None if not exist
+        if 'eval' not in self.config:
+            raise ConfigError
 
     def create(self, data: dict = None) -> None:
         """
         Creating the report data by checking is experiment name of Evaluator exist.
-
-        If config['eval'] have been given,
-            it will only collect the report data of the specified evaluation experiment name.
-        Otherwise,
-            it will collect all the report data of the evaluation experiment name.
 
         Args:
             data (dict): The data used for creating the report.
@@ -412,62 +385,42 @@ class ReporterSaveReport(ReporterBase):
         Attributes:
             - result (dict): Data for the report.
                 - Reporter (dict): The report data for the reporter.
-                    - expt_name (str): The matching experiment name.
+                    - full_expt_name (str): The full experiment name.
+                    - expt_name (str): The experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
-
-        TODO Log record if rpt_data is None
         """
         # verify input data
         self._verify_create_input(data)
 
-        eval: Optional[List[str]] = self.config['eval']
+        eval: str = self.config['eval']
         granularity: str = self.config['granularity']
-        output_eval_name: str = ''
-
         exist_report: dict = data.pop('exist_report', None)
 
+        idx_final_module: str = ''
         eval_expt_name: str = ''
-          
-        if eval is None:
-            # match every ends of f"_[{granularity}]"
-            eval_pattern = re.escape(f"_[{granularity}]") + "$"
-            output_eval_name = f"[{granularity}]"
-        else:
-            # it should be match f"{eval}_[{granularity}]", where eval is a list
-            eval_pattern = (
-                "^("
-                + "|".join([re.escape(eval_item) for eval_item in eval])
-                + ")"
-                + re.escape(f"_[{granularity}]")
-                + "$"
-            )
-            output_eval_name = (
-                "-".join([eval_item for eval_item in eval])
-                + f"_[{granularity}]"
-            )
-
         for full_expt_tuple, rpt_data in data.items():
             # 1. Found final module is Evaluator/Describer
-            if idx_tuple[-2] not in self.SAVE_REPORT_AVAILABLE_MODULE:
+            idx_final_module = full_expt_tuple[-2]
+            if idx_final_module not in ['Evaluator', 'Describer']:
                 continue
 
-            # 2. matching granularity (also eval if provided)
-            if not re.search(eval_pattern, eval_expt_name):
+            # 2. match the expt_name "{eval}_[{granularity}]"
+            eval_expt_name = full_expt_tuple[-1]
+            if eval_expt_name != f"{eval}_[{granularity}]":
                 continue
 
             # 3. match granularity
             if rpt_data is None:
                 print(
-                    f"Reporter: "
                     f"There's no {granularity} granularity report in {eval}. "
                     f"Nothing collect."
                 )
                 continue
-                
-            rpt_data = self._process_report_data(
-                self.config['granularity_code'], full_expt_tuple, rpt_data
-            )
+            else:
+                rpt_data = self._process_report_data(
+                    self.config['granularity_code'], full_expt_tuple, rpt_data
+                )
 
             # 4. Row append if exist_report exist
             if exist_report is not None:
@@ -487,7 +440,9 @@ class ReporterSaveReport(ReporterBase):
                 'report': deepcopy(rpt_data)
             }
 
-            
+            # should only single Evaluator/Describer matched in the Status.status
+            break
+
     @classmethod
     def _process_report_data(
         cls, granularity_code, full_expt_tuple, rpt_data
@@ -535,7 +490,6 @@ class ReporterSaveReport(ReporterBase):
         )
 
         return rpt_data
-
 
     def report(self) -> None:
         """
