@@ -1,3 +1,4 @@
+---
 Loader:
   demo:
     # default of Loader is Adult Income dataset
@@ -34,6 +35,4 @@ Reporter:
     # granularity = 'global' indicates that
     #   the scoring covers the entire dataset with a comprehensive level of detail.
     granularity: 'global'
-
-
-
+...
