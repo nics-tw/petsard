@@ -70,7 +70,8 @@ class Reporter:
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str): The evaluation method used for reporting.
+                    - eval (str | List[str], optional):
+                        The evaluation method used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
@@ -179,7 +180,7 @@ class ReporterSaveData(ReporterBase):
                 - method (str): The method used for reporting.
                 - output (str, optional): The output filename prefix for the report.
                     Default is 'PETsARD'.
-                - source (Union[str, List[str]]): The source of the data.
+                - source (str | List[str]): The source of the data.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -268,8 +269,9 @@ class ReporterSaveReport(ReporterBase):
                 - granularity (str): The granularity of reporting.
                     It should be one of 'global', 'columnwise', or 'pairwise'.
                     Case-insensitive.
-                - eval (str): The evaluation experiment name for export reporting.
-                    Case-sensitive.
+                - eval (str | List[str], optional):
+                    The evaluation experiment name for export reporting.
+                    Case-sensitive. Default is None
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -292,9 +294,16 @@ class ReporterSaveReport(ReporterBase):
             raise ConfigError
         self.config['granularity_code'] = granularity_code
 
-        # set eval to None if not exist
-        if 'eval' not in self.config:
-            raise ConfigError
+        # set eval to None if not exist,
+        #   otherwise verify it should be str or List[str]
+        eval = self.config.get('eval')
+        if isinstance(eval, str):
+            eval = [eval]
+        if not isinstance(eval, list)\
+            or not all(isinstance(item, str) for item in eval):
+            if eval is not None:
+                raise ConfigError
+        self.config['eval'] = eval
 
     def create(self, data: dict = None) -> None:
         """
