@@ -40,13 +40,11 @@ class Synthesizer:
     as well as generating synthetic data based on the fitted model.
     """
 
-    def __init__(self, method: str, epsilon: float = 5.0, metadata=None,
-                  **kwargs) -> None:
+    def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
         """
         Args:
             method (str): The method to be used for synthesizing the data.
             epsilon (float, default=5.0): The privacy parameter for the synthesizer.
-            metadata (dict, default=None): The metadata of the data.
 
         Attributes:
             config (dict):
@@ -56,22 +54,23 @@ class Synthesizer:
         self.config['method'] = method.lower()
         self.config['epsilon'] = epsilon
         self.config['method_code'] = SynthesizerMap.map(self.config['method'])
-        self.config['metadata'] = metadata
 
         # result in self.data_syn
         self.data_syn: pd.DataFrame = None
 
 
-    def create(self, data: pd.DataFrame) -> None:
+    def create(self, data: pd.DataFrame, metadata=None) -> None:
         """
         Create a synthesizer object with the given data.
 
         Args:
             data (pd.DataFrame): The input data for synthesizing.
+            metadata (dict, default=None): The metadata of the data.
 
         # TODO: verify method in __init__
         """
         self.config['data'] = data
+        self.config['metadata'] = metadata
 
         if self.config['method_code'] == SynthesizerMap.DEFAULT:
             # default will use SDV - GaussianCopula
