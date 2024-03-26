@@ -5,7 +5,12 @@ import re
 
 import pandas as pd
 
-from PETsARD.error import ConfigError, UnexecutedError, UnsupportedMethodError
+from PETsARD.reporter.utils import convert_full_expt_tuple_to_name
+from PETsARD.error import (
+    ConfigError,
+    UnexecutedError,
+    UnsupportedMethodError
+)
 
 
 class ReporterMap():
@@ -229,10 +234,7 @@ class ReporterSaveData(ReporterBase):
                 if len(index) % 2 != 0:
                     raise ConfigError
 
-                full_expt = '_'.join([
-                    f"{index[i]}[{index[i+1]}]"
-                    for i in range(0, len(index), 2)
-                ])
+                full_expt: str = convert_full_expt_tuple_to_name(index)
                 self.report_data[full_expt] = df
 
     def report(self) -> None:
@@ -240,7 +242,9 @@ class ReporterSaveData(ReporterBase):
         Generates the report.
 
         Notes:
-            Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
+            Some of the data may be None,
+            such as Evaluator.get_global/columnwise/pairwise.
+            These will be skipped.
         """
         for expt_name, df in self.report_data.items():
             # Some of the data may be None.
@@ -285,7 +289,8 @@ class ReporterSaveReport(ReporterBase):
         if not isinstance(self.config['granularity'], str):
             raise ConfigError
         self.config['granularity'] = self.config['granularity'].lower()
-        granularity_code = ReporterSaveReportMap.map(self.config['granularity'])
+        granularity_code = ReporterSaveReportMap.map(
+            self.config['granularity'])
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -300,7 +305,7 @@ class ReporterSaveReport(ReporterBase):
         if isinstance(eval, str):
             eval = [eval]
         if not isinstance(eval, list)\
-            or not all(isinstance(item, str) for item in eval):
+                or not all(isinstance(item, str) for item in eval):
             if eval is not None:
                 raise ConfigError
         self.config['eval'] = eval
@@ -364,7 +369,6 @@ class ReporterSaveReport(ReporterBase):
                 + "$"
             )
 
-
         for idx_tuple, rpt_data in data.items():
             # found latest key pairs is Evaluator/Describer
             if idx_tuple[-2] not in self.SAVE_REPORT_AVAILABLE_MODULE:
@@ -387,10 +391,7 @@ class ReporterSaveReport(ReporterBase):
 
             rpt_data = deepcopy(rpt_data)
 
-            full_expt_name: str = '_'.join([
-                f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                for i in range(0, len(idx_tuple), 2)
-            ])
+            full_expt_name: str = convert_full_expt_tuple_to_name(idx_tuple)
             report_data['full_expt_name'] = full_expt_name
             report_data['eval_expt_name'] = eval_expt_name
             report_data['expt_name'] = eval
