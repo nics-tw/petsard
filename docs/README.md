@@ -1,8 +1,4 @@
-<div style="text-align: center;">
-
-![image](assets/images/PETsARD-logo.png)
-
-</div>
+<p align="center"><img src="assets/images/PETsARD-logo.png"></p>
 
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
