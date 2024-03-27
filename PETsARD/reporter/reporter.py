@@ -83,8 +83,6 @@ class Reporter:
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str | List[str], optional):
-                        The evaluation method used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
@@ -138,7 +136,6 @@ class ReporterBase(ABC):
         'Describer',
         'Reporter',
     ]
-    SAVE_REPORT_AVAILABLE_MODULE: list = ['Evaluator', 'Describer']
 
     def __init__(self, config: dict):
         """
@@ -314,9 +311,7 @@ class ReporterSaveData(ReporterBase):
         Generates the report.
 
         Notes:
-            Some of the data may be None,
-            such as Evaluator.get_global/columnwise/pairwise.
-            These will be skipped.
+            Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
         """
         for expt_name, df in self.result.items():
             # Some of the data may be None.
@@ -345,9 +340,8 @@ class ReporterSaveReport(ReporterBase):
                 - granularity (str): The granularity of reporting.
                     It should be one of 'global', 'columnwise', or 'pairwise'.
                     Case-insensitive.
-                - eval (str | List[str], optional):
-                    The evaluation experiment name for export reporting.
-                    Case-sensitive. Default is None
+                - eval (str): The evaluation experiment name for export reporting.
+                    Case-sensitive.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -358,12 +352,10 @@ class ReporterSaveReport(ReporterBase):
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
-        if not isinstance(self.config['granularity'], str):
-            raise ConfigError
         self.config['granularity'] = self.config['granularity'].lower()
         granularity_code = ReporterSaveReportMap.map(
-            self.config['granularity'])
-
+            self.config['granularity']
+        )
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -387,11 +379,6 @@ class ReporterSaveReport(ReporterBase):
         """
         Creating the report data by checking is experiment name of Evaluator exist.
 
-        If config['eval'] have been given,
-            it will only collect the report data of the specified evaluation experiment name.
-        Otherwise,
-            it will collect all the report data of the evaluation experiment name.
-
         Args:
             data (dict): The data used for creating the report.
                 See ReporterBase._verify_create_input() for format requirement.
@@ -403,16 +390,15 @@ class ReporterSaveReport(ReporterBase):
         Attributes:
             - result (dict): Data for the report.
                 - Reporter (dict): The report data for the reporter.
-                    - expt_name (str): The matching experiment name.
+                    - full_expt_name (str): The full experiment name.
+                    - expt_name (str): The experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
-
-        TODO Log record if rpt_data is None
         """
         # verify input data
         self._verify_create_input(data)
 
-        eval: Optional[List[str]] = self.config['eval']
+        eval: str = self.config['eval']
         granularity: str = self.config['granularity']
         output_eval_name: str = ''
         skip_flag: bool = False

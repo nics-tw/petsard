@@ -27,6 +27,7 @@ class SmartNoise:
         """
         self.data: pd.DataFrame = data
         self.syn_method: str = 'Unknown'
+        self.constant_data: dict = {}
 
     def fit(self) -> None:
         """
@@ -39,15 +40,20 @@ class SmartNoise:
                 f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
             )
 
-            # TODO - Only support cube-style synthesizer. 
-            # GAN-style synthesizer needed to be implemented.
-
             if self.syn_method in self.CUBE:
                 self._Synthesizer.fit(
                     self.data,
                     categorical_columns=self.data.columns
                 )
             else:
+                for idx, col in enumerate(self.data.columns):
+                    if self.data[col].nunique() == 1:
+                        # If the column has only one unique value,
+                        # it is a constant column.
+                        self.constant_data[col] = (self.data[col].unique()[0],
+                                                   idx)
+                        self.data.drop(col, axis=1, inplace=True)
+
                 tt = TableTransformer([
                     MinMaxTransformer(lower=self.data[col].min(),
                                       upper=self.data[col].max(),
@@ -99,6 +105,10 @@ class SmartNoise:
                 data_syn = self._Synthesizer.sample(
                     self.sample_num_rows
                 )
+
+                if self.constant_data:
+                    for col, (val, idx) in self.constant_data.items():
+                        data_syn.insert(idx, col, val)
 
                 data_syn.to_csv(output_file_path, index=False)
 
