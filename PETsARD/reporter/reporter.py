@@ -424,6 +424,8 @@ class ReporterSaveReport(ReporterBase):
         granularity: str = self.config['granularity']
         output_eval_name: str = ''
         skip_flag: bool = False
+        first_rpt_data: bool = True
+        final_rpt_data: pd.DataFrame = None
 
         exist_report: dict = data.pop('exist_report', None)
         exist_report_done: bool = False
@@ -458,21 +460,34 @@ class ReporterSaveReport(ReporterBase):
             if skip_flag:
                 continue
 
-            # 4. Row append if exist_report exist
+            # 4. safe_merge exist_report and current report if non-merge
             if not exist_report_done:
-                if output_eval_name in exist_report:
-                    rpt_data = pd.concat(
-                        [exist_report[output_eval_name].copy(), rpt_data],
-                        axis=0,
-                        ignore_index=True,
+                if exist_report is not None and output_eval_name in exist_report:
+                    rpt_data = self._safe_merge(
+                        df1 = exist_report[output_eval_name],
+                        df2 = rpt_data,
+                        name1 = ('exist_report',),
+                        name2 = full_expt_tuple,
                     )
                 exist_report_done = True
 
-            # 5. Collect result
+            # 5. safe_merge
+            if first_rpt_data:
+                final_rpt_data = rpt_data.copy()
+                first_rpt_data = False
+            else:
+                final_rpt_data = self._safe_merge(
+                    df1 = final_rpt_data,
+                    df2 = rpt_data,
+                    name1 = ('Append report'),
+                    name2 = full_expt_tuple,
+                )
+
+            # 6. Collect result
             self.result['Reporter'] = {
                 'eval_expt_name': output_eval_name,
                 'granularity': granularity,
-                'report': deepcopy(rpt_data)
+                'report': deepcopy(final_rpt_data)
             }
 
     @classmethod
