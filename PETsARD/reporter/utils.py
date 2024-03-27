@@ -1,3 +1,4 @@
+from typing import List, Union
 import re
 
 from PETsARD.error import ConfigError
@@ -53,7 +54,7 @@ def convert_full_expt_name_to_tuple(expt_name: str) -> tuple:
             - A single step experiment: ('Loader', 'default'),
             - A multi-step experiment: ('Loader', 'default', 'Preprocessor', 'default')
     """
-    pattern = re.compile(r'(?:^|_)(\w+)\[([\w-]+)\]')
+    pattern = re.compile(r'(?:^|_)(\w+)\[((?:[^\[\]]+|\[[^\[\]]+\])*)\]')
     matches = pattern.findall(expt_name)
     return tuple([item for match in matches for item in match])
 
@@ -82,3 +83,52 @@ def convert_eval_expt_name_to_tuple(expt_name: str) -> tuple:
         return match.groups()
     else:
         return ConfigError
+
+def full_expt_tuple_filter(
+    full_expt_tuple: tuple,
+    method: str,
+    target: Union[str,List[str]],
+) -> tuple:
+    """
+    Filters a tuple based on the given method and target.
+
+    Args:
+        full_expt_tuple (tuple): The tuple to be filtered.
+        method (str): The filtering method. Must be either 'include' or 'exclude'.
+        target (str | List[str]): The target value(s) to include or exclude.
+
+    Returns:
+        (tuple): The filtered tuple.
+
+    Raises:
+        ConfigError: If the method is not 'include' or 'exclude'.
+    """
+    method = method.lower()
+    if method not in ['include', 'exclude']:
+        raise ConfigError
+    if isinstance(target, str):
+        target = [target]
+
+    result: list = []
+    action_next: bool = False
+
+    if method == 'include':
+        for item in full_expt_tuple:
+            if action_next:
+                action_next = False
+                result.append(item)
+                continue
+            if item in target:
+                result.append(item)
+                action_next = True
+    else: # 'exclude'
+        for item in full_expt_tuple:
+            if action_next:
+                action_next = False
+                continue
+            if item in target:
+                action_next = True
+                continue
+            result.append(item)
+
+    return tuple(result)
