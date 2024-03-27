@@ -261,8 +261,7 @@ class Loader:
             })
 
         # 5. extract file extension
-        config['file_ext'] = pathlib.Path(
-            config['filepath']).suffixes[0].lower()
+        config['file_ext'] = pathlib.Path(config['filepath']).suffix.lower()
 
         return config
 
