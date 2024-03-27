@@ -386,6 +386,14 @@ class Test_ReporterSaveReport:
             ReporterSaveReport(config=cfg)
 
     def test_create(self, sample_reporter_input, sample_reporter_output):
+        """
+        Test case for `create()` function of ReporterSaveReport class.
+
+        - ReporterSaveReport will successfully create a report when:
+            - the granularity been set to 'global''
+            - the granularity been set to 'columnwise''
+            - the granularity been set to 'pairwise''
+        """
 
         def _test_create(
             data: dict, granularity: str
