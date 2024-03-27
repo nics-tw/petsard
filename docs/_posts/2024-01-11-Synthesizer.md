@@ -117,7 +117,7 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 
 <div class="table-wrapper" markdown="block">
 
-| Submodule | Class | Alias (`method` name) | `epsilon` required | `discretizing` needed[^1] |
+| Submodule | Class | Alias (`method` name) | `epsilon` required | `discretizing` required[^1] [^2] |
 |---|:---:|:---:|:---:|:---:|
 | `sdv` | `CopulaGANSynthesizer` | 'sdv-single_table-copulagan' | | |
 | `sdv` | `CTGANSynthesizer` | 'sdv-single_table-ctgan' | | |
@@ -126,13 +126,15 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 | `smartnoise` | `SmartNoiseCreator` (AIM) | 'smartnoise-aim' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (MST) | 'smartnoise-mst' | ✅ | ✅ |
 | `smartnoise` | `SmartNoiseCreator` (PAC-Synth) | 'smartnoise-pacsynth' | ✅ | ✅ |
-| `smartnoise` | `SmartNoiseCreator` (DP-CTGAN) | 'smartnoise-dpctgan' | ✅ |  |
-| `smartnoise` | `SmartNoiseCreator` (PATE-CTGAN) | 'smartnoise-patectgan' | ✅ |  |
+| `smartnoise` | `SmartNoiseCreator` (DP-CTGAN) | 'smartnoise-dpctgan' | ✅ | ❌ |
+| `smartnoise` | `SmartNoiseCreator` (PATE-CTGAN) | 'smartnoise-patectgan' | ✅ | ❌ |
 
 </div>
 
 
 [^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the `'sequence'`, and `'encoder'` should not be in the `'sequence'`. 若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
+
+[^2]: ❌ indicates that it is not applicable for the method.
 
 
 ## SDV
