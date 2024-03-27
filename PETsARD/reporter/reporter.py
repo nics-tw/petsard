@@ -78,7 +78,6 @@ class Reporter:
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
-                    - eval (str): The evaluation experiment name used for reporting.
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
