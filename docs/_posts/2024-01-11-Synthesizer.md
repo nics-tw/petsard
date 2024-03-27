@@ -134,7 +134,7 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 
 [^1]: In the `Processor` within `PETsARD`, whether `'discretizing'` should be in the `sequence`. If so, it should be the last elements in the `'sequence'`, and `'encoder'` should not be in the `'sequence'`. 若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。
 
-[^2]: ❌ indicates that it is not applicable for the method.
+[^2]: ❌ indicates that it is not applicable for the method. ❌ 代表此操作不適用於此合成方法。
 
 
 ## SDV
