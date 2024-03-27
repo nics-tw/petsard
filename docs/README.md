@@ -1,4 +1,4 @@
-![image](assets/images/2023-12-13 11.41.43.jpg)
+<p align="center"><img src="assets/images/PETsARD-logo.png"></p>
 
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)

@@ -1,11 +1,23 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 import re
 
 import pandas as pd
 
-from PETsARD.error import ConfigError, UnexecutedError, UnsupportedMethodError
+from PETsARD.reporter.utils import (
+    convert_full_expt_tuple_to_name,
+    convert_eval_expt_name_to_tuple,
+    full_expt_tuple_filter,
+)
+from PETsARD.error import (
+    ConfigError,
+    UnexecutedError,
+    UnsupportedMethodError
+)
 
 
 class ReporterMap():
@@ -63,18 +75,19 @@ class Reporter:
             **kwargs: Additional configuration parameters.
                 - All Reporter
                     - output (str, optional):
-                        The output filename prefix for the report. Default is 'PETsARD'.
+                        The output filename prefix for the report.
+                        Default is 'PETsARD'.
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
-                    - eval (str): The evaluation experiment name used for reporting.
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
-            reporter (object): An object representing the specific reporter based on the method.
+            reporter (object):
+                An object representing the specific reporter based on the method.
             result (dict): A dictionary containing the data for the report.
         """
         self.config = kwargs
@@ -129,7 +142,8 @@ class ReporterBase(ABC):
         Args:
             config (dict): Configuration settings for the report.
                 - method (str): The method used for reporting.
-                - output (str, optional): The output filename prefix for the report.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
 
         Attributes:
@@ -209,23 +223,6 @@ class ReporterBase(ABC):
             if value is not None and not isinstance(value, pd.DataFrame):
                 raise ConfigError
 
-    @staticmethod
-    def get_full_expt_name(full_expt_tuple: tuple) -> str:
-        """
-        Get the full experiment name.
-
-        Args:
-            full_expt_tuple (tuple): The full experiment tuple.
-
-        Returns:
-            (str): The full experiment name.
-                format as "module1[expt1]_module2[expt2]_..._moduleN[exptN]"
-        """
-        return '_'.join([
-            f"{full_expt_tuple[i]}[{full_expt_tuple[i+1]}]"
-            for i in range(0, len(full_expt_tuple), 2)
-        ])
-
     @abstractmethod
     def report(self) -> None:
         """
@@ -259,8 +256,9 @@ class ReporterSaveData(ReporterBase):
         Args:
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
-                - source (Union[str, List[str]]): The source of the data.
-                - output (str, optional): The output filename prefix for the report.
+                - source (str | List[str]): The source of the data.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
 
         Raises:
@@ -305,7 +303,7 @@ class ReporterSaveData(ReporterBase):
                 full_expt_tuple[-2], re.sub(pattern, '', full_expt_tuple[-1])
             ]
             if any(item in self.config['source'] for item in last_module_expt_name):
-                full_expt_name = self.get_full_expt_name(full_expt_tuple)
+                full_expt_name = convert_full_expt_tuple_to_name(full_expt_tuple)
                 self.result[full_expt_name] = df
 
     def report(self) -> None:
@@ -366,9 +364,16 @@ class ReporterSaveReport(ReporterBase):
             raise ConfigError
         self.config['granularity_code'] = granularity_code
 
-        # set eval to None if not exist
-        if 'eval' not in self.config:
-            raise ConfigError
+        # set eval to None if not exist,
+        #   otherwise verify it should be str or List[str]
+        eval = self.config.get('eval')
+        if isinstance(eval, str):
+            eval = [eval]
+        if not isinstance(eval, list)\
+                or not all(isinstance(item, str) for item in eval):
+            if eval is not None:
+                raise ConfigError
+        self.config['eval'] = eval
 
     def create(self, data: dict = None) -> None:
         """
@@ -395,101 +400,238 @@ class ReporterSaveReport(ReporterBase):
 
         eval: str = self.config['eval']
         granularity: str = self.config['granularity']
+        output_eval_name: str = ''
+        skip_flag: bool = False
+        first_rpt_data: bool = True
+        final_rpt_data: pd.DataFrame = None
+
         exist_report: dict = data.pop('exist_report', None)
+        exist_report_done: bool = False
 
-        idx_final_module: str = ''
-        eval_expt_name: str = ''
+        if eval is None:
+            # match every ends of f"_[{granularity}]"
+            eval_pattern = re.escape(f"_[{granularity}]") + "$"
+            output_eval_name = f"[{granularity}]"
+        else:
+            # it should be match f"{eval}_[{granularity}]", where eval is a list
+            eval_pattern = (
+                "^("
+                + "|".join([re.escape(eval_item) for eval_item in eval])
+                + ")"
+                + re.escape(f"_[{granularity}]")
+                + "$"
+            )
+            output_eval_name = (
+                "-".join([eval_item for eval_item in eval])
+                + f"_[{granularity}]"
+            )
+
         for full_expt_tuple, rpt_data in data.items():
-            # 1. Found final module is Evaluator/Describer
-            idx_final_module = full_expt_tuple[-2]
-            if idx_final_module not in ['Evaluator', 'Describer']:
+            # processing single data
+            skip_flag, rpt_data = self._process_report_data(
+                report=rpt_data,
+                full_expt_tuple=full_expt_tuple,
+                eval_pattern=eval_pattern,
+                granularity=granularity,
+                output_eval_name=output_eval_name,
+            )
+            # skip if skip_flag return True
+            if skip_flag:
                 continue
 
-            # 2. match the expt_name "{eval}_[{granularity}]"
-            eval_expt_name = full_expt_tuple[-1]
-            if eval_expt_name != f"{eval}_[{granularity}]":
-                continue
-
-            # 3. match granularity
-            if rpt_data is None:
-                print(
-                    f"There's no {granularity} granularity report in {eval}. "
-                    f"Nothing collect."
-                )
-                continue
-            else:
-                rpt_data = self._process_report_data(
-                    self.config['granularity_code'], full_expt_tuple, rpt_data
-                )
-
-            # 4. Row append if exist_report exist
-            if exist_report is not None:
-                if eval_expt_name in exist_report:
-                    rpt_data = pd.concat(
-                        [exist_report[eval_expt_name].copy(), rpt_data],
-                        axis=0,
-                        ignore_index=True,
+            # 4. safe_merge exist_report and current report if non-merge
+            if not exist_report_done:
+                if exist_report is not None and output_eval_name in exist_report:
+                    rpt_data = self._safe_merge(
+                        df1 = exist_report[output_eval_name],
+                        df2 = rpt_data,
+                        name1 = ('exist_report',),
+                        name2 = full_expt_tuple,
                     )
+                exist_report_done = True
 
-            # 5. Collect result
+            # 5. safe_merge
+            if first_rpt_data:
+                final_rpt_data = rpt_data.copy()
+                first_rpt_data = False
+            else:
+                final_rpt_data = self._safe_merge(
+                    df1 = final_rpt_data,
+                    df2 = rpt_data,
+                    name1 = ('Append report'),
+                    name2 = full_expt_tuple,
+                )
+
+            # 6. Collect result
             self.result['Reporter'] = {
-                'full_expt_name': self.get_full_expt_name(full_expt_tuple),
-                'eval_expt_name': eval_expt_name,
-                'expt_name': eval,
+                'eval_expt_name': output_eval_name,
                 'granularity': granularity,
-                'report': deepcopy(rpt_data)
+                'report': deepcopy(final_rpt_data)
             }
-
-            # should only single Evaluator/Describer matched in the Status.status
-            break
 
     @classmethod
     def _process_report_data(
-        cls, granularity_code, full_expt_tuple, rpt_data
-    ) -> pd.DataFrame:
+        cls,
+        report: pd.DataFrame,
+        full_expt_tuple: tuple[str],
+        eval_pattern: str,
+        granularity: str,
+        output_eval_name: str,
+    ) -> tuple[bool, pd.DataFrame]:
         """
         Process the report data by performing the following steps:
 
-        1-1. Reset the index if the granularity is COLUMNWISE.
+        1. Check if the final module is Evaluator/Describer.
+        2. Check if the evaluation experiment name matches the granularity.
+        3. Check if the report data exists.
+        4. Rename the columns as f"{eval_name}_{original column}" if assigned.
+        5-1. Reset the index if the granularity is COLUMNWISE.
             Rename the index column to 'column'.
-        1-2. Reset the index if the granularity is PAIRWISE.
+        5-2. Reset the index if the granularity is PAIRWISE.
             Rename the level_0 and level_1 columns to 'column1' and 'column2' respectively.
-        3. Sequentially insert module names as column names and expt names as values.
-        4. Add the full_expt_name as the first column.
+        6. Sequentially insert module names as column names and expt names as values.
+            Avoid different, the non-evalualtion module name will be move,
+            and keep granularity from input only.
+        7. Add the full_expt_name as the first column.
 
         Args:
-            - granularity_code (int):
-                The code representing the granularity of the report.
+            - report (pd.DataFrame):
+                The report data to be processed.
             - full_expt_tuple (tuple):
                 The tuple containing module names and expt names.
-            - rpt_data (pd.DataFrame):
-                The report data to be processed.
+            - eval_pattern (str):
+                The pattern to match the evaluation experiment name.
+            - granularity (str):
+                The granularity of the report.
+            - output_eval_name (str):
+                The output evaluation experiment name.
 
         Returns:
-            - rpt_data (pd.DataFrame_: The processed report data.
+            - skip_flag (bool): True if the report data should be skipped.
+            - rpt_data (pd.DataFrame): The processed report data.
         """
-        # 1. reset index to represent column
+        full_expt_name: str = None
+        full_expt_name_postfix: str = ''
+
+        # 1. Found final module is Evaluator/Describer
+        if full_expt_tuple[-2] not in cls.SAVE_REPORT_AVAILABLE_MODULE:
+            return True, None
+
+        # 2. eval_expt_name matching granularity (also eval if provided)
+        if not re.search(eval_pattern, full_expt_tuple[-1]):
+            return True, None
+
+        # 3. match granularity, if exist, copy()
+        if report is None:
+            print(
+                f"Reporter: "
+                f"There's no {granularity} granularity report "
+                f"in {full_expt_tuple[-2]}. "
+                f"Nothing collect."
+            )
+            return True, None
+        report = report.copy()
+
+        # 4. Rename columns as f"{eval_name}_{original column}" if assigned
+        #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
+        eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+        eval_name = eval_expt_tuple[0]
+        for col in report.columns:
+            report.rename(
+                columns={col: f"{eval_name}_{col}"},
+                inplace=True,
+            )
+
+        # 5. reset index to represent column
+        granularity_code: int = ReporterSaveReportMap.map(granularity)
         if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-            rpt_data = rpt_data.reset_index(drop=False)
-            rpt_data = rpt_data.rename(columns={'index': 'column'})
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={'index': 'column'})
         elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-            rpt_data = rpt_data.reset_index(drop=False)
-            rpt_data = rpt_data.rename(columns={
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={
                 'level_0': 'column1',
                 'level_1': 'column2'
             })
 
-        # 2. Sequentially insert module names
+        # 6. Sequentially insert module names
         #   as column names and expt names as values
         for i in range(len(full_expt_tuple) - 2, -1, -2):
-            rpt_data.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
+            if full_expt_tuple[i] in cls.SAVE_REPORT_AVAILABLE_MODULE:
+                report.insert(0, full_expt_tuple[i], output_eval_name)
+                full_expt_name_postfix += full_expt_tuple[i]
+                full_expt_name_postfix += output_eval_name
+            else:
+                report.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
 
-        # 3. Add full_expt_name as first column
-        rpt_data.insert(
-            0, 'full_expt_name', cls.get_full_expt_name(full_expt_tuple)
+        # 7. Add full_expt_name as first column
+        full_expt_name = convert_full_expt_tuple_to_name(
+            full_expt_tuple_filter(
+                full_expt_tuple=full_expt_tuple,
+                method='exclude',
+                target=cls.SAVE_REPORT_AVAILABLE_MODULE,
+            )
         )
+        full_expt_name = '_'.join(
+            component for component in
+            [full_expt_name, full_expt_name_postfix]
+            if component != ''
+        )
+        report.insert(0, 'full_expt_name', full_expt_name)
 
-        return rpt_data
+        return False, report
+
+    @classmethod
+    def _safe_merge(
+        cls,
+        df1: pd.DataFrame,
+        df2: pd.DataFrame,
+        name1: str,
+        name2: str,
+    ) -> pd.DataFrame:
+        """
+        FULL OUTER JOIN two DataFrames safely.
+            We will confirm the common columns dtype is same or change to object.
+                Then, FULL OUTER JOIN based on common columns,
+                and column order based on df1 than df2.
+
+        Args:
+            df1 (pd.DataFrame): The first DataFrame.
+            df2 (pd.DataFrame): The second DataFrame.
+            name1 (str): The name of the first DataFrame.
+            name2 (str): The name of the second DataFrame.
+
+        Returns:
+            pd.DataFrame: The concatenated DataFrame.
+        """
+        # 1. record common_columns and their dtype
+        common_columns: List[str] = [
+            col for col in df1.columns if col in df2.columns
+        ]
+        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+
+        # 2. confirm common_columns dtype is same,
+        #   if not, change dtype to object, and print warning
+        for col in common_columns:
+            if df1_common_dtype[col] != df2_common_dtype[col]:
+                print(
+                    f"Reporter: Column '{col}' in "
+                    f"'{name1}' ({df1_common_dtype[col]}) and "
+                    f"'{name2}' ({df2_common_dtype[col]}) "
+                    f"have different dtype. Change dtype to object."
+                )
+                df1[col] = df1[col].astype('object')
+                df2[col] = df2[col].astype('object')
+
+        # 3. FULL OUTER JOIN df1 and df2,
+        #   kept column order based on df1 than df2
+        return pd.merge(
+            df1,
+            df2,
+            on=common_columns,
+            how='outer',
+        ).reset_index(drop=True)
 
     def report(self) -> None:
         """
