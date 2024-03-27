@@ -256,15 +256,15 @@ class ML:
             gb.fit(data_train, target_train)
 
             result['linear_regression'].append(
-                self._bound_check(lr.score(data_test, target_test),
+                self._lower_bound_check(lr.score(data_test, target_test),
                                   'regression'),
             )
             result['random_forest'].append(
-                self._bound_check(rf.score(data_test, target_test),
+                self._lower_bound_check(rf.score(data_test, target_test),
                                   'regression'),
             )
             result['gradient_boosting'].append(
-                self._bound_check(gb.score(data_test, target_test),
+                self._lower_bound_check(gb.score(data_test, target_test),
                                   'regression'),
             )
 
@@ -325,28 +325,28 @@ class ML:
             gb.fit(data_train, target_train)
 
             result['logistic_regression'].append(
-                self._bound_check(
+                self._lower_bound_check(
                     f1_score(target_test, lr.predict(data_test), 
                              average='micro'),
                     'classification'
                 )
             )
             result['svc'].append(
-                self._bound_check(
+                self._lower_bound_check(
                     f1_score(target_test, svc.predict(data_test), 
                              average='micro'),
                     'classification'
                 )
             )
             result['random_forest'].append(
-                self._bound_check(
+                self._lower_bound_check(
                     f1_score(target_test, rf.predict(data_test), 
                              average='micro'),
                     'classification'
                 )
             )
             result['gradient_boosting'].append(
-                self._bound_check(
+                self._lower_bound_check(
                     f1_score(target_test, gb.predict(data_test), 
                              average='micro'),
                     'classification'
@@ -399,7 +399,7 @@ class ML:
                 k_model.fit(data_train)
 
                 result[f'KMeans_cluster{k}'].append(
-                    self._bound_check(
+                    self._lower_bound_check(
                         silhouette_score(data_test, k_model.predict(data_test)),
                         'cluster'
                     )
@@ -407,16 +407,14 @@ class ML:
 
         return result
     
-    def _bound_check(self, value: float, type: 'str') -> float:
+    def _lower_bound_check(self, value: float, type: 'str') -> float:
         """
-        Check if the score is in the range based on different evaluation.
-        For regression and classification, the range is [0, 1].
-        For clustering, the range is [-1, 1].
+        Check if the score is beyond the lower bound.
+        For regression and classification, the lower bound is 0.
+        For clustering, the lower bound is -1.
 
         If the value is less than the lower bound, return the lower bound and
         raise a warning.
-        If the value is greater than the upper bound, return the upper bound
-        and raise a warning.
         Otherwise, return the value.
 
         Args:
@@ -428,21 +426,14 @@ class ML:
         """
         if type == 'cluster':
             lower_bound = -1
-            upper_bound = 1
         else:
             lower_bound = 0
-            upper_bound = 1
         
         if value < lower_bound:
             warnings.warn('The score is less than the lower bound,' + 
                           ' indicating the performance is arbitrarily poor.' +
                           ' The score is set to the lower bound.')
             return lower_bound
-        elif value > upper_bound:
-            warnings.warn('The score is greater than the lower bound,' +
-                          ' indicating the performance is not reliable.' +
-                          ' The score is set to the upper bound.')
-            return upper_bound
         else:
             return value
 
