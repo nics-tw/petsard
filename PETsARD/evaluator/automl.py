@@ -1,3 +1,4 @@
+import warnings
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -254,9 +255,18 @@ class ML:
             rf.fit(data_train, target_train)
             gb.fit(data_train, target_train)
 
-            result['linear_regression'].append(lr.score(data_test, target_test))
-            result['random_forest'].append(rf.score(data_test, target_test))
-            result['gradient_boosting'].append(gb.score(data_test, target_test))
+            result['linear_regression'].append(
+                self._lower_bound_check(lr.score(data_test, target_test),
+                                  'regression'),
+            )
+            result['random_forest'].append(
+                self._lower_bound_check(rf.score(data_test, target_test),
+                                  'regression'),
+            )
+            result['gradient_boosting'].append(
+                self._lower_bound_check(gb.score(data_test, target_test),
+                                  'regression'),
+            )
 
         return result
 
@@ -314,18 +324,34 @@ class ML:
             rf.fit(data_train, target_train)
             gb.fit(data_train, target_train)
 
-            result['logistic_regression'].append(f1_score(target_test,
-                                                          lr.predict(data_test),
-                                                          average='micro'))
-            result['svc'].append(f1_score(target_test,
-                                          svc.predict(data_test),
-                                          average='micro'))
-            result['random_forest'].append(f1_score(target_test,
-                                                    rf.predict(data_test),
-                                                    average='micro'))
-            result['gradient_boosting'].append(f1_score(target_test,
-                                                        gb.predict(data_test),
-                                                        average='micro'))
+            result['logistic_regression'].append(
+                self._lower_bound_check(
+                    f1_score(target_test, lr.predict(data_test), 
+                             average='micro'),
+                    'classification'
+                )
+            )
+            result['svc'].append(
+                self._lower_bound_check(
+                    f1_score(target_test, svc.predict(data_test), 
+                             average='micro'),
+                    'classification'
+                )
+            )
+            result['random_forest'].append(
+                self._lower_bound_check(
+                    f1_score(target_test, rf.predict(data_test), 
+                             average='micro'),
+                    'classification'
+                )
+            )
+            result['gradient_boosting'].append(
+                self._lower_bound_check(
+                    f1_score(target_test, gb.predict(data_test), 
+                             average='micro'),
+                    'classification'
+                )
+            )
 
         return result
 
@@ -373,10 +399,43 @@ class ML:
                 k_model.fit(data_train)
 
                 result[f'KMeans_cluster{k}'].append(
-                    silhouette_score(data_test, k_model.predict(data_test))
+                    self._lower_bound_check(
+                        silhouette_score(data_test, k_model.predict(data_test)),
+                        'cluster'
+                    )
                 )
 
         return result
+    
+    def _lower_bound_check(self, value: float, type: 'str') -> float:
+        """
+        Check if the score is beyond the lower bound.
+        For regression and classification, the lower bound is 0.
+        For clustering, the lower bound is -1.
+
+        If the value is less than the lower bound, return the lower bound and
+        raise a warning.
+        Otherwise, return the value.
+
+        Args:
+            value (float): The value to be checked.
+            type (str): The type of the evaluation.
+
+        Returns:
+            (float): The value in the range.
+        """
+        if type == 'cluster':
+            lower_bound = -1
+        else:
+            lower_bound = 0
+        
+        if value < lower_bound:
+            warnings.warn('The score is less than the lower bound,' + 
+                          ' indicating the performance is arbitrarily poor.' +
+                          ' The score is set to the lower bound.')
+            return lower_bound
+        else:
+            return value
 
     def get_global(self) -> pd.DataFrame:
         """
