@@ -468,7 +468,7 @@ class ReporterSaveReport(ReporterBase):
                         ignore_index=True,
                     )
                 exist_report_done = True
- 
+
             # 5. Collect result
             self.result['Reporter'] = {
                 'eval_expt_name': output_eval_name,
@@ -563,6 +563,58 @@ class ReporterSaveReport(ReporterBase):
         )
 
         return False, report
+
+    @classmethod
+    def _safe_merge(
+        cls,
+        df1: pd.DataFrame,
+        df2: pd.DataFrame,
+        name1: str,
+        name2: str,
+    ) -> pd.DataFrame:
+        """
+        FULL OUTER JOIN two DataFrames safely.
+            We will confirm the common columns dtype is same or change to object.
+                Then, FULL OUTER JOIN based on common columns,
+                and column order based on df1 than df2.
+
+        Args:
+            df1 (pd.DataFrame): The first DataFrame.
+            df2 (pd.DataFrame): The second DataFrame.
+            name1 (str): The name of the first DataFrame.
+            name2 (str): The name of the second DataFrame.
+
+        Returns:
+            pd.DataFrame: The concatenated DataFrame.
+        """
+        # 1. record common_columns and their dtype
+        common_columns: List[str] = [
+            col for col in df1.columns if col in df2.columns
+        ]
+        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+
+        # 2. confirm common_columns dtype is same,
+        #   if not, change dtype to object, and print warning
+        for col in common_columns:
+            if df1_common_dtype[col] != df2_common_dtype[col]:
+                print(
+                    f"Reporter: Column '{col}' in "
+                    f"'{name1}' ({df1_common_dtype[col]}) and "
+                    f"'{name2}' ({df2_common_dtype[col]}) "
+                    f"have different dtype. Change dtype to object."
+                )
+                df1[col] = df1[col].astype('object')
+                df2[col] = df2[col].astype('object')
+
+        # 3. FULL OUTER JOIN df1 and df2,
+        #   kept column order based on df1 than df2
+        return pd.merge(
+            df1,
+            df2,
+            on=common_columns,
+            how='outer',
+        ).reset_index(drop=True)
 
     def report(self) -> None:
         """
