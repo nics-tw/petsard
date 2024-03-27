@@ -11,6 +11,7 @@ import pandas as pd
 from PETsARD.reporter.utils import (
     convert_full_expt_tuple_to_name,
     convert_eval_expt_name_to_tuple,
+    full_expt_tuple_filter,
 )
 from PETsARD.error import (
     ConfigError,
@@ -74,7 +75,8 @@ class Reporter:
             **kwargs: Additional configuration parameters.
                 - All Reporter
                     - output (str, optional):
-                        The output filename prefix for the report. Default is 'PETsARD'.
+                        The output filename prefix for the report.
+                        Default is 'PETsARD'.
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
@@ -86,7 +88,8 @@ class Reporter:
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
-            reporter (object): An object representing the specific reporter based on the method.
+            reporter (object):
+                An object representing the specific reporter based on the method.
             result (dict): A dictionary containing the data for the report.
         """
         self.config = kwargs
@@ -142,7 +145,8 @@ class ReporterBase(ABC):
         Args:
             config (dict): Configuration settings for the report.
                 - method (str): The method used for reporting.
-                - output (str, optional): The output filename prefix for the report.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
 
         Attributes:
@@ -256,7 +260,8 @@ class ReporterSaveData(ReporterBase):
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
                 - source (str | List[str]): The source of the data.
-                - output (str, optional): The output filename prefix for the report.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
 
         Raises:
@@ -329,19 +334,6 @@ class ReporterSaveReport(ReporterBase):
     """
     Save evaluating/describing data to file.
     """
-    DEFAULT_FIXED_COLUMNS: list = [
-        'full_expt_name',
-        'Loader',
-        'Splitter',
-        'Preprocessor',
-        'Synthesizer',
-        'Postprocessor',
-        'Evaluator',
-        'Describer',
-        'column',
-        'column1',
-        'column2',
-    ]
 
     def __init__(self, config: dict):
         """
@@ -455,6 +447,7 @@ class ReporterSaveReport(ReporterBase):
                 full_expt_tuple=full_expt_tuple,
                 eval_pattern=eval_pattern,
                 granularity=granularity,
+                output_eval_name=output_eval_name,
             )
             # skip if skip_flag return True
             if skip_flag:
@@ -497,6 +490,7 @@ class ReporterSaveReport(ReporterBase):
         full_expt_tuple: tuple[str],
         eval_pattern: str,
         granularity: str,
+        output_eval_name: str,
     ) -> tuple[bool, pd.DataFrame]:
         """
         Process the report data by performing the following steps:
@@ -510,6 +504,8 @@ class ReporterSaveReport(ReporterBase):
         5-2. Reset the index if the granularity is PAIRWISE.
             Rename the level_0 and level_1 columns to 'column1' and 'column2' respectively.
         6. Sequentially insert module names as column names and expt names as values.
+            Avoid different, the non-evalualtion module name will be move,
+            and keep granularity from input only.
         7. Add the full_expt_name as the first column.
 
         Args:
@@ -521,11 +517,16 @@ class ReporterSaveReport(ReporterBase):
                 The pattern to match the evaluation experiment name.
             - granularity (str):
                 The granularity of the report.
+            - output_eval_name (str):
+                The output evaluation experiment name.
 
         Returns:
             - skip_flag (bool): True if the report data should be skipped.
             - rpt_data (pd.DataFrame): The processed report data.
         """
+        full_expt_name: str = None
+        full_expt_name_postfix: str = ''
+
         # 1. Found final module is Evaluator/Describer
         if full_expt_tuple[-2] not in cls.SAVE_REPORT_AVAILABLE_MODULE:
             return True, None
@@ -534,7 +535,7 @@ class ReporterSaveReport(ReporterBase):
         if not re.search(eval_pattern, full_expt_tuple[-1]):
             return True, None
 
-        # 3. match granularity
+        # 3. match granularity, if exist, copy()
         if report is None:
             print(
                 f"Reporter: "
@@ -543,6 +544,7 @@ class ReporterSaveReport(ReporterBase):
                 f"Nothing collect."
             )
             return True, None
+        report = report.copy()
 
         # 4. Rename columns as f"{eval_name}_{original column}" if assigned
         #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
@@ -569,12 +571,27 @@ class ReporterSaveReport(ReporterBase):
         # 6. Sequentially insert module names
         #   as column names and expt names as values
         for i in range(len(full_expt_tuple) - 2, -1, -2):
-            report.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
+            if full_expt_tuple[i] in cls.SAVE_REPORT_AVAILABLE_MODULE:
+                report.insert(0, full_expt_tuple[i], output_eval_name)
+                full_expt_name_postfix += full_expt_tuple[i]
+                full_expt_name_postfix += output_eval_name
+            else:
+                report.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
 
         # 7. Add full_expt_name as first column
-        report.insert(
-            0, 'full_expt_name', convert_full_expt_tuple_to_name(full_expt_tuple)
+        full_expt_name = convert_full_expt_tuple_to_name(
+            full_expt_tuple_filter(
+                full_expt_tuple=full_expt_tuple,
+                method='exclude',
+                target=cls.SAVE_REPORT_AVAILABLE_MODULE,
+            )
         )
+        full_expt_name = '_'.join(
+            component for component in
+            [full_expt_name, full_expt_name_postfix]
+            if component != ''
+        )
+        report.insert(0, 'full_expt_name', full_expt_name)
 
         return False, report
 
