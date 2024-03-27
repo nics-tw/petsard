@@ -101,50 +101,42 @@ def sample_reporter_output():
     def _sample_reporter_output(case: str) -> pd.DataFrame:
         if case == 'global-process':
             return pd.DataFrame(data={
-                'full_expt_name': [
-                    'Evaluator[test1_[global]]', 'Evaluator[test2_[global]]'],
-                'Evaluator': ['test1_[global]', 'test2_[global]'],
-                'test1_Score': [0.9, np.nan],
-                'test1_ScoreA': [0.8, np.nan],
-                'test2_Score': [np.nan, 0.1],
-                'test2_ScoreB': [np.nan, 0.2],
+                'full_expt_name': ['Evaluator[global]'],
+                'Evaluator': ['[global]'],
+                'test1_Score': [0.9],
+                'test1_ScoreA': [0.8],
+                'test2_Score': [0.1],
+                'test2_ScoreB': [0.2],
             })
         elif case == 'columnwise-process':
             return pd.DataFrame(data={
                 'full_expt_name': [
-                    'Evaluator[test1_[columnwise]]', 'Evaluator[test1_[columnwise]]',
-                    'Evaluator[test2_[columnwise]]', 'Evaluator[test2_[columnwise]]',
+                    'Evaluator[columnwise]', 'Evaluator[columnwise]',
                 ],
                 'Evaluator': [
-                    'test1_[columnwise]', 'test1_[columnwise]',
-                    'test2_[columnwise]', 'test2_[columnwise]',
+                    '[columnwise]', '[columnwise]',
                 ],
-                'column': ['col1', 'col2', 'col1', 'col2'],
-                'test1_Score': [0.9, 0.8, np.nan, np.nan],
-                'test1_ScoreA': [0.7, 0.6, np.nan, np.nan],
-                'test2_Score': [np.nan, np.nan, 0.1, 0.2],
-                'test2_ScoreB': [np.nan, np.nan, 0.3, 0.4],
+                'column': ['col1', 'col2'],
+                'test1_Score': [0.9, 0.8],
+                'test1_ScoreA': [0.7, 0.6],
+                'test2_Score': [0.1, 0.2],
+                'test2_ScoreB': [0.3, 0.4],
             })
         elif case == 'pairwise-process':
             return pd.DataFrame(data={
                 'full_expt_name': [
-                    'Evaluator[test1_[pairwise]]', 'Evaluator[test1_[pairwise]]',
-                    'Evaluator[test1_[pairwise]]', 'Evaluator[test1_[pairwise]]',
-                    'Evaluator[test2_[pairwise]]', 'Evaluator[test2_[pairwise]]',
-                    'Evaluator[test2_[pairwise]]', 'Evaluator[test2_[pairwise]]',
+                    'Evaluator[pairwise]', 'Evaluator[pairwise]',
+                    'Evaluator[pairwise]', 'Evaluator[pairwise]',
                 ],
                 'Evaluator': [
-                    'test1_[pairwise]', 'test1_[pairwise]',
-                    'test1_[pairwise]', 'test1_[pairwise]',
-                    'test2_[pairwise]', 'test2_[pairwise]',
-                    'test2_[pairwise]', 'test2_[pairwise]',
+                    '[pairwise]', '[pairwise]', '[pairwise]', '[pairwise]',
                 ],
-                'column1': ['col1', 'col1', 'col2', 'col2', 'col1', 'col1', 'col2', 'col2'],
-                'column2': ['col1', 'col2', 'col1', 'col2', 'col1', 'col2', 'col1', 'col2'],
-                'test1_Score': [0.9, 0.8, 0.7, 0.6, np.nan, np.nan, np.nan, np.nan],
-                'test1_ScoreA': [0.5, 0.4, 0.3, 0.2, np.nan, np.nan, np.nan, np.nan],
-                'test2_Score': [np.nan, np.nan, np.nan, np.nan, 0.1, 0.2, 0.3, 0.4],
-                'test2_ScoreA': [np.nan, np.nan, np.nan, np.nan, 0.5, 0.6, 0.7, 0.8],
+                'column1': ['col1', 'col1', 'col2', 'col2'],
+                'column2': ['col1', 'col2', 'col1', 'col2'],
+                'test1_Score': [0.9, 0.8, 0.7, 0.6],
+                'test1_ScoreA': [0.5, 0.4, 0.3, 0.2],
+                'test2_Score': [0.1, 0.2, 0.3, 0.4],
+                'test2_ScoreA': [0.5, 0.6, 0.7, 0.8],
             })
         else:  # case 'global'
             return pd.DataFrame(data={
@@ -160,6 +152,8 @@ def sample_full_expt_tuple():
     def _sample_full_expt_tuple(case: int) -> tuple[str]:
         if case == 2:
             return ('Loader', 'default', 'Preprocessor', 'test_low_dash')
+        elif case == 3:
+            return ('Loader', 'default', 'Preprocessor', 'default', 'Evaluator', 'test[global]')
         else:  # case 1
             return ('Loader', 'default', 'Preprocessor', 'default')
     return _sample_full_expt_tuple
@@ -170,6 +164,8 @@ def sample_full_expt_name():
     def _sample_full_expt_name(case: int) -> tuple[str]:
         if case == 2:
             return 'Loader[default]_Preprocessor[test_low_dash]'
+        elif case == 3:
+            return ('Loader[default]_Preprocessor[default]_Evaluator[test[global]]')
         else:  # case 1
             return 'Loader[default]_Preprocessor[default]'
     return _sample_full_expt_name
@@ -450,19 +446,22 @@ class Test_ReporterSaveReport:
             full_expt_tuple: tuple
         ):
             granularity: str = None
+            output_eval_name: str = None
             skip_flag: bool = None
             rpt: pd.DataFrame = None
 
             try:
-                granularity = convert_eval_expt_name_to_tuple(full_expt_tuple[1])[
-                    1]
+                granularity = convert_eval_expt_name_to_tuple(
+                    full_expt_tuple[1])[1]
             except TypeError:
                 granularity = 'global'
+            output_eval_name = f"[{granularity}]"
             skip_flag, rpt = ReporterSaveReport._process_report_data(
                 report=report,
                 full_expt_tuple=full_expt_tuple,
                 eval_pattern=re.escape(f"_[{granularity}]") + "$",
-                granularity=granularity
+                granularity=granularity,
+                output_eval_name=output_eval_name,
             )
             return skip_flag, rpt
 
@@ -524,7 +523,7 @@ class Test_ReporterSaveReport:
             - the columnwise granularity after _process_report_data()
             - the pairwise granularity after _process_report_data()
         """
-        def _test_sage_merge(
+        def _test_safe_merge(
             data: dict,
             granularity: str,
             name1: tuple[str],
@@ -536,18 +535,23 @@ class Test_ReporterSaveReport:
             data2: pd.DataFrame = data['data'][name2].copy()
             if modify_test1:
                 data1['Score'] = 0.66
+                name1 = ('Postprocessor', 'Before') + name1
+                name2 = ('Postprocessor', 'After') + name2
             if process:
+                output_eval_name = f"[{granularity}]"
                 skip_flag, data1 = ReporterSaveReport._process_report_data(
                     report=data1,
                     full_expt_tuple=name1,
                     eval_pattern=re.escape(f"_[{granularity}]") + "$",
-                    granularity=granularity
+                    granularity=granularity,
+                    output_eval_name=output_eval_name,
                 )
                 skip_flag, data2 = ReporterSaveReport._process_report_data(
                     report=data2,
                     full_expt_tuple=name2,
                     eval_pattern=re.escape(f"_[{granularity}]") + "$",
-                    granularity=granularity
+                    granularity=granularity,
+                    output_eval_name=output_eval_name,
                 )
             rpt = ReporterSaveReport._safe_merge(
                 data1, data2,
@@ -564,39 +568,41 @@ class Test_ReporterSaveReport:
         granularity = 'global'
         name1 = ('Evaluator', f"test1_[{granularity}]")
         name2 = ('Evaluator', f"test2_[{granularity}]")
-        rpt = _test_sage_merge(data, granularity, name1, name2)
+        rpt = _test_safe_merge(data, granularity, name1, name2)
         expected_rpt = sample_reporter_output(case='global')
         pd.testing.assert_frame_equal(rpt, expected_rpt)
 
-        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        rpt = _test_safe_merge(data, granularity, name1, name2, process=True)
         expected_rpt = sample_reporter_output(case='global-process')
         pd.testing.assert_frame_equal(rpt, expected_rpt)
 
         granularity = 'global'
         name1 = ('Evaluator', f"test1_[{granularity}]")
         name2 = ('Evaluator', f"test1_[{granularity}]")
-        rpt = _test_sage_merge(data, granularity,
+        rpt = _test_safe_merge(data, granularity,
                                name1, name2, process=True, modify_test1=True)
         expected_rpt = pd.DataFrame(data={
             'full_expt_name': [
-                'Evaluator[test1_[global]]', 'Evaluator[test1_[global]]'],
-            'Evaluator': ['test1_[global]', 'test1_[global]'],
-            'test1_Score': [0.66, 0.9],
+                'Postprocessor[After]_Evaluator[global]',
+                'Postprocessor[Before]_Evaluator[global]',],
+            'Postprocessor': ['After', 'Before',],
+            'Evaluator': ['[global]', '[global]'],
+            'test1_Score': [0.9, 0.66],
             'test1_ScoreA': [0.8, 0.8],
-        })
+        }) # seems it will rearrange the row order, and cannot close.
         pd.testing.assert_frame_equal(rpt, expected_rpt)
 
         granularity = 'columnwise'
         name1 = ('Evaluator', f"test1_[{granularity}]")
         name2 = ('Evaluator', f"test2_[{granularity}]")
-        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        rpt = _test_safe_merge(data, granularity, name1, name2, process=True)
         expected_rpt = sample_reporter_output(case='columnwise-process')
         pd.testing.assert_frame_equal(rpt, expected_rpt)
 
         granularity = 'pairwise'
         name1 = ('Evaluator', f"test1_[{granularity}]")
         name2 = ('Evaluator', f"test2_[{granularity}]")
-        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        rpt = _test_safe_merge(data, granularity, name1, name2, process=True)
         expected_rpt = sample_reporter_output(case='pairwise-process')
         pd.testing.assert_frame_equal(rpt, expected_rpt)
 
@@ -621,7 +627,8 @@ class Test_utils:
         """
         # ('Loader', 'default', 'Preprocessor', 'default')
         # ('Loader', 'default', 'Preprocessor', 'test_low_dash')
-        for case in range(1, 2+1, 1):
+        # ('Loader', 'default', 'Preprocessor', 'default', 'Evaluator', 'test[global]')
+        for case in range(1, 3+1, 1):
             full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
             full_expt_name: str = sample_full_expt_name(case=case)
             assert convert_full_expt_tuple_to_name(full_expt_tuple) \
@@ -642,7 +649,8 @@ class Test_utils:
         """
         # 'Loader[default]_Preprocessor[default]'
         # 'Loader[default]_Preprocessor[test_low_dash]'
-        for case in range(1, 2+1, 1):
+        # 'Loader[default]_Preprocessor[default]_Evaluator_[test[global]]'
+        for case in range(1, 3+1, 1):
             full_expt_name: str = sample_full_expt_name(case=case)
             full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
             assert convert_full_expt_name_to_tuple(full_expt_name) \
