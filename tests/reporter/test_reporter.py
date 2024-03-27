@@ -1,5 +1,6 @@
 import re
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -334,13 +335,19 @@ class Test_ReporterSaveReport:
             - the input DataFrame is a global granularity
             - the input DataFrame is a columnwise granularity
             - the input DataFrame is a pairwise granularity
+        - The skip_flag will be set to True when:
+            - the input DataFrame is a non-Evaluator/Describer e.g. Postprocessor
         """
         def _test_process_report_data(
             report: pd.DataFrame,
             full_expt_tuple: tuple
         ):
+            granularity: str = None
+            skip_flag: bool = None
+            rpt: pd.DataFrame = None
+
             try:
-                granularity: str = convert_eval_expt_name_to_tuple(full_expt_tuple[1])[1]
+                granularity = convert_eval_expt_name_to_tuple(full_expt_tuple[1])[1]
             except TypeError:
                 granularity = 'global'
             skip_flag, rpt = ReporterSaveReport._process_report_data(
@@ -351,9 +358,12 @@ class Test_ReporterSaveReport:
             )
             return skip_flag, rpt
 
-        data = sample_reporter_input
+        data: dict = sample_reporter_input
+        full_expt_tuple: tuple = None
+        skip_flag: bool = None
+        rpt: pd.DataFrame = None
 
-        full_expt_tuple: tuple = ('Evaluator', 'test1_[global]')
+        full_expt_tuple = ('Evaluator', 'test1_[global]')
         skip_flag, rpt = _test_process_report_data(
             report=data['data'][full_expt_tuple],
             full_expt_tuple=full_expt_tuple,
@@ -363,17 +373,18 @@ class Test_ReporterSaveReport:
             'full_expt_name', 'Evaluator', 'test1_Score', 'test1_ScoreA'
         ]
 
-        full_expt_tuple: tuple = ('Evaluator', 'test1_[columnwise]')
+        full_expt_tuple = ('Evaluator', 'test1_[columnwise]')
         skip_flag, rpt = _test_process_report_data(
             report=data['data'][full_expt_tuple],
             full_expt_tuple=full_expt_tuple,
         )
         assert skip_flag == False
         assert rpt.columns.tolist() == [
-            'full_expt_name', 'Evaluator', 'column', 'test1_Score', 'test1_ScoreA'
+            'full_expt_name', 'Evaluator', 'column',
+            'test1_Score', 'test1_ScoreA'
         ]
 
-        full_expt_tuple: tuple = ('Evaluator', 'test1_[pairwise]')
+        full_expt_tuple = ('Evaluator', 'test1_[pairwise]')
         skip_flag, rpt = _test_process_report_data(
             report=data['data'][full_expt_tuple],
             full_expt_tuple=full_expt_tuple,
@@ -384,13 +395,148 @@ class Test_ReporterSaveReport:
             'test1_Score', 'test1_ScoreA'
         ]
 
-        full_expt_tuple: tuple = ('Postprocessor', 'test3')
+        full_expt_tuple = ('Postprocessor', 'test3')
         skip_flag, rpt = _test_process_report_data(
             report=data['data'][full_expt_tuple],
             full_expt_tuple=full_expt_tuple,
         )
         assert skip_flag == True
         assert rpt is None
+
+    def test_safe_merge(self, sample_reporter_input):
+        """
+        Test case for the _safe_merge( function.
+
+        - The FULL OUTER JOIN will correctly
+            rename columns and add column when:
+            - Pure data with only 'Score' column is overlapping
+            - the global granularity after _process_report_data()
+            - the same global granularity data with modification
+                after _process_report_data()
+            - the columnwise granularity after _process_report_data()
+            - the pairwise granularity after _process_report_data()
+        """
+        def _test_sage_merge(
+            data: dict,
+            granularity: str,
+            name1: tuple[str],
+            name2: tuple[str],
+            process: bool = False,
+            modify_test1: bool = False,
+        ):
+            data1: pd.DataFrame = data['data'][name1].copy()
+            data2: pd.DataFrame = data['data'][name2].copy()
+            if modify_test1:
+                data1['Score'] = 0.66
+            if process:
+                skip_flag, data1 = ReporterSaveReport._process_report_data(
+                    report=data1,
+                    full_expt_tuple=name1,
+                    eval_pattern=re.escape(f"_[{granularity}]") + "$",
+                    granularity=granularity
+                )
+                skip_flag, data2 = ReporterSaveReport._process_report_data(
+                    report=data2,
+                    full_expt_tuple=name2,
+                    eval_pattern=re.escape(f"_[{granularity}]") + "$",
+                    granularity=granularity
+                )
+            rpt = ReporterSaveReport._safe_merge(
+                data1, data2,
+                name1, name2,
+            )
+            return rpt
+        data: dict = sample_reporter_input
+        granularity: str = None
+        name1: tuple[str] = None
+        name2: tuple[str] = None
+        rpt: pd.DataFrame = None
+        expected_rpt: pd.DataFrame = None
+
+        granularity = 'global'
+        name1 = ('Evaluator', f"test1_[{granularity}]")
+        name2 = ('Evaluator', f"test2_[{granularity}]")
+        rpt = _test_sage_merge(data, granularity, name1, name2)
+        expected_rpt = pd.DataFrame(data={
+            'Score': [0.1, 0.9],
+            'ScoreA': [np.nan, 0.8],
+            'ScoreB': [0.2, np.nan]
+        })
+        pd.testing.assert_frame_equal(rpt, expected_rpt)
+
+
+        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        expected_rpt = pd.DataFrame(data={
+            'full_expt_name': [
+                'Evaluator[test1_[global]]', 'Evaluator[test2_[global]]'],
+            'Evaluator': ['test1_[global]', 'test2_[global]'],
+            'test1_Score': [0.9, np.nan],
+            'test1_ScoreA': [0.8, np.nan],
+            'test2_Score': [np.nan, 0.1],
+            'test2_ScoreB': [np.nan, 0.2],
+        })
+        pd.testing.assert_frame_equal(rpt, expected_rpt)
+
+        granularity = 'global'
+        name1 = ('Evaluator', f"test1_[{granularity}]")
+        name2 = ('Evaluator', f"test1_[{granularity}]")
+        rpt = _test_sage_merge(data, granularity,
+            name1, name2, process=True, modify_test1=True)
+        expected_rpt = pd.DataFrame(data={
+            'full_expt_name': [
+                'Evaluator[test1_[global]]', 'Evaluator[test1_[global]]'],
+            'Evaluator': ['test1_[global]', 'test1_[global]'],
+            'test1_Score': [0.66, 0.9],
+            'test1_ScoreA': [0.8, 0.8],
+        })
+        pd.testing.assert_frame_equal(rpt, expected_rpt)
+
+        granularity = 'columnwise'
+        name1 = ('Evaluator', f"test1_[{granularity}]")
+        name2 = ('Evaluator', f"test2_[{granularity}]")
+        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        expected_rpt = pd.DataFrame(data={
+            'full_expt_name': [
+                'Evaluator[test1_[columnwise]]', 'Evaluator[test1_[columnwise]]',
+                'Evaluator[test2_[columnwise]]', 'Evaluator[test2_[columnwise]]',
+            ],
+            'Evaluator': [
+                'test1_[columnwise]', 'test1_[columnwise]',
+                'test2_[columnwise]', 'test2_[columnwise]',
+            ],
+            'column': ['col1','col2','col1','col2'],
+            'test1_Score': [0.9, 0.8, np.nan, np.nan],
+            'test1_ScoreA': [0.7, 0.6, np.nan, np.nan],
+            'test2_Score': [np.nan, np.nan, 0.1, 0.2],
+            'test2_ScoreB': [np.nan, np.nan, 0.3, 0.4],
+        })
+        pd.testing.assert_frame_equal(rpt, expected_rpt)
+
+        granularity = 'pairwise'
+        name1 = ('Evaluator', f"test1_[{granularity}]")
+        name2 = ('Evaluator', f"test2_[{granularity}]")
+        rpt = _test_sage_merge(data, granularity, name1, name2, process=True)
+        expected_rpt = pd.DataFrame(data={
+            'full_expt_name': [
+                'Evaluator[test1_[pairwise]]', 'Evaluator[test1_[pairwise]]',
+                'Evaluator[test1_[pairwise]]', 'Evaluator[test1_[pairwise]]',
+                'Evaluator[test2_[pairwise]]', 'Evaluator[test2_[pairwise]]',
+                'Evaluator[test2_[pairwise]]', 'Evaluator[test2_[pairwise]]',
+            ],
+            'Evaluator': [
+                'test1_[pairwise]', 'test1_[pairwise]',
+                'test1_[pairwise]', 'test1_[pairwise]',
+                'test2_[pairwise]', 'test2_[pairwise]',
+                'test2_[pairwise]', 'test2_[pairwise]',
+            ],
+            'column1': ['col1','col1','col2','col2','col1','col1','col2','col2'],
+            'column2': ['col1','col2','col1','col2','col1','col2','col1','col2'],
+            'test1_Score': [0.9, 0.8, 0.7, 0.6, np.nan, np.nan, np.nan, np.nan],
+            'test1_ScoreA': [0.5, 0.4, 0.3, 0.2, np.nan, np.nan, np.nan, np.nan],
+            'test2_Score': [np.nan, np.nan, np.nan, np.nan, 0.1, 0.2, 0.3, 0.4],
+            'test2_ScoreA': [np.nan, np.nan, np.nan, np.nan, 0.5, 0.6, 0.7, 0.8],
+        })
+        pd.testing.assert_frame_equal(rpt, expected_rpt)
 
 class Test_utils:
     """
