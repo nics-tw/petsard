@@ -167,20 +167,21 @@ class SmartNoiseFactory:
         """
         method: str = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
-        batch_size: int = kwargs.get('batch_size', 500)
-        epochs: int = kwargs.get('epochs', 300)
-        sigma: float = kwargs.get('sigma', 5.0) # for dpctgan
-        disabled_dp: bool = kwargs.get('disabled_dp', False) # for dpctgan
+
+        # only keep the parameters for the synthesizer
+        if 'method' in kwargs:
+            del kwargs['method']
+        if 'epsilon' in kwargs:
+            del kwargs['epsilon']
+        del kwargs['metadata']
+        del kwargs['method_code']
 
         if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
                 data,
                 method=method.split('-')[1], 
                 epsilon=epsilon,
-                batch_size=batch_size,
-                epochs=epochs,
-                sigma=sigma,
-                disabled_dp=disabled_dp
+                **kwargs
             )
         else:
             raise UnsupportedMethodError
@@ -200,8 +201,7 @@ class SmartNoiseCreator(SmartNoise):
     """
 
     def __init__(self, data: pd.DataFrame,
-                 method: str, epsilon: float, batch_size: int,
-                 epochs: int, sigma: float, disabled_dp: bool, **kwargs):
+                 method: str, epsilon: float, **kwargs):
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
@@ -213,13 +213,5 @@ class SmartNoiseCreator(SmartNoise):
         self.syn_method: str = method
 
         
-        if method == 'dpctgan':
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs,
-                                            sigma=sigma,
-                                            disabled_dp=disabled_dp)
-        else:
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs)
+        self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+                                        **kwargs)
