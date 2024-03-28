@@ -539,7 +539,8 @@ class ReporterSaveReport(ReporterBase):
             print(
                 f"Reporter: "
                 f"There's no {granularity} granularity report "
-                f"in {full_expt_tuple[-2]} {full_expt_tuple[-1]}. "
+                f"in {full_expt_tuple[-2]} "
+                f"{convert_eval_expt_name_to_tuple(full_expt_tuple[-1])[0]}. "
                 f"Nothing collect."
             )
             return True, None
