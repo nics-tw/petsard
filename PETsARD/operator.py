@@ -544,6 +544,10 @@ class ReporterOperator(Operator):
         if 'Reporter' in self.reporter.result:
             # ReporterSaveReport
             temp = self.reporter.result['Reporter']
+            # exception handler so no need to collect exist report in this round
+            #   e.g. no matched granularity
+            if 'warnings' in temp:
+                return
             if not all(key in temp for key in ['eval_expt_name', 'report']):
                 raise ConfigError
             eval_expt_name = temp['eval_expt_name']
