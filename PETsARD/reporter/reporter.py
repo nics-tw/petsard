@@ -136,6 +136,7 @@ class ReporterBase(ABC):
         'Describer',
         'Reporter',
     ]
+    SAVE_REPORT_AVAILABLE_MODULE: list = ['Evaluator', 'Describer']
 
     def __init__(self, config: dict):
         """
