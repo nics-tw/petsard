@@ -470,6 +470,18 @@ class ReporterSaveReport(ReporterBase):
                 'report': deepcopy(final_rpt_data)
             }
 
+        # 7. exception handler
+        if 'Reporter' not in self.result:
+            self.result['Reporter'] = {
+                'eval_expt_name': output_eval_name,
+                'granularity': granularity,
+                'report': None,
+                'warnings': (
+                    f"There is no report data to save "
+                    f"under {granularity} granularity."
+                )
+            }
+
     @classmethod
     def _process_report_data(
         cls,
@@ -527,7 +539,8 @@ class ReporterSaveReport(ReporterBase):
             print(
                 f"Reporter: "
                 f"There's no {granularity} granularity report "
-                f"in {full_expt_tuple[-2]}. "
+                f"in {full_expt_tuple[-2]} "
+                f"{convert_eval_expt_name_to_tuple(full_expt_tuple[-1])[0]}. "
                 f"Nothing collect."
             )
             return True, None
@@ -641,16 +654,28 @@ class ReporterSaveReport(ReporterBase):
         """
         if 'Reporter' not in self.result:
             raise UnexecutedError
+        reporter: dict = self.result['Reporter']
 
-        if 'eval_expt_name' not in self.result['Reporter']:
-            # no {granularity} granularity report in {eval}
+        if 'warnings' in reporter:
+            print(
+                f"Reporter: No CSV file will be saved. "
+                f"This warning can be ignored "
+                f"if running with different granularity config."
+            )
             return
 
-        eval_expt_name: str = self.result['Reporter']['eval_expt_name']
-
+        if not all(key in reporter for key in ['eval_expt_name', 'report']):
+            raise ConfigError
+        eval_expt_name: str = reporter['eval_expt_name']
         # PETsARD[Report]_{eval_expt_name}
-        full_output = f"{self.config['output']}[Report]_{eval_expt_name}"
+        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+
+        report: pd.DataFrame = reporter['report']
+        if report is None:
+            # the unexpected report is None without warnings
+            raise UnexecutedError
+
         self._save(
-            data=self.result['Reporter']['report'],
+            data=report,
             full_output=full_output
         )
