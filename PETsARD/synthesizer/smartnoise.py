@@ -46,22 +46,24 @@ class SmartNoise:
                     categorical_columns=self.data.columns
                 )
             else:
+                data_to_syn = self.data.copy()
+
                 for idx, col in enumerate(self.data.columns):
                     if self.data[col].nunique() == 1:
                         # If the column has only one unique value,
                         # it is a constant column.
                         self.constant_data[col] = (self.data[col].unique()[0],
                                                    idx)
-                        self.data.drop(col, axis=1, inplace=True)
+                        data_to_syn.drop(col, axis=1, inplace=True)
 
                 tt = TableTransformer([
-                    MinMaxTransformer(lower=self.data[col].min(),
-                                      upper=self.data[col].max(),
+                    MinMaxTransformer(lower=data_to_syn[col].min(),
+                                      upper=data_to_syn[col].max(),
                                       negative=False) 
-                    for col in self.data.columns
+                    for col in data_to_syn.columns
                 ])
 
-                self._Synthesizer.fit(self.data, transformer=tt)
+                self._Synthesizer.fit(data_to_syn, transformer=tt)
             print(
                 f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
