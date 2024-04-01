@@ -1,3 +1,4 @@
+---
 Splitter:
   # For splitted data that has been prepared in advance
   custom:
@@ -17,7 +18,7 @@ Evaluator:
     method: 'default'
   anony-singling:
     # anonymeter required original, control, and synthetic data
-    method: 'anonymeter-singlingout_univariate'
+    method: 'anonymeter-singlingout'
 Reporter:
   save_report_global_demo:
     method: 'save_report'
@@ -33,3 +34,4 @@ Reporter:
     output: 'User Story C-2b'
     eval: 'anony-singling'
     granularity: 'global'
+...
