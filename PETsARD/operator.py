@@ -11,7 +11,7 @@ from PETsARD import (
     Describer,
     Reporter
 )
-from PETsARD.error import ConfigError
+from PETsARD.error import ConfigError, UnexecutedError
 
 
 class Operator:
@@ -292,7 +292,8 @@ class SynthesizerOperator(Operator):
 
         Returns:
             dict:
-                Synthesizer input should contains data (pd.DataFrame).
+                Synthesizer input should contains data (pd.DataFrame)
+                    and SDV format metadata (dict or None).
         """
         try:
             self.input['data'] = status.get_result(
@@ -300,7 +301,10 @@ class SynthesizerOperator(Operator):
             )
         except:
             raise ConfigError
-
+        try:
+            self.input['metadata'] = status.get_metadata().to_sdv()
+        except UnexecutedError:
+            self.input['metadata'] = None
         return self.input
 
     def get_result(self):
