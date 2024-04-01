@@ -18,7 +18,7 @@ Evaluator:
     method: 'default'
   anony-singling:
     # anonymeter required original, control, and synthetic data
-    method: 'anonymeter-singlingout_univariate'
+    method: 'anonymeter-singlingout'
 Reporter:
   save_report_global_demo:
     method: 'save_report'
