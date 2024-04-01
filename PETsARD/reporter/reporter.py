@@ -1,11 +1,23 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 import re
 
 import pandas as pd
 
-from PETsARD.error import ConfigError, UnexecutedError, UnsupportedMethodError
+from PETsARD.reporter.utils import (
+    convert_full_expt_tuple_to_name,
+    convert_eval_expt_name_to_tuple,
+    full_expt_tuple_filter,
+)
+from PETsARD.error import (
+    ConfigError,
+    UnexecutedError,
+    UnsupportedMethodError
+)
 
 
 class ReporterMap():
@@ -63,24 +75,25 @@ class Reporter:
             **kwargs: Additional configuration parameters.
                 - All Reporter
                     - output (str, optional):
-                        The output filename prefix for the report. Default is 'PETsARD'.
+                        The output filename prefix for the report.
+                        Default is 'PETsARD'.
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
                     - granularity (str): The granularity of reporting.
                         It should be one of 'global', 'columnwise', or 'pairwise'.
                         Case-insensitive.
-                    - eval (str): The evaluation method used for reporting.
 
         Attributes:
             config (dict): A dictionary containing the configuration parameters.
-            reporter (object): An object representing the specific reporter based on the method.
-            report_data (dict): A dictionary containing the data for the report.
+            reporter (object):
+                An object representing the specific reporter based on the method.
+            result (dict): A dictionary containing the data for the report.
         """
         self.config = kwargs
         self.config['method'] = method.lower()
         self.reporter = None
-        self.report_data: dict = {}
+        self.result: dict = {}
 
         method_code: int = ReporterMap.map(self.config['method'])
         self.config['method_code'] = method_code
@@ -99,39 +112,53 @@ class Reporter:
             data (dict): The data used for creating the report.
         """
         self.reporter.create(data=data)
-        self.report_data = self.reporter.report_data
 
     def report(self) -> None:
         """
         Generates and saves the report.
         """
         self.reporter.report()
+        self.result = self.reporter.result
 
 
 class ReporterBase(ABC):
     """
     Base class for reporting data.
     """
+    ALLOWED_IDX_MODULE: list = [
+        'Loader',
+        'Splitter',
+        'Processor',
+        'Preprocessor',
+        'Synthesizer',
+        'Postprocessor',
+        'Evaluator',
+        'Describer',
+        'Reporter',
+    ]
+    SAVE_REPORT_AVAILABLE_MODULE: list = ['Evaluator', 'Describer']
 
     def __init__(self, config: dict):
         """
         Args:
             config (dict): Configuration settings for the report.
                 - method (str): The method used for reporting.
-                - output (str, optional): The output filename prefix for the report.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
 
         Attributes:
             config (dict): Configuration settings for the report.
-            report_data (dict): Data for the report.
+            result (dict): Data for the report.
         """
         self.config: dict = config
+        self.result: dict = {}
+
         if 'method' not in self.config:
             raise ConfigError
         if not isinstance(self.config.get('output'), str) \
                 or not self.config['output']:
             self.config['output'] = 'PETsARD'
-        self.report_data: dict = {}
 
     @abstractmethod
     def create(self, data: dict) -> None:
@@ -140,8 +167,62 @@ class ReporterBase(ABC):
 
         Args:
             data (dict): The data used for creating the report.
+                See ReporterBase._verify_create_input() for format requirement.
         """
         raise NotImplementedError
+
+    @classmethod
+    def _verify_create_input(cls, data: dict) -> None:
+        """
+        Verify the input data for the create method.
+
+        Validates the structure and type of input data intended for creating a report.
+
+        Args:
+            data (dict): Input data for report creation, where:
+                - The key represents the full index tuple of the source,
+                    formatted as (module_name, experiment_name, ...)
+                    concatenated together.
+                    - For multiple results in an operator,
+                        such as EvaluatorOperator, experiment names will
+                        include a postfix "_[xxx]" to distinguish them. e.g.:
+                        ('Loader', 'default'),
+                        ('Loader', 'default', 'Preprocessor', 'default'),
+                        (..., 'Evaluator', 'default_[global]').
+                    - The value is the source data (pd.DataFrame).
+                - 'exist_report' (optional, dict):
+                    Existing report data, where the key is
+                    the full evaluation experiment name
+                    formatted as "{eval}_[{granularity}]",
+                    and the value is the report data (pd.DataFrame).
+
+        Raises:
+            ConfigError: If any validation check fails.
+        """
+        for idx, value in data.items():
+            # 1. The 'exist_report' must be a dict with pd.DataFrame values.
+            if idx == 'exist_report':
+                if not isinstance(value, dict) \
+                        or not all(isinstance(v, pd.DataFrame) for v in value.values()):
+                    raise ConfigError
+                continue
+
+            # 2. Index must have an even number of elements.
+            if len(idx) % 2 != 0:
+                raise ConfigError
+            module_names, experiment_names = idx[::2], idx[1::2]
+
+            # 3. Every module names should be in ALLOWED_IDX_MODULE.
+            if not all(module in cls.ALLOWED_IDX_MODULE for module in module_names):
+                raise ConfigError
+
+            # 4. Module names in the index must be unique.
+            if len(module_names) != len(set(module_names)):
+                raise ConfigError
+
+            # 5. Each value must be a pd.DataFrame or None.
+            if value is not None and not isinstance(value, pd.DataFrame):
+                raise ConfigError
 
     @abstractmethod
     def report(self) -> None:
@@ -176,9 +257,10 @@ class ReporterSaveData(ReporterBase):
         Args:
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
-                - output (str, optional): The output filename prefix for the report.
+                - source (str | List[str]): The source of the data.
+                - output (str, optional):
+                    The output filename prefix for the report.
                     Default is 'PETsARD'.
-                - source (Union[str, List[str]]): The source of the data.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -204,34 +286,26 @@ class ReporterSaveData(ReporterBase):
         Creates the report data.
 
         Args:
-            data (dict): The data dictionary. Gerenrating by ReporterOperator.set_input()
-                The key is the full index tuple of the source,
-                    format is (module_name, experiment_name, ), and concat together. e.g.
-                    ('Loader', 'default'),
-                    ('Loader', 'default', 'Preprocessor', 'default')
-                    If there's multiple result in the Operator, e.g. EvaluatorOperator,
-                    Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
-                    (..., 'Evaluator', 'default_[global]')
-                The value is the data of the source.
+            data (dict): The data dictionary.
+                Gerenrating by ReporterOperator.set_input()
+                See ReporterBase._verify_create_input() for format requirement.
 
         Raises:
             ConfigError: If the index tuple is not an even number.
         """
-        # last 1 of index shoulde remove postifx "_[xxx]" to match source
-        pattern = re.compile(r'_(\[[^\]]*\])$')
-        for index, df in data.items():
-            # check if last 2 element of index in source
-            last_module_expt_name = [index[-2], re.sub(pattern, '', index[-1])]
-            if any(item in self.config['source'] for item in last_module_expt_name):
-                # index tuple should be even number
-                if len(index) % 2 != 0:
-                    raise ConfigError
+        # verify input data
+        self._verify_create_input(data)
 
-                full_expt = '_'.join([
-                    f"{index[i]}[{index[i+1]}]"
-                    for i in range(0, len(index), 2)
-                ])
-                self.report_data[full_expt] = df
+        # last 1 of index should remove postfix "_[xxx]" to match source
+        pattern = re.compile(r'_(\[[^\]]*\])$')
+        for full_expt_tuple, df in data.items():
+            # check if last 2 element of index in source
+            last_module_expt_name = [
+                full_expt_tuple[-2], re.sub(pattern, '', full_expt_tuple[-1])
+            ]
+            if any(item in self.config['source'] for item in last_module_expt_name):
+                full_expt_name = convert_full_expt_tuple_to_name(full_expt_tuple)
+                self.result[full_expt_name] = df
 
     def report(self) -> None:
         """
@@ -240,7 +314,7 @@ class ReporterSaveData(ReporterBase):
         Notes:
             Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
         """
-        for expt_name, df in self.report_data.items():
+        for expt_name, df in self.result.items():
             # Some of the data may be None.
             #   e.g. Evaluator.get_global/columnwise/pairwise
             #   just skip it
@@ -279,7 +353,10 @@ class ReporterSaveReport(ReporterBase):
         # granularity should be whether global/columnwise/pairwise
         if 'granularity' not in self.config:
             raise ConfigError
-        granularity_code = ReporterSaveReportMap.map(self.config['granularity'])
+        self.config['granularity'] = self.config['granularity'].lower()
+        granularity_code = ReporterSaveReportMap.map(
+            self.config['granularity']
+        )
         if granularity_code not in [
             ReporterSaveReportMap.GLOBAL,
             ReporterSaveReportMap.COLUMNWISE,
@@ -288,125 +365,317 @@ class ReporterSaveReport(ReporterBase):
             raise ConfigError
         self.config['granularity_code'] = granularity_code
 
-        # set eval to None if not exist
-        if 'eval' not in self.config:
-            raise ConfigError
+        # set eval to None if not exist,
+        #   otherwise verify it should be str or List[str]
+        eval = self.config.get('eval')
+        if isinstance(eval, str):
+            eval = [eval]
+        if not isinstance(eval, list)\
+                or not all(isinstance(item, str) for item in eval):
+            if eval is not None:
+                raise ConfigError
+        self.config['eval'] = eval
 
     def create(self, data: dict = None) -> None:
         """
         Creating the report data by checking is experiment name of Evaluator exist.
 
         Args:
-            data (dict): The data dictionary. Gerenrating by ReporterOperator.set_input()
-                - The key is the full index tuple of the source,
-                    format is (module_name, experiment_name, ), and concat together. e.g.
-                    ('Loader', 'default'),
-                    ('Loader', 'default', 'Preprocessor', 'default')
-                    If there's multiple result in the Operator, e.g. EvaluatorOperator,
-                    Their expeirment name will add postfix "_[xxx]" to distinguish. e.g.
-                    (..., 'Evaluator', 'default_[global]')
-                  The value is the data of the source.
-                - also the keys exist_report (dict, optional): The existing report data.
-                    The key is the full evaluation experiment name: "{eval}_[{granularity}]"
-                    The value is the data of the report, pd.DataFrame.
+            data (dict): The data used for creating the report.
+                See ReporterBase._verify_create_input() for format requirement.
+                - exist_report (dict, optional): The existing report data.
+                    - The key is the full evaluation experiment name:
+                        "{eval}_[{granularity}]"
+                    - The value is the data of the report, pd.DataFrame.
 
         Attributes:
-            - report_data (dict): Data for the report.
+            - result (dict): Data for the report.
                 - Reporter (dict): The report data for the reporter.
                     - full_expt_name (str): The full experiment name.
                     - expt_name (str): The experiment name.
                     - granularity (str): The granularity of the report.
                     - report (pd.DataFrame): The report data.
         """
-        full_expt_name: str = ''
-        eval_expt_name: str = ''
-        eval: Optional[str] = self.config['eval']
-        granularity: str = self.config['granularity'].lower()
+        # verify input data
+        self._verify_create_input(data)
 
-        report_data: dict = {}
-        rpt_data: pd.DataFrame = None
-        exist_report: Optional[dict] = None
+        eval: str = self.config['eval']
+        granularity: str = self.config['granularity']
+        output_eval_name: str = ''
+        skip_flag: bool = False
+        first_rpt_data: bool = True
+        final_rpt_data: pd.DataFrame = None
 
-        if 'exist_report' in self.config:
-            exist_report = self.config['exist_report']
-            del self.config['exist_report']
+        exist_report: dict = data.pop('exist_report', None)
+        exist_report_done: bool = False
 
-        for idx_tuple, rpt_data in data.items():
-            # found latest key pairs is Evaluator/Describer
-            if idx_tuple[-2] in ['Evaluator','Describer']:
-                eval_expt_name = idx_tuple[-1]
+        if eval is None:
+            # match every ends of f"_[{granularity}]"
+            eval_pattern = re.escape(f"_[{granularity}]") + "$"
+            output_eval_name = f"[{granularity}]"
+        else:
+            # it should be match f"{eval}_[{granularity}]", where eval is a list
+            eval_pattern = (
+                "^("
+                + "|".join([re.escape(eval_item) for eval_item in eval])
+                + ")"
+                + re.escape(f"_[{granularity}]")
+                + "$"
+            )
+            output_eval_name = (
+                "-".join([eval_item for eval_item in eval])
+                + f"_[{granularity}]"
+            )
 
-                # specifiy experiment name
-                #   match the expt_name "{eval}_[{granularity}]"
-                if eval_expt_name != f"{eval}_[{granularity}]":
-                    continue
+        for full_expt_tuple, rpt_data in data.items():
+            # processing single data
+            skip_flag, rpt_data = self._process_report_data(
+                report=rpt_data,
+                full_expt_tuple=full_expt_tuple,
+                eval_pattern=eval_pattern,
+                granularity=granularity,
+                output_eval_name=output_eval_name,
+            )
+            # skip if skip_flag return True
+            if skip_flag:
+                continue
 
-                if rpt_data is None:
-                    print(
-                        f"There's no {granularity} granularity report in {eval}. "
-                        f"Nothing collect."
+            # 4. safe_merge exist_report and current report if non-merge
+            if not exist_report_done:
+                if exist_report is not None and output_eval_name in exist_report:
+                    rpt_data = self._safe_merge(
+                        df1 = exist_report[output_eval_name],
+                        df2 = rpt_data,
+                        name1 = ('exist_report',),
+                        name2 = full_expt_tuple,
                     )
-                    return
-                else:
-                    rpt_data = deepcopy(rpt_data)
+                exist_report_done = True
 
-                    full_expt_name: str = '_'.join([
-                        f"{idx_tuple[i]}[{idx_tuple[i+1]}]"
-                        for i in range(0, len(idx_tuple), 2)
-                    ])
-                    report_data['full_expt_name'] = full_expt_name
-                    report_data['eval_expt_name'] = eval_expt_name
-                    report_data['expt_name'] = eval
-                    report_data['granularity'] = granularity
+            # 5. safe_merge
+            if first_rpt_data:
+                final_rpt_data = rpt_data.copy()
+                first_rpt_data = False
+            else:
+                final_rpt_data = self._safe_merge(
+                    df1 = final_rpt_data,
+                    df2 = rpt_data,
+                    name1 = ('Append report'),
+                    name2 = full_expt_tuple,
+                )
 
-                    # reset index to represent column
-                    granularity_code = self.config['granularity_code']
-                    if granularity_code == ReporterSaveReportMap.COLUMNWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={'index': 'column'})
-                    elif granularity_code == ReporterSaveReportMap.PAIRWISE:
-                        rpt_data = rpt_data.reset_index(drop=False)
-                        rpt_data = rpt_data.rename(columns={
-                            'level_0': 'column1',
-                            'level_1': 'column2'
-                        })
+            # 6. Collect result
+            self.result['Reporter'] = {
+                'eval_expt_name': output_eval_name,
+                'granularity': granularity,
+                'report': deepcopy(final_rpt_data)
+            }
 
-                    # add full_expt_name as first column
-                    rpt_data.insert(0, 'full_expt_name', full_expt_name)
+        # 7. exception handler
+        if 'Reporter' not in self.result:
+            self.result['Reporter'] = {
+                'eval_expt_name': output_eval_name,
+                'granularity': granularity,
+                'report': None,
+                'warnings': (
+                    f"There is no report data to save "
+                    f"under {granularity} granularity."
+                )
+            }
 
-                    # Row append if exist_report exist
-                    if exist_report is not None:
-                        if eval_expt_name in exist_report:
-                            exist_report_data = exist_report[eval_expt_name]
-                            rpt_data = pd.concat(
-                                [exist_report_data, rpt_data],
-                                axis=0
-                            )
-                    report_data['report'] = deepcopy(rpt_data)
+    @classmethod
+    def _process_report_data(
+        cls,
+        report: pd.DataFrame,
+        full_expt_tuple: tuple[str],
+        eval_pattern: str,
+        granularity: str,
+        output_eval_name: str,
+    ) -> tuple[bool, pd.DataFrame]:
+        """
+        Process the report data by performing the following steps:
 
-                    # only one matched Evaluator/Describer should in the Status.status
-                    break
+        1. Check if the final module is Evaluator/Describer.
+        2. Check if the evaluation experiment name matches the granularity.
+        3. Check if the report data exists.
+        4. Rename the columns as f"{eval_name}_{original column}" if assigned.
+        5-1. Reset the index if the granularity is COLUMNWISE.
+            Rename the index column to 'column'.
+        5-2. Reset the index if the granularity is PAIRWISE.
+            Rename the level_0 and level_1 columns to 'column1' and 'column2' respectively.
+        6. Sequentially insert module names as column names and expt names as values.
+            Avoid different, the non-evalualtion module name will be move,
+            and keep granularity from input only.
+        7. Add the full_expt_name as the first column.
 
-        self.report_data['Reporter'] = report_data
+        Args:
+            - report (pd.DataFrame):
+                The report data to be processed.
+            - full_expt_tuple (tuple):
+                The tuple containing module names and expt names.
+            - eval_pattern (str):
+                The pattern to match the evaluation experiment name.
+            - granularity (str):
+                The granularity of the report.
+            - output_eval_name (str):
+                The output evaluation experiment name.
+
+        Returns:
+            - skip_flag (bool): True if the report data should be skipped.
+            - rpt_data (pd.DataFrame): The processed report data.
+        """
+        full_expt_name: str = None
+        full_expt_name_postfix: str = ''
+
+        # 1. Found final module is Evaluator/Describer
+        if full_expt_tuple[-2] not in cls.SAVE_REPORT_AVAILABLE_MODULE:
+            return True, None
+
+        # 2. eval_expt_name matching granularity (also eval if provided)
+        if not re.search(eval_pattern, full_expt_tuple[-1]):
+            return True, None
+
+        # 3. match granularity, if exist, copy()
+        if report is None:
+            print(
+                f"Reporter: "
+                f"There's no {granularity} granularity report "
+                f"in {full_expt_tuple[-2]} "
+                f"{convert_eval_expt_name_to_tuple(full_expt_tuple[-1])[0]}. "
+                f"Nothing collect."
+            )
+            return True, None
+        report = report.copy()
+
+        # 4. Rename columns as f"{eval_name}_{original column}" if assigned
+        #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
+        eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+        eval_name = eval_expt_tuple[0]
+        for col in report.columns:
+            report.rename(
+                columns={col: f"{eval_name}_{col}"},
+                inplace=True,
+            )
+
+        # 5. reset index to represent column
+        granularity_code: int = ReporterSaveReportMap.map(granularity)
+        if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={'index': 'column'})
+        elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+            report = report.reset_index(drop=False)
+            report = report.rename(columns={
+                'level_0': 'column1',
+                'level_1': 'column2'
+            })
+
+        # 6. Sequentially insert module names
+        #   as column names and expt names as values
+        for i in range(len(full_expt_tuple) - 2, -1, -2):
+            if full_expt_tuple[i] in cls.SAVE_REPORT_AVAILABLE_MODULE:
+                report.insert(0, full_expt_tuple[i], output_eval_name)
+                full_expt_name_postfix += full_expt_tuple[i]
+                full_expt_name_postfix += output_eval_name
+            else:
+                report.insert(0, full_expt_tuple[i], full_expt_tuple[i+1])
+
+        # 7. Add full_expt_name as first column
+        full_expt_name = convert_full_expt_tuple_to_name(
+            full_expt_tuple_filter(
+                full_expt_tuple=full_expt_tuple,
+                method='exclude',
+                target=cls.SAVE_REPORT_AVAILABLE_MODULE,
+            )
+        )
+        full_expt_name = '_'.join(
+            component for component in
+            [full_expt_name, full_expt_name_postfix]
+            if component != ''
+        )
+        report.insert(0, 'full_expt_name', full_expt_name)
+
+        return False, report
+
+    @classmethod
+    def _safe_merge(
+        cls,
+        df1: pd.DataFrame,
+        df2: pd.DataFrame,
+        name1: str,
+        name2: str,
+    ) -> pd.DataFrame:
+        """
+        FULL OUTER JOIN two DataFrames safely.
+            We will confirm the common columns dtype is same or change to object.
+                Then, FULL OUTER JOIN based on common columns,
+                and column order based on df1 than df2.
+
+        Args:
+            df1 (pd.DataFrame): The first DataFrame.
+            df2 (pd.DataFrame): The second DataFrame.
+            name1 (str): The name of the first DataFrame.
+            name2 (str): The name of the second DataFrame.
+
+        Returns:
+            pd.DataFrame: The concatenated DataFrame.
+        """
+        # 1. record common_columns and their dtype
+        common_columns: List[str] = [
+            col for col in df1.columns if col in df2.columns
+        ]
+        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+
+        # 2. confirm common_columns dtype is same,
+        #   if not, change dtype to object, and print warning
+        for col in common_columns:
+            if df1_common_dtype[col] != df2_common_dtype[col]:
+                print(
+                    f"Reporter: Column '{col}' in "
+                    f"'{name1}' ({df1_common_dtype[col]}) and "
+                    f"'{name2}' ({df2_common_dtype[col]}) "
+                    f"have different dtype. Change dtype to object."
+                )
+                df1[col] = df1[col].astype('object')
+                df2[col] = df2[col].astype('object')
+
+        # 3. FULL OUTER JOIN df1 and df2,
+        #   kept column order based on df1 than df2
+        return pd.merge(
+            df1,
+            df2,
+            on=common_columns,
+            how='outer',
+        ).reset_index(drop=True)
 
     def report(self) -> None:
         """
         Generates a report based on the provided report data.
             The report is saved to the specified output location.
         """
-        if 'Reporter' not in self.report_data:
+        if 'Reporter' not in self.result:
             raise UnexecutedError
+        reporter: dict = self.result['Reporter']
 
-        if 'eval_expt_name' not in self.report_data['Reporter']:
-            # no {granularity} granularity report in {eval}
+        if 'warnings' in reporter:
+            print(
+                f"Reporter: No CSV file will be saved. "
+                f"This warning can be ignored "
+                f"if running with different granularity config."
+            )
             return
 
-        eval_expt_name: str = self.report_data['Reporter']['eval_expt_name']
-
+        if not all(key in reporter for key in ['eval_expt_name', 'report']):
+            raise ConfigError
+        eval_expt_name: str = reporter['eval_expt_name']
         # PETsARD[Report]_{eval_expt_name}
-        full_output = f"{self.config['output']}[Report]_{eval_expt_name}"
+        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+
+        report: pd.DataFrame = reporter['report']
+        if report is None:
+            # the unexpected report is None without warnings
+            raise UnexecutedError
+
         self._save(
-            data=self.report_data['Reporter']['report'],
+            data=report,
             full_output=full_output
         )
-

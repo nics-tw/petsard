@@ -295,7 +295,9 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame).
         """
         try:
-            self.input['data'] = status.get_result(status.get_pre_module('Synthesizer'))
+            self.input['data'] = status.get_result(
+                status.get_pre_module('Synthesizer')
+            )
         except:
             raise ConfigError
 
@@ -340,7 +342,9 @@ class PostprocessorOperator(Operator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self.processor = input['preprocessor']
-        self.data_postproc = self.processor.inverse_transform(data=input['data'])
+        self.data_postproc = self.processor.inverse_transform(
+            data=input['data']
+        )
 
     def set_input(self, status) -> dict:
         """
@@ -354,7 +358,9 @@ class PostprocessorOperator(Operator):
                 Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
         """
         try:
-            self.input['data'] = status.get_result(status.get_pre_module('Postprocessor'))
+            self.input['data'] = status.get_result(
+                status.get_pre_module('Postprocessor')
+            )
             self.input['preprocessor'] = status.get_processor()
         except:
             raise ConfigError
@@ -414,7 +420,7 @@ class EvaluatorOperator(Operator):
                     'syn':     status.get_result(status.get_pre_module('Evaluator')),
                     'control': status.get_result('Splitter')['validation']
                 }
-            else: # Loader only
+            else:  # Loader only
                 self.input['data'] = {
                     'ori': status.get_result('Loader'),
                     'syn': status.get_result(status.get_pre_module('Evaluator')),
@@ -527,19 +533,29 @@ class ReporterOperator(Operator):
 
         Args:
             input (dict): Input data for the Reporter.
+                - data (dict): The data to be reported.
         """
-        self.reporter.create(**input)
+        temp: dict = None
+        eval_expt_name: str = None
+        report: pd.DataFrame = None
+
+        self.reporter.create(data=input['data'])
         self.reporter.report()
-        if 'Reporter' in self.reporter.report_data:
+        if 'Reporter' in self.reporter.result:
             # ReporterSaveReport
-            temp: dict = self.reporter.report_data['Reporter']
-            if 'eval_expt_name' in temp:
-                eval_expt_name: str = temp['eval_expt_name']
-                report: pd.DataFrame = deepcopy(temp['report'])
-                self.report[eval_expt_name] = report
+            temp = self.reporter.result['Reporter']
+            # exception handler so no need to collect exist report in this round
+            #   e.g. no matched granularity
+            if 'warnings' in temp:
+                return
+            if not all(key in temp for key in ['eval_expt_name', 'report']):
+                raise ConfigError
+            eval_expt_name = temp['eval_expt_name']
+            report = deepcopy(temp['report'])
+            self.report[eval_expt_name] = report
         else:
             # ReporterSaveData
-            self.report = self.reporter.report_data
+            self.report = self.reporter.result
 
     def set_input(self, status) -> dict:
         """
@@ -550,7 +566,6 @@ class ReporterOperator(Operator):
 
         Returns:
             dict: The input data for the Reporter.
-
         """
         full_expt = status.get_full_expt()
 
@@ -565,10 +580,14 @@ class ReporterOperator(Operator):
                 for key in result.keys():
                     temp_dict: dict = index_dict.copy()
                     temp_dict[module] = f"{index_dict[module]}_[{key}]"
-                    index_tuple = tuple(item for pair in temp_dict.items() for item in pair)
+                    index_tuple = tuple(
+                        item for pair in temp_dict.items() for item in pair
+                    )
                     data[index_tuple] = deepcopy(result[key])
             else:
-                index_tuple = tuple(item for pair in index_dict.items() for item in pair)
+                index_tuple = tuple(
+                    item for pair in index_dict.items() for item in pair
+                )
                 data[index_tuple] = deepcopy(result)
         self.input['data'] = data
         self.input['data']['exist_report'] = status.get_report()

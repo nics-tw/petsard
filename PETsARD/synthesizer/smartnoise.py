@@ -27,6 +27,7 @@ class SmartNoise:
         """
         self.data: pd.DataFrame = data
         self.syn_method: str = 'Unknown'
+        self.constant_data: dict = {}
 
     def fit(self) -> None:
         """
@@ -39,15 +40,20 @@ class SmartNoise:
                 f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
             )
 
-            # TODO - Only support cube-style synthesizer. 
-            # GAN-style synthesizer needed to be implemented.
-
             if self.syn_method in self.CUBE:
                 self._Synthesizer.fit(
                     self.data,
                     categorical_columns=self.data.columns
                 )
             else:
+                for idx, col in enumerate(self.data.columns):
+                    if self.data[col].nunique() == 1:
+                        # If the column has only one unique value,
+                        # it is a constant column.
+                        self.constant_data[col] = (self.data[col].unique()[0],
+                                                   idx)
+                        self.data.drop(col, axis=1, inplace=True)
+
                 tt = TableTransformer([
                     MinMaxTransformer(lower=self.data[col].min(),
                                       upper=self.data[col].max(),
@@ -99,6 +105,10 @@ class SmartNoise:
                 data_syn = self._Synthesizer.sample(
                     self.sample_num_rows
                 )
+
+                if self.constant_data:
+                    for col, (val, idx) in self.constant_data.items():
+                        data_syn.insert(idx, col, val)
 
                 data_syn.to_csv(output_file_path, index=False)
 
@@ -157,12 +167,20 @@ class SmartNoiseFactory:
         """
         method: str = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
+        batch_size: int = kwargs.get('batch_size', 500) # for all gan
+        epochs: int = kwargs.get('epochs', 300) # for all gan
+        sigma: float = kwargs.get('sigma', 5.0) # for dpctgan
+        disabled_dp: bool = kwargs.get('disabled_dp', False) # for dpctgan
 
         if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
                 data,
                 method=method.split('-')[1], 
-                epsilon=epsilon
+                epsilon=epsilon,
+                batch_size=batch_size,
+                epochs=epochs,
+                sigma=sigma,
+                disabled_dp=disabled_dp
             )
         else:
             raise UnsupportedMethodError
@@ -182,7 +200,8 @@ class SmartNoiseCreator(SmartNoise):
     """
 
     def __init__(self, data: pd.DataFrame,
-                 method: str, epsilon: float = 5.0, **kwargs):
+                 method: str, epsilon: float, batch_size: int,
+                 epochs: int, sigma: float, disabled_dp: bool, **kwargs):
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
@@ -193,4 +212,16 @@ class SmartNoiseCreator(SmartNoise):
         super().__init__(data, **kwargs)
         self.syn_method: str = method
 
-        self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
+        
+        if method == 'dpctgan':
+            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+                                            batch_size=batch_size,
+                                            epochs=epochs,
+                                            sigma=sigma,
+                                            disabled_dp=disabled_dp)
+        elif method == 'patectgan':
+            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+                                            batch_size=batch_size,
+                                            epochs=epochs)
+        else:
+            self._Synthesizer = SNSyn.create(method, epsilon=epsilon)

@@ -72,18 +72,18 @@ class Loader:
     ):
         """
         Args:
-            filepath (str): The fullpath of dataset.
-            method (str): The method of Loader.
+            filepath (str, optional): The fullpath of dataset.
+            method (str, optional): The method of Loader.
+                Default is None, indicating only filepath is specified.
             column_types (dict ,optional):
-                The dictionary of column names and their types.
-                Format as {type: [colname]}
-                Only below types are supported (case-insensitive):
-                - 'category': The column will be treated as categorical.
-                - 'datetime': The column will be treated as datetime.
+                The dictionary of column types and their corresponding column names,
+                formatted as {type: [colname]}
+                Only the following types are supported (case-insensitive):
+                - 'category': The column(s) will be treated as categorical.
+                - 'datetime': The column(s) will be treated as datetime.
                 Default is None, indicating no custom column types will be applied.
             header_names (list ,optional):
-                Specifies a list of headers for the data.
-                If set, this list will replace the existing headers.
+                Specifies a list of headers for the data without header.
                 Default is None, indicating no custom headers will be applied.
             na_values (str | list | dict ,optional):
                 Extra string to recognized as NA/NaN.
@@ -96,26 +96,24 @@ class Loader:
             config (dict): The dictionary of necessary information for Loader.
                     filepath (str): The fullpath of dataset.
                     method (str): The method of Loader.
-                - from _handle_filepath()
                     file_ext (str): file extension of file_ext.
                     benchmark (bool): True if filepath is benchmark dataset.
-                - from _handle_filepath(): only included if benchmark is True.
-                    filepath_raw (str): keep original filepath input by user.
-                    benchmark_name (str): The name of benchmark dataset by user
-                    benchmark_filename (str): The filename of benchmark dataset
-                    benchmark_access (str): The access type of benchmark dataset
-                    benchmark_region_name (str): The Amazon region name of benchmark dataset
-                    benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset
-                    benchmark_sha256 (str): The SHA-256 value of benchmark dataset
-                - from input
+                    dtypes (dict):
+                        The dictionary of column names and their types as format.
                     column_types (dict, optional):
                         The dictionary of special column type and their column names.
-                    dtypes (dict, optional):
-                        The dictionary of column names and their types as format.
                     header_names (list ,optional):
                         Specifies a list of headers for the data.
                     na_values (str | list | dict ,optional):
                         Extra string to recognized as NA/NaN.
+                - from _handle_filepath(): only included if benchmark is True.
+                    filepath_raw (str): Keep original filepath input by user.
+                    benchmark_name (str): The name of benchmark dataset by user.
+                    benchmark_filename (str): The filename of benchmark dataset.
+                    benchmark_access (str): The access type of benchmark dataset.
+                    benchmark_region_name (str): The Amazon region name of benchmark dataset.
+                    benchmark_bucket_name (str): The Amazon bucket name of benchmark dataset.
+                    benchmark_sha256 (str): The SHA-256 value of benchmark dataset.
             loader (LoaderPandasCsv | LoaderPandasExcel):
                 The instance of LoaderPandasCsv or LoaderPandasExcel.
             data (pd.DataFrame): The dataset been loaded.
@@ -263,8 +261,7 @@ class Loader:
             })
 
         # 5. extract file extension
-        config['file_ext'] = pathlib.Path(
-            config['filepath']).suffixes[0].lower()
+        config['file_ext'] = pathlib.Path(config['filepath']).suffix.lower()
 
         return config
 

@@ -19,24 +19,24 @@ logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
 
 class Processor:
     """
-    Manage the processors. 
-    It arrange the execution queue and allocate the tasks 
+    Manage the processors.
+    It arrange the execution queue and allocate the tasks
     to the right processors based on the metadata and the parameters.
     """
 
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
         Args:
-        metadata (Metadata): The metadata class to 
+        metadata (Metadata): The metadata class to
             provide the metadata of the data, which contains the properties
-            of the data, including column names, column types, inferred 
-            column types, NA percentage per column, total number of rows and 
+            of the data, including column names, column types, inferred
+            column types, NA percentage per column, total number of rows and
             columns, NA percentage in the data.
             The structure of metadata is:
                 {
                     'col': {
                     col_name: {'type': pd.dtype,
-                                'infer_dtype': 
+                                'infer_dtype':
                                 'categorical'|'numerical'|'datetime'|'object',
                             'na_percentage': float}, ...
                     }
@@ -61,7 +61,7 @@ class Processor:
             'outlier': {
                 'numerical': OutlierIQR,
                 'categorical': lambda: None,
-                'datatime': OutlierIQR,
+                'datetime': OutlierIQR,
                 'object': lambda: None
             },
             'encoder': {
@@ -134,7 +134,7 @@ class Processor:
         if config is not None:
             self.update_config(config=config)
 
-        # the temp config records the config from in-process/expanded column 
+        # the temp config records the config from in-process/expanded column
         self._working_config: dict = {}
 
         logging.debug(f'Config loaded.')
@@ -168,10 +168,10 @@ class Processor:
         Get the config from the instance.
 
         Args:
-            col (list): The columns the user want to get the config from. 
-            If the list is empty, 
+            col (list): The columns the user want to get the config from.
+            If the list is empty,
                 all columns from the metadata will be selected.
-            print_config (bool, default=False): 
+            print_config (bool, default=False):
                 Whether the result should be printed.
 
         Return:
@@ -226,10 +226,10 @@ class Processor:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            sequence (list): The processing sequence. 
-                Avaliable procedures: 'missing', 'outlier', 
+            sequence (list): The processing sequence.
+                Avaliable procedures: 'missing', 'outlier',
                     'encoder', 'scaler', and 'discretizing'.
-                    ['missing', 'outlier', 'encoder', 'scaler'] 
+                    ['missing', 'outlier', 'encoder', 'scaler']
                     is the default sequence.
         """
 
@@ -302,7 +302,7 @@ class Processor:
 
         # it is a shallow copy
         self._working_config = self._config.copy()
-        
+
         self._is_fitted = True
 
     def _check_sequence_valid(self, sequence: list) -> None:
@@ -331,7 +331,7 @@ class Processor:
             if processor not in self._default_processor.keys():
                 raise ValueError(
                     f'{processor} is invalid, please check it again.')
-            
+
         if 'discretizing' in sequence:
             if 'encoder' in sequence:
                 raise ValueError("'discretizing' and 'encoder' processor" + \
@@ -342,7 +342,7 @@ class Processor:
     def _detect_edit_global_transformation(self) -> None:
         """
         Detect whether a processor in the config conducts global transformation.
-        If it does, suppress other processors in the config 
+        If it does, suppress other processors in the config
             by replacing them to the global one.
         Only works with Outlier currently.
         """
@@ -494,18 +494,18 @@ class Processor:
                 transformed = processor.inverse_transform(transformed)
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
-                logging.info(f'{processor} transformation done.')  
+                logging.info(f'{processor} transformation done.')
 
         return transformed
 
     # determine whether the processors are not default settings
     def get_changes(self) -> dict:
         """
-        Compare the differences between the current config 
+        Compare the differences between the current config
             and the default config.
 
         Return:
-            (pd.DataFrame): A dataframe recording the differences 
+            (pd.DataFrame): A dataframe recording the differences
                 bewteen the current config and the default config.
         """
         changes_dict: dict = {
@@ -531,8 +531,8 @@ class Processor:
                     changes_dict['default'].append(default_obj.__name__)
 
         return pd.DataFrame(changes_dict)
-    
-    def _adjust_working_config(self, mediator: Mediator, 
+
+    def _adjust_working_config(self, mediator: Mediator,
                                sequence: list) -> None:
         """
         Adjust the working config for the downstream tasks.
