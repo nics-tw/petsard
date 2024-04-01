@@ -299,6 +299,7 @@ class SynthesizerOperator(Operator):
             self.input['data'] = status.get_result(
                 status.get_pre_module('Synthesizer')
             )
+            self.input['metadata'] = status.get_metadata().to_sdv()
         except:
             raise ConfigError
         try:
