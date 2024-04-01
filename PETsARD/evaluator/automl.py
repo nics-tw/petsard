@@ -319,39 +319,51 @@ class ML:
             rf = RandomForestClassifier(random_state=42)
             gb = GradientBoostingClassifier(random_state=42)
 
-            lr.fit(data_train, target_train)
-            svc.fit(data_train, target_train)
-            rf.fit(data_train, target_train)
-            gb.fit(data_train, target_train)
+            try:
+                lr.fit(data_train, target_train)
+                svc.fit(data_train, target_train)
+                rf.fit(data_train, target_train)
+                gb.fit(data_train, target_train)
 
-            result['logistic_regression'].append(
-                self._lower_bound_check(
-                    f1_score(target_test, lr.predict(data_test), 
-                             average='micro'),
-                    'classification'
+                result['logistic_regression'].append(
+                    self._lower_bound_check(
+                        f1_score(target_test, lr.predict(data_test), 
+                                average='micro'),
+                        'classification'
+                    )
                 )
-            )
-            result['svc'].append(
-                self._lower_bound_check(
-                    f1_score(target_test, svc.predict(data_test), 
-                             average='micro'),
-                    'classification'
+                result['svc'].append(
+                    self._lower_bound_check(
+                        f1_score(target_test, svc.predict(data_test), 
+                                average='micro'),
+                        'classification'
+                    )
                 )
-            )
-            result['random_forest'].append(
-                self._lower_bound_check(
-                    f1_score(target_test, rf.predict(data_test), 
-                             average='micro'),
-                    'classification'
+                result['random_forest'].append(
+                    self._lower_bound_check(
+                        f1_score(target_test, rf.predict(data_test), 
+                                average='micro'),
+                        'classification'
+                    )
                 )
-            )
-            result['gradient_boosting'].append(
-                self._lower_bound_check(
-                    f1_score(target_test, gb.predict(data_test), 
-                             average='micro'),
-                    'classification'
+                result['gradient_boosting'].append(
+                    self._lower_bound_check(
+                        f1_score(target_test, gb.predict(data_test), 
+                                average='micro'),
+                        'classification'
+                    )
                 )
-            )
+            except:
+                # indicates that there is only one class in the target
+                # which makes the model training impossible
+                result['logistic_regression'].append(np.nan)
+                result['svc'].append(np.nan)
+                result['random_forest'].append(np.nan)
+                result['gradient_boosting'].append(np.nan)
+
+                warnings.warn('Only one class in the target, ' +
+                                'the model training is impossible. ' +
+                                'The score is set to NaN.')
 
         return result
 
