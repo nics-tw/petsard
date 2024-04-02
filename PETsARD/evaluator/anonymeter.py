@@ -28,10 +28,9 @@ class AnonymeterMap():
     """
     map of Anonymeter
     """
-    SINGLINGOUT_UNIVARIATE:   int = 1
-    # SINGLINGOUT_MULTIVARIATE: int = 2
-    LINKABILITY:              int = 3
-    INFERENCE:                int = 4
+    SINGLINGOUT: int = 1
+    LINKABILITY: int = 3
+    INFERENCE: int = 4
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -72,6 +71,10 @@ class Anonymeter(EvaluatorBase):
                 - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
                     -1 means all threads except one. -2 means every thread.
                     Default is -2.
+                - n_cols (int, Optional): The number of columns used for generating
+                    singling-out queries. Default is 3.
+                - max_attempts (int, Optional): The maximum number of attempts to find a
+                    successful attack. Default is 500000.
                 - n_neighbors (int, Optional):
                     Sets the number of nearest neighbors to consider for each entry in the search.
                     Indicating a successful linkability attack only if
@@ -101,6 +104,8 @@ class Anonymeter(EvaluatorBase):
         default_config = {
             'n_attacks': 2000,  # int
             'n_jobs': -2,      # int
+            'n_cols': 3,       # int
+            'max_attempts': 500000,  # int
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
             'secret': None,    # Optional[Union[str, List[str]]]
@@ -121,28 +126,21 @@ class Anonymeter(EvaluatorBase):
         Resurn:
             None. Anonymeter class store in self.evaluator.
 
-        TODO SinglingOut attacks of Multi-variate.
         """
         if 'ori' not in data or 'syn' not in data or 'control' not in data:
             raise ConfigError
         self.data = data
 
-        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.config['singlingout_mode'] = 'univariate'
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
+            self.config['singlingout_mode'] = 'multivariate'
             self.evaluator = SinglingOutEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
                 control=self.data['control'],
-                n_attacks=self.config['n_attacks']
+                n_attacks=self.config['n_attacks'],
+                n_cols=self.config['n_cols'],
+                max_attempts=self.config['max_attempts']
             )
-        # elif self.config['method_code'] == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.config['singlingout_mode'] = 'multivariate'
-        #     self.evaluator = SinglingOutEvaluator(
-        #         ori=self.data['ori'],
-        #         syn=self.data['syn'],
-        #         control=self.data['control'],
-        #         n_attacks=self.config['n_attacks']
-        #     )
         elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
             if 'aux_cols' not in self.config\
                 or self.config['aux_cols'] is None:
@@ -271,8 +269,8 @@ class Anonymeter(EvaluatorBase):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=FutureWarning)
             try:
-                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-                    # SinglingOut attacks of Univariate
+                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
+                    # SinglingOut
                     self.evaluator.evaluate(mode=self.config['singlingout_mode'])
                 elif self.config['method_code'] in [
                     AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
@@ -331,7 +329,7 @@ class Anonymeter(EvaluatorBase):
         """
         details = {}
 
-        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
             # SinglingOut attacks of Univariate
             #   control queries didn't been stored
             details['attack_queries']   = self.evaluator._attack_queries

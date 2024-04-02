@@ -153,6 +153,7 @@ class SmartNoise:
         self.fit()
         return self.sample(sample_num_rows, reset_sampling, output_file_path)
 
+
 class SmartNoiseFactory:
     """
     Base class for all "SmartNoise".
@@ -161,6 +162,7 @@ class SmartNoiseFactory:
     It allocates the task to the right SmartNoise synthesizer
     based on the parameters.
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         """
         Args:
@@ -169,10 +171,10 @@ class SmartNoiseFactory:
         """
         method: str = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
-        batch_size: int = kwargs.get('batch_size', 500) # for all gan
-        epochs: int = kwargs.get('epochs', 300) # for all gan
-        sigma: float = kwargs.get('sigma', 5.0) # for dpctgan
-        disabled_dp: bool = kwargs.get('disabled_dp', False) # for dpctgan
+        batch_size: int = kwargs.get('batch_size', 500)  # for all gan
+        epochs: int = kwargs.get('epochs', 300)  # for all gan
+        sigma: float = kwargs.get('sigma', 5.0)  # for dpctgan
+        disabled_dp: bool = kwargs.get('disabled_dp', False)  # for dpctgan
 
         if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
@@ -217,13 +219,13 @@ class SmartNoiseCreator(SmartNoise):
 
         if method == 'dpctgan':
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs,
-                                            sigma=sigma,
-                                            disabled_dp=disabled_dp)
+                                             batch_size=batch_size,
+                                             epochs=epochs,
+                                             sigma=sigma,
+                                             disabled_dp=disabled_dp)
         elif method == 'patectgan':
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs)
+                                             batch_size=batch_size,
+                                             epochs=epochs)
         else:
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
