@@ -279,11 +279,16 @@ class Anonymeter(EvaluatorBase):
                 else:
                     raise UnsupportedMethodError
             except RuntimeError:
-                # Please re-run this cell.
-                # "For more stable results increase `n_attacks`.
-                # Note that this will make the evaluation slower.
-                raise UnableToEvaluateError
+                warnings.warn(
+                    f"Evaluator - Anonymeter: "
+                    f"Please re-run this cell. "
+                    f"For more stable results, increase `n_attacks`. "
+                    f"Note that this will make the evaluation slower.",
+                    RuntimeWarning
+                )
+                pass
 
+        # self._extract_result() already handle the exception by assign NA
         self.result = self._extract_result()
 
     def get_global(self) -> Union[pd.DataFrame, None]:
