@@ -73,6 +73,8 @@ class Anonymeter(EvaluatorBase):
                     Default is -2.
                 - n_cols (int, Optional): The number of columns used for generating
                     singling-out queries. Default is 3.
+                - max_attempts (int, Optional): The maximum number of attempts to find a
+                    successful attack. Default is 500000.
                 - n_neighbors (int, Optional):
                     Sets the number of nearest neighbors to consider for each entry in the search.
                     Indicating a successful linkability attack only if
@@ -103,6 +105,7 @@ class Anonymeter(EvaluatorBase):
             'n_attacks': 2000,  # int
             'n_jobs': -2,      # int
             'n_cols': 3,       # int
+            'max_attempts': 500000,  # int
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
             'secret': None,    # Optional[Union[str, List[str]]]
@@ -135,7 +138,8 @@ class Anonymeter(EvaluatorBase):
                 syn=self.data['syn'],
                 control=self.data['control'],
                 n_attacks=self.config['n_attacks'],
-                n_cols=self.config['n_cols']
+                n_cols=self.config['n_cols'],
+                max_attempts=self.config['max_attempts']
             )
         elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
             if 'aux_cols' not in self.config\
@@ -275,11 +279,16 @@ class Anonymeter(EvaluatorBase):
                 else:
                     raise UnsupportedMethodError
             except RuntimeError:
-                # Please re-run this cell.
-                # "For more stable results increase `n_attacks`.
-                # Note that this will make the evaluation slower.
-                raise UnableToEvaluateError
+                warnings.warn(
+                    f"Evaluator - Anonymeter: "
+                    f"Please re-run this cell. "
+                    f"For more stable results, increase `n_attacks`. "
+                    f"Note that this will make the evaluation slower.",
+                    RuntimeWarning
+                )
+                pass
 
+        # self._extract_result() already handle the exception by assign NA
         self.result = self._extract_result()
 
     def get_global(self) -> Union[pd.DataFrame, None]:

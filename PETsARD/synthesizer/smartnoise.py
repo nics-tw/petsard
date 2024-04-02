@@ -12,7 +12,7 @@ class SmartNoise:
     Base class for all "SmartNoise".
 
     The "SmartNoise" class defines the common API
-    that all the "SmartNoise" need to implement, 
+    that all the "SmartNoise" need to implement,
     as well as common functionality.
     """
 
@@ -46,22 +46,24 @@ class SmartNoise:
                     categorical_columns=self.data.columns
                 )
             else:
+                data_to_syn: pd.DataFrame = self.data.copy()
+
                 for idx, col in enumerate(self.data.columns):
                     if self.data[col].nunique() == 1:
                         # If the column has only one unique value,
                         # it is a constant column.
                         self.constant_data[col] = (self.data[col].unique()[0],
                                                    idx)
-                        self.data.drop(col, axis=1, inplace=True)
+                        data_to_syn.drop(col, axis=1, inplace=True)
 
                 tt = TableTransformer([
-                    MinMaxTransformer(lower=self.data[col].min(),
-                                      upper=self.data[col].max(),
-                                      negative=False) 
-                    for col in self.data.columns
+                    MinMaxTransformer(lower=data_to_syn[col].min(),
+                                      upper=data_to_syn[col].max(),
+                                      negative=False)
+                    for col in data_to_syn.columns
                 ])
 
-                self._Synthesizer.fit(self.data, transformer=tt)
+                self._Synthesizer.fit(data_to_syn, transformer=tt)
             print(
                 f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
@@ -151,14 +153,16 @@ class SmartNoise:
         self.fit()
         return self.sample(sample_num_rows, reset_sampling, output_file_path)
 
+
 class SmartNoiseFactory:
     """
     Base class for all "SmartNoise".
 
     Manage the SmartNoise synthesizers.
-    It allocates the task to the right SmartNoise synthesizer 
+    It allocates the task to the right SmartNoise synthesizer
     based on the parameters.
     """
+
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
         """
         Args:
@@ -167,15 +171,15 @@ class SmartNoiseFactory:
         """
         method: str = kwargs.get('method', None)
         epsilon: float = kwargs.get('epsilon', 5.0)
-        batch_size: int = kwargs.get('batch_size', 500) # for all gan
-        epochs: int = kwargs.get('epochs', 300) # for all gan
-        sigma: float = kwargs.get('sigma', 5.0) # for dpctgan
-        disabled_dp: bool = kwargs.get('disabled_dp', False) # for dpctgan
+        batch_size: int = kwargs.get('batch_size', 500)  # for all gan
+        epochs: int = kwargs.get('epochs', 300)  # for all gan
+        sigma: float = kwargs.get('sigma', 5.0)  # for dpctgan
+        disabled_dp: bool = kwargs.get('disabled_dp', False)  # for dpctgan
 
         if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
                 data,
-                method=method.split('-')[1], 
+                method=method.split('-')[1],
                 epsilon=epsilon,
                 batch_size=batch_size,
                 epochs=epochs,
@@ -212,16 +216,16 @@ class SmartNoiseCreator(SmartNoise):
         super().__init__(data, **kwargs)
         self.syn_method: str = method
 
-        
+
         if method == 'dpctgan':
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs,
-                                            sigma=sigma,
-                                            disabled_dp=disabled_dp)
+                                             batch_size=batch_size,
+                                             epochs=epochs,
+                                             sigma=sigma,
+                                             disabled_dp=disabled_dp)
         elif method == 'patectgan':
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
-                                            batch_size=batch_size,
-                                            epochs=epochs)
+                                             batch_size=batch_size,
+                                             epochs=epochs)
         else:
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
