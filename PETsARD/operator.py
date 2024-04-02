@@ -174,7 +174,8 @@ class SplitterOperator(Operator):
         Retrieve the splitting result.
             Due to Config force num_samples = 1, return 1st dataset is fine.
         """
-        return self.splitter.data[1]
+        result: dict = deepcopy(self.splitter.data[1])
+        return result
 
 
 class PreprocessorOperator(Operator):
