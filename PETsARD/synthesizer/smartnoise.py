@@ -12,7 +12,7 @@ class SmartNoise:
     Base class for all "SmartNoise".
 
     The "SmartNoise" class defines the common API
-    that all the "SmartNoise" need to implement, 
+    that all the "SmartNoise" need to implement,
     as well as common functionality.
     """
 
@@ -59,7 +59,7 @@ class SmartNoise:
                 tt = TableTransformer([
                     MinMaxTransformer(lower=data_to_syn[col].min(),
                                       upper=data_to_syn[col].max(),
-                                      negative=False) 
+                                      negative=False)
                     for col in data_to_syn.columns
                 ])
 
@@ -158,7 +158,7 @@ class SmartNoiseFactory:
     Base class for all "SmartNoise".
 
     Manage the SmartNoise synthesizers.
-    It allocates the task to the right SmartNoise synthesizer 
+    It allocates the task to the right SmartNoise synthesizer
     based on the parameters.
     """
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
@@ -177,7 +177,7 @@ class SmartNoiseFactory:
         if method.startswith('smartnoise-'):
             self.Synthesizer = SmartNoiseCreator(
                 data,
-                method=method.split('-')[1], 
+                method=method.split('-')[1],
                 epsilon=epsilon,
                 batch_size=batch_size,
                 epochs=epochs,
@@ -214,7 +214,7 @@ class SmartNoiseCreator(SmartNoise):
         super().__init__(data, **kwargs)
         self.syn_method: str = method
 
-        
+
         if method == 'dpctgan':
             self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
                                             batch_size=batch_size,
