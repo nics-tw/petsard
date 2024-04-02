@@ -105,7 +105,10 @@ class DiscretizingHandler:
         Return:
             (pd.Series): The data without NA values.
         """
-        return data.copy().dropna()
+        if data.isna().any():
+            return data.copy().dropna()
+        else:
+            return data
 
 
 class DiscretizingKBins(DiscretizingHandler):
