@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
+
 class Processor:
     """
     Manage the processors.
@@ -156,7 +157,7 @@ class Processor:
 
         self._config: dict = {
             processor: dict.fromkeys(self._metadata['col'].keys())
-                for processor in self._default_processor.keys()
+            for processor in self._default_processor.keys()
         }
 
         for col, val in self._metadata['col'].items():
@@ -334,10 +335,11 @@ class Processor:
 
         if 'discretizing' in sequence:
             if 'encoder' in sequence:
-                raise ValueError("'discretizing' and 'encoder' processor" + \
+                raise ValueError("'discretizing' and 'encoder' processor" +
                                  " cannot coexist.")
             if sequence[-1] != 'discretizing':
-                raise ValueError("'discretizing' processor must be the last processor.")
+                raise ValueError(
+                    "'discretizing' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """
@@ -465,6 +467,12 @@ class Processor:
                 self.mediator_encoder)
             logging.info('MediatorEncoder is created.')
 
+        if 'discretizing' in self._inverse_sequence:
+            # if discretizing is in the procedure,
+            # remove all of NA values in the data
+            # See #440
+            data = deepcopy(data).dropna()
+
         logging.debug(f'Inverse sequence generation completed.')
 
         transformed: pd.DataFrame = deepcopy(data)
@@ -474,12 +482,20 @@ class Processor:
                 for col, obj in self._config[processor].items():
 
                     logging.debug(
-                        f'{processor}: {obj} from {col} start' +\
+                        f'{processor}: {obj} from {col} start' +
                         ' inverse transforming.')
 
                     if obj is None:
                         continue
 
+                    # Some of Synthesizer will produce float type data (e.g. PAC-Synth),
+                    #   which will cause EncoderLabel in discretizing error.
+                    # Here we figure out if we are in discretizing inverse transform process,
+                    #   and object PROC_TYPE is ('encoder', 'discretizing'),
+                    #   then we will force convert the data type to int. (See #440)
+                    if processor == 'discretizing'\
+                        and obj.PROC_TYPE == ('encoder', 'discretizing'):
+                        transformed[col] = transformed[col].astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
                 logging.info(f'{processor} inverse transformation done.')
