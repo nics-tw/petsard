@@ -253,7 +253,8 @@ class PreprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_preproc
+        result: pd.DataFrame = deepcopy(self.data_preproc)
+        return result
 
 
 class SynthesizerOperator(Operator):
