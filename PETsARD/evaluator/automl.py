@@ -310,6 +310,19 @@ class ML:
             target_train, target_test = target[train_index], \
                 target[test_index]
 
+            if len(np.unique(target_train)) == 1:
+                # indicates that there is only one class in the target
+                # which makes the model training impossible
+                result['logistic_regression'].append(np.nan)
+                result['svc'].append(np.nan)
+                result['random_forest'].append(np.nan)
+                result['gradient_boosting'].append(np.nan)
+
+                warnings.warn('Only one class in the target, ' +
+                                'the model training is impossible. ' +
+                                'The score is set to NaN.')
+                continue
+            
             ss = StandardScaler()
             data_train = ss.fit_transform(data_train)
             data_test = ss.transform(data_test)
@@ -327,28 +340,28 @@ class ML:
             result['logistic_regression'].append(
                 self._lower_bound_check(
                     f1_score(target_test, lr.predict(data_test), 
-                             average='micro'),
+                            average='micro'),
                     'classification'
                 )
             )
             result['svc'].append(
                 self._lower_bound_check(
                     f1_score(target_test, svc.predict(data_test), 
-                             average='micro'),
+                            average='micro'),
                     'classification'
                 )
             )
             result['random_forest'].append(
                 self._lower_bound_check(
                     f1_score(target_test, rf.predict(data_test), 
-                             average='micro'),
+                            average='micro'),
                     'classification'
                 )
             )
             result['gradient_boosting'].append(
                 self._lower_bound_check(
                     f1_score(target_test, gb.predict(data_test), 
-                             average='micro'),
+                            average='micro'),
                     'classification'
                 )
             )
