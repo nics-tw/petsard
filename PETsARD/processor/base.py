@@ -467,6 +467,12 @@ class Processor:
                 self.mediator_encoder)
             logging.info('MediatorEncoder is created.')
 
+        if 'discretizing' in self._inverse_sequence:
+            # if discretizing is in the procedure,
+            # remove all of NA values in the data
+            # See #440
+            data = deepcopy(data).dropna()
+
         logging.debug(f'Inverse sequence generation completed.')
 
         transformed: pd.DataFrame = deepcopy(data)
