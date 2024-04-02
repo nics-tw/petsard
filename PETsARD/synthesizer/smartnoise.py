@@ -46,7 +46,7 @@ class SmartNoise:
                     categorical_columns=self.data.columns
                 )
             else:
-                data_to_syn = self.data.copy()
+                data_to_syn: pd.DataFrame = self.data.copy()
 
                 for idx, col in enumerate(self.data.columns):
                     if self.data[col].nunique() == 1:
