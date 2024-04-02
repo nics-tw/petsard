@@ -93,6 +93,20 @@ class DiscretizingHandler:
         raise NotImplementedError("_inverse_transform method should be " +
                                   "implemented in subclasses.")
 
+    def _drop_na(self, data: pd.Series) -> pd.Series:
+        """
+        Drop NA values in the data.
+            Workaround for PAC-Synth or simliar synthesizers.
+            See issue #440.
+
+        Args:
+            data (pd.Series): The data to be processed.
+
+        Return:
+            (pd.Series): The data without NA values.
+        """
+        return data.copy().dropna()
+
 
 class DiscretizingKBins(DiscretizingHandler):
     """
@@ -150,5 +164,6 @@ class DiscretizingKBins(DiscretizingHandler):
         Return:
             (np.ndarray): The inverse transformed data.
         """
+        data = self._drop_na(data)
 
         return self.model.inverse_transform(data.values.reshape(-1, 1)).ravel()
