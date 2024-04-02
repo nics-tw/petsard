@@ -107,7 +107,8 @@ class LoaderOperator(Operator):
         """
         Retrieve the loading result.
         """
-        return self.loader.data
+        result: pd.DataFrame = deepcopy(self.loader.data)
+        return result
 
 
 class SplitterOperator(Operator):
@@ -173,7 +174,8 @@ class SplitterOperator(Operator):
         Retrieve the splitting result.
             Due to Config force num_samples = 1, return 1st dataset is fine.
         """
-        return self.splitter.data[1]
+        result: dict = deepcopy(self.splitter.data[1])
+        return result
 
 
 class PreprocessorOperator(Operator):
@@ -251,7 +253,8 @@ class PreprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_preproc
+        result: pd.DataFrame = deepcopy(self.data_preproc)
+        return result
 
 
 class SynthesizerOperator(Operator):
@@ -312,7 +315,8 @@ class SynthesizerOperator(Operator):
         """
         Retrieve the synthesizing result.
         """
-        return self.synthesizer.data_syn
+        result: pd.DataFrame = deepcopy(self.synthesizer.data_syn)
+        return result
 
 
 class PostprocessorOperator(Operator):
@@ -376,7 +380,8 @@ class PostprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_postproc
+        result: pd.DataFrame = deepcopy(self.data_postproc)
+        return result
 
 
 class EvaluatorOperator(Operator):
@@ -440,11 +445,11 @@ class EvaluatorOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.evaluator.get_global()
-        result['columnwise'] = self.evaluator.get_columnwise()
-        result['pairwise'] = self.evaluator.get_pairwise()
+        result['global'] = self.evaluator.get_global() # pd.DataFrame
+        result['columnwise'] = self.evaluator.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.evaluator.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class DescriberOperator(Operator):
@@ -502,11 +507,11 @@ class DescriberOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.describer.get_global()
-        result['columnwise'] = self.describer.get_columnwise()
-        result['pairwise'] = self.describer.get_pairwise()
+        result['global'] = self.describer.get_global() # pd.DataFrame
+        result['columnwise'] = self.describer.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.describer.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class ReporterOperator(Operator):
@@ -607,4 +612,4 @@ class ReporterOperator(Operator):
             (dict) key as module name,
             value as raw/processed data (others) or report data (Reporter)
         """
-        return self.report
+        return deepcopy(self.report)
