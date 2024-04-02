@@ -380,7 +380,8 @@ class PostprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_postproc
+        result: pd.DataFrame = deepcopy(self.data_postproc)
+        return result
 
 
 class EvaluatorOperator(Operator):
