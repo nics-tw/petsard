@@ -488,6 +488,14 @@ class Processor:
                     if obj is None:
                         continue
 
+                    # Some of Synthesizer will produce float type data (e.g. PAC-Synth),
+                    #   which will cause EncoderLabel in discretizing error.
+                    # Here we figure out if we are in discretizing inverse transform process,
+                    #   and object PROC_TYPE is ('encoder', 'discretizing'),
+                    #   then we will force convert the data type to int. (See #440)
+                    if processor == 'discretizing'\
+                        and obj.PROC_TYPE == ('encoder', 'discretizing'):
+                        transformed[col] = transformed[col].astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
                 logging.info(f'{processor} inverse transformation done.')
