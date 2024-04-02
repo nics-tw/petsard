@@ -612,4 +612,4 @@ class ReporterOperator(Operator):
             (dict) key as module name,
             value as raw/processed data (others) or report data (Reporter)
         """
-        return self.report
+        return deepcopy(self.report)
