@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
+
 class Processor:
     """
     Manage the processors.
@@ -156,7 +157,7 @@ class Processor:
 
         self._config: dict = {
             processor: dict.fromkeys(self._metadata['col'].keys())
-                for processor in self._default_processor.keys()
+            for processor in self._default_processor.keys()
         }
 
         for col, val in self._metadata['col'].items():
@@ -334,10 +335,11 @@ class Processor:
 
         if 'discretizing' in sequence:
             if 'encoder' in sequence:
-                raise ValueError("'discretizing' and 'encoder' processor" + \
+                raise ValueError("'discretizing' and 'encoder' processor" +
                                  " cannot coexist.")
             if sequence[-1] != 'discretizing':
-                raise ValueError("'discretizing' processor must be the last processor.")
+                raise ValueError(
+                    "'discretizing' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """
@@ -474,7 +476,7 @@ class Processor:
                 for col, obj in self._config[processor].items():
 
                     logging.debug(
-                        f'{processor}: {obj} from {col} start' +\
+                        f'{processor}: {obj} from {col} start' +
                         ' inverse transforming.')
 
                     if obj is None:
