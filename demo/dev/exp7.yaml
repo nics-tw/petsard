@@ -1,0 +1,100 @@
+Loader:
+    adult-income:
+        filepath: 'benchmark://adult-income'
+        na_values:
+          workclass: '?'
+          occupation: '?'
+          native-country: '?'
+    # bank-marketing-1:
+    #     filepath: 'benchmark://bank-marketing-1'
+    # bank-marketing-2:
+    #     filepath: 'benchmark://bank-marketing-2'
+    # nist-ma-2019:
+    #     filepath: 'benchmark://nist-ma-2019'
+    # nist-ma-2018:
+    #     filepath: 'benchmark://nist-ma-2018'
+    # nist-tx2019:
+    #     filepath: 'benchmark://nist-tx2019'
+    # nist-tx2018:
+    #     filepath: 'benchmark://nist-tx2018'
+    # olist:
+    #     filepath: 'benchmark://olist'
+Splitter:
+    p80:
+        num_samples: 1
+        train_split_ratio: 0.8
+Preprocessor:
+    default-smartnoise:
+        sequence:
+            - 'missing'
+            - 'outlier'
+            - 'encoder'
+            - 'scaler'
+Synthesizer:
+    # for adult income, dpctgan finished training process using epsilon less than 5
+    # smartnoise-dpctgan5:
+    #     method: 'smartnoise-dpctgan'
+    #     epsilon: 5.0
+    # smartnoise-dpctgan1:
+    #     method: 'smartnoise-dpctgan'
+    #     epsilon: 1.0
+    smartnoise-dpctgan01:
+        method: 'smartnoise-dpctgan'
+        epsilon: 0.1
+    smartnoise-dpctgan02:
+        method: 'smartnoise-dpctgan'
+        epsilon: 0.2
+Postprocessor:
+    default-smartnoise:
+        method: 'default'
+Evaluator:
+    # anonymeter-singlingout_univariate:
+    #     method: 'anonymeter-singlingout_univariate'
+    # anonymeter-linkability:
+    #     method: 'anonymeter-linkability'
+    #     aux_cols:
+    #         -   
+    #             - 'age'
+    #             - 'gender'
+    #             - 'native-country'
+    #         -   
+    #             - 'race'
+    #             - 'relationship'
+    #             - 'occupation'
+    # anonymeter-inference:
+    #     method: 'anonymeter-inference'
+    #     aux_cols:
+    #         - 'age'
+    #         - 'gender'
+    #         - 'native-country'
+    #     secret: 'income'
+    sdmetrics-diag:
+        method: 'sdmetrics-diagnosticreport'
+    # sdmetrics-qual:
+    #     method: 'default'
+    # automl-regression:
+    #     method: 'automl-regression'
+    #     target: 'age'
+    #     n_splits: 5
+    # automl-classification:
+    #     method: 'automl-classification'
+    #     target: 'income'
+    #     n_splits: 5
+    # automl-cluster:
+    #     method: 'automl-cluster'
+    #     n_splits: 5
+Reporter:
+    save_data:
+        method: 'save_data'
+        output: '20240328_exp6'
+        source:
+            - 'Splitter'
+            - 'Postprocessor'
+    save_report_global:
+        method: 'save_report'
+        output: '20240328_exp6'
+        granularity: 'global'
+    save_report_columnwise:
+        method: 'save_report'
+        output: '20240328_exp6'
+        granularity: 'columnwise'
