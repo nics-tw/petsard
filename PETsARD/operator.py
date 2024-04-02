@@ -107,7 +107,8 @@ class LoaderOperator(Operator):
         """
         Retrieve the loading result.
         """
-        return self.loader.data
+        result: pd.DataFrame = deepcopy(self.loader.data)
+        return result
 
 
 class SplitterOperator(Operator):
