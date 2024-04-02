@@ -315,7 +315,8 @@ class SynthesizerOperator(Operator):
         """
         Retrieve the synthesizing result.
         """
-        return self.synthesizer.data_syn
+        result: pd.DataFrame = deepcopy(self.synthesizer.data_syn)
+        return result
 
 
 class PostprocessorOperator(Operator):
