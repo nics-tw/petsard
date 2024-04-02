@@ -445,11 +445,11 @@ class EvaluatorOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.evaluator.get_global()
-        result['columnwise'] = self.evaluator.get_columnwise()
-        result['pairwise'] = self.evaluator.get_pairwise()
+        result['global'] = self.evaluator.get_global() # pd.DataFrame
+        result['columnwise'] = self.evaluator.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.evaluator.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class DescriberOperator(Operator):
