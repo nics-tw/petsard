@@ -238,6 +238,8 @@ The paper on `anonymeter` specifically mentions: "It's important to note that si
 
 `n_cols` (`int`, default=`3`): The number of columns used for generating Singling Out `queries`. 用於產生一個搜索語句的欄位數目。
 
+`max_attempts` (`int`, default=`500000`): The maximum number of attempts to find a successful attack. 找到成功攻擊的最大嘗試次數。
+
 
 ### `'anonymeter-linkability'`
 
