@@ -7,7 +7,7 @@ from PETsARD import Evaluator
 
 
 eval = Evaluator(
-    method='anonymeter-singlingout_univariate',
+    method='anonymeter-singlingout',
     n_attacks=2000
 )
 eval.create(
@@ -41,7 +41,7 @@ eval = Evaluator(
 **Parameters**
 
 
-`method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
+`method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout'`
 - `method = 'default'` will use `PETsARD` default evaluation: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). `method = 'default'` 將使用 `PETsARD` 預設的評測方式：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`).
 - `method = 'custom_method'` support users in evaluating with custom Python functions. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
   - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. You can import from here: 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。您可以從這裡導入：
@@ -191,11 +191,11 @@ In this section, we provide a comprehensive list of supported evaluator types, t
 
 | Submodule | Class | Alias (`method` name) | `'ori'` needed | `'syn'` needed | `'control'` needed |
 |---|:---:|:---:|:---:|:---:|:---:|
-| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' | ✅ | ✅ | ✅ |
-| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
-| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
-| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
-| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
+| `anonymeter` | `Anonymeter` | 'anonymeter-singlingout' | ✅ | ✅ | ✅ |
+| `anonymeter` | `Anonymeter` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
+| `anonymeter` | `Anonymeter` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
+| `sdmetrics` | `SDMetrics` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
+| `sdmetrics` | `SDMetrics` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-regression' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-classification' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-cluster' | ✅ | ✅ |  |
@@ -219,7 +219,7 @@ Therefore, `PETsARD` includes built-in calls to `anonymeter`. For more details, 
 因此 `PETsARD` 整合了對 `anonymeter` 的使用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
 
 
-### `'anonymeter-singlingout_univariate'`
+### `'anonymeter-singlingout'`
 
 
 Singling Out risk represents the possibility of still being able to identify a particular individual, their part, or complete records, even after any Privacy-Enhancing Techniques have been applied. In the example from the `anonymeter`, it refers to the scenario where "there is only one person with attributes X, Y, and Z". In other words, attackers may attempt to identify specific individuals.
@@ -235,6 +235,10 @@ The paper on `anonymeter` specifically mentions: "It's important to note that si
 
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of distinct `queries`. A `query` is a specific condition-based searching command matching only one record in a certain field, achieving Singling Out. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指不重複搜索語句 (`queries`)的數量。搜索語句是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到指認性。較高的數量會降低結果的統計不確定性，但會增加運算時間。
+
+`n_cols` (`int`, default=`3`): The number of columns used for generating Singling Out `queries`. 用於產生一個搜索語句的欄位數目。
+
+`max_attempts` (`int`, default=`500000`): The maximum number of attempts to find a successful attack. 找到成功攻擊的最大嘗試次數。
 
 
 ### `'anonymeter-linkability'`
