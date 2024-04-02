@@ -507,11 +507,11 @@ class DescriberOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.describer.get_global()
-        result['columnwise'] = self.describer.get_columnwise()
-        result['pairwise'] = self.describer.get_pairwise()
+        result['global'] = self.describer.get_global() # pd.DataFrame
+        result['columnwise'] = self.describer.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.describer.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class ReporterOperator(Operator):
