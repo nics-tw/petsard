@@ -302,21 +302,21 @@ Inference risk represents the possibility that, even after Privacy-Enhancing Tec
 
 `secret` (`str`) Column(s) of secret information. 秘密資訊欄位。
 
-`infer_cols` (`List[str]`) Columns of auxiliary information. It corresponds to auxiliary information in the original paper. 輔助資訊欄位。此參數相當於原始論文中的輔助資訊 (auxiliary information)。
+`aux_cols` (`List[str]`) Columns of auxiliary information. 輔助資訊欄位。
 
-> In the context of Inference risk, the parameters `secret` and `infer_cols` go hand in hand. `secret` represents the attribute that is kept confidential, and in this scenario, `infer_cols` are the attributes other than secret that are considered to provide auxiliary information to the attacker.
+> In the context of Inference risk, the parameters `secret` and `aux_cols` go hand in hand. `secret` represents the attribute that is kept confidential, and in this scenario, `aux_cols` are the attributes other than secret that are considered to provide auxiliary information to the attacker.
 >The example provided by `anonymeter` suggests the following configuration:
 
-> 在推斷性風險中，`secret` 與 `infer_cols` 參數是一體兩面的，secret 代表被保密的屬性 (attribute)，此時 `aux_cols` 則是除了 `secret` 以外的屬性、都被認為可以提供攻擊者輔助資訊。
+> 在推斷性風險中，`secret` 與 `aux_cols` 參數是一體兩面的，secret 代表被保密的屬性 (attribute)，此時 `aux_cols` 則是除了 `secret` 以外的屬性、都被認為可以提供攻擊者輔助資訊。
 > `anonymeter` 的範例建議了以下的設定方法：
 
 ```Python
 columns = ori_data.columns
 
 for secret in columns:
-    infer_cols = [col for col in columns if col != secret]
+    aux_cols = [col for col in columns if col != secret]
     evaluator = InferenceEvaluator(
-        infer_cols=infer_cols,
+        aux_cols=aux_cols,
         secret=secret,
         ...
     )

@@ -80,7 +80,7 @@ class Anonymeter(EvaluatorBase):
                     Indicating a successful linkability attack only if
                     the closest synthetic record matches for both split original records.
                     Default is 1.
-                - aux_cols (Tuple[List[str], List[str]], Optional):
+                - aux_cols (Tuple[List[str], List[str]] | List[str], Optional):
                     Features of the records that are given to the attacker as auxiliary information.
                     The Anonymeter documentation states it supports 'tuple of int',
                     but this is not reflected in their type annotations,
@@ -88,10 +88,6 @@ class Anonymeter(EvaluatorBase):
                 - secret (str | List[str]], Optional):
                     The secret attribute(s) of the target records, unknown to the attacker.
                     This is what the attacker will try to guess.
-                - infer_cols (List[str], Optional):
-                    The columns that the attacker can use to infer the secret.
-                    If not provided, all columns except the secret are used.
-                    It corresponds to the auxiliary information in the Inference attack in the original paper.
 
         Attr:
             config (dict):
@@ -112,8 +108,7 @@ class Anonymeter(EvaluatorBase):
             'max_attempts': 500000,  # int
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
-            'secret': None,    # Optional[Union[str, List[str]]]
-            'infer_cols': None  # Optional[List[str]]
+            'secret': None    # Optional[Union[str, List[str]]]
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
@@ -159,16 +154,16 @@ class Anonymeter(EvaluatorBase):
                 aux_cols=self.config['aux_cols']
             )
         elif self.config['method_code'] == AnonymeterMap.INFERENCE:
-            if self.config['infer_cols'] is None:
+            if self.config['aux_cols'] is None:
                 aux_cols = [
-                    col for col in self.data['syn'].columns 
+                    col for col in self.data['ori'].columns 
                     if col != self.config['secret']
                 ]
             else:
-                if self.config['secret'] in self.config['infer_cols']:
+                if self.config['secret'] in self.config['aux_cols']:
                     raise ConfigError
                 else:
-                    aux_cols = self.config['infer_cols']
+                    aux_cols = self.config['aux_cols']
             self.evaluator = InferenceEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
