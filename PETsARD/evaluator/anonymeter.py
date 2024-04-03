@@ -88,6 +88,10 @@ class Anonymeter(EvaluatorBase):
                 - secret (str | List[str]], Optional):
                     The secret attribute(s) of the target records, unknown to the attacker.
                     This is what the attacker will try to guess.
+                - infer_cols (List[str], Optional):
+                    The columns that the attacker can use to infer the secret.
+                    If not provided, all columns except the secret are used.
+                    It corresponds to the auxiliary information in the Inference attack in the original paper.
 
         Attr:
             config (dict):
@@ -109,6 +113,7 @@ class Anonymeter(EvaluatorBase):
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
             'secret': None,    # Optional[Union[str, List[str]]]
+            'infer_cols': None  # Optional[List[str]]
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
@@ -154,9 +159,16 @@ class Anonymeter(EvaluatorBase):
                 aux_cols=self.config['aux_cols']
             )
         elif self.config['method_code'] == AnonymeterMap.INFERENCE:
-            aux_cols = [
-                col for col in self.data['syn'].columns if col != self.config['secret']
-            ]
+            if self.config['infer_cols'] is None:
+                aux_cols = [
+                    col for col in self.data['syn'].columns 
+                    if col != self.config['secret']
+                ]
+            else:
+                if self.config['secret'] in self.config['infer_cols']:
+                    raise ConfigError
+                else:
+                    aux_cols = self.config['infer_cols']
             self.evaluator = InferenceEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
