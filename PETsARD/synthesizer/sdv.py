@@ -145,13 +145,13 @@ class SDVSingleTable(SDV):
         """
         Fit the synthesizer.
         """
-        if self._Synthesizer:
+        if self._synthesizer:
             time_start = time.time()
 
             print(
                 f"Synthesizer (SDV - SingleTable): Fitting {self.syn_method}."
             )
-            self._Synthesizer.fit(self.data)
+            self._synthesizer.fit(self.data)
             print(
                 f"Synthesizer (SDV - SingleTable): "
                 f"Fitting  {self.syn_method} spent "
@@ -176,7 +176,7 @@ class SDVSingleTable(SDV):
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        if self._Synthesizer:
+        if self._synthesizer:
             try:
                 time_start = time.time()
 
@@ -200,9 +200,9 @@ class SDVSingleTable(SDV):
                 )
 
                 if reset_sampling:
-                    self._Synthesizer.reset_sampling()
+                    self._synthesizer.reset_sampling()
 
-                data_syn = self._Synthesizer.sample(
+                data_syn = self._synthesizer.sample(
                     num_rows=self.sample_num_rows,
                     batch_size=self.sample_batch_size,
                     output_file_path=output_file_path
@@ -261,7 +261,7 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
         self.syn_method: str = 'CopulaGAN'
 
         # metadata already create in SDV_SingleTable
-        self._Synthesizer = CopulaGANSynthesizer(self.metadata)
+        self._synthesizer = CopulaGANSynthesizer(self.metadata)
 
 
 class SDVSingleTableCTGAN(SDVSingleTable):
@@ -278,7 +278,7 @@ class SDVSingleTableCTGAN(SDVSingleTable):
 
         self.syn_method: str = 'CTGAN'
 
-        self._Synthesizer = CTGANSynthesizer(self.metadata)
+        self._synthesizer = CTGANSynthesizer(self.metadata)
 
 
 class SDVSingleTableGaussianCopula(SDVSingleTable):
@@ -294,7 +294,7 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'GaussianCopula'
 
-        self._Synthesizer = GaussianCopulaSynthesizer(self.metadata)
+        self._synthesizer = GaussianCopulaSynthesizer(self.metadata)
 
 
 class SDVSingleTableTVAE(SDVSingleTable):
@@ -310,4 +310,4 @@ class SDVSingleTableTVAE(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'TVAE'
 
-        self._Synthesizer = TVAESynthesizer(self.metadata)
+        self._synthesizer = TVAESynthesizer(self.metadata)
