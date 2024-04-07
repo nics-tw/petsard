@@ -130,70 +130,39 @@ class SDVSingleTable(SyntheszierBase):
         """
         self._synthesizer.fit(self.data)
 
-    def sample(self,
-               sample_num_rows:  int = None,
-               reset_sampling:   bool = False,
-               output_file_path: str = None
-               ) -> pd.DataFrame:
+    def _sample(self) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
+            If sample_num_rows more than 100K, batch 100K at once,
+                otherwise same as sample_num_rows
 
-        Args:
-            sample_num_rows (int, default=None): Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False): Whether the method should reset the randomisation.
-            output_file_path (str, default=None): The location of the output file.
+        Attr:
+            sample_num_rows (int): The number of rows to be sampled.
+            reset_sampling (bool):
+                Whether the method should reset the randomisation.
 
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        if self._synthesizer:
-            try:
-                time_start = time.time()
 
-                # sample_num_rows: if didn't set sample_num_rows,
-                #                  default is same as train data rows.
-                self.sample_num_rows_as_raw = (
-                    True if sample_num_rows is None
-                    else False
-                )
-                self.sample_num_rows = (
-                    self.data.shape[0] if self.sample_num_rows_as_raw
-                    else sample_num_rows
-                )
+        # batch_size: if sample_num_rows more than 1M,
+        #             batch 100K at once,
+        #             otherwise same as sample_num_rows
+        sample_batch_size: int = (
+            100000 if self.sample_num_rows >= 100000
+            else self.sample_num_rows
+        )
 
-                # batch_size: if sample_num_rows more than 1M,
-                #             batch 100K at once,
-                #             otherwise same as sample_num_rows
-                self.sample_batch_size = (
-                    100000 if self.sample_num_rows >= 1000000
-                    else self.sample_num_rows
-                )
+        if self.reset_sampling:
+            self._synthesizer.reset_sampling()
 
-                if reset_sampling:
-                    self._synthesizer.reset_sampling()
+        data_syn: pd.DataFrame = self._synthesizer.sample(
+            num_rows=self.sample_num_rows,
+            batch_size=self.sample_batch_size,
+            output_file_path=None
+        )
 
-                data_syn = self._synthesizer.sample(
-                    num_rows=self.sample_num_rows,
-                    batch_size=self.sample_batch_size,
-                    output_file_path=output_file_path
-                )
-
-                str_sample_num_rows_as_raw = (
-                    ' (same as raw)' if self.sample_num_rows_as_raw
-                    else ''
-                )
-                print(
-                    f"Synthesizer (SDV - SingleTable): "
-                    f"Sampling {self.syn_method} "
-                    f"# {self.sample_num_rows} rows"
-                    f"{str_sample_num_rows_as_raw} "
-                    f"in {round(time.time()-time_start ,4)} sec."
-                )
-                return data_syn
-            except Exception as ex:
-                raise UnfittedError
-        else:
-            raise UnfittedError
+        return data_syn
 
     def fit_sample(
             self,
