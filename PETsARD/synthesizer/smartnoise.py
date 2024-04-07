@@ -33,7 +33,7 @@ class SmartNoise:
         """
         Fit the synthesizer.
         """
-        if self._Synthesizer:
+        if self._synthesizer:
             time_start = time.time()
 
             print(
@@ -41,7 +41,7 @@ class SmartNoise:
             )
 
             if self.syn_method in self.CUBE:
-                self._Synthesizer.fit(
+                self._synthesizer.fit(
                     self.data,
                     categorical_columns=self.data.columns
                 )
@@ -63,7 +63,7 @@ class SmartNoise:
                     for col in data_to_syn.columns
                 ])
 
-                self._Synthesizer.fit(data_to_syn, transformer=tt)
+                self._synthesizer.fit(data_to_syn, transformer=tt)
             print(
                 f"Synthesizer (SmartNoise): "
                 f"Fitting  {self.syn_method} spent "
@@ -89,7 +89,7 @@ class SmartNoise:
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        if self._Synthesizer:
+        if self._synthesizer:
             try:
                 time_start = time.time()
 
@@ -104,7 +104,7 @@ class SmartNoise:
                     else sample_num_rows
                 )
 
-                data_syn = self._Synthesizer.sample(
+                data_syn = self._synthesizer.sample(
                     self.sample_num_rows
                 )
 
@@ -218,14 +218,14 @@ class SmartNoiseCreator(SmartNoise):
 
 
         if method == 'dpctgan':
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon,
                                              batch_size=batch_size,
                                              epochs=epochs,
                                              sigma=sigma,
                                              disabled_dp=disabled_dp)
         elif method == 'patectgan':
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon,
                                              batch_size=batch_size,
                                              epochs=epochs)
         else:
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon)
