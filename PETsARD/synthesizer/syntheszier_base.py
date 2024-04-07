@@ -55,14 +55,12 @@ class SyntheszierBase(ABC):
         )
 
     @abstractmethod
-    def _sample(
-        self,
-        sample_num_rows:  int = None,
-        reset_sampling:   bool = False,
-        output_file_path: str = None
-    ) -> pd.DataFrame:
+    def _sample(self) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
+
+        Return:
+            data_syn (pd.DataFrame): The synthesized data.
         """
         raise NotImplementedError
 
