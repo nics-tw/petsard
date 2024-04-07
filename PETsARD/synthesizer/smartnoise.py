@@ -4,10 +4,11 @@ import pandas as pd
 from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
+from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
 from PETsARD.error import UnfittedError, UnsupportedMethodError
 
 
-class SmartNoise:
+class SmartNoise(SyntheszierBase):
     """
     Base class for all "SmartNoise".
 
@@ -24,10 +25,12 @@ class SmartNoise:
         Args:
             data (pd.DataFrame): The data to be synthesized.
             **kwargs: The other parameters.
+
+        Attr.:
+            syn_module (str): The name of the synthesizer module.
         """
-        self.data: pd.DataFrame = data
-        self.syn_method: str = 'Unknown'
-        self.constant_data: dict = {}
+        super().__init__(data, **kwargs)
+        self.syn_module: str = 'SmartNoise'
 
     def fit(self) -> None:
         """
