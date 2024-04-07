@@ -223,6 +223,7 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
@@ -230,7 +231,6 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'CopulaGAN'
 
-        # metadata already create in SDV_SingleTable
         self._synthesizer = CopulaGANSynthesizer(self.metadata)
 
 
@@ -240,12 +240,12 @@ class SDVSingleTableCTGAN(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
         super().__init__(data, metadata, **kwargs)
-
         self.syn_method: str = 'CTGAN'
 
         self._synthesizer = CTGANSynthesizer(self.metadata)
@@ -257,6 +257,7 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
@@ -273,6 +274,7 @@ class SDVSingleTableTVAE(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
