@@ -63,16 +63,16 @@ class SDVFactory:
         metadata = kwargs.get('metadata', None)
 
         if method_code == SDVMap.COPULAGAN:
-            self.Synthesizer = SDVSingleTableCopulaGAN(data=data, 
+            self.synthesizer = SDVSingleTableCopulaGAN(data=data, 
                                                        metadata=metadata)
         elif method_code == SDVMap.CTGAN:
-            self.Synthesizer = SDVSingleTableCTGAN(data=data, 
+            self.synthesizer = SDVSingleTableCTGAN(data=data, 
                                                    metadata=metadata)
         elif method_code == SDVMap.GAUSSIANCOPULA:
-            self.Synthesizer = SDVSingleTableGaussianCopula(data=data, 
+            self.synthesizer = SDVSingleTableGaussianCopula(data=data, 
                                                             metadata=metadata)
         elif method_code == SDVMap.TVAE:
-            self.Synthesizer = SDVSingleTableTVAE(data=data, 
+            self.synthesizer = SDVSingleTableTVAE(data=data, 
                                                   metadata=metadata)
         else:
             raise UnsupportedMethodError
@@ -82,9 +82,9 @@ class SDVFactory:
         Create synthesizer instance.
 
         Return:
-            self.Synthesizer (synthesizer): The synthesizer instance.
+            self.synthesizer (synthesizer): The synthesizer instance.
         """
-        return self.Synthesizer
+        return self.synthesizer
 
 
 class SDV():

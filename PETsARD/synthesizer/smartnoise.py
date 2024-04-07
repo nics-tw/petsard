@@ -177,7 +177,7 @@ class SmartNoiseFactory:
         disabled_dp: bool = kwargs.get('disabled_dp', False)  # for dpctgan
 
         if method.startswith('smartnoise-'):
-            self.Synthesizer = SmartNoiseCreator(
+            self.synthesizer = SmartNoiseCreator(
                 data,
                 method=method.split('-')[1],
                 epsilon=epsilon,
@@ -193,9 +193,9 @@ class SmartNoiseFactory:
         """
         Create synthesizer instance.
         Return:
-            self.Synthesizer (synthesizer): The synthesizer instance.
+            self.synthesizer (synthesizer): The synthesizer instance.
         """
-        return self.Synthesizer
+        return self.synthesizer
 
 
 class SmartNoiseCreator(SmartNoise):

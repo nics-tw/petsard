@@ -75,15 +75,15 @@ class Synthesizer:
         if self.config['method_code'] == SynthesizerMap.DEFAULT:
             # default will use SDV - GaussianCopula
             self.config['method'] = 'sdv-single_table-gaussiancopula'
-            self.Synthesizer = SDVFactory(**self.config).create()
+            self.synthesizer = SDVFactory(**self.config).create()
         elif self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
             if 'filepath' not in self.config:
                 raise ConfigError
             self.loader = Loader(filepath=self.config['filepath'])
         elif self.config['method_code'] == SynthesizerMap.SDV:
-            self.Synthesizer = SDVFactory(**self.config).create()
+            self.synthesizer = SDVFactory(**self.config).create()
         elif self.config['method_code'] == SynthesizerMap.SMARTNOISE:
-            self.Synthesizer = SmartNoiseFactory(**self.config).create()
+            self.synthesizer = SmartNoiseFactory(**self.config).create()
         else:
             raise UnsupportedMethodError
 
@@ -94,7 +94,7 @@ class Synthesizer:
         if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
             self.loader.load()
         else:
-            self.Synthesizer.fit(**kwargs)
+            self.synthesizer.fit(**kwargs)
 
     def sample(self, **kwargs) -> None:
         """
@@ -106,7 +106,7 @@ class Synthesizer:
         if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
             self.data_syn = self.loader.data
         else:
-            self.data_syn = self.Synthesizer.sample(**kwargs)
+            self.data_syn = self.synthesizer.sample(**kwargs)
 
     def fit_sample(self, **kwargs) -> None:
         """
@@ -120,4 +120,4 @@ class Synthesizer:
             self.fit()
             self.data_syn = self.loader.data
         else:
-            self.data_syn = self.Synthesizer.fit_sample(**kwargs)
+            self.data_syn = self.synthesizer.fit_sample(**kwargs)
