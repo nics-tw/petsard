@@ -158,7 +158,7 @@ class SDVSingleTable(SyntheszierBase):
 
         data_syn: pd.DataFrame = self._synthesizer.sample(
             num_rows=self.sample_num_rows,
-            batch_size=self.sample_batch_size,
+            batch_size=sample_batch_size,
             output_file_path=None
         )
 
