@@ -66,27 +66,6 @@ class SyntheszierBase(ABC):
         """
         raise NotImplementedError
 
-    @classmethod
-    def _sample_rows(cls, sample_num_rows: int = None):
-        """
-        Setting Sample rows from the data.
-            If didn't set sample_num_rows, default is same as train data rows.
-
-        Args:
-            sample_num_rows (int, optional):
-                Number of rows to sample.
-                If not provided, defaults to the same number of rows
-                as the training data.
-        """
-        cls.sample_num_rows_as_raw = (
-            True if sample_num_rows is None
-            else False
-        )
-        cls.sample_num_rows = (
-            cls.data.shape[0] if cls.sample_num_rows_as_raw
-            else sample_num_rows
-        )
-
     def sample(
         self,
         sample_num_rows:  int = None,
@@ -104,9 +83,27 @@ class SyntheszierBase(ABC):
             output_file_path (str, default=None):
                 The location of the output file.
 
+        Attr:
+            sample_num_rows_as_raw (bool):
+                Whether the sample number of rows is same as raw data.
+            sample_num_rows (int): The number of rows to be sampled.
+            reset_sampling (bool):
+                Whether the method should reset the randomisation.
+            output_file_path (str): The location of the output file.
+
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
+        self.sample_num_rows_as_raw: bool = (
+            True if sample_num_rows is None
+            else False
+        )
+        self.sample_num_rows: int = (
+            self.data.shape[0] if self.sample_num_rows_as_raw
+            else sample_num_rows
+        )
+        self.reset_sampling: bool = reset_sampling
+        self.output_file_path: str = output_file_path
         data_syn: pd.DataFrame = None
 
         if self._synthesizer is None:
@@ -115,13 +112,7 @@ class SyntheszierBase(ABC):
         try:
             time_start = time.time()
 
-            self._sample_rows(sample_num_rows)
-
-            self._sample(
-                sample_num_rows=sample_num_rows,
-                reset_sampling=reset_sampling,
-                output_file_path=output_file_path,
-            )
+            data_syn = self._sample()
 
             if output_file_path is not None:
                 data_syn.to_csv(output_file_path, index=False)
