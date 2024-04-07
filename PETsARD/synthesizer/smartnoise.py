@@ -75,64 +75,23 @@ class SmartNoise(SyntheszierBase):
         else:
             raise UnfittedError
 
-    def sample(self,
-               sample_num_rows:  int = None,
-               reset_sampling:   bool = False,
-               output_file_path: str = None
-               ) -> pd.DataFrame:
+    def _sample(self) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
-        Args:
-            sample_num_rows (int, default=None):
-                Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False):
-                Redundant variable.
-            output_file_path (str, default=None):
-                The location of the output file.
+
+        Attr:
+            sample_num_rows (int): The number of rows to be sampled.
+
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        if self._synthesizer:
-            try:
-                time_start = time.time()
+        data_syn = self._synthesizer.sample(self.sample_num_rows)
 
-                # sample_num_rows: if didn't set sample_num_rows,
-                #                  default is same as train data rows.
-                self.sample_num_rows_as_raw = (
-                    True if sample_num_rows is None
-                    else False
-                )
-                self.sample_num_rows = (
-                    self.data.shape[0] if self.sample_num_rows_as_raw
-                    else sample_num_rows
-                )
+        if self.constant_data:
+            for col, (val, idx) in self.constant_data.items():
+                data_syn.insert(idx, col, val)
 
-                data_syn = self._synthesizer.sample(
-                    self.sample_num_rows
-                )
-
-                if self.constant_data:
-                    for col, (val, idx) in self.constant_data.items():
-                        data_syn.insert(idx, col, val)
-
-                data_syn.to_csv(output_file_path, index=False)
-
-                str_sample_num_rows_as_raw = (
-                    ' (same as raw)' if self.sample_num_rows_as_raw
-                    else ''
-                )
-                print(
-                    f"Synthesizer (SmartNoise): "
-                    f"Sampling {self.syn_method} "
-                    f"# {self.sample_num_rows} rows"
-                    f"{str_sample_num_rows_as_raw} "
-                    f"in {round(time.time()-time_start ,4)} sec."
-                )
-                return data_syn
-            except Exception as ex:
-                raise UnfittedError
-        else:
-            raise UnfittedError
+        return data_syn
 
 
 class SmartNoiseFactory:
