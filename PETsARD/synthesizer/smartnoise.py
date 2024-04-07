@@ -134,28 +134,6 @@ class SmartNoise(SyntheszierBase):
         else:
             raise UnfittedError
 
-    def fit_sample(
-            self,
-            sample_num_rows:  int = None,
-            reset_sampling:   bool = False,
-            output_file_path: str = None
-    ) -> pd.DataFrame:
-        """
-        Fit and sample from the synthesizer.
-        The combination of the methods `fit()` and `sample()`.
-        Args:
-            sample_num_rows (int, default=None):
-                Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False):
-                Redundant variable.
-            output_file_path (str, default=None):
-                The location of the output file.
-        Return:
-            data_syn (pd.DataFrame): The synthesized data.
-        """
-        self.fit()
-        return self.sample(sample_num_rows, reset_sampling, output_file_path)
-
 
 class SmartNoiseFactory:
     """
