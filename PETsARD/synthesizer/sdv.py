@@ -91,40 +91,38 @@ class SDVFactory:
 class SDVSingleTable(SyntheszierBase):
     """
     Base class for all SDV SingleTable classes.
-
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        metadata (dict, default=None): The metadata of the data.
-        **kwargs: The other parameters.
     """
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
+        """
+        Args:
+            data (pd.DataFrame): The data to be synthesized.
+            metadata (dict, default=None): The metadata of the data.
+            **kwargs: The other parameters.
+
+        Attr.:
+            syn_module (str): The name of the synthesizer module.
+            metadata (SingleTableMetadata): The metadata of the data.
+        """
         super().__init__(data, **kwargs)
         self.syn_module: str = 'SDV'
+        self.metadata: SingleTableMetadata = SingleTableMetadata()
+
         self._SingleTableMetadata(metadata)
 
     def _SingleTableMetadata(self, metadata) -> None:
         """
         Create metadata for SDV.
+            If metadata is provided, load it.
+            Otherwise, detect the metadata from the data.
+
         Args:
             metadata (dict): The metadata of the data.
-        Return:
-            None
         """
-        time_start = time.time()
-
-        self.metadata = SingleTableMetadata()
         if metadata:
-            # if a metadata is provided, load it
             self.metadata = self.metadata.load_from_dict(metadata)
         else:
-            # otherwise, detect the metadata from the data
             self.metadata.detect_from_dataframe(self.data)
-        print(
-            f"Synthesizer (SDV - SingleTable): "
-            f"Metafile loading time: "
-            f"{round(time.time()-time_start ,4)} sec."
-        )
 
     def fit(self) -> None:
         """
