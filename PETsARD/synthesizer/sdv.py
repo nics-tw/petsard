@@ -124,24 +124,11 @@ class SDVSingleTable(SyntheszierBase):
         else:
             self.metadata.detect_from_dataframe(self.data)
 
-    def fit(self) -> None:
+    def _fit(self) -> None:
         """
         Fit the synthesizer.
         """
-        if self._synthesizer:
-            time_start = time.time()
-
-            print(
-                f"Synthesizer (SDV - SingleTable): Fitting {self.syn_method}."
-            )
-            self._synthesizer.fit(self.data)
-            print(
-                f"Synthesizer (SDV - SingleTable): "
-                f"Fitting  {self.syn_method} spent "
-                f"{round(time.time()-time_start ,4)} sec."
-            )
-        else:
-            raise UnfittedError
+        self._synthesizer.fit(self.data)
 
     def sample(self,
                sample_num_rows:  int = None,
