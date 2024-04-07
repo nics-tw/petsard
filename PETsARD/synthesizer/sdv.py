@@ -10,6 +10,7 @@ from sdv.single_table import (
     TVAESynthesizer
 )
 
+from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
 from PETsARD.error import UnfittedError, UnsupportedMethodError
 
 
@@ -87,7 +88,7 @@ class SDVFactory:
         return self.synthesizer
 
 
-class SDVSingleTable():
+class SDVSingleTable(SyntheszierBase):
     """
     Base class for all SDV SingleTable classes.
 
@@ -99,9 +100,7 @@ class SDVSingleTable():
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
         super().__init__(data, **kwargs)
-        self.data: pd.DataFrame = data
-        self.syn_method: str = 'Unknown'
-
+        self.syn_module: str = 'SDV'
         self._SingleTableMetadata(metadata)
 
     def _SingleTableMetadata(self, metadata) -> None:
