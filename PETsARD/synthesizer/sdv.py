@@ -1,7 +1,7 @@
 import re
 import time
 
-import pandas as pd
+from scipy.stats._warnings_errors import FitError
 from sdv.metadata import SingleTableMetadata
 from sdv.single_table import (
     CopulaGANSynthesizer,
@@ -9,9 +9,10 @@ from sdv.single_table import (
     GaussianCopulaSynthesizer,
     TVAESynthesizer
 )
+import pandas as pd
 
 from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
-from PETsARD.error import UnfittedError, UnsupportedMethodError
+from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
 class SDVMap():
@@ -128,7 +129,17 @@ class SDVSingleTable(SyntheszierBase):
         """
         Fit the synthesizer.
         """
-        self._synthesizer.fit(self.data)
+        try:
+            self._synthesizer.fit(self.data)
+        except FitError as ex: # See Issue 454
+            raise UnableToSynthesizeError(
+                f"Synthesizer ({self.syn_module} - {self.syn_method}): "
+                f"This datasets couldn't fit in this method. "
+                f"If you were in Executor process, "
+                f"please remove this experiment and try again. \n"
+                f"Following is original error msg: \n"
+                f"FitError: {ex}"
+            )
 
     def _sample(self) -> pd.DataFrame:
         """
