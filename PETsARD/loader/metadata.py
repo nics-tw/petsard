@@ -38,6 +38,26 @@ class Metadata:
 
         self.metadata = metadata
 
+    def set_col_infer_dtype(self, col: str, dtype: str) -> None:
+        """
+        Set the inferred data type for the column.
+
+        Args:
+            col (str): The column name.
+            dtype (str): The inferred data type.
+        """
+        if self.metadata is None:
+            raise ValueError(
+                'Please use `build_metadata()` to construct the metadata first.')
+
+        if col not in self.metadata['col']:
+            raise ValueError(f'{col} is not in the metadata.')
+
+        if dtype not in ['numerical', 'categorical', 'datetime', 'object']:
+            raise ValueError(f'{dtype} is invalid.')
+
+        self.metadata['col'][col]['infer_dtype'] = dtype
+
     def _check_dataframe_valid(self, data: pd.DataFrame) -> None:
         """
         Check the validity of dataframe.
