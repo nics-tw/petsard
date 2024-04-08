@@ -3,6 +3,7 @@ import time
 
 import pandas as pd
 
+from PETsARD.loader.metadata import Metadata
 from PETsARD.error import UnfittedError
 
 
@@ -18,7 +19,7 @@ class SyntheszierBase(ABC):
             data (pd.DataFrame): The data to be synthesized.
             syn_module (str): The name of the synthesizer module.
             syn_method (str): The name of the synthesizer method.
-            constant_data (dict): The constant data.
+            constant_data (dict): The dict of constant columns.
             sample_num_rows_as_raw (bool):
                 Whether the sample number of rows is same as raw data.
             sample_num_rows (int): The number of rows to be sampled.
@@ -39,6 +40,31 @@ class SyntheszierBase(ABC):
         Fit the synthesizer.
         """
         raise NotImplementedError
+
+    def _constant_data(self) -> dict:
+        """
+        Find constant data in the data.
+            If the column has only one unique value, it is a constant column.
+            Store their values and indexes, and remove them from the data.
+
+        Attr:
+            data (pd.DataFrame): The raw data to be synthesized.
+
+        Return:
+            data_to_syn (pd.DataFrame):
+                The data after record and remove constant columns.
+        """
+        data_to_syn: pd.DataFrame = self.data.copy()
+
+        for idx, col in enumerate(self.data.columns):
+            if self.data[col].nunique() == 1:
+                self.constant_data[col] = (
+                    self.data[col].unique()[0], idx)
+
+                data_to_syn.drop(col, axis=1, inplace=True)
+
+        return data_to_syn
+
 
     def fit(self) -> None:
         time_start = time.time()
