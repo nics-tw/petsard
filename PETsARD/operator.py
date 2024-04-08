@@ -4,6 +4,7 @@ import pandas as pd
 
 from PETsARD import (
     Loader,
+    Metadata,
     Splitter,
     Processor,
     Synthesizer,
@@ -109,6 +110,13 @@ class LoaderOperator(Operator):
         """
         result: pd.DataFrame = deepcopy(self.loader.data)
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.loader.metadata)
+        return metadata
 
 
 class SplitterOperator(Operator):
