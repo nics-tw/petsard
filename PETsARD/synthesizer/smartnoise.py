@@ -4,10 +4,11 @@ import pandas as pd
 from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
-from PETsARD.error import UnfittedError, UnsupportedMethodError
+from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
+from PETsARD.error import UnsupportedMethodError
 
 
-class SmartNoise:
+class SmartNoise(SyntheszierBase):
     """
     Base class for all "SmartNoise".
 
@@ -24,134 +25,65 @@ class SmartNoise:
         Args:
             data (pd.DataFrame): The data to be synthesized.
             **kwargs: The other parameters.
-        """
-        self.data: pd.DataFrame = data
-        self.syn_method: str = 'Unknown'
-        self.constant_data: dict = {}
 
-    def fit(self) -> None:
+        Attr.:
+            syn_module (str): The name of the synthesizer module.
+        """
+        super().__init__(data, **kwargs)
+        self.syn_module: str = 'SmartNoise'
+
+    def _fit(self) -> None:
         """
         Fit the synthesizer.
+
+        Attr:
+            data (pd.DataFrame): The data to be synthesized.
+            syn_method (str): The synthesizing method to be applied.
+            constant_data (dict): The dict of constant columns.
+            _synthesizer (SyntheszierBase): The synthesizer object.
         """
-        if self._Synthesizer:
-            time_start = time.time()
-
-            print(
-                f"Synthesizer (SmartNoise): Fitting {self.syn_method}."
-            )
-
-            if self.syn_method in self.CUBE:
-                self._Synthesizer.fit(
-                    self.data,
-                    categorical_columns=self.data.columns
-                )
-            else:
-                data_to_syn: pd.DataFrame = self.data.copy()
-
-                for idx, col in enumerate(self.data.columns):
-                    if self.data[col].nunique() == 1:
-                        # If the column has only one unique value,
-                        # it is a constant column.
-                        self.constant_data[col] = (self.data[col].unique()[0],
-                                                   idx)
-                        data_to_syn.drop(col, axis=1, inplace=True)
-
-                tt = TableTransformer([
-                    MinMaxTransformer(lower=data_to_syn[col].min(),
-                                      upper=data_to_syn[col].max(),
-                                      negative=False)
-                    for col in data_to_syn.columns
-                ])
-
-                self._Synthesizer.fit(data_to_syn, transformer=tt)
-            print(
-                f"Synthesizer (SmartNoise): "
-                f"Fitting  {self.syn_method} spent "
-                f"{round(time.time()-time_start ,4)} sec."
+        if self.syn_method in self.CUBE:
+            self._synthesizer.fit(
+                self.data,
+                categorical_columns=self.data.columns
             )
         else:
-            raise UnfittedError
+            data_to_syn: pd.DataFrame = self.data.copy()
 
-    def sample(self,
-               sample_num_rows:  int = None,
-               reset_sampling:   bool = False,
-               output_file_path: str = None
-               ) -> pd.DataFrame:
+            for idx, col in enumerate(self.data.columns):
+                if self.data[col].nunique() == 1:
+                    # If the column has only one unique value,
+                    # it is a constant column.
+                    self.constant_data[col] = (self.data[col].unique()[0],
+                                               idx)
+                    data_to_syn.drop(col, axis=1, inplace=True)
+
+            tt = TableTransformer([
+                MinMaxTransformer(lower=data_to_syn[col].min(),
+                                  upper=data_to_syn[col].max(),
+                                  negative=False)
+                for col in data_to_syn.columns
+            ])
+            self._synthesizer.fit(data_to_syn, transformer=tt)
+
+    def _sample(self) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
-        Args:
-            sample_num_rows (int, default=None):
-                Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False):
-                Redundant variable.
-            output_file_path (str, default=None):
-                The location of the output file.
+
+        Attr:
+            sample_num_rows (int): The number of rows to be sampled.
+            constant_data (dict): The dict of constant columns.
+
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        if self._Synthesizer:
-            try:
-                time_start = time.time()
+        data_syn: pd.DataFrame = self._synthesizer.sample(self.sample_num_rows)
 
-                # sample_num_rows: if didn't set sample_num_rows,
-                #                  default is same as train data rows.
-                self.sample_num_rows_as_raw = (
-                    True if sample_num_rows is None
-                    else False
-                )
-                self.sample_num_rows = (
-                    self.data.shape[0] if self.sample_num_rows_as_raw
-                    else sample_num_rows
-                )
+        if self.constant_data:
+            for col, (val, idx) in self.constant_data.items():
+                data_syn.insert(idx, col, val)
 
-                data_syn = self._Synthesizer.sample(
-                    self.sample_num_rows
-                )
-
-                if self.constant_data:
-                    for col, (val, idx) in self.constant_data.items():
-                        data_syn.insert(idx, col, val)
-
-                data_syn.to_csv(output_file_path, index=False)
-
-                str_sample_num_rows_as_raw = (
-                    ' (same as raw)' if self.sample_num_rows_as_raw
-                    else ''
-                )
-                print(
-                    f"Synthesizer (SmartNoise): "
-                    f"Sampling {self.syn_method} "
-                    f"# {self.sample_num_rows} rows"
-                    f"{str_sample_num_rows_as_raw} "
-                    f"in {round(time.time()-time_start ,4)} sec."
-                )
-                return data_syn
-            except Exception as ex:
-                raise UnfittedError
-        else:
-            raise UnfittedError
-
-    def fit_sample(
-            self,
-            sample_num_rows:  int = None,
-            reset_sampling:   bool = False,
-            output_file_path: str = None
-    ) -> pd.DataFrame:
-        """
-        Fit and sample from the synthesizer.
-        The combination of the methods `fit()` and `sample()`.
-        Args:
-            sample_num_rows (int, default=None):
-                Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False):
-                Redundant variable.
-            output_file_path (str, default=None):
-                The location of the output file.
-        Return:
-            data_syn (pd.DataFrame): The synthesized data.
-        """
-        self.fit()
-        return self.sample(sample_num_rows, reset_sampling, output_file_path)
+        return data_syn
 
 
 class SmartNoiseFactory:
@@ -177,7 +109,7 @@ class SmartNoiseFactory:
         disabled_dp: bool = kwargs.get('disabled_dp', False)  # for dpctgan
 
         if method.startswith('smartnoise-'):
-            self.Synthesizer = SmartNoiseCreator(
+            self.synthesizer = SmartNoiseCreator(
                 data,
                 method=method.split('-')[1],
                 epsilon=epsilon,
@@ -193,9 +125,9 @@ class SmartNoiseFactory:
         """
         Create synthesizer instance.
         Return:
-            self.Synthesizer (synthesizer): The synthesizer instance.
+            self.synthesizer (synthesizer): The synthesizer instance.
         """
-        return self.Synthesizer
+        return self.synthesizer
 
 
 class SmartNoiseCreator(SmartNoise):
@@ -216,16 +148,15 @@ class SmartNoiseCreator(SmartNoise):
         super().__init__(data, **kwargs)
         self.syn_method: str = method
 
-
         if method == 'dpctgan':
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon,
                                              batch_size=batch_size,
                                              epochs=epochs,
                                              sigma=sigma,
                                              disabled_dp=disabled_dp)
         elif method == 'patectgan':
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon,
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon,
                                              batch_size=batch_size,
                                              epochs=epochs)
         else:
-            self._Synthesizer = SNSyn.create(method, epsilon=epsilon)
+            self._synthesizer = SNSyn.create(method, epsilon=epsilon)

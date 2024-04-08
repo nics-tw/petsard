@@ -80,7 +80,7 @@ class Anonymeter(EvaluatorBase):
                     Indicating a successful linkability attack only if
                     the closest synthetic record matches for both split original records.
                     Default is 1.
-                - aux_cols (Tuple[List[str], List[str]], Optional):
+                - aux_cols (Tuple[List[str], List[str]] | List[str], Optional):
                     Features of the records that are given to the attacker as auxiliary information.
                     The Anonymeter documentation states it supports 'tuple of int',
                     but this is not reflected in their type annotations,
@@ -108,7 +108,7 @@ class Anonymeter(EvaluatorBase):
             'max_attempts': 500000,  # int
             'n_neighbors': 1,  # int
             'aux_cols': None,  # Tuple[List[str], List[str]]
-            'secret': None,    # Optional[Union[str, List[str]]]
+            'secret': None    # Optional[Union[str, List[str]]]
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
@@ -154,9 +154,16 @@ class Anonymeter(EvaluatorBase):
                 aux_cols=self.config['aux_cols']
             )
         elif self.config['method_code'] == AnonymeterMap.INFERENCE:
-            aux_cols = [
-                col for col in self.data['syn'].columns if col != self.config['secret']
-            ]
+            if self.config['aux_cols'] is None:
+                aux_cols = [
+                    col for col in self.data['ori'].columns 
+                    if col != self.config['secret']
+                ]
+            else:
+                if self.config['secret'] in self.config['aux_cols']:
+                    raise ConfigError
+                else:
+                    aux_cols = self.config['aux_cols']
             self.evaluator = InferenceEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
