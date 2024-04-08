@@ -12,10 +12,8 @@ from PETsARD import (
     Describer,
     Reporter
 )
-from PETsARD.error import (
-    ConfigError,
-    UnexecutedError,
-)
+from PETsARD.processor.encoder import EncoderUniform
+from PETsARD.error import ConfigError
 
 
 class Operator:
@@ -234,9 +232,7 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = Processor(
-            metadata=input['metadata']
-        )
+        self.processor = Processor(metadata=input['metadata'])
         # for keep default but update manual only
         self.processor.update_config(self._config)
         if self._sequence is None:
@@ -274,6 +270,24 @@ class PreprocessorOperator(Operator):
         """
         result: pd.DataFrame = deepcopy(self.data_preproc)
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+            If the encoder is EncoderUniform,
+            update the metadata infer_dtype to numerical.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.input['metadata'])
+
+        if 'encoder' in self.processor._sequence:
+            encoder_cfg: dict = self.processor.get_config()['encoder']
+            for col, encoder in encoder_cfg.items():
+                if isinstance(encoder, EncoderUniform):
+                    metadata.set_col_infer_dtype(col, 'numerical') # for SDV
+        return metadata
 
 
 class SynthesizerOperator(Operator):
