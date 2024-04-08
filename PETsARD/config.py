@@ -195,7 +195,7 @@ class Status:
             for exist_module in keys_to_remove:
                 del self.status[exist_module]
 
-        if module == 'Loader':
+        if module in ['Loader', 'Preprocessor']:
             self.set_metadata(module, operator.get_metadata())
 
         if module == 'Reporter':
