@@ -128,17 +128,6 @@ class SDVSingleTable(SyntheszierBase):
         """
         Fit the synthesizer.
         """
-        if self.syn_method == 'CopulaGAN':
-            self.data = self._constant_data()
-            if self.constant_data is not None:
-                metadata_dict: dict = self.metadata.to_dict()
-                for col in self.constant_data.keys():
-                    metadata_dict['columns'].pop(col)
-                self.metadata = self.metadata.load_from_dict(metadata_dict)
-            self._synthesizer = CopulaGANSynthesizer(self.metadata)
-
-        print(self.data.columns)
-        print(self.metadata.to_dict()['columns'])
         self._synthesizer.fit(self.data)
 
     def _sample(self) -> pd.DataFrame:
