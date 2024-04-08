@@ -5,7 +5,7 @@ from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
 from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
-from PETsARD.error import UnfittedError, UnsupportedMethodError
+from PETsARD.error import UnsupportedMethodError
 
 
 class SmartNoise(SyntheszierBase):
