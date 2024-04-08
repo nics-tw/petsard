@@ -33,6 +33,13 @@ class UnfittedError(Exception):
     pass
 
 
+class UnableToSynthesizeError(Exception):
+    """
+    Exception raised when an object is unable to be synthesized.
+    """
+    pass
+
+
 class UnableToEvaluateError(Exception):
     """
     Exception raised when an object is unable to be evaluated.
