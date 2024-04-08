@@ -317,17 +317,21 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame)
                     and SDV format metadata (dict or None).
         """
+        if status.metadata == {}:  # no metadata
+            self.input['metadata'] = None
+        else:
+            if 'Preprocessor' in status.metadata:
+                module = 'Preprocessor'
+            else:
+                module = 'Loader'
+            self.input['metadata'] = status.get_metadata(module).to_sdv()
+
         try:
             self.input['data'] = status.get_result(
                 status.get_pre_module('Synthesizer')
             )
-            self.input['metadata'] = status.get_metadata().to_sdv()
         except:
             raise ConfigError
-        try:
-            self.input['metadata'] = status.get_metadata().to_sdv()
-        except UnexecutedError:
-            self.input['metadata'] = None
         return self.input
 
     def get_result(self):
