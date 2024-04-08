@@ -12,7 +12,10 @@ from PETsARD import (
     Describer,
     Reporter
 )
-from PETsARD.error import ConfigError, UnexecutedError
+from PETsARD.error import (
+    ConfigError,
+    UnexecutedError,
+)
 
 
 class Operator:
@@ -54,10 +57,15 @@ class Operator:
         """
         Retrieve the result of the module's operation,
             as data storage varies between modules.
+        """
+        raise NotImplementedError
 
-        Args
-            tag (str):
-                Specify (return) items of result.
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
         """
         raise NotImplementedError
 
@@ -114,6 +122,9 @@ class LoaderOperator(Operator):
     def get_metadata(self) -> Metadata:
         """
         Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
         """
         metadata: Metadata = deepcopy(self.loader.metadata)
         return metadata
