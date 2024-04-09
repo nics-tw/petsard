@@ -608,6 +608,9 @@ class ReporterSaveReport(ReporterBase):
             We will confirm the common columns dtype is same or change to object.
                 Then, FULL OUTER JOIN based on common columns,
                 and column order based on df1 than df2.
+            Please aware common_columns JOIN based on format assumption,
+                if join different allow_module and/or granularity,
+                it will be wrong.
 
         Args:
             df1 (pd.DataFrame): The first DataFrame.
@@ -618,12 +621,23 @@ class ReporterSaveReport(ReporterBase):
         Returns:
             pd.DataFrame: The concatenated DataFrame.
         """
+        df: pd.DataFrame = None
+        common_columns: List[str] = None
+        df1_common_dtype: dict = None
+        df2_common_dtype: dict = None
+
         # 1. record common_columns and their dtype
-        common_columns: List[str] = [
+        #   common_columns should belong 'full_expt_name' or ALLOWED_IDX_MODULE
+        common_columns = [
             col for col in df1.columns if col in df2.columns
         ]
-        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
-        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+        common_columns = [
+            col for col in common_columns
+            if col == 'full_expt_name'
+                or col in cls.ALLOWED_IDX_MODULE
+        ]
+        df1_common_dtype = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype = {col: df2[col].dtype for col in common_columns}
 
         # 2. confirm common_columns dtype is same,
         #   if not, change dtype to object, and print warning
@@ -640,12 +654,14 @@ class ReporterSaveReport(ReporterBase):
 
         # 3. FULL OUTER JOIN df1 and df2,
         #   kept column order based on df1 than df2
-        return pd.merge(
+        df = pd.merge(
             df1,
             df2,
             on=common_columns,
             how='outer',
         ).reset_index(drop=True)
+
+        return df
 
     def report(self) -> None:
         """
