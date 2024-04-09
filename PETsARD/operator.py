@@ -4,6 +4,7 @@ import pandas as pd
 
 from PETsARD import (
     Loader,
+    Metadata,
     Splitter,
     Processor,
     Synthesizer,
@@ -11,7 +12,8 @@ from PETsARD import (
     Describer,
     Reporter
 )
-from PETsARD.error import ConfigError, UnexecutedError
+from PETsARD.processor.encoder import EncoderUniform
+from PETsARD.error import ConfigError
 
 
 class Operator:
@@ -53,10 +55,15 @@ class Operator:
         """
         Retrieve the result of the module's operation,
             as data storage varies between modules.
+        """
+        raise NotImplementedError
 
-        Args
-            tag (str):
-                Specify (return) items of result.
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
         """
         raise NotImplementedError
 
@@ -109,6 +116,16 @@ class LoaderOperator(Operator):
         """
         result: pd.DataFrame = deepcopy(self.loader.data)
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.loader.metadata)
+        return metadata
 
 
 class SplitterOperator(Operator):
@@ -215,9 +232,7 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = Processor(
-            metadata=input['metadata']
-        )
+        self.processor = Processor(metadata=input['metadata'])
         # for keep default but update manual only
         self.processor.update_config(self._config)
         if self._sequence is None:
@@ -255,6 +270,24 @@ class PreprocessorOperator(Operator):
         """
         result: pd.DataFrame = deepcopy(self.data_preproc)
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+            If the encoder is EncoderUniform,
+            update the metadata infer_dtype to numerical.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.input['metadata'])
+
+        if 'encoder' in self.processor._sequence:
+            encoder_cfg: dict = self.processor.get_config()['encoder']
+            for col, encoder in encoder_cfg.items():
+                if isinstance(encoder, EncoderUniform):
+                    metadata.set_col_infer_dtype(col, 'numerical') # for SDV
+        return metadata
 
 
 class SynthesizerOperator(Operator):
@@ -298,17 +331,21 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame)
                     and SDV format metadata (dict or None).
         """
+        if status.metadata == {}:  # no metadata
+            self.input['metadata'] = None
+        else:
+            if 'Preprocessor' in status.metadata:
+                module = 'Preprocessor'
+            else:
+                module = 'Loader'
+            self.input['metadata'] = status.get_metadata(module).to_sdv()
+
         try:
             self.input['data'] = status.get_result(
                 status.get_pre_module('Synthesizer')
             )
-            self.input['metadata'] = status.get_metadata().to_sdv()
         except:
             raise ConfigError
-        try:
-            self.input['metadata'] = status.get_metadata().to_sdv()
-        except UnexecutedError:
-            self.input['metadata'] = None
         return self.input
 
     def get_result(self):
