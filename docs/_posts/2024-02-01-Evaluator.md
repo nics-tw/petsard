@@ -302,7 +302,7 @@ Inference risk represents the possibility that, even after Privacy-Enhancing Tec
 
 `secret` (`str`) Column(s) of secret information. 秘密資訊欄位。
 
-`aux_cols` (`List[str]`) Columns of auxiliary information. 輔助資訊欄位。
+`aux_cols` (`List[str]`, default=None) Columns of auxiliary information. The default value consists of a list of columns excluding those that contain the keyword `secret`. In other words, if `aux_cols` is not specifically designated, this parameter will include all columns except those with `secret`. 輔助資訊欄位。預設值為排除包含 `secret` 關鍵字的所有欄位後的欄位列表。換句話說，如果不特別指定 `aux_cols`，則該參數會包含所有非 `secret` 欄位。
 
 > In the context of Inference risk, the parameters `secret` and `aux_cols` go hand in hand. `secret` represents the attribute that is kept confidential, and in this scenario, `aux_cols` are the attributes other than secret that are considered to provide auxiliary information to the attacker.
 >The example provided by `anonymeter` suggests the following configuration:
