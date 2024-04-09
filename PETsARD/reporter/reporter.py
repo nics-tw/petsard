@@ -330,6 +330,7 @@ class ReporterSaveReport(ReporterBase):
     """
     Save evaluating/describing data to file.
     """
+    SAVE_REPORT_KEY: str = 'full_expt_name'
 
     def __init__(self, config: dict):
         """
@@ -608,6 +609,9 @@ class ReporterSaveReport(ReporterBase):
             We will confirm the common columns dtype is same or change to object.
                 Then, FULL OUTER JOIN based on common columns,
                 and column order based on df1 than df2.
+            Please aware common_columns JOIN based on format assumption,
+                if join different allow_module and/or granularity,
+                it will be wrong.
 
         Args:
             df1 (pd.DataFrame): The first DataFrame.
@@ -618,12 +622,27 @@ class ReporterSaveReport(ReporterBase):
         Returns:
             pd.DataFrame: The concatenated DataFrame.
         """
+        df: pd.DataFrame = None
+        common_columns: List[str] = None
+        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [cls.SAVE_REPORT_KEY]
+        df1_common_dtype: dict = None
+        df2_common_dtype: dict = None
+        colname_replace: str = '_petsard|_replace' # customized name for non-conflict
+        colname_suffix: str = '|_petsard|_right' # customized suffix for non-conflict
+        right_col: str = None
+
         # 1. record common_columns and their dtype
-        common_columns: List[str] = [
+        #   common_columns should belong
+        #   'full_expt_name' (SAVE_REPORT_KEY)
+        #   or ALLOWED_IDX_MODULE
+        common_columns = [
             col for col in df1.columns if col in df2.columns
         ]
-        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
-        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+        common_columns = [
+            col for col in common_columns if col in allow_common_columns
+        ]
+        df1_common_dtype = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype = {col: df2[col].dtype for col in common_columns}
 
         # 2. confirm common_columns dtype is same,
         #   if not, change dtype to object, and print warning
@@ -640,12 +659,32 @@ class ReporterSaveReport(ReporterBase):
 
         # 3. FULL OUTER JOIN df1 and df2,
         #   kept column order based on df1 than df2
-        return pd.merge(
+        df2[colname_replace] = colname_replace
+        df = pd.merge(
             df1,
             df2,
             on=common_columns,
             how='outer',
+            suffixes=('', colname_suffix),
         ).reset_index(drop=True)
+
+        # 4. replace df1 column with df2 column if replace tag is labeled
+        for col in df1.columns:
+            if col in allow_common_columns: # skip common_columns
+                continue
+
+            right_col = col + colname_suffix
+            if right_col in df.columns:
+                df.loc[
+                    df[colname_replace] == colname_replace,
+                    col
+                ] = df[right_col]
+
+                df.drop(columns=[right_col], inplace=True)
+
+        df.drop(columns=[colname_replace], inplace=True) # drop replace tag
+
+        return df
 
     def report(self) -> None:
         """
