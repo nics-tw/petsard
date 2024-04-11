@@ -63,13 +63,14 @@ class Anonymeter(EvaluatorBase):
         Args:
             config (dict): A dictionary containing the configuration settings.
                 - method (str): The method of how you evaluating data.
-                - n_attack (int, Optional):
+                - n_attacks (int, Optional):
                     The number of attack attempts using the specified attack method.
                     Default is 2,000.
-                - max_n_attack (bool, Optional):
+                - max_n_attacsk (bool, Optional):
                     Define apply the maximum number of attacks or not.
-                    Support only for Linkability and Inference.
-                    Default is False. If True, the n_attack will be ignored.
+                    Support only for Linkability and Inference. Default is True.
+                    If True, the n_attacks input will only be accepted
+                    if it equals or lower than the theoretically maximum number of attacks.
                 - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
                     -1 means all threads except one. -2 means every thread.
                     Default is -2.
@@ -139,7 +140,10 @@ class Anonymeter(EvaluatorBase):
         if self.config['max_n_attacks']:
             self.config['n_max_attacks'] = self._calculate_n_max_attacks()
             if self.config['n_max_attacks'] is not None:
-                self.config['n_attacks'] = self.config['n_max_attacks']
+                # n_attacks input will only be accepted if it equals or lower than
+                # the theoretically maximum number of attacks.
+                if self.config['n_attacks'] >= self.config['n_max_attacks']:
+                    self.config['n_attacks'] = self.config['n_max_attacks']
 
         if method_code == AnonymeterMap.SINGLINGOUT:
             self.config['singlingout_mode'] = 'multivariate'
