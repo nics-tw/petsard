@@ -2,8 +2,7 @@ from abc import abstractmethod
 import re
 from typing import (
     Optional,
-    Tuple,
-    Union
+    Union,
 )
 import warnings
 
@@ -17,7 +16,6 @@ import pandas as pd
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.error import (
     ConfigError,
-    UnableToEvaluateError,
     UnfittedError,
     UnsupportedMethodError
 )
@@ -28,10 +26,9 @@ class AnonymeterMap():
     """
     map of Anonymeter
     """
-    SINGLINGOUT_UNIVARIATE:   int = 1
-    # SINGLINGOUT_MULTIVARIATE: int = 2
-    LINKABILITY:              int = 3
-    INFERENCE:                int = 4
+    SINGLINGOUT: int = 1
+    LINKABILITY: int = 3
+    INFERENCE: int = 4
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -57,7 +54,6 @@ class Anonymeter(EvaluatorBase):
     Factory for "Anonymeter" Evaluator.
         AnonymeterFactory defines which module to use within Anonymeter.
 
-    TODO n_attacks recommendation based on the conclusions of Experiment 1.
     TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
@@ -66,18 +62,27 @@ class Anonymeter(EvaluatorBase):
         Args:
             config (dict): A dictionary containing the configuration settings.
                 - method (str): The method of how you evaluating data.
-                - n_attack (int):
+                - n_attacks (int, Optional):
                     The number of attack attempts using the specified attack method.
                     Default is 2,000.
+                - max_n_attacsk (bool, Optional):
+                    Determines whether to enforce the maximum number of attacks.
+                    Support only for Linkability and Inference. Default is False.
+                    If True, the input for n_attacks is forcibly set to
+                        the theoretical maximum number of attacks
                 - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
                     -1 means all threads except one. -2 means every thread.
                     Default is -2.
+                - n_cols (int, Optional): The number of columns used for generating
+                    singling-out queries. Default is 3.
+                - max_attempts (int, Optional): The maximum number of attempts to find a
+                    successful attack. Default is 500000.
                 - n_neighbors (int, Optional):
                     Sets the number of nearest neighbors to consider for each entry in the search.
                     Indicating a successful linkability attack only if
                     the closest synthetic record matches for both split original records.
                     Default is 1.
-                - aux_cols (Tuple[List[str], List[str]], Optional):
+                - aux_cols (tuple[List[str], List[str]] | List[str], Optional):
                     Features of the records that are given to the attacker as auxiliary information.
                     The Anonymeter documentation states it supports 'tuple of int',
                     but this is not reflected in their type annotations,
@@ -99,11 +104,14 @@ class Anonymeter(EvaluatorBase):
         super().__init__(config=config)
 
         default_config = {
-            'n_attacks': 2000,  # int
-            'n_jobs': -2,      # int
-            'n_neighbors': 1,  # int
-            'aux_cols': None,  # Tuple[List[str], List[str]]
-            'secret': None,    # Optional[Union[str, List[str]]]
+            'n_attacks': 2000,       # int
+            'max_n_attacks': False,  # bool
+            'n_jobs': -2,            # int
+            'n_cols': 3,             # int
+            'max_attempts': 500000,  # int
+            'n_neighbors': 1,        # int
+            'aux_cols': None,        # tuple[List[str], List[str]]
+            'secret': None           # Union[str, List[str]]
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
@@ -115,37 +123,49 @@ class Anonymeter(EvaluatorBase):
         """
         Create a new instance of the anonymeter class with the given data.
 
+            Adjusts the current number of attacks (`n_attacks`)
+                    to the maximum number of attacks (`n_max_attacks`) if:
+                1. The method is Linkability or Inference. and,
+                2-a. The `max_n_attacks` is set to True, or
+                2-b. The current number of attacks (`n_attacks`)
+                    is higher than the maximum number of attacks (`n_max_attacks`).
+            This ensures the actual number of attacks
+                does not surpass the defined or calculated limit.
+
         Args:
             data (dict): The data to be stored in the anonymeter instance.
 
         Resurn:
             None. Anonymeter class store in self.evaluator.
 
-        TODO SinglingOut attacks of Multi-variate.
         """
+        method_code: int = self.config['method_code']
+
         if 'ori' not in data or 'syn' not in data or 'control' not in data:
             raise ConfigError
         self.data = data
 
-        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-            self.config['singlingout_mode'] = 'univariate'
+        # Conditional adjusts `n_attacks` to `n_max_attacks`
+        self.config['n_max_attacks'] = self._calculate_n_max_attacks()
+        if self.config['n_max_attacks'] is not None:
+            if self.config['max_n_attacks']\
+                    or self.config['n_attacks'] >= self.config['n_max_attacks']:
+                self.config['n_attacks'] = self.config['n_max_attacks']
+                self.config['n_attacks'] = self.config['n_max_attacks']
+
+        if method_code == AnonymeterMap.SINGLINGOUT:
+            self.config['singlingout_mode'] = 'multivariate'
             self.evaluator = SinglingOutEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
                 control=self.data['control'],
-                n_attacks=self.config['n_attacks']
+                n_attacks=self.config['n_attacks'],
+                n_cols=self.config['n_cols'],
+                max_attempts=self.config['max_attempts']
             )
-        # elif self.config['method_code'] == AnonymeterMap.SINGLINGOUT_MULTIVARIATE:
-        #     self.config['singlingout_mode'] = 'multivariate'
-        #     self.evaluator = SinglingOutEvaluator(
-        #         ori=self.data['ori'],
-        #         syn=self.data['syn'],
-        #         control=self.data['control'],
-        #         n_attacks=self.config['n_attacks']
-        #     )
-        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+        elif method_code == AnonymeterMap.LINKABILITY:
             if 'aux_cols' not in self.config\
-                or self.config['aux_cols'] is None:
+                    or self.config['aux_cols'] is None:
                 raise ConfigError
             self.evaluator = LinkabilityEvaluator(
                 ori=self.data['ori'],
@@ -155,10 +175,17 @@ class Anonymeter(EvaluatorBase):
                 n_neighbors=self.config['n_neighbors'],
                 aux_cols=self.config['aux_cols']
             )
-        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
-            aux_cols = [
-                col for col in self.data['syn'].columns if col != self.config['secret']
-            ]
+        elif method_code == AnonymeterMap.INFERENCE:
+            if self.config['aux_cols'] is None:
+                aux_cols = [
+                    col for col in self.data['ori'].columns
+                    if col != self.config['secret']
+                ]
+            else:
+                if self.config['secret'] in self.config['aux_cols']:
+                    raise ConfigError
+                else:
+                    aux_cols = self.config['aux_cols']
             self.evaluator = InferenceEvaluator(
                 ori=self.data['ori'],
                 syn=self.data['syn'],
@@ -167,6 +194,27 @@ class Anonymeter(EvaluatorBase):
                 aux_cols=aux_cols,
                 secret=self.config['secret']
             )
+        else:
+            raise UnsupportedMethodError
+
+    def _calculate_n_max_attacks(self) -> int:
+        """
+        Calculate the theoretically maximum number of attacks.
+            SinglingOut: Not supported.
+            Linkability: the n_rows of the control dataset.
+            Inference: the n_rows of the control dataset.
+
+        Returns:
+            n_max_attacks (int): The maximum number of attacks.
+                Returns None if the method is SinglingOut.
+        """
+        method_code: int = self.config['method_code']
+        if method_code == AnonymeterMap.SINGLINGOUT:
+            return None
+        elif method_code in [
+            AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE
+        ]:
+            return self.data['control'].shape[0]
         else:
             raise UnsupportedMethodError
 
@@ -271,21 +319,27 @@ class Anonymeter(EvaluatorBase):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=FutureWarning)
             try:
-                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
-                    # SinglingOut attacks of Univariate
-                    self.evaluator.evaluate(mode=self.config['singlingout_mode'])
+                if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
+                    # SinglingOut
+                    self.evaluator.evaluate(
+                        mode=self.config['singlingout_mode'])
                 elif self.config['method_code'] in [
-                    AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
+                        AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE]:
                     # Linkability and Inference
                     self.evaluator.evaluate(n_jobs=self.config['n_jobs'])
                 else:
                     raise UnsupportedMethodError
             except RuntimeError:
-                # Please re-run this cell.
-                # "For more stable results increase `n_attacks`.
-                # Note that this will make the evaluation slower.
-                raise UnableToEvaluateError
+                warnings.warn(
+                    f"Evaluator - Anonymeter: "
+                    f"Please re-run this cell. "
+                    f"For more stable results, increase `n_attacks`. "
+                    f"Note that this will make the evaluation slower.",
+                    RuntimeWarning
+                )
+                pass
 
+        # self._extract_result() already handle the exception by assign NA
         self.result = self._extract_result()
 
     def get_global(self) -> Union[pd.DataFrame, None]:
@@ -331,24 +385,27 @@ class Anonymeter(EvaluatorBase):
         """
         details = {}
 
-        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT_UNIVARIATE:
+        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
             # SinglingOut attacks of Univariate
             #   control queries didn't been stored
-            details['attack_queries']   = self.evaluator._attack_queries
+            details['attack_queries'] = self.evaluator._attack_queries
             details['baseline_queries'] = self.evaluator._baseline_queries
         elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
             # Linkability: Dict[int, Set(int)]
             #   aux_cols[0] indexes links to aux_cols[1]
             n_neighbors = self.config['n_neighbors']
             details['attack_links'] = \
-                self.evaluator._attack_links.find_links(n_neighbors=n_neighbors)
+                self.evaluator._attack_links.find_links(
+                    n_neighbors=n_neighbors)
             details['baseline_links'] = \
-                self.evaluator._baseline_links.find_links(n_neighbors=n_neighbors)
+                self.evaluator._baseline_links.find_links(
+                    n_neighbors=n_neighbors)
             details['control_links'] = \
-                self.evaluator._control_links.find_links(n_neighbors=n_neighbors)
+                self.evaluator._control_links.find_links(
+                    n_neighbors=n_neighbors)
         elif self.config['method_code'] == AnonymeterMap.INFERENCE:
             # Inference
-            pass # Inference queries didn't been stored
+            pass  # Inference queries didn't been stored
         else:
             raise UnsupportedMethodError
 

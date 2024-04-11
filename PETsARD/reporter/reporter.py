@@ -136,6 +136,7 @@ class ReporterBase(ABC):
         'Describer',
         'Reporter',
     ]
+    SAVE_REPORT_AVAILABLE_MODULE: list = ['Evaluator', 'Describer']
 
     def __init__(self, config: dict):
         """
@@ -329,6 +330,7 @@ class ReporterSaveReport(ReporterBase):
     """
     Save evaluating/describing data to file.
     """
+    SAVE_REPORT_KEY: str = 'full_expt_name'
 
     def __init__(self, config: dict):
         """
@@ -469,6 +471,18 @@ class ReporterSaveReport(ReporterBase):
                 'report': deepcopy(final_rpt_data)
             }
 
+        # 7. exception handler
+        if 'Reporter' not in self.result:
+            self.result['Reporter'] = {
+                'eval_expt_name': output_eval_name,
+                'granularity': granularity,
+                'report': None,
+                'warnings': (
+                    f"There is no report data to save "
+                    f"under {granularity} granularity."
+                )
+            }
+
     @classmethod
     def _process_report_data(
         cls,
@@ -526,7 +540,8 @@ class ReporterSaveReport(ReporterBase):
             print(
                 f"Reporter: "
                 f"There's no {granularity} granularity report "
-                f"in {full_expt_tuple[-2]}. "
+                f"in {full_expt_tuple[-2]} "
+                f"{convert_eval_expt_name_to_tuple(full_expt_tuple[-1])[0]}. "
                 f"Nothing collect."
             )
             return True, None
@@ -594,6 +609,9 @@ class ReporterSaveReport(ReporterBase):
             We will confirm the common columns dtype is same or change to object.
                 Then, FULL OUTER JOIN based on common columns,
                 and column order based on df1 than df2.
+            Please aware common_columns JOIN based on format assumption,
+                if join different allow_module and/or granularity,
+                it will be wrong.
 
         Args:
             df1 (pd.DataFrame): The first DataFrame.
@@ -604,12 +622,27 @@ class ReporterSaveReport(ReporterBase):
         Returns:
             pd.DataFrame: The concatenated DataFrame.
         """
+        df: pd.DataFrame = None
+        common_columns: List[str] = None
+        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [cls.SAVE_REPORT_KEY]
+        df1_common_dtype: dict = None
+        df2_common_dtype: dict = None
+        colname_replace: str = '_petsard|_replace' # customized name for non-conflict
+        colname_suffix: str = '|_petsard|_right' # customized suffix for non-conflict
+        right_col: str = None
+
         # 1. record common_columns and their dtype
-        common_columns: List[str] = [
+        #   common_columns should belong
+        #   'full_expt_name' (SAVE_REPORT_KEY)
+        #   or ALLOWED_IDX_MODULE
+        common_columns = [
             col for col in df1.columns if col in df2.columns
         ]
-        df1_common_dtype: dict = {col: df1[col].dtype for col in common_columns}
-        df2_common_dtype: dict = {col: df2[col].dtype for col in common_columns}
+        common_columns = [
+            col for col in common_columns if col in allow_common_columns
+        ]
+        df1_common_dtype = {col: df1[col].dtype for col in common_columns}
+        df2_common_dtype = {col: df2[col].dtype for col in common_columns}
 
         # 2. confirm common_columns dtype is same,
         #   if not, change dtype to object, and print warning
@@ -626,12 +659,32 @@ class ReporterSaveReport(ReporterBase):
 
         # 3. FULL OUTER JOIN df1 and df2,
         #   kept column order based on df1 than df2
-        return pd.merge(
+        df2[colname_replace] = colname_replace
+        df = pd.merge(
             df1,
             df2,
             on=common_columns,
             how='outer',
+            suffixes=('', colname_suffix),
         ).reset_index(drop=True)
+
+        # 4. replace df1 column with df2 column if replace tag is labeled
+        for col in df1.columns:
+            if col in allow_common_columns: # skip common_columns
+                continue
+
+            right_col = col + colname_suffix
+            if right_col in df.columns:
+                df.loc[
+                    df[colname_replace] == colname_replace,
+                    col
+                ] = df[right_col]
+
+                df.drop(columns=[right_col], inplace=True)
+
+        df.drop(columns=[colname_replace], inplace=True) # drop replace tag
+
+        return df
 
     def report(self) -> None:
         """
@@ -640,16 +693,28 @@ class ReporterSaveReport(ReporterBase):
         """
         if 'Reporter' not in self.result:
             raise UnexecutedError
+        reporter: dict = self.result['Reporter']
 
-        if 'eval_expt_name' not in self.result['Reporter']:
-            # no {granularity} granularity report in {eval}
+        if 'warnings' in reporter:
+            print(
+                f"Reporter: No CSV file will be saved. "
+                f"This warning can be ignored "
+                f"if running with different granularity config."
+            )
             return
 
-        eval_expt_name: str = self.result['Reporter']['eval_expt_name']
-
+        if not all(key in reporter for key in ['eval_expt_name', 'report']):
+            raise ConfigError
+        eval_expt_name: str = reporter['eval_expt_name']
         # PETsARD[Report]_{eval_expt_name}
-        full_output = f"{self.config['output']}[Report]_{eval_expt_name}"
+        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+
+        report: pd.DataFrame = reporter['report']
+        if report is None:
+            # the unexpected report is None without warnings
+            raise UnexecutedError
+
         self._save(
-            data=self.result['Reporter']['report'],
+            data=report,
             full_output=full_output
         )
