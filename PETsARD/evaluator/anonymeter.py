@@ -16,7 +16,6 @@ import pandas as pd
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.error import (
     ConfigError,
-    UnableToEvaluateError,
     UnfittedError,
     UnsupportedMethodError
 )
