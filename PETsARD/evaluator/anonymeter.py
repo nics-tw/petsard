@@ -2,8 +2,7 @@ from abc import abstractmethod
 import re
 from typing import (
     Optional,
-    Tuple,
-    Union
+    Union,
 )
 import warnings
 
@@ -80,7 +79,7 @@ class Anonymeter(EvaluatorBase):
                     Indicating a successful linkability attack only if
                     the closest synthetic record matches for both split original records.
                     Default is 1.
-                - aux_cols (Tuple[List[str], List[str]] | List[str], Optional):
+                - aux_cols (tuple[List[str], List[str]] | List[str], Optional):
                     Features of the records that are given to the attacker as auxiliary information.
                     The Anonymeter documentation states it supports 'tuple of int',
                     but this is not reflected in their type annotations,
@@ -107,7 +106,7 @@ class Anonymeter(EvaluatorBase):
             'n_cols': 3,       # int
             'max_attempts': 500000,  # int
             'n_neighbors': 1,  # int
-            'aux_cols': None,  # Tuple[List[str], List[str]]
+            'aux_cols': None,  # tuple[List[str], List[str]]
             'secret': None    # Optional[Union[str, List[str]]]
         }
         for key, value in default_config.items():
@@ -156,7 +155,7 @@ class Anonymeter(EvaluatorBase):
         elif self.config['method_code'] == AnonymeterMap.INFERENCE:
             if self.config['aux_cols'] is None:
                 aux_cols = [
-                    col for col in self.data['ori'].columns 
+                    col for col in self.data['ori'].columns
                     if col != self.config['secret']
                 ]
             else:
@@ -172,6 +171,24 @@ class Anonymeter(EvaluatorBase):
                 aux_cols=aux_cols,
                 secret=self.config['secret']
             )
+        else:
+            raise UnsupportedMethodError
+
+    def _calculate_max_n_attacks(self) -> int:
+        """
+        Calculate the maximum number of attacks based on the size of the dataset.
+
+        Returns:
+            int: The maximum number of attacks.
+                Returns None if the method is SinglingOut.
+        """
+        method_code: int = self.config['method_code']
+        if method_code == AnonymeterMap.SINGLINGOUT:
+            return None
+        elif method_code in [
+            AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE
+        ]:
+            return self.data['ori'].shape[0]
         else:
             raise UnsupportedMethodError
 
