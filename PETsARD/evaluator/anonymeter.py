@@ -66,10 +66,10 @@ class Anonymeter(EvaluatorBase):
                     The number of attack attempts using the specified attack method.
                     Default is 2,000.
                 - max_n_attacsk (bool, Optional):
-                    Define apply the maximum number of attacks or not.
+                    Determines whether to enforce the maximum number of attacks.
                     Support only for Linkability and Inference. Default is False.
-                    If True, the n_attacks input will force replacement
-                        to the theoretically maximum number of attacks.
+                    If True, the input for n_attacks is forcibly set to
+                        the theoretical maximum number of attacks
                 - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
                     -1 means all threads except one. -2 means every thread.
                     Default is -2.
