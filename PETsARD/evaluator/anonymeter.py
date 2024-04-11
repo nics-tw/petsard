@@ -137,10 +137,10 @@ class Anonymeter(EvaluatorBase):
             raise ConfigError
         self.data = data
 
-        self.config['n_max_attacks'] = self._calculate_n_max_attacks()
-        if self.config['max_n_attacks']\
-            and self.config['n_max_attacks'] is not None:
-            self.config['n_attacks'] = self.config['n_max_attacks']
+        if self.config['max_n_attacks']:
+            self.config['n_max_attacks'] = self._calculate_n_max_attacks()
+            if self.config['n_max_attacks'] is not None:
+                self.config['n_attacks'] = self.config['n_max_attacks']
 
         if method_code == AnonymeterMap.SINGLINGOUT:
             self.config['singlingout_mode'] = 'multivariate'
