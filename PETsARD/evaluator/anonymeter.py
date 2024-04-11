@@ -64,9 +64,13 @@ class Anonymeter(EvaluatorBase):
         Args:
             config (dict): A dictionary containing the configuration settings.
                 - method (str): The method of how you evaluating data.
-                - n_attack (int):
+                - n_attack (int, Optional):
                     The number of attack attempts using the specified attack method.
                     Default is 2,000.
+                - max_n_attack (bool, Optional):
+                    Define apply the maximum number of attacks or not.
+                    Support only for Linkability and Inference.
+                    Default is False. If True, the n_attack will be ignored.
                 - n_jobs (int, Optional): Specifies the number of jobs Anonymeter will use.
                     -1 means all threads except one. -2 means every thread.
                     Default is -2.
@@ -101,13 +105,14 @@ class Anonymeter(EvaluatorBase):
         super().__init__(config=config)
 
         default_config = {
-            'n_attacks': 2000,  # int
-            'n_jobs': -2,      # int
-            'n_cols': 3,       # int
+            'n_attacks': 2000,       # int
+            'max_n_attacks': False,  # bool
+            'n_jobs': -2,            # int
+            'n_cols': 3,             # int
             'max_attempts': 500000,  # int
-            'n_neighbors': 1,  # int
-            'aux_cols': None,  # tuple[List[str], List[str]]
-            'secret': None    # Optional[Union[str, List[str]]]
+            'n_neighbors': 1,        # int
+            'aux_cols': None,        # tuple[List[str], List[str]]
+            'secret': None           # Union[str, List[str]]
         }
         for key, value in default_config.items():
             config.setdefault(key, value)
@@ -126,13 +131,18 @@ class Anonymeter(EvaluatorBase):
             None. Anonymeter class store in self.evaluator.
 
         """
+        method_code: int = self.config['method_code']
+
         if 'ori' not in data or 'syn' not in data or 'control' not in data:
             raise ConfigError
         self.data = data
 
         self.config['n_max_attacks'] = self._calculate_n_max_attacks()
+        if self.config['max_n_attacks']\
+            and self.config['n_max_attacks'] is not None:
+            self.config['n_attacks'] = self.config['n_max_attacks']
 
-        if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
+        if method_code == AnonymeterMap.SINGLINGOUT:
             self.config['singlingout_mode'] = 'multivariate'
             self.evaluator = SinglingOutEvaluator(
                 ori=self.data['ori'],
@@ -142,7 +152,7 @@ class Anonymeter(EvaluatorBase):
                 n_cols=self.config['n_cols'],
                 max_attempts=self.config['max_attempts']
             )
-        elif self.config['method_code'] == AnonymeterMap.LINKABILITY:
+        elif method_code == AnonymeterMap.LINKABILITY:
             if 'aux_cols' not in self.config\
                 or self.config['aux_cols'] is None:
                 raise ConfigError
@@ -154,7 +164,7 @@ class Anonymeter(EvaluatorBase):
                 n_neighbors=self.config['n_neighbors'],
                 aux_cols=self.config['aux_cols']
             )
-        elif self.config['method_code'] == AnonymeterMap.INFERENCE:
+        elif method_code == AnonymeterMap.INFERENCE:
             if self.config['aux_cols'] is None:
                 aux_cols = [
                     col for col in self.data['ori'].columns
