@@ -130,6 +130,8 @@ class Anonymeter(EvaluatorBase):
             raise ConfigError
         self.data = data
 
+        self.config['n_max_attacks'] = self._calculate_n_max_attacks()
+
         if self.config['method_code'] == AnonymeterMap.SINGLINGOUT:
             self.config['singlingout_mode'] = 'multivariate'
             self.evaluator = SinglingOutEvaluator(
@@ -174,12 +176,15 @@ class Anonymeter(EvaluatorBase):
         else:
             raise UnsupportedMethodError
 
-    def _calculate_max_n_attacks(self) -> int:
+    def _calculate_n_max_attacks(self) -> int:
         """
-        Calculate the maximum number of attacks based on the size of the dataset.
+        Calculate the theoretically maximum number of attacks.
+            SinglingOut: Not supported.
+            Linkability: the n_rows of the control dataset.
+            Inference: the n_rows of the control dataset.
 
         Returns:
-            int: The maximum number of attacks.
+            n_max_attacks (int): The maximum number of attacks.
                 Returns None if the method is SinglingOut.
         """
         method_code: int = self.config['method_code']
@@ -188,7 +193,7 @@ class Anonymeter(EvaluatorBase):
         elif method_code in [
             AnonymeterMap.LINKABILITY, AnonymeterMap.INFERENCE
         ]:
-            return self.data['ori'].shape[0]
+            return self.data['control'].shape[0]
         else:
             raise UnsupportedMethodError
 
