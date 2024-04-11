@@ -4,6 +4,7 @@ import pandas as pd
 
 from PETsARD import (
     Loader,
+    Metadata,
     Splitter,
     Processor,
     Synthesizer,
@@ -11,6 +12,7 @@ from PETsARD import (
     Describer,
     Reporter
 )
+from PETsARD.processor.encoder import EncoderUniform
 from PETsARD.error import ConfigError
 
 
@@ -53,10 +55,15 @@ class Operator:
         """
         Retrieve the result of the module's operation,
             as data storage varies between modules.
+        """
+        raise NotImplementedError
 
-        Args
-            tag (str):
-                Specify (return) items of result.
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
         """
         raise NotImplementedError
 
@@ -107,7 +114,18 @@ class LoaderOperator(Operator):
         """
         Retrieve the loading result.
         """
-        return self.loader.data
+        result: pd.DataFrame = deepcopy(self.loader.data)
+        return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.loader.metadata)
+        return metadata
 
 
 class SplitterOperator(Operator):
@@ -173,7 +191,8 @@ class SplitterOperator(Operator):
         Retrieve the splitting result.
             Due to Config force num_samples = 1, return 1st dataset is fine.
         """
-        return self.splitter.data[1]
+        result: dict = deepcopy(self.splitter.data[1])
+        return result
 
 
 class PreprocessorOperator(Operator):
@@ -213,9 +232,7 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = Processor(
-            metadata=input['metadata']
-        )
+        self.processor = Processor(metadata=input['metadata'])
         # for keep default but update manual only
         self.processor.update_config(self._config)
         if self._sequence is None:
@@ -251,7 +268,26 @@ class PreprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_preproc
+        result: pd.DataFrame = deepcopy(self.data_preproc)
+        return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata of the loaded data.
+            If the encoder is EncoderUniform,
+            update the metadata infer_dtype to numerical.
+
+        Returns:
+            (Metadata): The metadata of the loaded data.
+        """
+        metadata: Metadata = deepcopy(self.input['metadata'])
+
+        if 'encoder' in self.processor._sequence:
+            encoder_cfg: dict = self.processor.get_config()['encoder']
+            for col, encoder in encoder_cfg.items():
+                if isinstance(encoder, EncoderUniform):
+                    metadata.set_col_infer_dtype(col, 'numerical') # for SDV
+        return metadata
 
 
 class SynthesizerOperator(Operator):
@@ -292,22 +328,32 @@ class SynthesizerOperator(Operator):
 
         Returns:
             dict:
-                Synthesizer input should contains data (pd.DataFrame).
+                Synthesizer input should contains data (pd.DataFrame)
+                    and SDV format metadata (dict or None).
         """
+        if status.metadata == {}:  # no metadata
+            self.input['metadata'] = None
+        else:
+            if 'Preprocessor' in status.metadata:
+                module = 'Preprocessor'
+            else:
+                module = 'Loader'
+            self.input['metadata'] = status.get_metadata(module).to_sdv()
+
         try:
             self.input['data'] = status.get_result(
                 status.get_pre_module('Synthesizer')
             )
         except:
             raise ConfigError
-
         return self.input
 
     def get_result(self):
         """
         Retrieve the synthesizing result.
         """
-        return self.synthesizer.data_syn
+        result: pd.DataFrame = deepcopy(self.synthesizer.data_syn)
+        return result
 
 
 class PostprocessorOperator(Operator):
@@ -371,7 +417,8 @@ class PostprocessorOperator(Operator):
         """
         Retrieve the pre-processing result.
         """
-        return self.data_postproc
+        result: pd.DataFrame = deepcopy(self.data_postproc)
+        return result
 
 
 class EvaluatorOperator(Operator):
@@ -435,11 +482,11 @@ class EvaluatorOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.evaluator.get_global()
-        result['columnwise'] = self.evaluator.get_columnwise()
-        result['pairwise'] = self.evaluator.get_pairwise()
+        result['global'] = self.evaluator.get_global() # pd.DataFrame
+        result['columnwise'] = self.evaluator.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.evaluator.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class DescriberOperator(Operator):
@@ -497,11 +544,11 @@ class DescriberOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.describer.get_global()
-        result['columnwise'] = self.describer.get_columnwise()
-        result['pairwise'] = self.describer.get_pairwise()
+        result['global'] = self.describer.get_global() # pd.DataFrame
+        result['columnwise'] = self.describer.get_columnwise() # pd.DataFrame
+        result['pairwise'] = self.describer.get_pairwise() # pd.DataFrame
 
-        return result
+        return deepcopy(result)
 
 
 class ReporterOperator(Operator):
@@ -544,6 +591,10 @@ class ReporterOperator(Operator):
         if 'Reporter' in self.reporter.result:
             # ReporterSaveReport
             temp = self.reporter.result['Reporter']
+            # exception handler so no need to collect exist report in this round
+            #   e.g. no matched granularity
+            if 'warnings' in temp:
+                return
             if not all(key in temp for key in ['eval_expt_name', 'report']):
                 raise ConfigError
             eval_expt_name = temp['eval_expt_name']
@@ -598,4 +649,4 @@ class ReporterOperator(Operator):
             (dict) key as module name,
             value as raw/processed data (others) or report data (Reporter)
         """
-        return self.report
+        return deepcopy(self.report)

@@ -7,7 +7,7 @@ from PETsARD import Evaluator
 
 
 eval = Evaluator(
-    method='anonymeter-singlingout_univariate',
+    method='anonymeter-singlingout',
     n_attacks=2000
 )
 eval.create(
@@ -41,7 +41,7 @@ eval = Evaluator(
 **Parameters**
 
 
-`method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout_univariate'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout_univariate'`
+`method` (`str`): The evaluation method. Case insensitive. The format should be: `{library name}-{function name}`. For example, `'anonymeter-singlingout'`. 評估方法，字串不區分大小寫。格式須為 `{套件名}-{函式名}`，例如：`'anonymeter-singlingout'`
 - `method = 'default'` will use `PETsARD` default evaluation: SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`). `method = 'default'` 將使用 `PETsARD` 預設的評測方式：SDMetrics - QualityReport (`'sdmetrics-single_table-qualityreport'`).
 - `method = 'custom_method'` support users in evaluating with custom Python functions. `method = 'custom_method'` 支援使用者使用自定義 Python 函式做評測。
   - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. You can import from here: 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。您可以從這裡導入：
@@ -191,11 +191,11 @@ In this section, we provide a comprehensive list of supported evaluator types, t
 
 | Submodule | Class | Alias (`method` name) | `'ori'` needed | `'syn'` needed | `'control'` needed |
 |---|:---:|:---:|:---:|:---:|:---:|
-| `anonymeter` | `AnonymeterSinglingOutUnivariate` | 'anonymeter-singlingout_univariate' | ✅ | ✅ | ✅ |
-| `anonymeter` | `AnonymeterLinkability` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
-| `anonymeter` | `AnonymeterInference` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
-| `sdmetrics` | `SDMetricsDiagnosticReport` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
-| `sdmetrics` | `SDMetricsQualityReport` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
+| `anonymeter` | `Anonymeter` | 'anonymeter-singlingout' | ✅ | ✅ | ✅ |
+| `anonymeter` | `Anonymeter` | 'anonymeter-linkability' | ✅ | ✅ | ✅ |
+| `anonymeter` | `Anonymeter` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
+| `sdmetrics` | `SDMetrics` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
+| `sdmetrics` | `SDMetrics` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-regression' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-classification' | ✅ | ✅ |  |
 | `automl` | `ML` | 'automl-cluster' | ✅ | ✅ |  |
@@ -219,7 +219,7 @@ Therefore, `PETsARD` includes built-in calls to `anonymeter`. For more details, 
 因此 `PETsARD` 整合了對 `anonymeter` 的使用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
 
 
-### `'anonymeter-singlingout_univariate'`
+### `'anonymeter-singlingout'`
 
 
 Singling Out risk represents the possibility of still being able to identify a particular individual, their part, or complete records, even after any Privacy-Enhancing Techniques have been applied. In the example from the `anonymeter`, it refers to the scenario where "there is only one person with attributes X, Y, and Z". In other words, attackers may attempt to identify specific individuals.
@@ -236,6 +236,10 @@ The paper on `anonymeter` specifically mentions: "It's important to note that si
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of distinct `queries`. A `query` is a specific condition-based searching command matching only one record in a certain field, achieving Singling Out. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指不重複搜索語句 (`queries`)的數量。搜索語句是特定的條件查詢式，使得該語句能在某欄位中僅對應到一筆資料，達到指認性。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
+`n_cols` (`int`, default=`3`): The number of columns used for generating Singling Out `queries`. 用於產生一個搜索語句的欄位數目。
+
+`max_attempts` (`int`, default=`500000`): The maximum number of attempts to find a successful attack. 找到成功攻擊的最大嘗試次數。
+
 
 ### `'anonymeter-linkability'`
 
@@ -250,9 +254,11 @@ Linkability risk represents the possibility that, even after Privacy-Enhancing T
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
+`max_n_attacks` (`bool`, default=`False`): Determines whether to enforce the maximum number of attacks. Support only for Linkability and Inference. If True, the input for `n_attacks` is forcibly set to the theoretical maximum number of attacks. 決定是否強制使用最大攻擊次數。此選項僅支援連結性和推斷性攻擊。當設定為 True 時，`n_attacks` 的輸入將被強制設定為理論上的最大攻擊次數。
+
 `aux_cols` (`Tuple[List[str], List[str]]`): Columns of the auxiliary information. 輔助資訊欄位。
 
-> The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping original train data columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine whether the data from one dataset belongs to certain records in another dataset. In this context, the auxiliary data columns `aux_cols` are the two pieces of information the attackers own. 
+> The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping original train data columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine whether the data from one dataset belongs to certain records in another dataset. In this context, the auxiliary data columns `aux_cols` are the two pieces of information the attackers own.
 > For example, a medical center intends to release synthesized data from their heart disease research, which includes age, gender, postal code, and the number of heart attacks. Meanwhile, the attacker may have obtained real population data, such as gender and postal codes, from public sources or data leaks, along with real epidemiological data, such as age and the frequency of heart attacks, in their original form or in proportion. In this case, `aux_cols` is shown below.
 > The potential linkage attack method in this case may be that "due to the close similarity between the real population data and real epidemiological data with the values in this synthesized data, it is possible to link the age and the frequency of heart attacks of a certain group of people from the population data, or link the gender and place of residence of a certain group of people from the epidemiological data."
 > `aux_cols` involves domain-specific knowledge about the dataset, so neither `PETsARD` nor `anonymeter` provide default values for it. Users need to configure it themselves based on their understanding of the dataset. In future updates, following the experimental approach outlined in the `anonymeter` paper, different amounts of auxiliary information will be considered. The attacker's auxiliary information will be sampled from "only two columns" to "the maximum number of columns in the dataset," and these options will be provided as default values.
@@ -296,9 +302,11 @@ Inference risk represents the possibility that, even after Privacy-Enhancing Tec
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
+`max_n_attacks` (`bool`, default=`False`): Determines whether to enforce the maximum number of attacks. Support only for Linkability and Inference. If True, the input for `n_attacks` is forcibly set to the theoretical maximum number of attacks. 決定是否強制使用最大攻擊次數。此選項僅支援連結性和推斷性攻擊。當設定為 True 時，`n_attacks` 的輸入將被強制設定為理論上的最大攻擊次數。
+
 `secret` (`str`) Column(s) of secret information. 秘密資訊欄位。
 
-`aux_cols` (`List[str]`) Columns of auxiliary information. 輔助資訊欄位。
+`aux_cols` (`List[str]`, default=None) Columns of auxiliary information. The default value consists of a list of columns excluding those that contain the keyword `secret`. In other words, if `aux_cols` is not specifically designated, this parameter will include all columns except those with `secret`. 輔助資訊欄位。預設值為排除包含 `secret` 關鍵字的所有欄位後的欄位列表。換句話說，如果不特別指定 `aux_cols`，則該參數會包含所有非 `secret` 欄位。
 
 > In the context of Inference risk, the parameters `secret` and `aux_cols` go hand in hand. `secret` represents the attribute that is kept confidential, and in this scenario, `aux_cols` are the attributes other than secret that are considered to provide auxiliary information to the attacker.
 >The example provided by `anonymeter` suggests the following configuration:
