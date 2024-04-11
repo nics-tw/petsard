@@ -254,9 +254,11 @@ Linkability risk represents the possibility that, even after Privacy-Enhancing T
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
 
+`max_n_attacks` (`bool`, default=`False`): Determines whether to enforce the maximum number of attacks. Support only for Linkability and Inference. If True, the input for `n_attacks` is forcibly set to the theoretical maximum number of attacks. 決定是否強制使用最大攻擊次數。此選項僅支援連結性和推斷性攻擊。當設定為 True 時，`n_attacks` 的輸入將被強制設定為理論上的最大攻擊次數。
+
 `aux_cols` (`Tuple[List[str], List[str]]`): Columns of the auxiliary information. 輔助資訊欄位。
 
-> The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping original train data columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine whether the data from one dataset belongs to certain records in another dataset. In this context, the auxiliary data columns `aux_cols` are the two pieces of information the attackers own. 
+> The pattern of Linkability attacks assumes that attackers, whether malicious or honest-but-curious users, possesses two sets of non-overlapping original train data columns. When composite synthesized data involving these two sets of data columns is released, the attacker can use the synthetic data to link to their own original data, to determine whether the data from one dataset belongs to certain records in another dataset. In this context, the auxiliary data columns `aux_cols` are the two pieces of information the attackers own.
 > For example, a medical center intends to release synthesized data from their heart disease research, which includes age, gender, postal code, and the number of heart attacks. Meanwhile, the attacker may have obtained real population data, such as gender and postal codes, from public sources or data leaks, along with real epidemiological data, such as age and the frequency of heart attacks, in their original form or in proportion. In this case, `aux_cols` is shown below.
 > The potential linkage attack method in this case may be that "due to the close similarity between the real population data and real epidemiological data with the values in this synthesized data, it is possible to link the age and the frequency of heart attacks of a certain group of people from the population data, or link the gender and place of residence of a certain group of people from the epidemiological data."
 > `aux_cols` involves domain-specific knowledge about the dataset, so neither `PETsARD` nor `anonymeter` provide default values for it. Users need to configure it themselves based on their understanding of the dataset. In future updates, following the experimental approach outlined in the `anonymeter` paper, different amounts of auxiliary information will be considered. The attacker's auxiliary information will be sampled from "only two columns" to "the maximum number of columns in the dataset," and these options will be provided as default values.
@@ -299,6 +301,8 @@ Inference risk represents the possibility that, even after Privacy-Enhancing Tec
 
 
 `n_attacks` (`int`, default=`2000`): Number of times this particular attack will be executed. In this case, it is the number of rows in the training dataset. A higher number will reduce the statistical uncertainties on the results, at the expense of a longer computation time. 攻擊執行次數，在此是指訓練資料集行數。較高的數量會降低結果的統計不確定性，但會增加運算時間。
+
+`max_n_attacks` (`bool`, default=`False`): Determines whether to enforce the maximum number of attacks. Support only for Linkability and Inference. If True, the input for `n_attacks` is forcibly set to the theoretical maximum number of attacks. 決定是否強制使用最大攻擊次數。此選項僅支援連結性和推斷性攻擊。當設定為 True 時，`n_attacks` 的輸入將被強制設定為理論上的最大攻擊次數。
 
 `secret` (`str`) Column(s) of secret information. 秘密資訊欄位。
 
