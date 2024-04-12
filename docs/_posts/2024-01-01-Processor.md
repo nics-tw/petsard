@@ -169,7 +169,7 @@ proc.fit(
 
 `data` (`pandas.DataFrame`): The data to be fitted. 用來學習的資料。
 
-`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missingist'`, `'outlierist'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missingist', 'outlierist', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missingist'`、`'outlierist'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missingist', 'outlierist', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
+`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missing'`, `'outlier'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missing', 'outlier', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missing'`、`'outlier'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missing', 'outlier', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
 
 
 ## `transform()`

@@ -18,7 +18,7 @@ The main functionalities include dataset description, various dataset generation
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
 
-- [Milestone - 0.9.0](https://github.com/nics-tw/PETsARD/releases/tag/v0.9.0)
+- [Milestone - 0.10.0](https://github.com/nics-tw/PETsARD/releases/tag/v0.10.0)
     - The Milestone document provide detailed information about the latest version of `PETsARD`.
     - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
 - [HISTORY.md](https://github.com/nics-tw/PETsARD/blob/main/HISTORY.md)

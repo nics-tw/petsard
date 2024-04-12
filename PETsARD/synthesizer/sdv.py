@@ -1,7 +1,7 @@
 import re
 import time
 
-import pandas as pd
+from scipy.stats._warnings_errors import FitError
 from sdv.metadata import SingleTableMetadata
 from sdv.single_table import (
     CopulaGANSynthesizer,
@@ -9,8 +9,10 @@ from sdv.single_table import (
     GaussianCopulaSynthesizer,
     TVAESynthesizer
 )
+import pandas as pd
 
-from PETsARD.error import UnfittedError, UnsupportedMethodError
+from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
+from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
 class SDVMap():
@@ -63,17 +65,17 @@ class SDVFactory:
         metadata = kwargs.get('metadata', None)
 
         if method_code == SDVMap.COPULAGAN:
-            self.Synthesizer = SDVSingleTableCopulaGAN(data=data, 
-                                                       metadata=metadata)
+            self.synthesizer = SDVSingleTableCopulaGAN(
+                data=data, metadata=metadata)
         elif method_code == SDVMap.CTGAN:
-            self.Synthesizer = SDVSingleTableCTGAN(data=data, 
-                                                   metadata=metadata)
+            self.synthesizer = SDVSingleTableCTGAN(
+                data=data, metadata=metadata)
         elif method_code == SDVMap.GAUSSIANCOPULA:
-            self.Synthesizer = SDVSingleTableGaussianCopula(data=data, 
-                                                            metadata=metadata)
+            self.synthesizer = SDVSingleTableGaussianCopula(
+                data=data, metadata=metadata)
         elif method_code == SDVMap.TVAE:
-            self.Synthesizer = SDVSingleTableTVAE(data=data, 
-                                                  metadata=metadata)
+            self.synthesizer = SDVSingleTableTVAE(
+                data=data, metadata=metadata)
         else:
             raise UnsupportedMethodError
 
@@ -82,169 +84,96 @@ class SDVFactory:
         Create synthesizer instance.
 
         Return:
-            self.Synthesizer (synthesizer): The synthesizer instance.
+            self.synthesizer (synthesizer): The synthesizer instance.
         """
-        return self.Synthesizer
+        return self.synthesizer
 
 
-class SDV():
-    """
-    Base class for all "SDV".
-        The "SDV" class defines the common API
-        that all the "SDV" need to implement, as well as common functionality.
-
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        **kwargs: The other parameters.
-    """
-
-    def __init__(self, data: pd.DataFrame, **kwargs):
-        self.data: pd.DataFrame = data
-        self.syn_method: str = 'Unknown'
-
-
-class SDVSingleTable(SDV):
+class SDVSingleTable(SyntheszierBase):
     """
     Base class for all SDV SingleTable classes.
-
-    Args:
-        data (pd.DataFrame): The data to be synthesized.
-        metadata (dict, default=None): The metadata of the data.
-        **kwargs: The other parameters.
     """
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
+        """
+        Args:
+            data (pd.DataFrame): The data to be synthesized.
+            metadata (dict, default=None): The metadata of the data.
+            **kwargs: The other parameters.
+
+        Attr.:
+            syn_module (str): The name of the synthesizer module.
+            metadata (SingleTableMetadata): The metadata of the data.
+        """
         super().__init__(data, **kwargs)
+        self.syn_module: str = 'SDV'
+        self.metadata: SingleTableMetadata = SingleTableMetadata()
 
         self._SingleTableMetadata(metadata)
 
     def _SingleTableMetadata(self, metadata) -> None:
         """
         Create metadata for SDV.
+            If metadata is provided, load it.
+            Otherwise, detect the metadata from the data.
+
         Args:
             metadata (dict): The metadata of the data.
-        Return:
-            None
         """
-        time_start = time.time()
-
-        self.metadata = SingleTableMetadata()
         if metadata:
-            # if a metadata is provided, load it
             self.metadata = self.metadata.load_from_dict(metadata)
         else:
-            # otherwise, detect the metadata from the data
             self.metadata.detect_from_dataframe(self.data)
-        print(
-            f"Synthesizer (SDV - SingleTable): "
-            f"Metafile loading time: "
-            f"{round(time.time()-time_start ,4)} sec."
-        )
 
-    def fit(self) -> None:
+    def _fit(self) -> None:
         """
         Fit the synthesizer.
         """
-        if self._Synthesizer:
-            time_start = time.time()
-
-            print(
-                f"Synthesizer (SDV - SingleTable): Fitting {self.syn_method}."
+        try:
+            self._synthesizer.fit(self.data)
+        except FitError as ex: # See Issue 454
+            raise UnableToSynthesizeError(
+                f"Synthesizer ({self.syn_module} - {self.syn_method}): "
+                f"This datasets couldn't fit in this method. "
+                f"If you were in Executor process, "
+                f"please remove this experiment and try again. \n"
+                f"Following is original error msg: \n"
+                f"FitError: {ex}"
             )
-            self._Synthesizer.fit(self.data)
-            print(
-                f"Synthesizer (SDV - SingleTable): "
-                f"Fitting  {self.syn_method} spent "
-                f"{round(time.time()-time_start ,4)} sec."
-            )
-        else:
-            raise UnfittedError
 
-    def sample(self,
-               sample_num_rows:  int = None,
-               reset_sampling:   bool = False,
-               output_file_path: str = None
-               ) -> pd.DataFrame:
+    def _sample(self) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
+            If sample_num_rows more than 100K, batch 100K at once,
+                otherwise same as sample_num_rows
 
-        Args:
-            sample_num_rows (int, default=None): Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False): Whether the method should reset the randomisation.
-            output_file_path (str, default=None): The location of the output file.
-
-        Return:
-            data_syn (pd.DataFrame): The synthesized data.
-        """
-        if self._Synthesizer:
-            try:
-                time_start = time.time()
-
-                # sample_num_rows: if didn't set sample_num_rows,
-                #                  default is same as train data rows.
-                self.sample_num_rows_as_raw = (
-                    True if sample_num_rows is None
-                    else False
-                )
-                self.sample_num_rows = (
-                    self.data.shape[0] if self.sample_num_rows_as_raw
-                    else sample_num_rows
-                )
-
-                # batch_size: if sample_num_rows more than 1M,
-                #             batch 100K at once,
-                #             otherwise same as sample_num_rows
-                self.sample_batch_size = (
-                    100000 if self.sample_num_rows >= 1000000
-                    else self.sample_num_rows
-                )
-
-                if reset_sampling:
-                    self._Synthesizer.reset_sampling()
-
-                data_syn = self._Synthesizer.sample(
-                    num_rows=self.sample_num_rows,
-                    batch_size=self.sample_batch_size,
-                    output_file_path=output_file_path
-                )
-
-                str_sample_num_rows_as_raw = (
-                    ' (same as raw)' if self.sample_num_rows_as_raw
-                    else ''
-                )
-                print(
-                    f"Synthesizer (SDV - SingleTable): "
-                    f"Sampling {self.syn_method} "
-                    f"# {self.sample_num_rows} rows"
-                    f"{str_sample_num_rows_as_raw} "
-                    f"in {round(time.time()-time_start ,4)} sec."
-                )
-                return data_syn
-            except Exception as ex:
-                raise UnfittedError
-        else:
-            raise UnfittedError
-
-    def fit_sample(
-            self,
-            sample_num_rows:  int = None,
-            reset_sampling:   bool = False,
-            output_file_path: str = None
-    ) -> pd.DataFrame:
-        """
-        Fit and sample from the synthesizer
-            The combination of the methods `fit()` and `sample()`.
-
-        Args:
-            sample_num_rows (int, default=None): Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False): Whether the method should reset the randomisation.
-            output_file_path (str, default=None): The location of the output file.
+        Attr:
+            sample_num_rows (int): The number of rows to be sampled.
+            reset_sampling (bool):
+                Whether the method should reset the randomisation.
 
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        self.fit()
-        return self.sample(sample_num_rows, reset_sampling, output_file_path)
+
+        # batch_size: if sample_num_rows more than 1M,
+        #             batch 100K at once,
+        #             otherwise same as sample_num_rows
+        sample_batch_size: int = (
+            100000 if self.sample_num_rows >= 100000
+            else self.sample_num_rows
+        )
+
+        if self.reset_sampling:
+            self._synthesizer.reset_sampling()
+
+        data_syn: pd.DataFrame = self._synthesizer.sample(
+            num_rows=self.sample_num_rows,
+            batch_size=sample_batch_size,
+            output_file_path=None
+        )
+
+        return data_syn
 
 
 class SDVSingleTableCopulaGAN(SDVSingleTable):
@@ -253,6 +182,7 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
@@ -260,8 +190,7 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'CopulaGAN'
 
-        # metadata already create in SDV_SingleTable
-        self._Synthesizer = CopulaGANSynthesizer(self.metadata)
+        self._synthesizer = CopulaGANSynthesizer(self.metadata)
 
 
 class SDVSingleTableCTGAN(SDVSingleTable):
@@ -270,15 +199,15 @@ class SDVSingleTableCTGAN(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
         super().__init__(data, metadata, **kwargs)
-
         self.syn_method: str = 'CTGAN'
 
-        self._Synthesizer = CTGANSynthesizer(self.metadata)
+        self._synthesizer = CTGANSynthesizer(self.metadata)
 
 
 class SDVSingleTableGaussianCopula(SDVSingleTable):
@@ -287,6 +216,7 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
@@ -294,7 +224,7 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'GaussianCopula'
 
-        self._Synthesizer = GaussianCopulaSynthesizer(self.metadata)
+        self._synthesizer = GaussianCopulaSynthesizer(self.metadata)
 
 
 class SDVSingleTableTVAE(SDVSingleTable):
@@ -303,6 +233,7 @@ class SDVSingleTableTVAE(SDVSingleTable):
 
     Args:
         data (pd.DataFrame): The data to be synthesized.
+        metadata (dict, default=None): The metadata of the data.
         **kwargs: The other parameters.
     """
 
@@ -310,4 +241,4 @@ class SDVSingleTableTVAE(SDVSingleTable):
         super().__init__(data, metadata, **kwargs)
         self.syn_method: str = 'TVAE'
 
-        self._Synthesizer = TVAESynthesizer(self.metadata)
+        self._synthesizer = TVAESynthesizer(self.metadata)
