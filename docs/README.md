@@ -21,8 +21,8 @@ The main functionalities include dataset description, various dataset generation
 - [Milestone - 0.10.0](https://github.com/nics-tw/PETsARD/releases/tag/v0.10.0)
     - The Milestone document provide detailed information about the latest version of `PETsARD`.
     - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
-- [HISTORY.md](https://github.com/nics-tw/PETsARD/blob/main/HISTORY.md)
-    - The History document provide the changelog for understand the evolution of the `PETsARD` over time.
+- [CHANGELOG.md](https://github.com/nics-tw/PETsARD/blob/main/CHANGELOG.md)
+    - The Changelog document provide the changelog for understand the evolution of the `PETsARD` over time.
     - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
 - [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)
     - The User Guide aims to assist developers in rapidly acquiring the necessary skills for utlisiing `PETsARD` in data synthesis, evaluating synthesized data, and enhancing the research efficiency in Privacy Enhancing Technologies-related fields.
