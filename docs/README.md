@@ -13,7 +13,7 @@ TODO Git
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
 
-`PETsARD`（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法及其評估過程而設計的 Python 程式庫。
+`PETsARD`（隱私強化技術分析、研究與開發）是一套為了促進資料生成演算法及其評估過程而設計的 Python 程式庫。
 
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
@@ -25,8 +25,8 @@ The main functionalities include dataset description, various dataset generation
     - The History document provide the changelog for understand the evolution of the `PETsARD` over time.
     - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
 - [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)
-    - The User Guide is designed to assist developers in rapidly acquiring the skills necessary to employ `PETsARD` for data synthesis, the evaluation of synthesized data, and the improvement of their research efficiency in privacy enhancement-related fields.
-    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及在隱私增強相關領域提升他們的研究效率。
+    - The User Guide aims to assist developers in rapidly acquiring the necessary skills for utlisiing `PETsARD` in data synthesis, evaluating synthesized data, and enhancing the research efficiency in Privacy Enhancing Technologies-related fields.
+    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及提升開發者隱私增強相關領域的研究效率。
 
 
 # Installation 安裝
