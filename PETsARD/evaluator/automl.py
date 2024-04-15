@@ -216,7 +216,7 @@ class ML:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            target (str): The target column of the data.
+            target (pd.DataFrame): The target column of the data.
             n_splits (int): The parameter for k-fold cross validation. Should
             be greater than 1.
 
@@ -286,7 +286,7 @@ class ML:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            target (str): The target column of the data.
+            target (pd.DataFrame): The target column of the data.
             n_splits (int): The parameter for k-fold cross validation. Should
             be greater than 1.
 
