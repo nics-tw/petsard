@@ -512,7 +512,7 @@ class Processor:
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
 
-        return transformed
+        return self._align_dtypes(transformed)
 
     # determine whether the processors are not default settings
     def get_changes(self) -> dict:
@@ -588,3 +588,19 @@ class Processor:
                         for col in new_col:
                             self._working_config[processor][col] = \
                                 deepcopy(self._config[processor][ori_col])
+                            
+    def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Align the data types between the data and the metadata.
+
+        Args:
+            data (pd.DataFrame): The data to be aligned.
+
+        Return:
+            (pd.DataFrame): The aligned data.
+        """
+        for col, val in self._metadata['col'].items():
+            if data[col].dtype != val['dtype']:
+                data[col] = data[col].astype(val['dtype'])
+
+        return data
