@@ -229,7 +229,7 @@ class MLWorker:
 
         Args:
             X_train (pd.DataFrame): The data to be fitted.
-            y_test (pd.DataFrame): The target column of the training data.
+            y_train (pd.DataFrame): The target column of the training data.
             X_test (pd.DataFrame): The data to be tested.
             y_test (pd.DataFrame): The target column of the testing data.
 
@@ -278,7 +278,7 @@ class MLWorker:
 
         Args:
             X_train (pd.DataFrame): The data to be fitted.
-            y_test (pd.DataFrame): The target column of the training data.
+            y_train (pd.DataFrame): The target column of the training data.
             X_test (pd.DataFrame): The data to be tested.
             y_test (pd.DataFrame): The target column of the testing data.
 
