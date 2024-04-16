@@ -1,4 +1,6 @@
+import re
 import warnings
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -12,7 +14,6 @@ from sklearn.metrics import f1_score, silhouette_score
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util.safe_round import safe_round
-import re
 
 
 class MLUtilityMap():
