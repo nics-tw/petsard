@@ -1,4 +1,4 @@
-## History 歷史
+## Changelog 歷史
 
 - **Beta testing 外部測試階段**
     - **0.10.0** (2024-04-12): **Feasibility study-2** **適用性研究之二**
