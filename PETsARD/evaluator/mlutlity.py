@@ -166,7 +166,13 @@ class MLWorker:
         data_syn = data_syn.dropna()
         data_test = data_test.dropna()
 
-        if 'target' in self.config:
+        if self.config['method_code'] == MLUtilityMap.CLUSTER:
+            pass
+        elif self.config['method_code'] in [
+            MLUtilityMap.CLASSIFICATION, MLUtilityMap.REGRESSION
+        ]:
+            if 'target' not in self.config:
+                raise ConfigError
             target = self.config['target']
             target_ori = data_ori[target].values
             data_ori = data_ori.drop(columns=[target])
@@ -175,8 +181,7 @@ class MLWorker:
             target_test = data_test[target].values
             data_test = data_test.drop(columns=[target])
         else:
-            if self.config['method_code'] != MLUtilityMap.CLUSTER:
-                raise ConfigError
+            raise ConfigError
 
         # One-hot encoding
 
