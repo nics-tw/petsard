@@ -6,6 +6,4 @@ from PETsARD.evaluator.mlutlity import MLUtility
 __all__ = [
     'Evaluator',
     'Describer',
-    'AutoML',
-    'MLUtility'
 ]
