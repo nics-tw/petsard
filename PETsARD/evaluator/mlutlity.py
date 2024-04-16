@@ -137,6 +137,10 @@ class MLWorker:
         self.result: dict = {}
 
         self.n_clusters = self.config.get('n_clusters', [4, 5, 6])
+        if not isinstance(self.n_clusters, list):
+            raise ConfigError
+        if not all(isinstance(x, int) for x in self.n_clusters):
+            raise ConfigError
 
         self.data_content: pd.DataFrame = None
 
