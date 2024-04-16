@@ -591,7 +591,18 @@ class Processor:
                             
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Align the data types between the data and the metadata.
+        Align the data types between the data and the metadata by the following
+        rules:
+            1. If the original data type is int, and the inverse transformed
+            date type is float, it will be converted to int after rounding.
+            2. If the original data type is float, and the inverse transformed
+            date type is int, it will be converted to float using astype().
+            3. If the original data type is str/object, using astype() to convert
+            the data type regardless of the inverse transformed data type.
+            4. If the original data type is datetime, and the inverse transformed
+            data type is int/float, it will be converted to datetime using
+            astype().
+            5. Raise an error for other cases.
 
         Args:
             data (pd.DataFrame): The data to be aligned.
@@ -601,6 +612,39 @@ class Processor:
         """
         for col, val in self._metadata['col'].items():
             if data[col].dtype != val['dtype']:
-                data[col] = data[col].astype(val['dtype'])
-
+                if pd.api.types.is_integer_dtype(val['dtype']) and \
+                    pd.api.types.is_float_dtype(data[col].dtype):
+                    logging.info(f'{col} changes data type from' + 
+                                 f' {data[col].dtype} to {val["dtype"]}' + 
+                                 ' for metadata alignment.')
+                    data[col] = data[col].round().astype(val['dtype'])
+                    
+                elif pd.api.types.is_float_dtype(val['dtype']) and \
+                    pd.api.types.is_integer_dtype(data[col].dtype):
+                    logging.info(f'{col} changes data type from' + 
+                                 f' {data[col].dtype} to {val["dtype"]}' + 
+                                 ' for metadata alignment.')
+                    data[col] = data[col].astype(val['dtype'])
+                    
+                elif pd.api.types.is_string_dtype(val['dtype']) or \
+                    pd.api.types.is_object_dtype(val['dtype']):
+                    logging.info(f'{col} changes data type from' + 
+                                 f' {data[col].dtype} to {val["dtype"]}' + 
+                                 ' for metadata alignment.')
+                    data[col] = data[col].astype(val['dtype'])
+                    
+                elif pd.api.types.is_datetime64_any_dtype(val['dtype']) and \
+                    (pd.api.types.is_integer_dtype(data[col].dtype) or \
+                    pd.api.types.is_float_dtype(data[col].dtype)):
+                    logging.info(f'{col} changes data type from' + 
+                                 f' {data[col].dtype} to {val["dtype"]}' + 
+                                 ' for metadata alignment.')
+                    data[col] = data[col].astype(val['dtype'])
+                    
+                else:
+                    raise TypeError(
+                        f'The data type of {col} is {data[col].dtype}', 
+                        f', which is not aligned with the metadata: {val["dtype"]}.'
+                    )
+            
         return data
