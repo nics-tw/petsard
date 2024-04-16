@@ -200,9 +200,16 @@ transformed_data = proc.transform(data=data)
 ## `inverse_transform()`
 
 
-Conduct the data postprocessing procedure.
+Conduct the data postprocessing procedure. Noted that it also transforms the data types to align with the metadata using the following rules, and raises an error for other cases.
 
-進行資料後處理。
+進行資料後處理。值得注意的是，它會根據以下表格對資料格式進行轉換，以符合元資料中的定義。若遇到其他狀況，則會出現錯誤訊息。
+
+| Original Data Type | Transformed Data Type | Action                          |
+|--------------------|-----------------------|---------------------------------|
+| `int`              | `float`               | Convert to `int` after rounding |
+| `float`            | `int`                 | Convert to `float`              |
+| `str` / `object`   | Any                   | Convert to `str`  /  `object`   |
+| `datetime`         | `int` / `float`       | Convert to `datetime`           |
 
 
 ```Python
