@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor,\
-        RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
+    RandomForestClassifier, GradientBoostingClassifier
 from sklearn.cluster import KMeans
 from sklearn.metrics import f1_score, silhouette_score
 
@@ -13,6 +13,7 @@ from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util.safe_round import safe_round
 import re
+
 
 class MLUtilityMap():
     """
@@ -39,6 +40,7 @@ class MLUtilityMap():
             ]
         except KeyError:
             raise UnsupportedMethodError
+
 
 class MLUtility(EvaluatorBase):
     """
@@ -174,15 +176,15 @@ class MLWorker:
         else:
             if self.config['method_code'] != MLUtilityMap.CLUSTER:
                 raise ConfigError
-        
+
         # One-hot encoding
 
         cat_col = (data_ori.dtypes == 'category')\
             .reset_index(name='is_cat').query('is_cat == True')['index'].values
-        
+
         if len(cat_col) != 0:
             ohe = OneHotEncoder(drop='first', sparse_output=False,
-                            handle_unknown='infrequent_if_exist')
+                                handle_unknown='infrequent_if_exist')
             ohe.fit(data_ori[cat_col])
             data_ori_cat = ohe.transform(data_ori[cat_col])
             data_syn_cat = ohe.transform(data_syn[cat_col])
@@ -207,13 +209,12 @@ class MLWorker:
             self.result_syn = self._classification(data_syn, target_syn,
                                                    data_test, target_test)
         elif self.config['method_code'] == MLUtilityMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, data_test, 
+            self.result_ori = self._cluster(data_ori, data_test,
                                             self.n_clusters)
             self.result_syn = self._cluster(data_syn, data_test,
                                             self.n_clusters)
 
         self.result = {'ori': self.result_ori, 'syn': self.result_syn}
-
 
     def _regression(self, X_train, y_train, X_test, y_test):
         """
@@ -284,7 +285,7 @@ class MLWorker:
             result (dict): The result of the evaluation.
         """
         result = {}
-            
+
         ss = StandardScaler()
         X_train = ss.fit_transform(X_train)
         X_test = ss.transform(X_test)
@@ -300,24 +301,24 @@ class MLWorker:
         gb.fit(X_train, y_train)
 
         result['logistic_regression'] = self._lower_bound_check(
-                f1_score(y_test, lr.predict(X_test), 
-                        average='micro'),
-                'classification'
+            f1_score(y_test, lr.predict(X_test),
+                     average='micro'),
+            'classification'
         )
         result['svc'] = self._lower_bound_check(
-                f1_score(y_test, svc.predict(X_test), 
-                        average='micro'),
-                'classification'
+            f1_score(y_test, svc.predict(X_test),
+                     average='micro'),
+            'classification'
         )
         result['random_forest'] = self._lower_bound_check(
-                f1_score(y_test, rf.predict(X_test), 
-                        average='micro'),
-                'classification'
+            f1_score(y_test, rf.predict(X_test),
+                     average='micro'),
+            'classification'
         )
         result['gradient_boosting'] = self._lower_bound_check(
-                f1_score(y_test, gb.predict(X_test), 
-                        average='micro'),
-                'classification'
+            f1_score(y_test, gb.predict(X_test),
+                     average='micro'),
+            'classification'
         )
 
         return result
@@ -355,12 +356,12 @@ class MLWorker:
             k_model.fit(X_train)
 
             result[f'KMeans_cluster{k}'] = self._lower_bound_check(
-                    silhouette_score(X_test, k_model.predict(X_test)),
-                    'cluster'
+                silhouette_score(X_test, k_model.predict(X_test)),
+                'cluster'
             )
 
         return result
-    
+
     def _lower_bound_check(self, value: float, type: 'str') -> float:
         """
         Check if the score is beyond the lower bound.
@@ -382,9 +383,9 @@ class MLWorker:
             lower_bound = -1
         else:
             lower_bound = 0
-        
+
         if value < lower_bound:
-            warnings.warn('The score is less than the lower bound,' + 
+            warnings.warn('The score is less than the lower bound,' +
                           ' indicating the performance is arbitrarily poor.' +
                           ' The score is set to the lower bound.')
             return lower_bound
@@ -402,17 +403,18 @@ class MLWorker:
 
         ori_value = list(self.result_ori.values())
 
-        normalise_range = 2 if self.config['method'] == 'cluster' else 1
+        normalise_range = 2 if self.config['method_code'] == \
+            MLUtilityMap.CLUSTER else 1
 
         compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
                                    'ori_std': safe_round(np.std(ori_value)),
                                    'syn_mean': safe_round(np.mean(syn_value)),
                                    'syn_std': safe_round(np.std(syn_value))},
-                                   index=[0])
+                                  index=[0])
 
         compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
-                                    compare_df['ori_mean']) /
-                                    normalise_range) * 100
+                                               compare_df['ori_mean']) /
+                                              normalise_range) * 100
 
         return compare_df
 
