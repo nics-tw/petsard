@@ -170,6 +170,13 @@ class MLWorker:
         data_syn = data_syn.dropna()
         data_test = data_test.dropna()
 
+        # Check if there is dataframe is not empty
+        if data_ori.shape[0] == 0 or data_syn.shape[0] == 0 or \
+                data_test.shape[0] == 0:
+            warnings.warn('The data is empty after removing missing values.')
+            self.result = {'ori': {'error': np.nan}, 'syn': {'error': np.nan}}
+            return
+
         if self.config['method_code'] == MLUtilityMap.CLUSTER:
             pass
         elif self.config['method_code'] in [
