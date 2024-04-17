@@ -366,17 +366,20 @@ class MLWorker:
             k_model.fit(X_train)
 
             try:
-                result[f'KMeans_cluster{k}'] = self._lower_bound_check(
-                    silhouette_score(X_test, k_model.predict(X_test)),
-                    'cluster'
-                )
+                silhouette_score_value: float = \
+                    silhouette_score(X_test, k_model.predict(X_test))
             except ValueError as e:
                 warnings.warn('There is only one cluster in the prediction, ' +
                               'or the valid data samples are too few, ' +
                               'indicating the performance is arbitrarily poor.' +
                               ' The score is set to the lower bound.' + 
                               ' Error message: ' + str(e))
-                result[f'KMeans_cluster{k}'] = -1
+                silhouette_score_value = -1
+
+            result[f'KMeans_cluster{k}'] = self._lower_bound_check(
+                silhouette_score_value,
+                'cluster'
+            )
 
         return result
 
