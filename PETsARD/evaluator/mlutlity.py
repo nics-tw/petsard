@@ -370,10 +370,12 @@ class MLWorker:
                     silhouette_score(X_test, k_model.predict(X_test)),
                     'cluster'
                 )
-            except ValueError:
+            except ValueError as e:
                 warnings.warn('There is only one cluster in the prediction, ' +
+                              'or the valid data samples are too few, ' +
                               'indicating the performance is arbitrarily poor.' +
-                              ' The score is set to the lower bound.')
+                              ' The score is set to the lower bound.' + 
+                              ' Error message: ' + str(e))
                 result[f'KMeans_cluster{k}'] = -1
 
         return result
