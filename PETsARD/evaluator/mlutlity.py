@@ -170,6 +170,13 @@ class MLWorker:
         data_syn = data_syn.dropna()
         data_test = data_test.dropna()
 
+        # Check if there is dataframe is not empty
+        if data_ori.shape[0] == 0 or data_syn.shape[0] == 0 or \
+                data_test.shape[0] == 0:
+            warnings.warn('The data is empty after removing missing values.')
+            self.result = {'ori': {'error': np.nan}, 'syn': {'error': np.nan}}
+            return
+
         if self.config['method_code'] == MLUtilityMap.CLUSTER:
             pass
         elif self.config['method_code'] in [
@@ -365,8 +372,19 @@ class MLWorker:
 
             k_model.fit(X_train)
 
+            try:
+                silhouette_score_value: float = \
+                    silhouette_score(X_test, k_model.predict(X_test))
+            except ValueError as e:
+                warnings.warn('There is only one cluster in the prediction, ' +
+                              'or the valid data samples are too few, ' +
+                              'indicating the performance is arbitrarily poor.' +
+                              ' The score is set to the lower bound.' + 
+                              ' Error message: ' + str(e))
+                silhouette_score_value = -1
+
             result[f'KMeans_cluster{k}'] = self._lower_bound_check(
-                silhouette_score(X_test, k_model.predict(X_test)),
+                silhouette_score_value,
                 'cluster'
             )
 
