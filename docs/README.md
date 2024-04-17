@@ -13,20 +13,20 @@ TODO Git
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
 
-`PETsARD`（隱私強化技術分析、研究與開發）是一套為了增進資料生成演算法及其評估過程而設計的 Python 程式庫。
+`PETsARD`（隱私強化技術分析、研究與開發）是一套為了促進資料生成演算法及其評估過程而設計的 Python 程式庫。
 
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
 
-- [Milestone - 0.10.0](https://github.com/nics-tw/PETsARD/releases/tag/v0.10.0)
+- [Milestone](https://github.com/nics-tw/PETsARD/releases/latest)
     - The Milestone document provide detailed information about the latest version of `PETsARD`.
     - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
-- [HISTORY.md](https://github.com/nics-tw/PETsARD/blob/main/HISTORY.md)
-    - The History document provide the changelog for understand the evolution of the `PETsARD` over time.
+- [CHANGELOG.md](https://github.com/nics-tw/PETsARD/blob/main/CHANGELOG.md)
+    - The Changelog document provide the changelog for understand the evolution of the `PETsARD` over time.
     - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
 - [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)
-    - The User Guide is designed to assist developers in rapidly acquiring the skills necessary to employ `PETsARD` for data synthesis, the evaluation of synthesized data, and the improvement of their research efficiency in privacy enhancement-related fields.
-    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及在隱私增強相關領域提升他們的研究效率。
+    - The User Guide aims to assist developers in rapidly acquiring the necessary skills for utlisiing `PETsARD` in data synthesis, evaluating synthesized data, and enhancing the research efficiency in Privacy Enhancing Technologies-related fields.
+    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及提升開發者隱私增強相關領域的研究效率。
 
 
 # Installation 安裝
@@ -138,14 +138,25 @@ Reporter:
 
 ## Modules 各模組
 
+- `Loader`: The module for data loading, see [Loader page](https://nics-tw.github.io/PETsARD/Loader.html).
+    - Benchmark datasets: The usage of `Loader` to download the benchmark datasets, see [Benchmark datasets page](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
+- `Splitter`: The module for splitting a dataset into training and validation datasets, see [Splitter page](https://nics-tw.github.io/PETsARD/Splitter.html).
+- `Processor`: The module for data pre/postprocessing, see [Processor page](https://nics-tw.github.io/PETsARD/Processor.html).
+- `Synthesizer`: The module for data synthesising, see [Synthesizer page](https://nics-tw.github.io/PETsARD/Synthesizer.html).
+- `Evaluator`: The module for synthetic data evaluation, see [Evaluator page](https://nics-tw.github.io/PETsARD/Evaluator.html).
+- `Describer`: The module for data description, see [Describer page](https://nics-tw.github.io/PETsARD/Describer.html).
+- `Reporter`: The module for data saving and report output, see [Reporter page](https://nics-tw.github.io/PETsARD/Reporter.html).
+
+<br>
+
 - `Loader`：讀取資料的模組，見 [Loader 頁面](https://nics-tw.github.io/PETsARD/Loader.html)。
     - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html)。
 - `Splitter`：把資料切分成實驗組與控制組的模組，見 [Splitter 頁面](https://nics-tw.github.io/PETsARD/Splitter.html)。
 - `Processor`：對資料進行前處理跟後處理的模組，見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html)。
 - `Synthesizer`：對資料做合成資料等隱私強化處理的模組，見 [Synthesizer 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html)。
-- `Evaluator`：對合成資料結果做評估的模組，見[Evaluator 頁面](https://nics-tw.github.io/PETsARD/Evaluator.html)。
-- `Describer`：對資料本身做描述的模組，見[Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html)。
-- `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見[Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
+- `Evaluator`：對合成資料結果做評估的模組，見 [Evaluator 頁面](https://nics-tw.github.io/PETsARD/Evaluator.html)。
+- `Describer`：對資料本身做描述的模組，見 [Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html)。
+- `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見 [Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
 
 
 
