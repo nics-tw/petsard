@@ -303,6 +303,12 @@ class MLWorker:
         """
         result = {}
 
+        # check if the target is constant
+        if len(np.unique(y_train)) == 1:
+            warnings.warn('The target column is constant, ' +
+                          'indicating the performance is not reliable.')
+            return {'error': np.nan}
+
         ss = StandardScaler()
         X_train = ss.fit_transform(X_train)
         X_test = ss.transform(X_test)
