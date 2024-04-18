@@ -181,13 +181,21 @@ class Stats(EvaluatorBase):
             columns_info (dict):
                 A dictionary containing information
                 about the columns in the input data.
-            columns_result (pd.DataFrame):
-                A dataframe containing the computed statistics for each column.
+            result  (dict):
+                A dictionary to store the result of the statistics evaluation.
+                - global (pd.DataFrame | None):
+                    The global statistics dataframe or None if not available.
+                - columnwise (pd.DataFrame | None):
+                    The column-wise statistics dataframe or None if not available.
+                - pairwise (pd.DataFrame | None):
+                    The pairwise statistics dataframe or None if not available.
         """
         super().__init__(config=config)
         config['stats_method'] = self.DEFAULT_STATS_METHOD
         self.columns_info: dict = {}
-        self.columns_result: pd.DataFrame = None
+        self.result['global'] = None
+        self.result['columnwise'] = None
+        self.result['pairwise'] = None
 
     def create(self, data: dict) -> None:
         """
@@ -210,6 +218,7 @@ class Stats(EvaluatorBase):
         granularity: str = None
         module: StatsBase = None
         col_result: dict = {}
+        pair_result: dict = {}
         for method in self.config['stats_method']:
             config_method = self.STATS_METHOD[method]
             infer_dtype, granularity, module = (
@@ -220,6 +229,8 @@ class Stats(EvaluatorBase):
 
             if granularity == 'columnwise':
                 for col, value in self.columns_info.items():
+                    # Check if the column's data type matches the inferred data type
+                    # and the inferred data type is in the list of supported data types
                     if value['infer_dtype_match'] \
                             and value['ori_infer_dtype'] in infer_dtype:
                         col_result = self._create_columnwise_method(
@@ -236,7 +247,9 @@ class Stats(EvaluatorBase):
         if col_result != {}:
             self.columns_result = pd.DataFrame.from_dict(
                 col_result, orient='index')
-
+        if pair_result != {}:
+            self.result['pairwise'] = pd.DataFrame.from_dict(
+                pair_result, orient='index')
 
     def _create_columns_info(self) -> dict:
         """
@@ -308,10 +321,6 @@ class Stats(EvaluatorBase):
 
         Returns:
             col_result (dict): The dictionary containing the computed statistics.
-
-        Raises:
-            KeyError:
-                If the column is not present in the columns result dictionary.
         """
         if col not in col_result:
             col_result[col] = {}
@@ -337,7 +346,7 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The global statistics dataframe or None if not available.
         """
-        return None
+        return self.result['global']
 
     def get_columnwise(self) -> pd.DataFrame | None:
         """
@@ -347,7 +356,7 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The column-wise statistics dataframe or None if not available.
         """
-        return None
+        return self.result['columnwise']
 
     def get_pairwise(self) -> pd.DataFrame | None:
         """
@@ -357,4 +366,4 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The pairwise statistics dataframe or None if not available.
         """
-        return None
+        return self.result['pairwise']
