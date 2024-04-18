@@ -180,13 +180,15 @@ class Stats(EvaluatorBase):
         on the input data.
 
     Attr:
-        DEFAULT_STATS_METHOD (list):
-            A list of default statistics methods to be computed.
         STATS_METHODS (dict):
             A dictionary mapping each statistics method to its corresponding
+        COMPARE_METHODS (list[str]):
+            A list of supported comparison methods.
+        AGGREGATED_METHODS (list[str]):
+            A list of supported aggregated methods.
+        DEFAULT_METHODS (dict):
+            A dictionary containing the default statistics methods.
     """
-
-    DEFAULT_STATS_METHOD: list = ['mean', 'std', 'nunique', 'spearmanr']
     STATS_METHODS: dict[str, dict[str, Union[str, StatsBase]]] = {
         'mean': {
             'infer_dtype': ['numerical'],
@@ -210,6 +212,12 @@ class Stats(EvaluatorBase):
         },
     }
     COMPARE_METHODS: list[str] = ['pct_change']
+    AGGREGATED_METHODS: list[str] = ['mean']
+    DEFAULT_METHODS: dict[str, str] = {
+        'stats_method': ['mean', 'std', 'nunique', 'spearmanr'],
+        'compare_method': 'pct_change',
+        'aggregated_method': 'mean',
+    }
 
     def __init__(self, config: dict):
         """
@@ -221,6 +229,9 @@ class Stats(EvaluatorBase):
                 compare_method (str, optional):
                     The method to compare the original and synthetic data.
                     Default is 'pct_change'.
+                aggregated_method (str, optional):
+                    The method to aggregate the statistics to global levels
+                    Default is 'mean'.
 
         Attr.
             columns_info (dict):
@@ -237,28 +248,22 @@ class Stats(EvaluatorBase):
         """
         super().__init__(config=config)
 
-        if 'stats_method' in self.config:
-            self.config['stats_method'] = list(
-                map(lambda x: x.lower(), self.config['stats_method'])
-            )
-            if not all(
-                    stats_method in STATS_METHODS.keys()
-                    for stats_method in self.config['stats_method']):
-                raise UnsupportedMethodError
-        else:
-            self.config['stats_method'] = self.DEFAULT_STATS_METHOD
-
-        if 'compare_method' in self.config:
-            self.config['compare_method'] = self.config['compare_method'].lower()
-            if self.config['compare_method'] not in self.COMPARE_METHODS:
-                raise UnsupportedMethodError
-        else:
-            self.config['compare_method'] = 'pct_change'
+        self._init_config_method('stats_method', self.STATS_METHODS)
+        self._init_config_method('compare_method', self.COMPARE_METHODS)
+        self._init_config_method('aggregated_method', self.AGGREGATED_METHODS)
 
         self.columns_info: dict = {}
         self.result['global'] = None
         self.result['columnwise'] = None
         self.result['pairwise'] = None
+
+    def _init_config_method(self, method_name, valid_methods):
+        if method_name in self.config:
+            self.config[method_name] = self.config[method_name].lower()
+            if self.config[method_name] not in valid_methods:
+                raise UnsupportedMethodError
+        else:
+            self.config[method_name] = self.DEFAULT_METHODS[method_name]
 
     def create(self, data: dict) -> None:
         """
@@ -453,12 +458,28 @@ class Stats(EvaluatorBase):
         Evaluates the computed statistics.
         """
         compare_method: str = self.config['compare_method']
+        aggregated_method: str = self.config['aggregated_method']
+        global_result: dict = {}
 
+        compare_col: list[str] = None
         for granularity in ['columnwise', 'pairwise']:
             if self.result[granularity] is not None:
                 if compare_method == 'pct_change':
                     self.result[granularity] = self._compare_pct_change(
                         self.result[granularity])
+
+                compare_col = [
+                    col for col in self.result[granularity]
+                    if col.endswith(f'_{compare_method}')]
+                if aggregated_method == 'mean':
+                    global_result.update(
+                        self.aggregated_mean(
+                            self.result[granularity][compare_col]
+                        )
+                    )
+
+        self.result['global'] = pd.DataFrame.from_dict(
+            global_result, orient='index').T
 
     @staticmethod
     def _compare_pct_change(df: pd.DataFrame) -> pd.DataFrame:
@@ -498,6 +519,12 @@ class Stats(EvaluatorBase):
                 safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col]))
             )
         return df
+
+    @staticmethod
+    def aggregated_mean(df: pd.DataFrame) -> dict:
+        return {k: safe_round(v) for k, v
+            in df.mean().to_dict().items()
+        }
 
     def get_global(self) -> pd.DataFrame | None:
         """
