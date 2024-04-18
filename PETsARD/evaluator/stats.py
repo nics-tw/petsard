@@ -213,10 +213,12 @@ class Stats(EvaluatorBase):
     }
     COMPARE_METHODS: list[str] = ['pct_change']
     AGGREGATED_METHODS: list[str] = ['mean']
+    SUMMARY_METHODS: list[str] = ['mean']
     DEFAULT_METHODS: dict[str, str] = {
         'stats_method': ['mean', 'std', 'nunique', 'spearmanr'],
         'compare_method': 'pct_change',
         'aggregated_method': 'mean',
+        'summary_method': 'mean'
     }
 
     def __init__(self, config: dict):
@@ -231,6 +233,9 @@ class Stats(EvaluatorBase):
                     Default is 'pct_change'.
                 aggregated_method (str, optional):
                     The method to aggregate the statistics to global levels
+                    Default is 'mean'.
+                summary_method (str, optional):
+                    The method to finally summarize the global statistics
                     Default is 'mean'.
 
         Attr.
@@ -251,6 +256,7 @@ class Stats(EvaluatorBase):
         self._init_config_method('stats_method', self.STATS_METHODS)
         self._init_config_method('compare_method', self.COMPARE_METHODS)
         self._init_config_method('aggregated_method', self.AGGREGATED_METHODS)
+        self._init_config_method('summary_method', self.SUMMARY_METHODS)
 
         self.columns_info: dict = {}
         self.result['global'] = None
@@ -459,9 +465,10 @@ class Stats(EvaluatorBase):
         """
         compare_method: str = self.config['compare_method']
         aggregated_method: str = self.config['aggregated_method']
-        global_result: dict = {}
+        summary_method: str = self.config['summary_method']
 
         compare_col: list[str] = None
+        global_result: dict = {}
         for granularity in ['columnwise', 'pairwise']:
             if self.result[granularity] is not None:
                 if compare_method == 'pct_change':
@@ -473,10 +480,16 @@ class Stats(EvaluatorBase):
                     if col.endswith(f'_{compare_method}')]
                 if aggregated_method == 'mean':
                     global_result.update(
-                        self.aggregated_mean(
+                        self._aggregated_mean(
                             self.result[granularity][compare_col]
                         )
                     )
+
+        if summary_method == 'mean':
+            global_result = {
+                'Score': self._summary_mean(global_result),
+                **global_result
+            }
 
         self.result['global'] = pd.DataFrame.from_dict(
             global_result, orient='index').T
@@ -495,7 +508,7 @@ class Stats(EvaluatorBase):
                 The DataFrame containing the original and synthetic columns.
 
         Returns:
-            pd.DataFrame: The DataFrame with the percentage change columns added.
+            (pd.DataFrame): The DataFrame with the percentage change columns added.
 
         Raises:
             ValueError: If any of the synthetic columns are missing in the DataFrame.
@@ -521,10 +534,34 @@ class Stats(EvaluatorBase):
         return df
 
     @staticmethod
-    def aggregated_mean(df: pd.DataFrame) -> dict:
+    def _aggregated_mean(df: pd.DataFrame) -> dict:
+        """
+        Calculate the aggregated mean of a DataFrame.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to calculate the mean.
+
+        Returns:
+            (dict): A dictionary containing
+                the column names as keys
+                and the aggregated mean values as values.
+        """
         return {k: safe_round(v) for k, v
             in df.mean().to_dict().items()
         }
+
+    @staticmethod
+    def _summary_mean(global_result: dict) -> float:
+        """
+        Calculate the mean of the values in the given dictionary.
+
+        Args:
+            global_result (dict): A dictionary containing the values.
+
+        Returns:
+            (float): The mean of the values in the dictionary.
+        """
+        return safe_round(np.mean(list(global_result.values())))
 
     def get_global(self) -> pd.DataFrame | None:
         """
