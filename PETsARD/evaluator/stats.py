@@ -138,6 +138,48 @@ class StatsMedian(StatsBase):
         return self.data['col'].median()
 
 
+class StatsMin(StatsBase):
+    """
+    A class of column-wise statistic for the min.
+        Inherits from StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the column's data type is numeric, False otherwise.
+        """
+        return is_numeric_dtype(self.data['col'])
+
+    def _eval(self) -> int | float:
+        """
+        Returns:
+            (int | float): The min of the column.
+        """
+        return self.data['col'].min()
+
+
+class StatsMax(StatsBase):
+    """
+    A class of column-wise statistic for the max.
+        Inherits from StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the column's data type is numeric, False otherwise.
+        """
+        return is_numeric_dtype(self.data['col'])
+
+    def _eval(self) -> int | float:
+        """
+        Returns:
+            (int | float): The max of the column.
+        """
+        return self.data['col'].max()
+
+
 class StatsNUnique(StatsBase):
     """
     A class of column-wise statistic for the number of unique values.
@@ -226,6 +268,16 @@ class Stats(EvaluatorBase):
             'granularity': 'columnwise',
             'module': StatsMedian,
         },
+        'min': {
+            'infer_dtype': ['numerical'],
+            'granularity': 'columnwise',
+            'module': StatsMin,
+        },
+        'max': {
+            'infer_dtype': ['numerical'],
+            'granularity': 'columnwise',
+            'module': StatsMax,
+        },
         'nunique': {
             'infer_dtype': ['categorical'],
             'granularity': 'columnwise',
@@ -242,7 +294,7 @@ class Stats(EvaluatorBase):
     SUMMARY_METHODS: list[str] = ['mean']
     DEFAULT_METHODS: dict[str, str] = {
         'stats_method': [
-            'mean', 'std', 'median', 'nunique', 'spearmanr'
+            'mean', 'std', 'median', 'min', 'max', 'nunique', 'spearmanr'
         ],
         'compare_method': 'pct_change',
         'aggregated_method': 'mean',
