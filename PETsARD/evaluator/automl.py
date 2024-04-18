@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor,\
-        RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
+    RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.cluster import KMeans
 from sklearn.metrics import f1_score, silhouette_score
@@ -15,6 +15,7 @@ from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util.safe_round import safe_round
 import re
+
 
 class AutoMLMap():
     """
@@ -41,6 +42,7 @@ class AutoMLMap():
             ]
         except KeyError:
             raise UnsupportedMethodError
+
 
 class AutoML(EvaluatorBase):
     """
@@ -199,7 +201,6 @@ class ML:
 
         self.result = {'ori': self.result_ori, 'syn': self.result_syn}
 
-
     def _regression(self, data, target, n_splits):
         """
         Regression model fitting and evaluation.
@@ -216,7 +217,7 @@ class ML:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            target (str): The target column of the data.
+            target (pd.DataFrame): The target column of the data.
             n_splits (int): The parameter for k-fold cross validation. Should
             be greater than 1.
 
@@ -244,7 +245,8 @@ class ML:
             data_test = ssx.transform(data_test)
 
             ssy = StandardScaler()
-            target_train = ssy.fit_transform(target_train.reshape(-1, 1)).ravel()
+            target_train = ssy.fit_transform(
+                target_train.reshape(-1, 1)).ravel()
             target_test = ssy.transform(target_test.reshape(-1, 1)).ravel()
 
             lr = LinearRegression()
@@ -257,15 +259,15 @@ class ML:
 
             result['linear_regression'].append(
                 self._lower_bound_check(lr.score(data_test, target_test),
-                                  'regression'),
+                                        'regression'),
             )
             result['random_forest'].append(
                 self._lower_bound_check(rf.score(data_test, target_test),
-                                  'regression'),
+                                        'regression'),
             )
             result['gradient_boosting'].append(
                 self._lower_bound_check(gb.score(data_test, target_test),
-                                  'regression'),
+                                        'regression'),
             )
 
         return result
@@ -286,7 +288,7 @@ class ML:
 
         Args:
             data (pd.DataFrame): The data to be fitted.
-            target (str): The target column of the data.
+            target (pd.DataFrame): The target column of the data.
             n_splits (int): The parameter for k-fold cross validation. Should
             be greater than 1.
 
@@ -305,7 +307,7 @@ class ML:
         for train_index, test_index in tqdm(kf.split(data, target),
                                             desc='Classification',
                                             total=n_splits):
-            data_train, data_test = data.iloc[train_index, :],\
+            data_train, data_test = data.iloc[train_index, :], \
                 data.iloc[test_index, :]
             target_train, target_test = target[train_index], \
                 target[test_index]
@@ -319,10 +321,10 @@ class ML:
                 result['gradient_boosting'].append(np.nan)
 
                 warnings.warn('Only one class in the target, ' +
-                                'the model training is impossible. ' +
-                                'The score is set to NaN.')
+                              'the model training is impossible. ' +
+                              'The score is set to NaN.')
                 continue
-            
+
             ss = StandardScaler()
             data_train = ss.fit_transform(data_train)
             data_test = ss.transform(data_test)
@@ -339,29 +341,29 @@ class ML:
 
             result['logistic_regression'].append(
                 self._lower_bound_check(
-                    f1_score(target_test, lr.predict(data_test), 
-                            average='micro'),
+                    f1_score(target_test, lr.predict(data_test),
+                             average='micro'),
                     'classification'
                 )
             )
             result['svc'].append(
                 self._lower_bound_check(
-                    f1_score(target_test, svc.predict(data_test), 
-                            average='micro'),
+                    f1_score(target_test, svc.predict(data_test),
+                             average='micro'),
                     'classification'
                 )
             )
             result['random_forest'].append(
                 self._lower_bound_check(
-                    f1_score(target_test, rf.predict(data_test), 
-                            average='micro'),
+                    f1_score(target_test, rf.predict(data_test),
+                             average='micro'),
                     'classification'
                 )
             )
             result['gradient_boosting'].append(
                 self._lower_bound_check(
-                    f1_score(target_test, gb.predict(data_test), 
-                            average='micro'),
+                    f1_score(target_test, gb.predict(data_test),
+                             average='micro'),
                     'classification'
                 )
             )
@@ -413,13 +415,14 @@ class ML:
 
                 result[f'KMeans_cluster{k}'].append(
                     self._lower_bound_check(
-                        silhouette_score(data_test, k_model.predict(data_test)),
+                        silhouette_score(
+                            data_test, k_model.predict(data_test)),
                         'cluster'
                     )
                 )
 
         return result
-    
+
     def _lower_bound_check(self, value: float, type: 'str') -> float:
         """
         Check if the score is beyond the lower bound.
@@ -441,9 +444,9 @@ class ML:
             lower_bound = -1
         else:
             lower_bound = 0
-        
+
         if value < lower_bound:
-            warnings.warn('The score is less than the lower bound,' + 
+            warnings.warn('The score is less than the lower bound,' +
                           ' indicating the performance is arbitrarily poor.' +
                           ' The score is set to the lower bound.')
             return lower_bound
@@ -467,17 +470,18 @@ class ML:
         for i in self.result_ori.values():
             ori_value += i
 
-        normalise_range = 2 if self.config['method'] == 'cluster' else 1
+        normalise_range = 2 if self.config['method_code'] == \
+            AutoMLMap.CLUSTER else 1
 
         compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
                                    'ori_std': safe_round(np.std(ori_value)),
                                    'syn_mean': safe_round(np.mean(syn_value)),
                                    'syn_std': safe_round(np.std(syn_value))},
-                                   index=[0])
+                                  index=[0])
 
         compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
-                                    compare_df['ori_mean']) /
-                                    normalise_range) * 100
+                                               compare_df['ori_mean']) /
+                                              normalise_range) * 100
 
         return compare_df
 

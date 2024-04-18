@@ -65,7 +65,7 @@ Create an `Evaluator` object with the given data. There are three types of data 
 
 
 Create an `Evaluator` object with the given data.
-- `Anonymeter` required three types of data:
+- `Anonymeter` and `MLUtility` required three types of data:
     - The original data utilised for synthesis (referred to as `'ori'`)
     - The synthetic data generated from `'ori'` (referred to as `'syn'`)
     - The original data that was not employed for synthesis (referred to as `'control'`).
@@ -75,7 +75,7 @@ Create an `Evaluator` object with the given data.
 - Fortunately, if you are utilizing our `Executor` (see [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)), there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
 
 利用資料創建 `Evaluator`。
-- `Anonymeter` 需要三種類型的資料：
+- `Anonymeter` 與 `MLUtility` 需要三種類型的資料：
     - 用於合成資料的原始資料（`'ori'`）
     - 利用原始資料合成的合成資料（`'syn'`）
     - 沒有用於訓練合成資料模型的資料（`'control'`）
@@ -196,9 +196,9 @@ In this section, we provide a comprehensive list of supported evaluator types, t
 | `anonymeter` | `Anonymeter` | 'anonymeter-inference' | ✅ | ✅ | ✅ |
 | `sdmetrics` | `SDMetrics` | 'sdmetrics-diagnosticreport' | ✅ | ✅ |  |
 | `sdmetrics` | `SDMetrics` | 'sdmetrics-qualityreport' | ✅ | ✅ |  |
-| `automl` | `ML` | 'automl-regression' | ✅ | ✅ |  |
-| `automl` | `ML` | 'automl-classification' | ✅ | ✅ |  |
-| `automl` | `ML` | 'automl-cluster' | ✅ | ✅ |  |
+| `mlutility` | `MLWorker` | 'mlutility-regression' | ✅ | ✅ | ✅ |
+| `mlutility` | `MLWorker` | 'mlutility-classification' | ✅ | ✅ | ✅ |
+| `mlutility` | `MLWorker` | 'mlutility-cluster' | ✅ | ✅ | ✅ |
 
 </div>
 
@@ -568,7 +568,64 @@ Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` method
 
 </div>
 
+## MLUtility
+
+To assess the utility of synthetic datasets, one may train the same machine learning models on original and synthetic datasets and compare the test results on control dataset. If the score from the synthetic one closely approximate or even surpass that from the original one, it suggests that the synthetic datasets are suitable for utilisation. To ensure the robustness of the results, several kinds of model will be trained, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization.
+
+使用者可以利用原始資料與合成資料分別訓練相同的機器學習模型，並利用控制組的資料進行結果預測。若兩個模型的表現分數接近，甚至合成資料模型超過原始資料模型的表現，代表合成資料具有高度的實用性。實驗中會使用不同的機器學習模型進行訓練，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。
+
+### `'mlutility-regression'`
+
+Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default hyper-parameters. The evaluation metric employed will be the coefficient of determination ($R^2$).
+
+用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、梯度提升迴歸，三者皆以預設超參數進行訓練。使用的衡量指標為 $R^2$。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. Should be a numerical column. 資料集中用於預測的目標欄位，需為數值欄位。
+
+### `'mlutility-classification'`
+
+Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default hyper-parameters. The evaluation metric employed will be the F1-score.
+
+用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、梯度提升分類，四者皆以預設超參數進行訓練。使用的衡量指標為 F1 分數。
+
+**Parameters**
+
+`target` (`str`): The target column of the data. 資料集中用於預測的目標欄位。
+
+### `'mlutility-cluster'`
+
+Evaluate the utility based on clustering tasks, where the data will undergo training on k-means with different cluster numbers: 4, 5, and 6 (can be changed via `n_clusters`). Other hyper-parameters are the same. The evaluation metric employed will be the silhouette score.
+
+用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6，可藉由 `n_clusters` 調整）的 k-平均演算法，三者皆以預設超參數進行訓練。使用的衡量指標為輪廓係數。
+
+**Parameters**
+
+`n_clusters` (`list`, default=`[4, 5, 6]`): A list of numbers of clusters.
+
+### `get_global()`
+
+Retrieve the evaluation results from AutoML methods.
+
+獲取 AutoML 方法的評估結果。
+
+**Outputs**
+
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+
+| ori_mean | ori_std | syn_mean | syn_std | pct_change |
+|:---:|:---:|:---:|:---:|:---:|
+| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -37.8504 |
+
+In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset (noted that "(`syn_mean` - `ori_mean`)/ theoretical range" is used here). A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
+
+在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比（注意：在此使用 "(`syn_mean` - `ori_mean`)/ 分數理論值域"）。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
+
 ## AutoML
+
+> FutureWarning: `automl` will be deprecated soon. Please use `mlutility` instead.
+> 警告：`automl` 即將被汰換，請改用 `mlutility`。
 
 To assess the utility of synthetic datasets, one may conduct machine learning model training on these datasets and compare the results with those obtained from training on original datasets. If the scores closely approximate or even surpass those achieved with original datasets, it suggests that the synthetic datasets are suitable for utilisation. To ensure the robustness of the results, the model will be trained and evaluated five times (in default, can be changed via the parameter `n_splits`), and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization.
 
