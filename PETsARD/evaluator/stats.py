@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 import itertools
 from typing import Union
 
+import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
+from scipy.stats import spearmanr
 
 from PETsARD import Metadata
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -136,6 +138,41 @@ class StatsNUnique(StatsBase):
         return self.data['col'].nunique(dropna=True)
 
 
+class StatsSpearmanR(StatsBase):
+    """
+    A class of pair-wise statistic for the Spearman's R.
+        Inherits from the StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the data type is 'category', False otherwise.
+        """
+        return (self.data['col1'].dtype == 'category'
+                or self.data['col2'].dtype == 'category'
+                )
+
+    def _eval(self) -> int:
+        """
+        pd.Series.corr didn't fully support Category data type.
+            return "ValueError: could not convert string to float",
+            so I use scipy directly.
+
+        TODO: logging _is_constant and assign np.nan
+            for avoid ConstantInputWarning.
+
+        Returns:
+            (int): The number of unique values in the column.
+        """
+
+        return spearmanr(
+            self.data['col1'].values,
+            self.data['col2'].values,
+            nan_policy='omit',
+        ).statistic
+
+
 class Stats(EvaluatorBase):
     """
     The "Stats" statistics Evaluator.
@@ -169,7 +206,7 @@ class Stats(EvaluatorBase):
         'spearmanr': {
             'infer_dtype': ['categorical'],
             'granularity': 'pairwise',
-            'module': None,
+            'module': StatsSpearmanR,
         },
     }
 
