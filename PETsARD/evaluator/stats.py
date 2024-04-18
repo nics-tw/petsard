@@ -282,42 +282,42 @@ class Stats(EvaluatorBase):
     STATS_METHODS: dict[str, dict[str, Union[str, StatsBase]]] = {
         'mean': {
             'infer_dtype': ['numerical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsMean,
         },
         'std': {
             'infer_dtype': ['numerical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsStd,
         },
         'median': {
             'infer_dtype': ['numerical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsMedian,
         },
         'min': {
             'infer_dtype': ['numerical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsMin,
         },
         'max': {
             'infer_dtype': ['numerical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsMax,
         },
         'nunique': {
             'infer_dtype': ['categorical'],
-            'granularity': 'columnwise',
+            'exec_granularity': 'columnwise',
             'module': StatsNUnique,
         },
         'spearmanr': {
             'infer_dtype': ['categorical'],
-            'granularity': 'percolumn',
+            'exec_granularity': 'percolumn',
             'module': StatsSpearmanRho,
         },
         'cramerv': {
             'infer_dtype': ['categorical'],
-            'granularity': 'percolumn',
+            'exec_granularity': 'percolumn',
             'module': StatsCramerV,
         },
     }
@@ -376,7 +376,7 @@ class Stats(EvaluatorBase):
         self.columns_info: dict = {}
         self.aggregated_percolumn_method: list = [
             stats_method for stats_method in self.config['stats_method']
-            if self.STATS_METHODS[stats_method]['granularity'] == 'percolumn'
+            if self.STATS_METHODS[stats_method]['exec_granularity'] == 'percolumn'
         ]
         self.result['global'] = None
         self.result['columnwise'] = None
@@ -408,7 +408,7 @@ class Stats(EvaluatorBase):
 
         config_method: dict = None
         infer_dtype: str = None
-        granularity: str = None
+        exec_granularity: str = None
         module: StatsBase = None
         col_result: dict = {}
         pair_result: dict = {}
@@ -420,7 +420,7 @@ class Stats(EvaluatorBase):
                 config_method['module'],
             )
 
-            if granularity == 'columnwise':
+            if exec_granularity == 'columnwise':
                 for col, value in self.columns_info.items():
                     # Check if the column's data type matches the inferred data type
                     # and the inferred data type is in the list of supported data types
@@ -432,13 +432,13 @@ class Stats(EvaluatorBase):
                         col_result = self._create_columnwise_method(
                             col_result, col, method, "syn", module
                         )
-            elif granularity == 'percolumn':
+            elif exec_granularity == 'percolumn':
                 for col, value in self.columns_info.items():
                     if value['infer_dtype_match'] \
                             and value['ori_infer_dtype'] in infer_dtype:
                         col_result = self._create_percolumn_method(
                             col_result, col, method, module)
-            elif granularity == 'pairwise':
+            elif exec_granularity == 'pairwise':
                 for (col1, value1), (col2, value2) in \
                         itertools.combinations(self.columns_info.items(), 2):
 
