@@ -182,12 +182,12 @@ class Stats(EvaluatorBase):
     Attr:
         DEFAULT_STATS_METHOD (list):
             A list of default statistics methods to be computed.
-        STATS_METHOD (dict):
+        STATS_METHODS (dict):
             A dictionary mapping each statistics method to its corresponding
     """
 
     DEFAULT_STATS_METHOD: list = ['mean', 'std', 'nunique', 'spearmanr']
-    STATS_METHOD: dict[str, dict[str, Union[str, StatsBase]]] = {
+    STATS_METHODS: dict[str, dict[str, Union[str, StatsBase]]] = {
         'mean': {
             'infer_dtype': ['numerical'],
             'granularity': 'columnwise',
@@ -213,7 +213,10 @@ class Stats(EvaluatorBase):
     def __init__(self, config: dict):
         """
         Args:
-            config (dict): The configuration for the statistics evaluation.
+            config (dict): The configuration for the statistics evaluation.                - 
+                stats_method (list[str], optional):
+                        The list of statistics methods to be computed.
+                        Default is ['mean', 'std', 'nunique', 'spearmanr'].
 
         Attr.
             columns_info (dict):
@@ -229,7 +232,17 @@ class Stats(EvaluatorBase):
                     The pairwise statistics dataframe or None if not available.
         """
         super().__init__(config=config)
-        config['stats_method'] = self.DEFAULT_STATS_METHOD
+        if 'stats_method' in self.config:
+            self.config['stats_method'] = list(
+                map(lambda x: x.lower(), self.config['stats_method'])
+            )
+            if not all(
+                    stats_method in STATS_METHODS.keys()
+                    for stats_method in self.config['stats_method']):
+                raise UnsupportedMethodError
+        else:
+            self.config['stats_method'] = self.DEFAULT_STATS_METHOD
+
         self.columns_info: dict = {}
         self.result['global'] = None
         self.result['columnwise'] = None
@@ -258,7 +271,7 @@ class Stats(EvaluatorBase):
         col_result: dict = {}
         pair_result: dict = {}
         for method in self.config['stats_method']:
-            config_method = self.STATS_METHOD[method]
+            config_method = self.STATS_METHODS[method]
             infer_dtype, granularity, module = (
                 config_method['infer_dtype'],
                 config_method['granularity'],
