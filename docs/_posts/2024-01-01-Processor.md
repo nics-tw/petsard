@@ -169,7 +169,7 @@ proc.fit(
 
 `data` (`pandas.DataFrame`): The data to be fitted. 用來學習的資料。
 
-`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missingist'`, `'outlierist'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missingist', 'outlierist', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missingist'`、`'outlierist'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missingist', 'outlierist', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
+`sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missing'`, `'outlier'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missing', 'outlier', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence. 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missing'`、`'outlier'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missing', 'outlier', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
 
 
 ## `transform()`
@@ -200,9 +200,16 @@ transformed_data = proc.transform(data=data)
 ## `inverse_transform()`
 
 
-Conduct the data postprocessing procedure.
+Conduct the data postprocessing procedure. Noted that it also transforms the data types to align with the metadata using the following rules, and raises an error for other cases.
 
-進行資料後處理。
+進行資料後處理。值得注意的是，它會根據以下表格對資料格式進行轉換，以符合元資料中的定義。若遇到其他狀況，則會出現錯誤訊息。
+
+| Original Data Type | Transformed Data Type | Action                          |
+|--------------------|-----------------------|---------------------------------|
+| `int`              | `float`               | Convert to `int` after rounding |
+| `float`            | `int`                 | Convert to `float`              |
+| `str` / `object`   | Any                   | Convert to `str`  /  `object`   |
+| `datetime`         | `int` / `float`       | Convert to `datetime`           |
 
 
 ```Python
