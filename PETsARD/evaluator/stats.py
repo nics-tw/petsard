@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import itertools
 from typing import Union
 
 import pandas as pd
@@ -240,7 +241,20 @@ class Stats(EvaluatorBase):
                             col_result, col, method, "syn", module
                         )
             elif granularity == 'pairwise':
-                continue
+                for (col1, value1), (col2, value2) in \
+                        itertools.combinations(self.columns_info.items(), 2):
+
+                    if value1['ori_infer_dtype'] in infer_dtype \
+                            or value2['ori_infer_dtype'] in infer_dtype:
+                        pair_result = self._create_pairwise_method(
+                            pair_result, col1, col2, method, "ori", module
+                        )
+
+                    if value1['syn_infer_dtype'] in infer_dtype \
+                            or value2['syn_infer_dtype'] in infer_dtype:
+                        pair_result = self._create_pairwise_method(
+                            pair_result, col1, col2, method, "syn", module
+                        )
             else:
                 raise UnsupportedMethodError
 
@@ -331,6 +345,46 @@ class Stats(EvaluatorBase):
 
         col_result[col][method_data_type] = temp_module.eval()
         return col_result
+
+    def _create_pairwise_method(
+        self,
+        pair_result: dict,
+        col1: str,
+        col2: str,
+        method: str,
+        data_type: str,
+        module: StatsBase,
+    ) -> dict:
+        """
+        Creates the pair-wise method for a specific column.
+
+        Args:
+            pair_result (dict): The dictionary containing the computed statistics.
+            col1 (str): The column 1 name.
+            col2 (str): The column 2 name.
+            method (str): The statistics method.
+            data_type (str): The type of data ('ori' or 'syn').
+            module (StatsBase): The statistics module.
+
+        Returns:
+            pair_result (dict): The dictionary containing the computed statistics.
+        """
+        if (col1, col2) not in pair_result:
+            pair_result[(col1, col2)] = {
+                f"{method}_ori": np.nan,
+                f"{method}_syn": np.nan,
+            }
+
+        method_data_type: str = f"{method}_{data_type}"
+
+        temp_module: StatsBase = module()
+        temp_module.create({
+            'col1': self.data[data_type][col1],
+            'col2': self.data[data_type][col2],
+        })
+
+        pair_result[(col1, col2)][method_data_type] = temp_module.eval()
+        return pair_result
 
     def eval(self):
         """
