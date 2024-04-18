@@ -209,14 +209,18 @@ class Stats(EvaluatorBase):
             'module': StatsSpearmanR,
         },
     }
+    COMPARE_METHODS: list[str] = ['pct_change']
 
     def __init__(self, config: dict):
         """
         Args:
             config (dict): The configuration for the statistics evaluation.
                 stats_method (list[str], optional):
-                        The list of statistics methods to be computed.
-                        Default is ['mean', 'std', 'nunique', 'spearmanr'].
+                    The list of statistics methods to be computed.
+                    Default is ['mean', 'std', 'nunique', 'spearmanr'].
+                compare_method (str, optional):
+                    The method to compare the original and synthetic data.
+                    Default is 'pct_change'.
 
         Attr.
             columns_info (dict):
@@ -232,6 +236,7 @@ class Stats(EvaluatorBase):
                     The pairwise statistics dataframe or None if not available.
         """
         super().__init__(config=config)
+
         if 'stats_method' in self.config:
             self.config['stats_method'] = list(
                 map(lambda x: x.lower(), self.config['stats_method'])
@@ -242,6 +247,13 @@ class Stats(EvaluatorBase):
                 raise UnsupportedMethodError
         else:
             self.config['stats_method'] = self.DEFAULT_STATS_METHOD
+
+        if 'compare_method' in self.config:
+            self.config['compare_method'] = self.config['compare_method'].lower()
+            if self.config['compare_method'] not in self.COMPARE_METHODS:
+                raise UnsupportedMethodError
+        else:
+            self.config['compare_method'] = 'pct_change'
 
         self.columns_info: dict = {}
         self.result['global'] = None
@@ -440,13 +452,16 @@ class Stats(EvaluatorBase):
         """
         Evaluates the computed statistics.
         """
+        compare_method: str = self.config['compare_method']
+
         for granularity in ['columnwise', 'pairwise']:
             if self.result[granularity] is not None:
-                self.result[granularity] = self._eval_pct_change(
-                    self.result[granularity])
+                if compare_method == 'pct_change':
+                    self.result[granularity] = self._compare_pct_change(
+                        self.result[granularity])
 
     @staticmethod
-    def _eval_pct_change(df: pd.DataFrame) -> pd.DataFrame:
+    def _compare_pct_change(df: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate the absolute percentage change
             between original and synthetic columns in a DataFrame.
@@ -464,7 +479,8 @@ class Stats(EvaluatorBase):
         Raises:
             ValueError: If any of the synthetic columns are missing in the DataFrame.
         """
-        ori_cols: list[str] = [col for col in df.columns if col.endswith('_ori')]
+        ori_cols: list[str] = [
+            col for col in df.columns if col.endswith('_ori')]
         syn_cols: list[str] = [col.replace('_ori', '_syn') for col in ori_cols]
         if not all(col in df.columns for col in syn_cols):
             raise ValueError
@@ -482,9 +498,6 @@ class Stats(EvaluatorBase):
                 safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col]))
             )
         return df
-
-
-
 
     def get_global(self) -> pd.DataFrame | None:
         """
