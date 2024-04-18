@@ -213,9 +213,9 @@ class StatsSpearmanRho(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return (self.data['col1'].dtype == 'category'
-            and self.data['col2'].dtype == 'category'
-        )
+        return (self.data['col_ori'].dtype == 'category'
+                and self.data['col_syn'].dtype == 'category'
+                )
 
     def _eval(self) -> int:
         """
@@ -230,8 +230,8 @@ class StatsSpearmanRho(StatsBase):
             (float): The Spearman's R values of column pair.
         """
         return spearmanr(
-            self.data['col1'].values,
-            self.data['col2'].values,
+            self.data['col_ori'].values,
+            self.data['col_syn'].values,
             nan_policy='omit',
         ).statistic
 
@@ -247,9 +247,9 @@ class StatsCramerV(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return (self.data['col1'].dtype == 'category'
-            and self.data['col2'].dtype == 'category'
-        )
+        return (self.data['col_ori'].dtype == 'category'
+                and self.data['col_syn'].dtype == 'category'
+                )
 
     def _eval(self) -> int:
         """
@@ -257,8 +257,8 @@ class StatsCramerV(StatsBase):
             (float): The Cramer's V values of column pair.
         """
         confusion_matrix: pd.DataFrame = pd.crosstab(
-            self.data['col1'],
-            self.data['col2'],
+            self.data['col_ori'],
+            self.data['col_syn'],
         )
         return association(confusion_matrix, method="cramer")
 
@@ -312,12 +312,12 @@ class Stats(EvaluatorBase):
         },
         'spearmanr': {
             'infer_dtype': ['categorical'],
-            'granularity': 'pairwise',
+            'granularity': 'percolumn',
             'module': StatsSpearmanRho,
         },
         'cramerv': {
             'infer_dtype': ['categorical'],
-            'granularity': 'pairwise',
+            'granularity': 'percolumn',
             'module': StatsCramerV,
         },
     }
@@ -355,6 +355,8 @@ class Stats(EvaluatorBase):
             columns_info (dict):
                 A dictionary containing information
                 about the columns in the input data.
+            aggregated_percolumn_method (list[str]):
+                A list of statistics methods that are aggregated per column.
             result  (dict):
                 A dictionary to store the result of the statistics evaluation.
                 - global (pd.DataFrame | None):
@@ -372,6 +374,10 @@ class Stats(EvaluatorBase):
         self._init_config_method('summary_method', self.SUMMARY_METHODS)
 
         self.columns_info: dict = {}
+        self.aggregated_percolumn_method: list = [
+            stats_method for stats_method in self.config['stats_method']
+            if self.STATS_METHODS[stats_method]['granularity'] == 'percolumn'
+        ]
         self.result['global'] = None
         self.result['columnwise'] = None
         self.result['pairwise'] = None
@@ -426,6 +432,12 @@ class Stats(EvaluatorBase):
                         col_result = self._create_columnwise_method(
                             col_result, col, method, "syn", module
                         )
+            elif granularity == 'percolumn':
+                for col, value in self.columns_info.items():
+                    if value['infer_dtype_match'] \
+                            and value['ori_infer_dtype'] in infer_dtype:
+                        col_result = self._create_percolumn_method(
+                            col_result, col, method, module)
             elif granularity == 'pairwise':
                 for (col1, value1), (col2, value2) in \
                         itertools.combinations(self.columns_info.items(), 2):
@@ -532,6 +544,37 @@ class Stats(EvaluatorBase):
         col_result[col][method_data_type] = temp_module.eval()
         return col_result
 
+    def _create_percolumn_method(
+        self,
+        col_result: dict,
+        col: str,
+        method: str,
+        module: StatsBase,
+    ) -> dict:
+        """
+        Creates the per-column method for a specific column.
+
+        Args:
+            col_result (dict): The dictionary containing the computed statistics.
+            col (str): The column name.
+            method (str): The statistics method.
+            module (StatsBase): The statistics module.
+
+        Returns:
+            col_result (dict): The dictionary containing the computed statistics.
+        """
+        if col not in col_result:
+            col_result[col] = {}
+
+        temp_module: StatsBase = module()
+        temp_module.create({
+            'col_ori': self.data['ori'][col],
+            'col_syn': self.data['syn'][col],
+        })
+
+        col_result[col][method] = temp_module.eval()
+        return col_result
+
     def _create_pairwise_method(
         self,
         pair_result: dict,
@@ -583,7 +626,8 @@ class Stats(EvaluatorBase):
         compare_col: list[str] = None
         global_result: dict = {}
         for granularity in ['columnwise', 'pairwise']:
-            if self.result[granularity] is not None:
+            if granularity in self.result \
+                    and self.result[granularity] is not None:
                 if compare_method == 'pct_change':
                     self.result[granularity] = self._compare_pct_change(
                         self.result[granularity])
@@ -591,6 +635,7 @@ class Stats(EvaluatorBase):
                 compare_col = [
                     col for col in self.result[granularity]
                     if col.endswith(f'_{compare_method}')]
+                compare_col += self.aggregated_percolumn_method
                 if aggregated_method == 'mean':
                     global_result.update(
                         self._aggregated_mean(
@@ -660,8 +705,8 @@ class Stats(EvaluatorBase):
                 and the aggregated mean values as values.
         """
         return {k: safe_round(v) for k, v
-            in df.mean().to_dict().items()
-        }
+                in df.mean().to_dict().items()
+                }
 
     @staticmethod
     def _summary_mean(global_result: dict) -> float:
