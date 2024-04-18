@@ -414,9 +414,9 @@ class Stats(EvaluatorBase):
         pair_result: dict = {}
         for method in self.config['stats_method']:
             config_method = self.STATS_METHODS[method]
-            infer_dtype, granularity, module = (
+            infer_dtype, exec_granularity, module = (
                 config_method['infer_dtype'],
-                config_method['granularity'],
+                config_method['exec_granularity'],
                 config_method['module'],
             )
 
