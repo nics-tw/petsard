@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from scipy.stats import spearmanr
+from scipy.stats.contingency import association
 
 from PETsARD import Metadata
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -201,9 +202,9 @@ class StatsNUnique(StatsBase):
         return self.data['col'].nunique(dropna=True)
 
 
-class StatsSpearmanR(StatsBase):
+class StatsSpearmanRho(StatsBase):
     """
-    A class of pair-wise statistic for the Spearman's R.
+    A class of pair-wise statistic for the Spearman's Rho.
         Inherits from the StatsBase.
     """
 
@@ -213,8 +214,8 @@ class StatsSpearmanR(StatsBase):
             (bool): True if the data type is 'category', False otherwise.
         """
         return (self.data['col1'].dtype == 'category'
-                or self.data['col2'].dtype == 'category'
-                )
+            and self.data['col2'].dtype == 'category'
+        )
 
     def _eval(self) -> int:
         """
@@ -226,14 +227,40 @@ class StatsSpearmanR(StatsBase):
             for avoid ConstantInputWarning.
 
         Returns:
-            (int): The number of unique values in the column.
+            (float): The Spearman's R values of column pair.
         """
-
         return spearmanr(
             self.data['col1'].values,
             self.data['col2'].values,
             nan_policy='omit',
         ).statistic
+
+
+class StatsCramerV(StatsBase):
+    """
+    A class of pair-wise statistic for the Cramer's V.
+        Inherits from the StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the data type is 'category', False otherwise.
+        """
+        return (self.data['col1'].dtype == 'category'
+            and self.data['col2'].dtype == 'category'
+        )
+
+    def _eval(self) -> int:
+        """
+        Returns:
+            (float): The Cramer's V values of column pair.
+        """
+        confusion_matrix: pd.DataFrame = pd.crosstab(
+            self.data['col1'],
+            self.data['col2'],
+        )
+        return association(confusion_matrix, method="cramer")
 
 
 class Stats(EvaluatorBase):
@@ -286,7 +313,12 @@ class Stats(EvaluatorBase):
         'spearmanr': {
             'infer_dtype': ['categorical'],
             'granularity': 'pairwise',
-            'module': StatsSpearmanR,
+            'module': StatsSpearmanRho,
+        },
+        'cramerv': {
+            'infer_dtype': ['categorical'],
+            'granularity': 'pairwise',
+            'module': StatsCramerV,
         },
     }
     COMPARE_METHODS: list[str] = ['pct_change']
@@ -294,7 +326,8 @@ class Stats(EvaluatorBase):
     SUMMARY_METHODS: list[str] = ['mean']
     DEFAULT_METHODS: dict[str, str] = {
         'stats_method': [
-            'mean', 'std', 'median', 'min', 'max', 'nunique', 'spearmanr'
+            'mean', 'std', 'median', 'min', 'max',
+            'nunique', 'cramerv',
         ],
         'compare_method': 'pct_change',
         'aggregated_method': 'mean',
@@ -398,13 +431,13 @@ class Stats(EvaluatorBase):
                         itertools.combinations(self.columns_info.items(), 2):
 
                     if value1['ori_infer_dtype'] in infer_dtype \
-                            or value2['ori_infer_dtype'] in infer_dtype:
+                            and value2['ori_infer_dtype'] in infer_dtype:
                         pair_result = self._create_pairwise_method(
                             pair_result, col1, col2, method, "ori", module
                         )
 
                     if value1['syn_infer_dtype'] in infer_dtype \
-                            or value2['syn_infer_dtype'] in infer_dtype:
+                            and value2['syn_infer_dtype'] in infer_dtype:
                         pair_result = self._create_pairwise_method(
                             pair_result, col1, col2, method, "syn", module
                         )
