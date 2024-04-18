@@ -117,6 +117,27 @@ class StatsStd(StatsBase):
         return self.data['col'].std()
 
 
+class StatsMedian(StatsBase):
+    """
+    A class of column-wise statistic for the median.
+        Inherits from StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the column's data type is numeric, False otherwise.
+        """
+        return is_numeric_dtype(self.data['col'])
+
+    def _eval(self) -> int | float:
+        """
+        Returns:
+            (int | float): The median of the column.
+        """
+        return self.data['col'].median()
+
+
 class StatsNUnique(StatsBase):
     """
     A class of column-wise statistic for the number of unique values.
@@ -200,6 +221,11 @@ class Stats(EvaluatorBase):
             'granularity': 'columnwise',
             'module': StatsStd,
         },
+        'median': {
+            'infer_dtype': ['numerical'],
+            'granularity': 'columnwise',
+            'module': StatsMedian,
+        },
         'nunique': {
             'infer_dtype': ['categorical'],
             'granularity': 'columnwise',
@@ -215,7 +241,9 @@ class Stats(EvaluatorBase):
     AGGREGATED_METHODS: list[str] = ['mean']
     SUMMARY_METHODS: list[str] = ['mean']
     DEFAULT_METHODS: dict[str, str] = {
-        'stats_method': ['mean', 'std', 'nunique', 'spearmanr'],
+        'stats_method': [
+            'mean', 'std', 'median', 'nunique', 'spearmanr'
+        ],
         'compare_method': 'pct_change',
         'aggregated_method': 'mean',
         'summary_method': 'mean'
