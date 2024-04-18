@@ -296,7 +296,7 @@ class Stats(EvaluatorBase):
                 raise UnsupportedMethodError
 
         if col_result != {}:
-            self.columns_result = pd.DataFrame.from_dict(
+            self.result['columnwise'] = pd.DataFrame.from_dict(
                 col_result, orient='index')
         if pair_result != {}:
             self.result['pairwise'] = pd.DataFrame.from_dict(
@@ -427,7 +427,51 @@ class Stats(EvaluatorBase):
         """
         Evaluates the computed statistics.
         """
-        pass
+        for granularity in ['columnwise', 'pairwise']:
+            if self.result[granularity] is not None:
+                self.result[granularity] = self._eval_pct_change(
+                    self.result[granularity])
+
+    @staticmethod
+    def _eval_pct_change(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate the absolute percentage change
+            between original and synthetic columns in a DataFrame.
+            If original value is 0, return np.nan.
+            Add the absolute to avoid the situation that
+                original value is negative but synthetic value is positive.
+
+        Args:
+            df (pd.DataFrame):
+                The DataFrame containing the original and synthetic columns.
+
+        Returns:
+            pd.DataFrame: The DataFrame with the percentage change columns added.
+
+        Raises:
+            ValueError: If any of the synthetic columns are missing in the DataFrame.
+        """
+        ori_cols: list[str] = [col for col in df.columns if col.endswith('_ori')]
+        syn_cols: list[str] = [col.replace('_ori', '_syn') for col in ori_cols]
+        if not all(col in df.columns for col in syn_cols):
+            raise ValueError
+
+        eval_col: str = ''
+        for ori_col, syn_col in zip(ori_cols, syn_cols):
+            eval_col = f'{ori_col.replace("_ori", "_pct_change")}'
+            if eval_col in df.columns:
+                df.drop(columns=[eval_col], inplace=True)
+            df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
+
+            df[eval_col] = np.where(
+                df[ori_col].astype(float) == 0.0,
+                np.nan,
+                safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col]))
+            )
+        return df
+
+
+
 
     def get_global(self) -> pd.DataFrame | None:
         """
