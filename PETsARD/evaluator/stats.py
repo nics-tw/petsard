@@ -260,6 +260,9 @@ class StatsCramerV(StatsBase):
             self.data['col_ori'],
             self.data['col_syn'],
         )
+        if confusion_matrix.empty:
+            return np.nan
+
         return association(confusion_matrix, method="cramer")
 
 
