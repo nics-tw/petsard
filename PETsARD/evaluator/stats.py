@@ -415,6 +415,7 @@ class Stats(EvaluatorBase):
         module: StatsBase = None
         col_result: dict = {}
         pair_result: dict = {}
+
         for method in self.config['stats_method']:
             config_method = self.STATS_METHODS[method]
             infer_dtype, exec_granularity, module = (
@@ -423,28 +424,41 @@ class Stats(EvaluatorBase):
                 config_method['module'],
             )
 
+            # Check if the column's data type matches the inferred data type
+            # and the inferred data type is in the list of supported data types
             if exec_granularity == 'columnwise':
                 for col, value in self.columns_info.items():
-                    # Check if the column's data type matches the inferred data type
-                    # and the inferred data type is in the list of supported data types
+                    if col not in col_result:
+                        col_result[col] = {}
                     if value['infer_dtype_match'] \
                             and value['ori_infer_dtype'] in infer_dtype:
                         col_result = self._create_columnwise_method(
-                            col_result, col, method, "ori", module
-                        )
+                            col_result, col, method, "ori", module)
                         col_result = self._create_columnwise_method(
-                            col_result, col, method, "syn", module
-                        )
+                            col_result, col, method, "syn", module)
+                    # avoid no infer_dtype match in whole dataset
+                    #   e.g. no category column in data
+                    else:
+                        col_result[col][f'{method}_ori'] = np.nan
+                        col_result[col][f'{method}_syn'] = np.nan
             elif exec_granularity == 'percolumn':
                 for col, value in self.columns_info.items():
+                    if col not in col_result:
+                        col_result[col] = {}
                     if value['infer_dtype_match'] \
                             and value['ori_infer_dtype'] in infer_dtype:
                         col_result = self._create_percolumn_method(
                             col_result, col, method, module)
+                    else:
+                        col_result[col][method] = np.nan
             elif exec_granularity == 'pairwise':
                 for (col1, value1), (col2, value2) in \
                         itertools.combinations(self.columns_info.items(), 2):
-
+                    if (col1, col2) not in pair_result:
+                        pair_result[(col1, col2)] = {
+                            f"{method}_ori": np.nan,
+                            f"{method}_syn": np.nan,
+                        }
                     if value1['ori_infer_dtype'] in infer_dtype \
                             and value2['ori_infer_dtype'] in infer_dtype:
                         pair_result = self._create_pairwise_method(
@@ -537,8 +551,6 @@ class Stats(EvaluatorBase):
         Returns:
             col_result (dict): The dictionary containing the computed statistics.
         """
-        if col not in col_result:
-            col_result[col] = {}
         method_data_type: str = f"{method}_{data_type}"
 
         temp_module: StatsBase = module()
@@ -566,9 +578,6 @@ class Stats(EvaluatorBase):
         Returns:
             col_result (dict): The dictionary containing the computed statistics.
         """
-        if col not in col_result:
-            col_result[col] = {}
-
         temp_module: StatsBase = module()
         temp_module.create({
             'col_ori': self.data['ori'][col],
@@ -601,12 +610,6 @@ class Stats(EvaluatorBase):
         Returns:
             pair_result (dict): The dictionary containing the computed statistics.
         """
-        if (col1, col2) not in pair_result:
-            pair_result[(col1, col2)] = {
-                f"{method}_ori": np.nan,
-                f"{method}_syn": np.nan,
-            }
-
         method_data_type: str = f"{method}_{data_type}"
 
         temp_module: StatsBase = module()
