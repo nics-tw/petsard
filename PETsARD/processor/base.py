@@ -640,10 +640,17 @@ class Processor:
                                  f' {data[col].dtype} to {val["dtype"]}' + 
                                  ' for metadata alignment.')
                     data[col] = data[col].astype(val['dtype'])
+
+                elif val['dtype'] == 'category' and \
+                    pd.api.types.is_object_dtype(data[col].dtype):
+                    logging.info(f'{col} changes data type from' + 
+                                 f' {data[col].dtype} to {val["dtype"]}' + 
+                                 ' for metadata alignment.')
+                    data[col] = data[col].astype(val['dtype'])
                     
                 else:
                     raise TypeError(
-                        f'The data type of {col} is {data[col].dtype}', 
+                        f'The data type of {col} is {data[col].dtype}' + 
                         f', which is not aligned with the metadata: {val["dtype"]}.'
                     )
             
