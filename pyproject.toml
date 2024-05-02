@@ -114,6 +114,7 @@ requests = "2.31.0"
 private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
 jax = "^0.4.26"
 jaxlib = "^0.4.26"
+ipykernel = "^6.29.4"
 
 [build-system]
 requires = ["poetry-core"]
