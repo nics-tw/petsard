@@ -29,18 +29,9 @@
 #
 #    General environment
 #    一般環境
-#     1. pyyaml and wheel
-#        - see below for details
-#        - 詳情見下文
-#     2. poetry add sdv@^1.8.0 smartnoise-synth@^1.0.0 anonymeter@^1.0.0 sdmetrics@^0.13.0
-#        - key libraries: Synethezer and Evaluator
-#        - 關鍵套件：合成器與評估器
-#     3. poetry add requests boto3
-#        - for Loader
-#        - 用於 Loader
-#     4. poetry add toml tqdm
-#        - TODO: They will sunset if new Executor is available.
-#        - 如果新的 Executor 上線，將會停用
+#     1. install libraries 安裝套件
+#        - key libraries: Synethezer and Evaluator. See below for details
+#        - 關鍵套件：合成器與評估器。詳情見下文
 #
 #    Development environment
 #    開發環境
@@ -58,12 +49,11 @@
 #     which cannot be installed using the PEP 517 method,
 #     the current executable version (as of 2024/02/15)
 #     requires the following installation method:
-# 由於目前的相依性需要 pyyaml 為 5.4.1，
-#     但本版本的 pyyaml 無法以遵照 PEP 517 的辦法來安裝，
-#     故現行 (2024/02/15) 的可執行版本，需要先執行以下安裝方式：
+# 由於目前 Smartnoise 1.0.3 的相依性有問題，
+#     故現行 (2024/05/02) 的可執行版本，需要按照以下安裝方式：
 #
-# 1. poetry add wheel
-# 2. poetry run pip install --no-build-isolation "pyyaml==5.4.1"
+# 1. poetry run pip install --no-build-isolation "smartnoise-synth==1.0.3"
+# 2. poetry add sdv@^1.12.1 anonymeter@^1.0.0 sdmetrics@^0.14.0 pyyaml==6.0.1 boto3 requests jax jaxlib git+https://github.com/ryan112358/private-pgm.git
 #
 # ......
 # Output requirement.txt
@@ -83,17 +73,23 @@
 # 1. SDV: 1.10 above
 #    - https://github.com/sdv-dev/SDV
 #    - Latest 1.10 update: 2024/02/15
+#    - Latest 1.12.1 update: 2024/04/19
 # 2. SDMetrics: 0.13 above
 #    - https://github.com/sdv-dev/SDMetrics
 #    - Latest 0.13.0 update: 2023/12/04
+#    - Latest 0.14.0 update: 2023/12/04
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
-# 4. smartnoise-synth: 0.3.3 above
+# 4. smartnoise-synth: 1.0.3 above
 #    - https://github.com/opendp/smartnoise-sdk
 #    - 0.3.3 update: undefined, but nearest 0.3.0 is 2022/10/09
-#    - Latest 1.0.2 update: 2023/11/05
+#    - 1.0.3 update: undefined, but nearest 1.0.2 update: 2023/11/05
 #
+# 由於目前的相依性需要 pyyaml 為 5.4.1，
+#     但本版本的 pyyaml 無法以遵照 PEP 517 的辦法來安裝，
+# poetry add 
+
 # ......
 
 [tool.poetry]
@@ -105,6 +101,19 @@ authors = [
     "matheme-justyn <matheme.justyn@gmail.com>"
 ]
 readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.10"
+wheel = "^0.43.0"
+sdv = "^1.12.1"
+anonymeter = "^1.0.0"
+sdmetrics = "^0.14.0"
+pyyaml = "6.0.1"
+boto3 = "1.34.58"
+requests = "2.31.0"
+private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
+jax = "^0.4.26"
+jaxlib = "^0.4.26"
 
 [build-system]
 requires = ["poetry-core"]
