@@ -1,7 +1,7 @@
 import warnings
+
 import numpy as np
 import pandas as pd
-
 from sklearn.preprocessing import KBinsDiscretizer
 
 from PETsARD.error import UnfittedError
@@ -128,7 +128,7 @@ class DiscretizingKBins(DiscretizingHandler):
                                       n_bins=n_bins,
                                       subsample=200000)
         self.bin_edges: np.ndarray = None
-        self.is_constant = False # Flag for constant data
+        self.is_constant = False  # Flag for constant data
 
     def _fit(self, data: pd.Series) -> None:
         """
@@ -151,10 +151,10 @@ class DiscretizingKBins(DiscretizingHandler):
         """
         if len(data.unique()) < 2:
             warnings.warn(f'{data.name} is constant.' +
-                           ' No transformation will be applied.')
+                          ' No transformation will be applied.')
             self.is_constant = True
             return data.values
-        
+
         self.model.fit(data.values.reshape(-1, 1))
 
         self.bin_edges = self.model.bin_edges_
