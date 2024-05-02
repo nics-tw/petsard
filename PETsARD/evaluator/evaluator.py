@@ -5,6 +5,7 @@ import pandas as pd
 
 from PETsARD.evaluator.anonymeter import Anonymeter
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.evaluator.mlutlity import MLUtility
 from PETsARD.evaluator.sdmetrics import SDMetrics
 from PETsARD.evaluator.automl import AutoML
 from PETsARD.error import ConfigError, UnsupportedMethodError
@@ -19,6 +20,7 @@ class EvaluatorMap():
     ANONYMETER:    int = 10
     SDMETRICS:     int = 11
     AUTOML:        int = 12
+    MLUTILITY:     int = 13
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -104,6 +106,8 @@ class Evaluator:
             self.evaluator = SDMetrics(config=self.config)
         elif method_code == EvaluatorMap.AUTOML:
             self.evaluator = AutoML(config=self.config)
+        elif method_code == EvaluatorMap.MLUTILITY:
+            self.evaluator = MLUtility(config=self.config)
         else:
             raise UnsupportedMethodError
 
@@ -114,7 +118,7 @@ class Evaluator:
         Args:
             data (dict)
                 The dictionary contains necessary information.
-                For Anonymeter requirements:
+                For Anonymeter and MLUtility requirements:
                     data = {
                         'ori' : pd.DataFrame   # Original data used for synthesis
                         'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
@@ -122,7 +126,7 @@ class Evaluator:
                     }
                     Note: So it is recommended to split your original data before synthesizing it.
                     (We recommend to use our Splitter!)
-                For SDMetrics requirements:
+                For SDMetrics and AutoML requirements:
                     data = {
                         'ori' : pd.DataFrame   # Original data used for synthesis
                         'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
