@@ -37,15 +37,8 @@ This package has encountered dependency conflicts due to third-party packages, t
 
 ```bash
 python -m pip install --upgrade pip
-pip install ipykernel
-pip install pyyaml==6.0.1
-pip install boto3==1.34.58
-pip install sdv==1.10.0
-pip install smartnoise-synth==1.0.3 # Error can be ignored
-pip install anonymeter==1.0.0
-pip install git+https://github.com/ryan112358/private-pgm.git
-pip install --upgrade torch==2.2.1 # Error can be ignored
-pip install requests==2.31.0
+pip install smartnoise-synth==1.0.3
+pip install ipykernel pyyaml==6.0.1 requests boto3 sdv==1.12.1 sdmetrics==0.14.0 anonymeter==1.0.0 git+https://github.com/ryan112358/private-pgm.git
 ```
 
 The known conflicts are as follows. The primary cause is the dependencies of the current version of smartnoise:
