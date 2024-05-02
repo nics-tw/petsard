@@ -1,6 +1,11 @@
 ## Changelog 歷史
 
 - **Beta testing 外部測試階段**
+    - **0.11.0** (2024-05-02): **Feasibility study-3** **適用性研究之三**
+        - Introduced MLUtility for new ML evaluating framework.
+        - Continue refining and debugging.
+        - 引入新機器學習評測架構 MLUtility。
+        - 持續優化與除錯。
     - **0.10.0** (2024-04-12): **Feasibility study-2** **適用性研究之二**
         - Refine the functions and fix the bugs in PETsARD.
         - Enhance the readability of YAML page in the user guide.
