@@ -231,7 +231,7 @@ class StatsJSDivergence(StatsBase):
         p = np.array([value_cnts_ori.get(cat, 0) for cat in all_categories])
         q = np.array([value_cnts_syn.get(cat, 0) for cat in all_categories])
 
-        return 1 - (jensenshannon(p, q) ** 2)
+        return jensenshannon(p, q) ** 2
 
 
 class Stats(EvaluatorBase):
