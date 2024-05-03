@@ -510,12 +510,12 @@ class Stats(EvaluatorBase):
         return columns_info
 
     @staticmethod
-    def _extract_columns_info(data_type: str, col: pd.Series) -> dict:
+    def _extract_columns_info(data_source: str, col: pd.Series) -> dict:
         """
         Extracts the columns information.
 
         Args:
-            data_type (str): The type of data ('ori' or 'syn').
+            data_source (str): The type of data ('ori' or 'syn').
             col (pd.Series): The column data.
 
         Returns:
@@ -527,7 +527,7 @@ class Stats(EvaluatorBase):
                          if isinstance(dtype, pd.CategoricalDtype) else dtype)
         temp['infer_dtype'] = Metadata._convert_dtypes(dtype)
 
-        temp = {f"{data_type}_{key}": value for key, value in temp.items()}
+        temp = {f"{data_source}_{key}": value for key, value in temp.items()}
         return temp
 
     def _create_columnwise_method(
@@ -535,7 +535,7 @@ class Stats(EvaluatorBase):
         col_result: dict,
         col: str,
         method: str,
-        data_type: str,
+        data_source: str,
         module: StatsBase
     ) -> dict:
         """
@@ -545,18 +545,18 @@ class Stats(EvaluatorBase):
             col_result (dict): The dictionary containing the computed statistics.
             col (str): The column name.
             method (str): The statistics method.
-            data_type (str): The type of data ('ori' or 'syn').
+            data_source (str): The source of data ('ori' or 'syn').
             module (StatsBase): The statistics module.
 
         Returns:
             col_result (dict): The dictionary containing the computed statistics.
         """
-        method_data_type: str = f"{method}_{data_type}"
+        method_data_source: str = f"{method}_{data_source}"
 
         temp_module: StatsBase = module()
-        temp_module.create({'col': self.data[data_type][col]})
+        temp_module.create({'col': self.data[data_source][col]})
 
-        col_result[col][method_data_type] = temp_module.eval()
+        col_result[col][method_data_source] = temp_module.eval()
         return col_result
 
     def _create_percolumn_method(
@@ -593,7 +593,7 @@ class Stats(EvaluatorBase):
         col1: str,
         col2: str,
         method: str,
-        data_type: str,
+        data_source: str,
         module: StatsBase,
     ) -> dict:
         """
@@ -604,21 +604,21 @@ class Stats(EvaluatorBase):
             col1 (str): The column 1 name.
             col2 (str): The column 2 name.
             method (str): The statistics method.
-            data_type (str): The type of data ('ori' or 'syn').
+            data_source (str): The type of data ('ori' or 'syn').
             module (StatsBase): The statistics module.
 
         Returns:
             pair_result (dict): The dictionary containing the computed statistics.
         """
-        method_data_type: str = f"{method}_{data_type}"
+        method_data_source: str = f"{method}_{data_source}"
 
         temp_module: StatsBase = module()
         temp_module.create({
-            'col1': self.data[data_type][col1],
-            'col2': self.data[data_type][col2],
+            'col1': self.data[data_source][col1],
+            'col2': self.data[data_source][col2],
         })
 
-        pair_result[(col1, col2)][method_data_type] = temp_module.eval()
+        pair_result[(col1, col2)][method_data_source] = temp_module.eval()
         return pair_result
 
     def eval(self):
