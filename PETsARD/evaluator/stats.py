@@ -266,6 +266,41 @@ class StatsCramerV(StatsBase):
         return association(confusion_matrix, method="cramer")
 
 
+class StatsJSDivergence(StatsBase):
+    """
+    A class of pair-wise statistic for the Jensen–Shannon divergence.
+        Inherits from the StatsBase.
+    """
+
+    def _verify_dtype(self) -> bool:
+        """
+        Returns:
+            (bool): True if the data type is 'category', False otherwise.
+        """
+        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
+                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
+                )
+
+    def _eval(self) -> int:
+        """
+        Returns:
+            (float): The Jensen-Shannon divergence of column pair.
+        """
+        from scipy.spatial.distance import jensenshannon
+
+        value_cnts_ori = self.data['col_ori'].value_counts(normalize=True)
+        value_cnts_syn = self.data['col_syn'].value_counts(normalize=True)
+
+        # Get the set of unique categories from both columns
+        all_categories = set(value_cnts_ori.index) | set(value_cnts_syn.index)
+
+        # Fill in missing categories with 0 probability
+        p = np.array([value_cnts_ori.get(cat, 0) for cat in all_categories])
+        q = np.array([value_cnts_syn.get(cat, 0) for cat in all_categories])
+
+        return jensenshannon(p, q) ** 2
+
+
 class Stats(EvaluatorBase):
     """
     The "Stats" statistics Evaluator.
@@ -322,6 +357,11 @@ class Stats(EvaluatorBase):
             'infer_dtype': ['categorical'],
             'exec_granularity': 'percolumn',
             'module': StatsCramerV,
+        },
+        'jsdivergence': {
+            'infer_dtype': ['categorical'],
+            'exec_granularity': 'percolumn',
+            'module': StatsJSDivergence,
         },
     }
     COMPARE_METHODS: list[str] = ['pct_change']
