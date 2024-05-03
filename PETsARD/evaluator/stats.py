@@ -192,7 +192,7 @@ class StatsNUnique(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return self.data['col'].dtype == 'category'
+        return isinstance(self.data['col'].dtype, pd.CategoricalDtype)
 
     def _eval(self) -> int:
         """
@@ -213,8 +213,8 @@ class StatsSpearmanRho(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return (self.data['col_ori'].dtype == 'category'
-                and self.data['col_syn'].dtype == 'category'
+        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
+                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
                 )
 
     def _eval(self) -> int:
@@ -247,8 +247,8 @@ class StatsCramerV(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return (self.data['col_ori'].dtype == 'category'
-                and self.data['col_syn'].dtype == 'category'
+        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
+                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
                 )
 
     def _eval(self) -> int:
@@ -536,8 +536,7 @@ class Stats(EvaluatorBase):
         """
         temp: dict = {}
         dtype: type = col.dtype
-        temp['dtype'] = (pd.CategoricalDtype
-                         if isinstance(dtype, pd.CategoricalDtype) else dtype)
+        temp['dtype'] = dtype
         temp['infer_dtype'] = Metadata._convert_dtypes(dtype)
 
         temp = {f"{data_source}_{key}": value for key, value in temp.items()}
