@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from scipy.stats import spearmanr
 from scipy.stats.contingency import association
+from scipy.spatial.distance import jensenshannon
 
 from PETsARD import Metadata
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -286,8 +287,6 @@ class StatsJSDivergence(StatsBase):
         Returns:
             (float): The Jensen-Shannon divergence of column pair.
         """
-        from scipy.spatial.distance import jensenshannon
-
         value_cnts_ori = self.data['col_ori'].value_counts(normalize=True)
         value_cnts_syn = self.data['col_syn'].value_counts(normalize=True)
 
@@ -440,9 +439,22 @@ class Stats(EvaluatorBase):
 
         """
         if method_name in self.config:
-            self.config[method_name] = self.config[method_name].lower()
-            if self.config[method_name] not in valid_methods:
-                raise UnsupportedMethodError
+            if isinstance(self.config[method_name], str):
+                self.config[method_name] = [self.config[method_name]]
+
+            if isinstance(self.config[method_name], list):
+                new_method_name: list[str] = []
+
+                for name in self.config[method_name]:
+                    name = name.lower()
+                    if name not in valid_methods:
+                        raise UnsupportedMethodError
+
+                    new_method_name.append(name)
+
+                self.config[method_name] = new_method_name
+            else:
+                raise ConfigError
         else:
             self.config[method_name] = self.DEFAULT_METHODS[method_name]
 
