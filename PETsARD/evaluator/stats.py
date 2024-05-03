@@ -386,6 +386,19 @@ class Stats(EvaluatorBase):
         self.result['pairwise'] = None
 
     def _init_config_method(self, method_name, valid_methods):
+        """
+        Initializes the configuration method for the given method name.
+
+        Args:
+            method_name (str):
+                The name of the method to initialize the configuration for.
+            valid_methods (list): A list of valid method names.
+
+        Raises:
+            UnsupportedMethodError:
+                If the configured method is not in the list of valid methods.
+
+        """
         if method_name in self.config:
             self.config[method_name] = self.config[method_name].lower()
             if self.config[method_name] not in valid_methods:
