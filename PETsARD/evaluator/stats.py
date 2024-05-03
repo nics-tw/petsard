@@ -5,8 +5,6 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
-from scipy.stats import spearmanr
-from scipy.stats.contingency import association
 from scipy.spatial.distance import jensenshannon
 
 from PETsARD import Metadata
@@ -203,70 +201,6 @@ class StatsNUnique(StatsBase):
         return self.data['col'].nunique(dropna=True)
 
 
-class StatsSpearmanRho(StatsBase):
-    """
-    A class of pair-wise statistic for the Spearman's Rho.
-        Inherits from the StatsBase.
-    """
-
-    def _verify_dtype(self) -> bool:
-        """
-        Returns:
-            (bool): True if the data type is 'category', False otherwise.
-        """
-        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
-                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
-                )
-
-    def _eval(self) -> int:
-        """
-        pd.Series.corr didn't fully support Category data type.
-            return "ValueError: could not convert string to float",
-            so I use scipy directly.
-
-        TODO: logging _is_constant and assign np.nan
-            for avoid ConstantInputWarning.
-
-        Returns:
-            (float): The Spearman's R values of column pair.
-        """
-        return spearmanr(
-            self.data['col_ori'].values,
-            self.data['col_syn'].values,
-            nan_policy='omit',
-        ).statistic
-
-
-class StatsCramerV(StatsBase):
-    """
-    A class of pair-wise statistic for the Cramer's V.
-        Inherits from the StatsBase.
-    """
-
-    def _verify_dtype(self) -> bool:
-        """
-        Returns:
-            (bool): True if the data type is 'category', False otherwise.
-        """
-        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
-                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
-                )
-
-    def _eval(self) -> int:
-        """
-        Returns:
-            (float): The Cramer's V values of column pair.
-        """
-        confusion_matrix: pd.DataFrame = pd.crosstab(
-            self.data['col_ori'],
-            self.data['col_syn'],
-        )
-        if confusion_matrix.empty:
-            return np.nan
-
-        return association(confusion_matrix, method="cramer")
-
-
 class StatsJSDivergence(StatsBase):
     """
     A class of pair-wise statistic for the Jensen–Shannon divergence.
@@ -347,16 +281,6 @@ class Stats(EvaluatorBase):
             'exec_granularity': 'columnwise',
             'module': StatsNUnique,
         },
-        'spearmanr': {
-            'infer_dtype': ['categorical'],
-            'exec_granularity': 'percolumn',
-            'module': StatsSpearmanRho,
-        },
-        'cramerv': {
-            'infer_dtype': ['categorical'],
-            'exec_granularity': 'percolumn',
-            'module': StatsCramerV,
-        },
         'jsdivergence': {
             'infer_dtype': ['categorical'],
             'exec_granularity': 'percolumn',
@@ -369,7 +293,7 @@ class Stats(EvaluatorBase):
     DEFAULT_METHODS: dict[str, str] = {
         'stats_method': [
             'mean', 'std', 'median', 'min', 'max',
-            'nunique', 'cramerv',
+            'nunique', 'jsdivergence',
         ],
         'compare_method': 'pct_change',
         'aggregated_method': 'mean',
@@ -382,7 +306,8 @@ class Stats(EvaluatorBase):
             config (dict): The configuration for the statistics evaluation.
                 stats_method (list[str], optional):
                     The list of statistics methods to be computed.
-                    Default is ['mean', 'std', 'nunique', 'spearmanr'].
+                    Default is ['mean', 'std', 'median', 'min', 'max',
+                        'nunique', 'jsdivergence',].
                 compare_method (str, optional):
                     The method to compare the original and synthetic data.
                     Default is 'pct_change'.
