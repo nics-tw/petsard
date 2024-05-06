@@ -76,7 +76,8 @@ class Metadata:
             raise ValueError(
                 'There should be at least one column in the dataframe.')
 
-    def _convert_dtypes(self, dtype: type) -> str:
+    @classmethod
+    def _convert_dtypes(cls, dtype: type) -> str:
         """
         Auxiliary function for inferring dtypes.
 
