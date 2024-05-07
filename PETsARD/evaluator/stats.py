@@ -691,11 +691,7 @@ class Stats(EvaluatorBase):
                 df.drop(columns=[eval_col], inplace=True)
             df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
 
-            df[eval_col] = np.where(
-                df[ori_col].astype(float) == 0.0,
-                np.nan,
-                safe_round(df[syn_col] - df[ori_col]),
-            )
+            df[eval_col] = safe_round(df[syn_col] - df[ori_col])
         return df
 
     @staticmethod
