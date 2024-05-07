@@ -53,7 +53,6 @@ def safe_astype(
     opt_dtype: str = ''
     is_type_error: bool = False
     is_value_error: bool = False
-    is_unsupport_error: bool = False
     if is_integer_dtype(declared_dtype):
         if is_integer_dtype(data_dtype):
             opt_dtype = optimize_dtype(col)
@@ -71,12 +70,12 @@ def safe_astype(
             and (is_integer_dtype(data_dtype)
                 or is_float_dtype(data_dtype)
             ):
-            declared_dtype == 'float32'
             logging.info(
-                f'{colname} changes data dtype from ' +
-                f'{data_dtype} to {declared_dtype} ' +
+                f'declared dtype {declared_dtype} ' +
+                'will changes to float32 ' +
                 'for pandas only support float32 above.',
             )
+            declared_dtype == 'float32'
             is_change_dtype = True
         elif is_integer_dtype(data_dtype):
             is_change_dtype = True
@@ -88,10 +87,9 @@ def safe_astype(
                 is_value_error = True
         else:
             is_type_error = True
-    elif isinstance(declared_dtype, pd.CategoricalDtype) \
-            or is_object_dtype(declared_dtype):
+    elif declared_dtype in ['category', 'object']:
         is_change_dtype = True
-    elif is_datetime64_any_dtype(declared_dtype) \
+    elif declared_dtype.startswith('datetime') \
             and (is_float_dtype(data_dtype)
                 or is_integer_dtype(data_dtype)
             ):
