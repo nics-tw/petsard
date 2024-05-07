@@ -18,6 +18,31 @@ from PETsARD.util.params import (
 from PETsARD.error import ConfigError
 
 
+def optimize_dtype(col_data: pd.Series) -> str:
+    """
+    Optimize the data type of a single column.
+
+    Args:
+        col_data (pd.Series): The column data to be optimized.
+
+    Returns:
+        str: The optimized data type for the column.
+    """
+    opt_dtype: str = ''
+    if is_object_dtype(col_data):
+        # If dtype from pandas is object, infer the optimized dtype
+        # by trying to convert it to datetime.
+        opt_dtype = _optimized_object_dtypes(col_data=col_data)
+    elif is_numeric_dtype(col_data):
+        # If dtype from pandas is numeric, infer the optimized dtype
+        # by comparing the range of the column data
+        # with the ranges of each numeric data type.
+        opt_dtype = _optimized_numeric_dtypes(col_data=col_data)
+    else:
+        # Otherwise, keep the original dtype
+        opt_dtype = col_data.dtype.name
+    return opt_dtype
+
 def optimize_dtypes(
     data: pd.DataFrame,
     column_types: Dict[str, list] = None
@@ -51,25 +76,9 @@ def optimize_dtypes(
     )
 
     # 3. for remain columns
-    for colname, ori_dtype in original_dtypes.items():
-        if colname in remain_col:
-            col_data: pd.Series = data[colname]
-            opt_dtype: str = ''
-
-            if is_object_dtype(col_data):
-                # 3.1 if dtype from pandas is object, infer the optimized dtype
-                #     by trying to convert it to datetime.
-                opt_dtype = _optimized_object_dtypes(col_data=col_data)
-            elif is_numeric_dtype(col_data):
-                # 3.2 if dtype from pandas is numeric, infer the optimized dtype
-                #     by comparing the range of the column data
-                #     with the ranges of each numeric data type.
-                opt_dtype = _optimized_numeric_dtypes(col_data=col_data)
-            else:
-                # 3.3 otherwise, keep the original dtype
-                opt_dtype = ori_dtype
-
-            optimize_dtypes[colname] = opt_dtype
+    for colname in remain_col:
+        col_data: pd.Series = data[colname]
+        optimize_dtypes[colname] = optimize_dtype(col_data)
 
     return optimize_dtypes
 
