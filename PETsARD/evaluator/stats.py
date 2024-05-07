@@ -296,7 +296,7 @@ class Stats(EvaluatorBase):
             'mean', 'std', 'median', 'min', 'max',
             'nunique', 'jsdivergence',
         ],
-        'compare_method': 'diff',
+        'compare_method': 'pct_change',
         'aggregated_method': 'mean',
         'summary_method': 'mean'
     }
@@ -311,7 +311,7 @@ class Stats(EvaluatorBase):
                         'nunique', 'jsdivergence',].
                 compare_method (str, optional):
                     The method to compare the original and synthetic data.
-                    Default is 'diff'.
+                    Default is 'pct_change'.
                 aggregated_method (str, optional):
                     The method to aggregate the statistics to global levels
                     Default is 'mean'.
