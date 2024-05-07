@@ -34,17 +34,23 @@ def safe_dtype(
     """
     if isinstance(dtype, np.dtype):
         return dtype.name
-    elif isinstance(dtype, type):
-        return dtype.__name__.lower()
     elif isinstance(dtype, pd.CategoricalDtype):
         return 'category'
     elif isinstance(dtype, pd.IntervalDtype):
         return f"interval[{dtype.subtype}]"
     elif isinstance(dtype, pd.PeriodDtype):
-        return f"period[{dtype.freq}]"
+        return dtype.name # e.g. 'period[D]'
     elif isinstance(dtype, pd.SparseDtype):
-        return f"Sparse[{dtype.subtype}]"
+        return dtype.name # e.g. Sparse[float32, nan]
     elif isinstance(dtype, str):
         return dtype.lower()
+    elif isinstance(dtype, type):
+        dtype_name: str = dtype.__name__.lower()
+        if dtype_name == 'str' \
+                or dtype_name.startswith('int') \
+                or dtype_name.startswith('float'):
+            return dtype_name
+        else:
+            raise TypeError(f'Unsupported data type: {dtype_name}')
     else:
         raise TypeError(f'Unsupported data type: {dtype}')
