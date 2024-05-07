@@ -3,6 +3,7 @@ import logging
 from types import NoneType
 import warnings
 
+from PETsARD.loader.metadata import Metadata
 from PETsARD.processor.encoder import *
 from PETsARD.processor.missing import *
 from PETsARD.processor.outlier import *
@@ -10,7 +11,7 @@ from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
 from PETsARD.processor.discretizing import *
 from PETsARD.error import *
-from PETsARD.loader.metadata import Metadata
+from PETsARD.util import safe_astype
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -588,7 +589,7 @@ class Processor:
                         for col in new_col:
                             self._working_config[processor][col] = \
                                 deepcopy(self._config[processor][ori_col])
-                            
+
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Align the data types between the data and the metadata by the following
@@ -611,47 +612,6 @@ class Processor:
             (pd.DataFrame): The aligned data.
         """
         for col, val in self._metadata['col'].items():
-            if data[col].dtype != val['dtype']:
-                if pd.api.types.is_integer_dtype(val['dtype']) and \
-                    pd.api.types.is_float_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].round().astype(val['dtype'])
-                    
-                elif pd.api.types.is_float_dtype(val['dtype']) and \
-                    pd.api.types.is_integer_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                elif pd.api.types.is_string_dtype(val['dtype']) or \
-                    pd.api.types.is_object_dtype(val['dtype']):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                elif pd.api.types.is_datetime64_any_dtype(val['dtype']) and \
-                    (pd.api.types.is_integer_dtype(data[col].dtype) or \
-                    pd.api.types.is_float_dtype(data[col].dtype)):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
+            data[col] = safe_astype(data[col], val['dtype'])
 
-                elif val['dtype'] == 'category' and \
-                    pd.api.types.is_object_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                else:
-                    raise TypeError(
-                        f'The data type of {col} is {data[col].dtype}' + 
-                        f', which is not aligned with the metadata: {val["dtype"]}.'
-                    )
-            
         return data
