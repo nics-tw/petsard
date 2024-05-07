@@ -10,7 +10,7 @@ from pandas.api.types import (
     is_object_dtype,
 )
 
-from PETsARD.util import verify_column_types
+from PETsARD.util.verify_column_types import verify_column_types
 from PETsARD.util.params import (
     ALLOWED_COLUMN_TYPES,
     OPTIMIZED_DTYPES,
