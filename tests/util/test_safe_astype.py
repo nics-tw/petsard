@@ -186,7 +186,7 @@ def test_data():
             'object', 'object_string', 'category', 'datetime',
             ]),
         ('category', [
-            'int8', 'int16', 'int32', 'float32', 'nullable_int',
+            'int8', 'int16', 'int32', 'float16', 'float32', 'nullable_int',
             'object', 'object_string', 'category', 'datetime',
             ]),
         ('datetime64[ns]', [
