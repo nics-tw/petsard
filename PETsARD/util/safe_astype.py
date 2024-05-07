@@ -88,6 +88,13 @@ def safe_astype(
         else:
             is_type_error = True
     elif declared_dtype in ['category', 'object']:
+        if declared_dtype == 'category' \
+                and data_dtype == 'float16':
+            logging.info(
+                f'dtype {data_dtype} change to float32 first' +
+                'for pandas only support float32 above.',
+            )
+            col = col.astype('float32')
         is_change_dtype = True
     elif declared_dtype.startswith('datetime') \
             and (is_float_dtype(data_dtype)
