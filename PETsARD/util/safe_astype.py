@@ -49,16 +49,13 @@ def safe_astype(
     elif is_integer_dtype(data_dtype) \
             and is_float_dtype(declared_dtype):
         is_change_dtype = True
-    elif is_object_dtype(declared_dtype) \
-            or is_string_dtype(declared_dtype):
+    elif isinstance(declared_dtype, pd.CategoricalDtype) \
+            or is_object_dtype(declared_dtype):
         is_change_dtype = True
     elif is_datetime64_any_dtype(declared_dtype) \
             and (is_float_dtype(data_dtype)
                 or is_integer_dtype(data_dtype)
             ):
-        is_change_dtype = True
-    elif isinstance(declared_dtype, pd.CategoricalDtype) \
-            and is_object_dtype(data_dtype):
         is_change_dtype = True
     else:
         if data_dtype != declared_dtype:
