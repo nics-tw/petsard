@@ -217,7 +217,7 @@ def casting_dataframe(data: pd.DataFrame, optimized_dtypes: dict) -> pd.DataFram
         if optimized_dtype is None:
             raise ConfigError
         elif optimized_dtype == 'datetime':
-            optimize_dtype = OPTIMIZED_DTYPES['datetime']
+            optimized_dtype = OPTIMIZED_DTYPES['datetime']
 
         data[col_name] = data[col_name].astype(optimized_dtype)
 
