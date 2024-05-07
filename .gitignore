@@ -9,6 +9,7 @@ demo/dev/benchmark/
 # temporary
 **/*.csv
 **/log.txt
+**/PETsARD_log.txt
 
 
 ###### ###### ###### ###### ###### ######
