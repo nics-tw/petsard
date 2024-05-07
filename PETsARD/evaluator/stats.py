@@ -662,11 +662,8 @@ class Stats(EvaluatorBase):
     @staticmethod
     def _compare_diff(df: pd.DataFrame) -> pd.DataFrame:
         """
-        Calculate the absolute difference
+        Calculate the difference
             between original and synthetic columns in a DataFrame.
-            If original value is 0, return np.nan.
-            Add the absolute to avoid the situation that
-                original value is negative but synthetic value is positive.
 
         Args:
             df (pd.DataFrame):
