@@ -24,7 +24,7 @@ def test_safe_dtype():
 
     # Test case for pd.PeriodDtype
     period_dtype = pd.PeriodDtype(freq='D')
-    assert safe_dtype(period_dtype) == 'period[D]'
+    assert safe_dtype(period_dtype) == 'period[d]'
 
     # Test case for pd.SparseDtype
     sparse_dtype = pd.SparseDtype(dtype=np.float32)
