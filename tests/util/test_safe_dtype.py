@@ -28,7 +28,7 @@ def test_safe_dtype():
 
     # Test case for pd.SparseDtype
     sparse_dtype = pd.SparseDtype(dtype=np.float32)
-    assert safe_dtype(sparse_dtype) == 'Sparse[float32, nan]'
+    assert safe_dtype(sparse_dtype) == 'sparse[float32, nan]'
 
     # Test case for string representation
     assert safe_dtype('int') == 'int'
