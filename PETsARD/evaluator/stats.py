@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import itertools
 from typing import Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -377,7 +378,15 @@ class Stats(EvaluatorBase):
 
                     new_method_name.append(name)
 
-                self.config[method_name] = new_method_name
+                if method_name == 'stats_method':
+                    self.config[method_name] = new_method_name
+                else:
+                    if len(new_method_name) >= 2:
+                        warnings.warn(
+                            f'{method_name} only accept one method,' +
+                            'methods after the first one will be ignored',
+                            Warning)
+                    self.config[method_name] = new_method_name[0]
             else:
                 raise ConfigError
         else:
