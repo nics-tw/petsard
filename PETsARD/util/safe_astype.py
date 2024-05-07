@@ -4,7 +4,6 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from pandas.api.types import (
-    is_categorical_dtype,
     is_datetime64_any_dtype,
     is_float_dtype,
     is_integer_dtype,
@@ -34,10 +33,10 @@ def safe_astype(
     """
     Safely cast a pandas Series to a given dtype.
     """
-    # convert every dtype declaration to string
-    declared_dtype_name: str = safe_dtype(declared_dtype)
+    # convert every dtype to safe string
+    data_dtype: str = safe_dtype(col.dtype)
+    declared_dtype: str = safe_dtype(declared_dtype)
 
-    data_dtype: str = col.dtype
     colname: str = 'unknown'
     if col.name is not None:
         colname = col.name
@@ -58,7 +57,7 @@ def safe_astype(
                 or is_integer_dtype(data_dtype)
             ):
         is_change_dtype = True
-    elif is_categorical_dtype(declared_dtype) \
+    elif isinstance(declared_dtype, pd.CategoricalDtype) \
             and is_object_dtype(data_dtype):
         is_change_dtype = True
     else:
