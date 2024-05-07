@@ -479,9 +479,8 @@ class ML:
                                    'syn_std': safe_round(np.std(syn_value))},
                                   index=[0])
 
-        compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
-                                               compare_df['ori_mean']) /
-                                              normalise_range) * 100
+        compare_df['diff'] = safe_round(
+             compare_df['syn_mean'] - compare_df['ori_mean'])
 
         return compare_df
 
