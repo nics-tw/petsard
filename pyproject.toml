@@ -33,14 +33,6 @@
 #        - key libraries: Synethezer and Evaluator. See below for details
 #        - 關鍵套件：合成器與評估器。詳情見下文
 #
-#    Development environment
-#    開發環境
-#
-#    1. poetry add --group dev ipykernel pytest
-#
-#    TODO: add back sagemaker in group dev when ready
-#          當準備好時，將 sagemaker 加回 dev 群組
-#
 # ......
 # Special installation method
 # 特殊安裝方法
@@ -54,6 +46,16 @@
 #
 # 1. poetry run pip install --no-build-isolation "smartnoise-synth==1.0.3"
 # 2. poetry add sdv@^1.12.1 anonymeter@^1.0.0 sdmetrics@^0.14.0 pyyaml==6.0.1 boto3 requests jax jaxlib git+https://github.com/ryan112358/private-pgm.git
+#
+# ......
+#
+#    Development environment
+#    開發環境
+#
+#    1. poetry add --group dev ipykernel pytest python-semantic-release
+#
+#    TODO: add back sagemaker in group dev when ready
+#          當準備好時，將 sagemaker 加回 dev 群組
 #
 # ......
 # Output requirement.txt
@@ -93,6 +95,7 @@
 #
 # 1. 添加預設配置 Append default configuration
 #    semantic-release generate-config -f toml --pyproject >> pyproject.toml
+#
 # ......
 
 [tool.poetry]
@@ -117,7 +120,10 @@ requests = "2.31.0"
 private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
 jax = "^0.4.26"
 jaxlib = "^0.4.26"
+
+[tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
+pytest = "^8.2.0"
 python-semantic-release = "^9.6.0"
 
 [build-system]
