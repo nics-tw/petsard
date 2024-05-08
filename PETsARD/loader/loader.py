@@ -237,7 +237,7 @@ class Loader:
                 raise UnsupportedMethodError
 
         # 2. check if filepath is specified as a benchmark
-        if filepath.lower().startswith("benchmark://"):
+        if config['filepath'].lower().startswith("benchmark://"):
             config['benchmark'] = True
             config['benchmark_name'] = re.sub(
                 r'^benchmark://', '',
