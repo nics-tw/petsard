@@ -110,7 +110,7 @@ class SDVSingleTable(SyntheszierBase):
             syn_module (str): The name of the synthesizer module.
             metadata (SingleTableMetadata): The metadata of the data.
         """
-        super().__init__(data, **kwargs)
+        super().__init__(data, metadata, **kwargs)
         self.syn_module: str = 'SDV'
         self.metadata: SingleTableMetadata = SingleTableMetadata()
 

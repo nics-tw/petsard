@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import time
+import warnings
 
 import pandas as pd
 
@@ -9,10 +10,16 @@ from PETsARD.error import UnfittedError
 
 class SyntheszierBase(ABC):
 
-    def __init__(self, data: pd.DataFrame, **kwargs) -> None:
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        metadata: Metadata = None,
+        **kwargs
+    ) -> None:
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
+            metadata (Metadata, default=None): The metadata class of the data.
             **kwargs: The other parameters.
 
         Attr.:
@@ -23,6 +30,8 @@ class SyntheszierBase(ABC):
             sample_num_rows_as_raw (bool):
                 Whether the sample number of rows is same as raw data.
             sample_num_rows (int): The number of rows to be sampled.
+            reset_sampling (bool): Whether the method should reset the randomisation.
+            output_file_path (str): The location of the output file.
             _synthesizer (SyntheszierBase): The synthesizer object.
         """
         self.data: pd.DataFrame = data
@@ -31,6 +40,21 @@ class SyntheszierBase(ABC):
         self.constant_data: dict = {}
         self.sample_num_rows_as_raw: bool = None
         self.sample_num_rows: int = None
+        self.reset_sampling: bool = None
+        self.output_file_path: str = None
+
+        if metadata is not None:
+            if hasattr(metadata, 'metadata') and 'global' in metadata.metadata:
+                if 'row_num' in metadata.metadata['global']:
+                    self.sample_num_rows = metadata.metadata['global']['row_num']
+            else:
+                warnings.warn(
+                    "There's no global information in the metadata." +
+                    "No rows number information will be used."
+                )
+        # if self.sample_num_rows is None:
+        #     self.sample_num_rows = self.data.shape[0]
+        self.sample_num_rows = self.data.shape[0]
 
         self._synthesizer: SyntheszierBase = None
 
@@ -94,16 +118,15 @@ class SyntheszierBase(ABC):
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        self.sample_num_rows_as_raw: bool = (
+        self.sample_num_rows_as_raw = (
             True if sample_num_rows is None
             else False
         )
-        self.sample_num_rows: int = (
-            self.data.shape[0] if self.sample_num_rows_as_raw
-            else sample_num_rows
-        )
-        self.reset_sampling: bool = reset_sampling
-        self.output_file_path: str = output_file_path
+        if not self.sample_num_rows_as_raw:
+            self.sample_num_rows = sample_num_rows
+        self.reset_sampling = reset_sampling
+        self.output_file_path = output_file_path
+
         data_syn: pd.DataFrame = None
 
         if self._synthesizer is None:
