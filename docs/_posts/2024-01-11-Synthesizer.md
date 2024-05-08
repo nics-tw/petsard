@@ -11,7 +11,7 @@ from PETsARD import Synthesizer, Loader
 syn = Synthesizer(
     method='sdv-single_table-gaussiancopula',
 )
-syn.create(data=transformed_data, metadata=load.metadata.to_csv())
+syn.create(data=transformed_data, metadata=load.metadata)
 syn.fit_sample()
 ```
 
@@ -53,7 +53,7 @@ Initiate a synthesizer by loading the original data and the corresponding metada
 
 `data` (`pd.DataFrame`): The data to be synthesized 用來合成的資料。
 
-`metadata` (`dict`, default=`None`): The metadata of the data. If `Loader` is used, it is recommended to generate the metadata via `Loader.metadata.to_sdv()` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. 元資料。如果使用 `Loader`，建議可以透過 `Loader.metadata.to_sdv()` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。
+`metadata` (`Metadata`, default=`None`): The metadata of the data. If `Loader` is used, it is recommended to generate the metadata via `Loader.metadata` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. 元資料。如果使用 `Loader`，建議可以透過 `Loader.metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。
 
 ## `fit()`
 
