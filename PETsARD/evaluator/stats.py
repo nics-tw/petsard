@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import itertools
 from typing import Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -287,7 +288,7 @@ class Stats(EvaluatorBase):
             'module': StatsJSDivergence,
         },
     }
-    COMPARE_METHODS: list[str] = ['pct_change']
+    COMPARE_METHODS: list[str] = ['diff', 'pct_change']
     AGGREGATED_METHODS: list[str] = ['mean']
     SUMMARY_METHODS: list[str] = ['mean']
     DEFAULT_METHODS: dict[str, str] = {
@@ -377,7 +378,15 @@ class Stats(EvaluatorBase):
 
                     new_method_name.append(name)
 
-                self.config[method_name] = new_method_name
+                if method_name == 'stats_method':
+                    self.config[method_name] = new_method_name
+                else:
+                    if len(new_method_name) >= 2:
+                        warnings.warn(
+                            f'{method_name} only accept one method,' +
+                            'methods after the first one will be ignored',
+                            Warning)
+                    self.config[method_name] = new_method_name[0]
             else:
                 raise ConfigError
         else:
@@ -623,7 +632,10 @@ class Stats(EvaluatorBase):
         for granularity in ['columnwise', 'pairwise']:
             if granularity in self.result \
                     and self.result[granularity] is not None:
-                if compare_method == 'pct_change':
+                if compare_method == 'diff':
+                    self.result[granularity] = self._compare_diff(
+                        self.result[granularity])
+                elif compare_method == 'pct_change':
                     self.result[granularity] = self._compare_pct_change(
                         self.result[granularity])
 
@@ -646,6 +658,38 @@ class Stats(EvaluatorBase):
 
         self.result['global'] = pd.DataFrame.from_dict(
             global_result, orient='index').T
+
+    @staticmethod
+    def _compare_diff(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate the difference
+            between original and synthetic columns in a DataFrame.
+
+        Args:
+            df (pd.DataFrame):
+                The DataFrame containing the original and synthetic columns.
+
+        Returns:
+            (pd.DataFrame): The DataFrame with the percentage change columns added.
+
+        Raises:
+            ValueError: If any of the synthetic columns are missing in the DataFrame.
+        """
+        ori_cols: list[str] = [
+            col for col in df.columns if col.endswith('_ori')]
+        syn_cols: list[str] = [col.replace('_ori', '_syn') for col in ori_cols]
+        if not all(col in df.columns for col in syn_cols):
+            raise ValueError
+
+        eval_col: str = ''
+        for ori_col, syn_col in zip(ori_cols, syn_cols):
+            eval_col = f'{ori_col.replace("_ori", "_diff")}'
+            if eval_col in df.columns:
+                df.drop(columns=[eval_col], inplace=True)
+            df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
+
+            df[eval_col] = safe_round(df[syn_col] - df[ori_col])
+        return df
 
     @staticmethod
     def _compare_pct_change(df: pd.DataFrame) -> pd.DataFrame:
