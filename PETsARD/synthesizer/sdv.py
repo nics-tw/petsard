@@ -11,7 +11,7 @@ from sdv.single_table import (
 import pandas as pd
 
 from PETsARD import Metadata
-from PETsARD.synthesizer.syntheszier_base import SynthesizerBase
+from PETsARD.synthesizer.synthesizer_base import SynthesizerBase
 from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
