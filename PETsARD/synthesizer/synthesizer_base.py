@@ -56,7 +56,7 @@ class SynthesizerBase(ABC):
         #     self.sample_num_rows = self.data.shape[0]
         self.sample_num_rows = self.data.shape[0]
 
-        self._synthesizer: SyntheszierBase = None
+        self._synthesizer: SynthesizerBase = None
 
     @abstractmethod
     def _fit(self) -> None:
