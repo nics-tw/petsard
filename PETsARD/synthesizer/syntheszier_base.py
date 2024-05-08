@@ -8,7 +8,7 @@ from PETsARD.loader.metadata import Metadata
 from PETsARD.error import UnfittedError
 
 
-class SyntheszierBase(ABC):
+class SynthesizerBase(ABC):
 
     def __init__(
         self,
