@@ -1,5 +1,7 @@
 import pandas as pd
 
+from PETsARD.util import safe_round
+
 
 class Metadata:
     def __init__(self):
@@ -22,13 +24,17 @@ class Metadata:
 
         metadata['global']['row_num'] = data.shape[0]
         metadata['global']['col_num'] = data.shape[1]
-        metadata['global']['na_percentage'] = data.isna()\
-            .any(axis=1).mean()
+        metadata['global']['na_percentage'] = safe_round(
+            data.isna().any(axis=1).mean())
 
         # create type and na_percentage keys and values automatically
         metadata_df = data.dtypes.reset_index(name='dtype')\
-            .merge(data.isna().mean(axis=0).reset_index(name='na_percentage'),
-                   on='index').set_index('index')
+            .merge(
+                safe_round(
+                    data.isna().mean(axis=0).reset_index(name='na_percentage')
+                ),
+                on='index'
+            ).set_index('index')
 
         # infer dtypes
         metadata_df['infer_dtype'] = metadata_df['dtype']\
