@@ -27,8 +27,7 @@ class SynthesizerBase(ABC):
             syn_module (str): The name of the synthesizer module.
             syn_method (str): The name of the synthesizer method.
             constant_data (dict): The dict of constant columns.
-            sample_num_rows_as_raw (bool):
-                Whether the sample number of rows is same as raw data.
+            sample_num_rows_as (str): The source of the sample number of rows.
             sample_num_rows (int): The number of rows to be sampled.
             reset_sampling (bool): Whether the method should reset the randomisation.
             output_file_path (str): The location of the output file.
@@ -38,7 +37,7 @@ class SynthesizerBase(ABC):
         self.syn_module: str = 'Unknown'
         self.syn_method: str = 'Unknown'
         self.constant_data: dict = {}
-        self.sample_num_rows_as_raw: bool = None
+        self.sample_num_rows_as: str = None
         self.sample_num_rows: int = None
         self.reset_sampling: bool = None
         self.output_file_path: str = None
@@ -46,15 +45,16 @@ class SynthesizerBase(ABC):
         if metadata is not None:
             if hasattr(metadata, 'metadata') and 'global' in metadata.metadata:
                 if 'row_num' in metadata.metadata['global']:
+                    self.sample_num_rows_as = 'Loader data'
                     self.sample_num_rows = metadata.metadata['global']['row_num']
             else:
                 warnings.warn(
                     "There's no global information in the metadata." +
                     "No rows number information will be used."
                 )
-        # if self.sample_num_rows is None:
-        #     self.sample_num_rows = self.data.shape[0]
-        self.sample_num_rows = self.data.shape[0]
+        if self.sample_num_rows is None:
+            self.sample_num_rows_as = 'input data'
+            self.sample_num_rows = self.data.shape[0]
 
         self._synthesizer: SynthesizerBase = None
 
@@ -64,7 +64,6 @@ class SynthesizerBase(ABC):
         Fit the synthesizer.
         """
         raise NotImplementedError
-
 
     def fit(self) -> None:
         time_start = time.time()
@@ -108,8 +107,7 @@ class SynthesizerBase(ABC):
                 The location of the output file.
 
         Attr:
-            sample_num_rows_as_raw (bool):
-                Whether the sample number of rows is same as raw data.
+            sample_num_rows_as (str): The source of the sample number of rows.
             sample_num_rows (int): The number of rows to be sampled.
             reset_sampling (bool):
                 Whether the method should reset the randomisation.
@@ -118,11 +116,8 @@ class SynthesizerBase(ABC):
         Return:
             data_syn (pd.DataFrame): The synthesized data.
         """
-        self.sample_num_rows_as_raw = (
-            True if sample_num_rows is None
-            else False
-        )
-        if not self.sample_num_rows_as_raw:
+        if sample_num_rows is not None:
+            self.sample_num_rows_as = 'manual input'
             self.sample_num_rows = sample_num_rows
         self.reset_sampling = reset_sampling
         self.output_file_path = output_file_path
@@ -140,15 +135,16 @@ class SynthesizerBase(ABC):
             if output_file_path is not None:
                 data_syn.to_csv(output_file_path, index=False)
 
-            str_sample_num_rows_as_raw = (
-                ' (same as raw)' if self.sample_num_rows_as_raw
+            str_sample_num_rows_as = (
+                f' (same as {self.sample_num_rows_as})'
+                if self.sample_num_rows_as
                 else ''
             )
             print(
                 f"Synthesizer ({self.syn_module}): "
                 f"Sampling {self.syn_method} "
                 f"# {self.sample_num_rows} rows"
-                f"{str_sample_num_rows_as_raw} "
+                f"{str_sample_num_rows_as} "
                 f"in {round(time.time()-time_start ,4)} sec."
             )
             return data_syn
