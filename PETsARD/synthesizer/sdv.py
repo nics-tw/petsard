@@ -11,7 +11,7 @@ from sdv.single_table import (
 import pandas as pd
 
 from PETsARD import Metadata
-from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
+from PETsARD.synthesizer.syntheszier_base import SynthesizerBase
 from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
@@ -89,7 +89,7 @@ class SDVFactory:
         return self.synthesizer
 
 
-class SDVSingleTable(SyntheszierBase):
+class SDVSingleTable(SynthesizerBase):
     """
     Base class for all SDV SingleTable classes.
     """

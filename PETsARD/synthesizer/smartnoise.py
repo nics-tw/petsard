@@ -5,11 +5,11 @@ from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
 from PETsARD import Metadata
-from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
+from PETsARD.synthesizer.syntheszier_base import SynthesizerBase
 from PETsARD.error import UnsupportedMethodError
 
 
-class SmartNoise(SyntheszierBase):
+class SmartNoise(SynthesizerBase):
     """
     Base class for all "SmartNoise".
 
