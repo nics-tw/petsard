@@ -338,7 +338,7 @@ class SynthesizerOperator(Operator):
                 module = 'Preprocessor'
             else:
                 module = 'Loader'
-            self.input['metadata'] = status.get_metadata(module).to_sdv()
+            self.input['metadata'] = status.get_metadata(module)
 
         try:
             self.input['data'] = status.get_result(
