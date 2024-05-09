@@ -7,7 +7,7 @@ The `Processor` module is responsible for managing preprocessing and postprocess
 from PETsARD import Processor
 
 
-proc = Processor(metadata=load.metadata)
+proc = Processor(metadata=split.metadata)
 proc.fit(data=load.data)
 transformed_data = proc.transform(data=load.data)
 print(transformed_data.head(1))
@@ -27,14 +27,14 @@ Once you have an instance of metadata built from the `Loader` class, you can cre
 
 ```python
 proc = Processor(
-    metadata=load.metadata, # required
+    metadata=split.metadata, # required
     config=None
 )
 ```
 
 **Parameters**
 
-`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. 用於推論前處理及後處理流程的數據架構。
+`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. 用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。
     - Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information. 需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
 
 `config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column. 針對每個欄位的自定義處理流程。
