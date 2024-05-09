@@ -28,7 +28,7 @@ class Describer:
 
         self.agg = None
 
-    def create(self, data):
+    def _create(self, data):
         """
         Create the worker and send the data to the worker.
 

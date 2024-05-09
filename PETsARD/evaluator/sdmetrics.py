@@ -77,7 +77,7 @@ class SDMetrics(EvaluatorBase):
 
         self.metadata: dict = None
 
-    def create(self, data: dict):
+    def _create(self, data: dict):
         """
         create() of SDMetrics.
             Defines the sub-evaluator from the SDMetrics library,
