@@ -256,7 +256,7 @@ class PreprocessorOperator(Operator):
             pre_module = status.get_pre_module('Preprocessor')
             if pre_module == 'Splitter':
                 self.input['data'] = status.get_result(pre_module)['train']
-            else:  # Loader only
+            else: # Loader only
                 self.input['data'] = status.get_result(pre_module)
             self.input['metadata'] = status.get_metadata()
         except:
@@ -341,9 +341,11 @@ class SynthesizerOperator(Operator):
             self.input['metadata'] = status.get_metadata(module)
 
         try:
-            self.input['data'] = status.get_result(
-                status.get_pre_module('Synthesizer')
-            )
+            pre_module = status.get_pre_module('Synthesizer')
+            if pre_module == 'Splitter':
+                self.input['data'] = status.get_result(pre_module)['train']
+            else: # Loader or Preprocessor
+                self.input['data'] = status.get_result(pre_module)
         except:
             raise ConfigError
         return self.input
