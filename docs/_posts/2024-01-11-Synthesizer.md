@@ -8,10 +8,11 @@ from PETsARD import Synthesizer, Loader
 
 # load = Loader(...)
 
-syn = Synthesizer(
-    method='sdv-single_table-gaussiancopula',
+syn = Synthesizer(method='sdv-single_table-gaussiancopula')
+syn.create(
+    data=transformed_data,
+    metadata=proc._metadata,
 )
-syn.create(data=transformed_data, metadata=load.metadata)
 syn.fit_sample()
 ```
 
@@ -53,7 +54,8 @@ Initiate a synthesizer by loading the original data and the corresponding metada
 
 `data` (`pd.DataFrame`): The data to be synthesized 用來合成的資料。
 
-`metadata` (`Metadata`, default=`None`): The metadata of the data. If `Loader` is used, it is recommended to generate the metadata via `Loader.metadata` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. 元資料。如果使用 `Loader`，建議可以透過 `Loader.metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。
+`metadata` (`Metadata`, default=`None`): The metadata of the data. If `Loader`/`Splitter`/`Processor` is used, it is recommended to generate the metadata via last use module `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. 元資料。如果使用 `Loader`/`Splitter`/`Processor`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。
+    - Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information. 需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
 
 ## `fit()`
 
