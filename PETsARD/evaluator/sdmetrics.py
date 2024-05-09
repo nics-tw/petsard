@@ -94,7 +94,7 @@ class SDMetrics(EvaluatorBase):
 
         TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
-        if 'ori' not in data or 'syn' not in data:
+        if not all(key in data for key in ['ori', 'syn']):
             raise ConfigError
         self.data = data
 
