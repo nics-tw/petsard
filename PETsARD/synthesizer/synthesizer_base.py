@@ -4,7 +4,7 @@ import warnings
 
 import pandas as pd
 
-from PETsARD.loader.metadata import Metadata
+from PETsARD import Metadata
 from PETsARD.error import UnfittedError
 
 
@@ -44,7 +44,14 @@ class SynthesizerBase(ABC):
 
         if metadata is not None:
             if hasattr(metadata, 'metadata') and 'global' in metadata.metadata:
-                if 'row_num' in metadata.metadata['global']:
+                # 1. if Splitter information exist, use rnum after split
+                if 'row_num_after_split' in metadata.metadata['global'] and \
+                        'train' in metadata.metadata['global']['row_num_after_split']:
+                    self.sample_num_rows_as = 'Splitter data'
+                    self.sample_num_rows = \
+                        metadata.metadata['global']['row_num_after_split']['train']
+                # 2. if Loader only, assume data didn't been split
+                elif 'row_num' in metadata.metadata['global']:
                     self.sample_num_rows_as = 'Loader data'
                     self.sample_num_rows = metadata.metadata['global']['row_num']
             else:
