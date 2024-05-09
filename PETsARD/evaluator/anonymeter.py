@@ -119,7 +119,7 @@ class Anonymeter(EvaluatorBase):
 
         self.evaluator = None
 
-    def create(self, data: dict) -> None:
+    def _create(self, data: dict) -> None:
         """
         Create a new instance of the anonymeter class with the given data.
 

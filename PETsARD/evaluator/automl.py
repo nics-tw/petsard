@@ -73,7 +73,7 @@ class AutoML(EvaluatorBase):
 
         self.ml = ML(self.config)
 
-    def create(self, data):
+    def _create(self, data):
         """
         Create a worker and send the data to the worker.
 

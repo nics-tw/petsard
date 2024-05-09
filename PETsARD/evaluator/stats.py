@@ -392,7 +392,7 @@ class Stats(EvaluatorBase):
         else:
             self.config[method_name] = self.DEFAULT_METHODS[method_name]
 
-    def create(self, data: dict) -> None:
+    def _create(self, data: dict) -> None:
         """
         Args:
             data (dict): The input data dictionary containing 'ori' and 'syn' data.
