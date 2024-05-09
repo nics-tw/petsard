@@ -36,7 +36,7 @@ class Describer:
             data (dict): The data to be described. The key should be 'data',
             and the value should be a pandas DataFrame.
         """
-        if not all(key == 'data' for key in data):
+        if set(data.keys()) == set(['data']):
             raise ConfigError
         self.data = data
         self.agg = DescriberAggregator(self.config)
