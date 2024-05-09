@@ -280,7 +280,7 @@ class PreprocessorOperator(Operator):
         Returns:
             (Metadata): The metadata of the loaded data.
         """
-        metadata: Metadata = deepcopy(self.input['metadata'])
+        metadata: Metadata = deepcopy(self.processor._metadata)
 
         if 'encoder' in self.processor._sequence:
             encoder_cfg: dict = self.processor.get_config()['encoder']
