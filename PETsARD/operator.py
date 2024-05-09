@@ -171,7 +171,8 @@ class SplitterOperator(Operator):
             status (Status): The current status object.
 
         Returns:
-            dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+            dict: Splitter input should contains
+                data (pd.DataFrame), exclude_index (list), and Metadata (Metadata)
         """
         try:
             if 'method' in self.config:
@@ -181,6 +182,7 @@ class SplitterOperator(Operator):
                 # Splitter accept Loader only
                 self.input['data'] = status.get_result('Loader')
             self.input['exclude_index'] = status.get_exist_index()
+            self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
 
@@ -193,6 +195,15 @@ class SplitterOperator(Operator):
         """
         result: dict = deepcopy(self.splitter.data[1])
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata.
+
+        Returns:
+            (Metadata): The updated metadata.
+        """
+        return deepcopy(self.splitter.metadata)
 
 
 class PreprocessorOperator(Operator):
@@ -250,7 +261,8 @@ class PreprocessorOperator(Operator):
 
         Returns:
             dict:
-                Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
+                Preprocessor input should contains
+                    data (pd.DataFrame) and metadata (Metadata).
         """
         try:
             pre_module = status.get_pre_module('Preprocessor')
@@ -273,12 +285,12 @@ class PreprocessorOperator(Operator):
 
     def get_metadata(self) -> Metadata:
         """
-        Retrieve the metadata of the loaded data.
+        Retrieve the metadata.
             If the encoder is EncoderUniform,
             update the metadata infer_dtype to numerical.
 
         Returns:
-            (Metadata): The metadata of the loaded data.
+            (Metadata): The updated metadata.
         """
         metadata: Metadata = deepcopy(self.processor._metadata)
 
