@@ -403,7 +403,7 @@ class Stats(EvaluatorBase):
             UnsupportedMethodError:
                 If an unsupported statistics method is encountered.
         """
-        if not all(key in ['ori', 'syn'] for key in data):
+        if not set(data.keys()) == set(['ori', 'syn']):
             raise ConfigError
         self.data = data
         self.columns_info = self._create_columns_info()

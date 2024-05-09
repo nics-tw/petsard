@@ -78,7 +78,7 @@ class MLUtility(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             'syn, and 'control', and the value should be a pandas DataFrame.
         """
-        if set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(data.keys()) == set(['ori', 'syn', 'control']):
             raise ConfigError
         self.data = data
 
