@@ -139,7 +139,7 @@ class Anonymeter(EvaluatorBase):
             None. Anonymeter class store in self.evaluator.
 
         """
-        if not all(key in ['ori', 'syn', 'control'] for key in data):
+        if set(data.keys()) == set(['ori', 'syn', 'control']):
             raise ConfigError
         self.data = data
 

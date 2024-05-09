@@ -81,7 +81,7 @@ class AutoML(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             and 'syn, and the value should be a pandas DataFrame.
         """
-        if not all(key in ['ori', 'syn'] for key in data):
+        if set(data.keys()) == set(['ori', 'syn']):
             raise ConfigError
         self.data = data
 
