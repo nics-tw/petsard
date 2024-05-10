@@ -119,7 +119,10 @@ def safe_astype(
                 safe_dtype(type(item)) for item in declared_cardinality))
 
             if cat_dtype in declared_cat_dtypes:
-                col = col.astype(cat_dtype)
+                if cat_dtype == 'int':
+                    col = col.round().astype(cat_dtype)
+                else:
+                    col = col.astype(cat_dtype)
                 col_cardinality = col.unique().tolist()
     elif declared_dtype_name.startswith('datetime') \
             and (is_float_dtype(data_dtype_name)
