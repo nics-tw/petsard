@@ -179,10 +179,10 @@ class SplitterOperator(Operator):
                 # Splitter method = 'custom_data'
                 self.input['data'] = None
             else:
-                # Splitter accept Loader only
+                # Splitter accept following Loader only
                 self.input['data'] = status.get_result('Loader')
+                self.input['metadata'] = status.get_metadata('Loader')
             self.input['exclude_index'] = status.get_exist_index()
-            self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
 
@@ -270,7 +270,7 @@ class PreprocessorOperator(Operator):
                 self.input['data'] = status.get_result(pre_module)['train']
             else: # Loader only
                 self.input['data'] = status.get_result(pre_module)
-            self.input['metadata'] = status.get_metadata()
+            self.input['metadata'] = status.get_metadata(pre_module)
         except:
             raise ConfigError
 
@@ -343,17 +343,14 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame)
                     and SDV format metadata (dict or None).
         """
+        pre_module = status.get_pre_module('Synthesizer')
+
         if status.metadata == {}:  # no metadata
             self.input['metadata'] = None
         else:
-            if 'Preprocessor' in status.metadata:
-                module = 'Preprocessor'
-            else:
-                module = 'Loader'
-            self.input['metadata'] = status.get_metadata(module)
+            self.input['metadata'] = status.get_metadata(pre_module)
 
         try:
-            pre_module = status.get_pre_module('Synthesizer')
             if pre_module == 'Splitter':
                 self.input['data'] = status.get_result(pre_module)['train']
             else: # Loader or Preprocessor
