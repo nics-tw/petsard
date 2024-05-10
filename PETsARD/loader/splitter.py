@@ -124,6 +124,13 @@ class Splitter:
                 'train': self.loader['ori'].data,
                 'validation': self.loader['control'].data
             }
+            # Setting metadata by train
+            metadata = Metadata()
+            metadata.build_metadata(data=self.loader['ori'].data)
+            if 'row_num' in metadata.metadata['global']:
+                metadata.metadata['global']['row_num_after_split'] = \
+                    metadata.metadata['global'].pop('row_num')
+            self.metadata = metadata
         else:
             data.reset_index(drop=True, inplace=True)  # avoid unexpected index
 
