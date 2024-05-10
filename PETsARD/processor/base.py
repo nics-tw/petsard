@@ -3,6 +3,7 @@ import logging
 from types import NoneType
 import warnings
 
+from PETsARD.loader.metadata import Metadata
 from PETsARD.processor.encoder import *
 from PETsARD.processor.missing import *
 from PETsARD.processor.outlier import *
@@ -10,7 +11,7 @@ from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
 from PETsARD.processor.discretizing import *
 from PETsARD.error import *
-from PETsARD.loader.metadata import Metadata
+from PETsARD.util import safe_astype
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -111,7 +112,7 @@ class Processor:
             'discretizing_kbins': DiscretizingKBins,
         }
 
-        self._metadata: dict = metadata.metadata
+        self._metadata: Metadata = metadata
         logging.debug(f'Metadata loaded.')
 
         # processing sequence
@@ -126,8 +127,8 @@ class Processor:
         self.mediator_encoder: MediatorEncoder | None = None
 
         # global NA values imputation
-        self._na_percentage_global: float = self._metadata['global'].\
-            get('na_percentage', 0.0)
+        self._na_percentage_global: float = \
+            self._metadata.metadata['global'].get('na_percentage', 0.0)
         self.rng = np.random.default_rng()
 
         self._generate_config()
@@ -156,11 +157,11 @@ class Processor:
         """
 
         self._config: dict = {
-            processor: dict.fromkeys(self._metadata['col'].keys())
+            processor: dict.fromkeys(self._metadata.metadata['col'].keys())
             for processor in self._default_processor.keys()
         }
 
-        for col, val in self._metadata['col'].items():
+        for col, val in self._metadata.metadata['col'].items():
             for processor, obj in self._default_processor.items():
                 self._config[processor][col] = obj[val['infer_dtype']]()
 
@@ -186,7 +187,7 @@ class Processor:
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._metadata['col'].keys())
+            get_col_list = list(self._metadata.metadata['col'].keys())
 
         if print_config:
             for processor in self._config.keys():
@@ -407,6 +408,9 @@ class Processor:
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
 
+        self._metadata.metadata['global']['row_num_after_preproc'] = \
+            transformed.shape[0]
+
         return transformed
 
     def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -423,12 +427,13 @@ class Processor:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         # set NA percentage in Missingist
-        index_list: list = list(self.rng.choice(data.index,
-                                                size=int(
-                                                    data.shape[0] *
-                                                    self.
-                                                    _na_percentage_global),
-                                                replace=False).ravel())
+        index_list: list = list(
+            self.rng.choice(
+                data.index,
+                size=int(data.shape[0] * self._na_percentage_global),
+                replace=False
+            ).ravel()
+        )
 
         for col, obj in self._config['missing'].items():
             if obj is None:
@@ -443,7 +448,7 @@ class Processor:
                     # the NA percentage taking global NA percentage
                     # into consideration
                     adjusted_na_percentage: float = \
-                        self._metadata['col'][col].\
+                        self._metadata.metadata['col'][col].\
                         get('na_percentage', 0.0)\
                         / self._na_percentage_global
             # if there is no NA in the original data
@@ -494,7 +499,7 @@ class Processor:
                     #   and object PROC_TYPE is ('encoder', 'discretizing'),
                     #   then we will force convert the data type to int. (See #440)
                     if processor == 'discretizing'\
-                        and obj.PROC_TYPE == ('encoder', 'discretizing'):
+                            and obj.PROC_TYPE == ('encoder', 'discretizing'):
                         transformed[col] = transformed[col].astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
@@ -512,7 +517,7 @@ class Processor:
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
 
-        return transformed
+        return self._align_dtypes(transformed)
 
     # determine whether the processors are not default settings
     def get_changes(self) -> dict:
@@ -532,9 +537,9 @@ class Processor:
         }
 
         for processor, default_class in self._default_processor.items():
-            for col in self._metadata['col'].keys():
+            for col in self._metadata.metadata['col'].keys():
                 obj = self._config[processor][col]
-                default_obj = default_class[self._metadata['col']
+                default_obj = default_class[self._metadata.metadata['col']
                                             [col]['infer_dtype']]
 
                 if default_obj() is None:
@@ -588,3 +593,29 @@ class Processor:
                         for col in new_col:
                             self._working_config[processor][col] = \
                                 deepcopy(self._config[processor][ori_col])
+
+    def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Align the data types between the data and the metadata by the following
+        rules:
+            1. If the original data type is int, and the inverse transformed
+            date type is float, it will be converted to int after rounding.
+            2. If the original data type is float, and the inverse transformed
+            date type is int, it will be converted to float using astype().
+            3. If the original data type is str/object, using astype() to convert
+            the data type regardless of the inverse transformed data type.
+            4. If the original data type is datetime, and the inverse transformed
+            data type is int/float, it will be converted to datetime using
+            astype().
+            5. Raise an error for other cases.
+
+        Args:
+            data (pd.DataFrame): The data to be aligned.
+
+        Return:
+            (pd.DataFrame): The aligned data.
+        """
+        for col, val in self._metadata.metadata['col'].items():
+            data[col] = safe_astype(data[col], val['dtype'])
+
+        return data

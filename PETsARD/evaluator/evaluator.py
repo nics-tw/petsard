@@ -4,9 +4,11 @@ import re
 import pandas as pd
 
 from PETsARD.evaluator.anonymeter import Anonymeter
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.evaluator.sdmetrics import SDMetrics
 from PETsARD.evaluator.automl import AutoML
+from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.evaluator.mlutlity import MLUtility
+from PETsARD.evaluator.sdmetrics import SDMetrics
+from PETsARD.evaluator.stats import Stats
 from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
@@ -16,9 +18,14 @@ class EvaluatorMap():
     """
     DEFAULT:       int = 0
     CUSTOM_METHOD: int = 1
+    # Protection
     ANONYMETER:    int = 10
-    SDMETRICS:     int = 11
-    AUTOML:        int = 12
+    # Fidelity
+    SDMETRICS:     int = 20
+    STATS:         int = 21
+    # Utility
+    AUTOML:        int = 30
+    MLUTILITY:     int = 31
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -44,7 +51,8 @@ class Evaluator:
     The "Evaluator" class defines the common API
     that all "Evaluators" need to implement, as well as common functionality.
     """
-    def __init__(self, method: str, custom_method: dict=None, **kwargs):
+
+    def __init__(self, method: str, custom_method: dict = None, **kwargs):
         """
         Args:
             method (str):
@@ -83,7 +91,7 @@ class Evaluator:
             # custom method
             self.config['custom_method'] = custom_method
             if 'filepath' not in self.config['custom_method']\
-                or 'method' not in self.config['custom_method']:
+                    or 'method' not in self.config['custom_method']:
                 raise ConfigError
 
             try:
@@ -102,8 +110,12 @@ class Evaluator:
             self.evaluator = Anonymeter(config=self.config)
         elif method_code == EvaluatorMap.SDMETRICS:
             self.evaluator = SDMetrics(config=self.config)
+        elif method_code == EvaluatorMap.STATS:
+            self.evaluator = Stats(config=self.config)
         elif method_code == EvaluatorMap.AUTOML:
             self.evaluator = AutoML(config=self.config)
+        elif method_code == EvaluatorMap.MLUTILITY:
+            self.evaluator = MLUtility(config=self.config)
         else:
             raise UnsupportedMethodError
 
@@ -114,7 +126,7 @@ class Evaluator:
         Args:
             data (dict)
                 The dictionary contains necessary information.
-                For Anonymeter requirements:
+                For Anonymeter and MLUtility requirements:
                     data = {
                         'ori' : pd.DataFrame   # Original data used for synthesis
                         'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
@@ -122,7 +134,7 @@ class Evaluator:
                     }
                     Note: So it is recommended to split your original data before synthesizing it.
                     (We recommend to use our Splitter!)
-                For SDMetrics requirements:
+                For SDMetrics and AutoML requirements:
                     data = {
                         'ori' : pd.DataFrame   # Original data used for synthesis
                         'syn' : pd.DataFrame   # Synthetic data generated from 'ori'

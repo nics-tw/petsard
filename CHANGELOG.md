@@ -1,6 +1,16 @@
-## History 歷史
+## Changelog 歷史
 
 - **Beta testing 外部測試階段**
+    - **0.11.0** (2024-05-02): **Feasibility study-3** **適用性研究之三**
+        - Introduced MLUtility for new ML evaluating framework.
+        - Continue refining and debugging.
+        - 引入新機器學習評測架構 MLUtility。
+        - 持續優化與除錯。
+    - **0.10.0** (2024-04-12): **Feasibility study-2** **適用性研究之二**
+        - Refine the functions and fix the bugs in PETsARD.
+        - Enhance the readability of YAML page in the user guide.
+        - 改善 PETsARD 中的模組功能與除錯，以解決實驗過程中遇到的問題。
+        - 改善使用手冊的易讀性。
     - **0.9.0** (2024-04-01): **Feasibility study-1** **適用性研究之一**
         - Enhancing the downstream tasks of autoML as evaluation metrics and improving report generation functionality, addressing issues encountered during experiments.
         - Completed the development of the user guide and started seeking external testing.
