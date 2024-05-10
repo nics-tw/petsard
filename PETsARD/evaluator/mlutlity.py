@@ -56,8 +56,8 @@ class MLUtility(EvaluatorBase):
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering.
             Ignored for regression and classification.
     """
 
@@ -70,7 +70,7 @@ class MLUtility(EvaluatorBase):
 
         self.ml = MLWorker(self.config)
 
-    def create(self, data):
+    def _create(self, data):
         """
         Create a worker and send the data to the worker.
 
@@ -78,6 +78,8 @@ class MLUtility(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             'syn, and 'control', and the value should be a pandas DataFrame.
         """
+        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+            raise ConfigError
         self.data = data
 
         self.ml.create(self.data)
@@ -121,8 +123,8 @@ class MLWorker:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. Ignored for 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering. Ignored for
             regression and classification.
     """
 
@@ -385,7 +387,7 @@ class MLWorker:
                 warnings.warn('There is only one cluster in the prediction, ' +
                               'or the valid data samples are too few, ' +
                               'indicating the performance is arbitrarily poor.' +
-                              ' The score is set to the lower bound.' + 
+                              ' The score is set to the lower bound.' +
                               ' Error message: ' + str(e))
                 silhouette_score_value = -1
 
@@ -446,9 +448,8 @@ class MLWorker:
                                    'syn_std': safe_round(np.std(syn_value))},
                                   index=[0])
 
-        compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
-                                               compare_df['ori_mean']) /
-                                              normalise_range) * 100
+        compare_df['diff'] = safe_round(
+            compare_df['syn_mean'] - compare_df['ori_mean'])
 
         return compare_df
 

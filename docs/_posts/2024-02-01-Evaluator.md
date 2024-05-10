@@ -478,7 +478,7 @@ Retrieve the column-wise evaluation results from `'sdmetrics-diagnosticreport'` 
 **Outputs**
 
 
-(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。
 
 
 <div class="table-wrapper" markdown="block">
@@ -509,7 +509,7 @@ Retrieve the global evaluation results from `'sdmetrics-qualityreport'` methods.
 **Outputs**
 
 
-(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。
 
 
 <div class="table-wrapper" markdown="block">
@@ -612,15 +612,15 @@ Retrieve the evaluation results from AutoML methods.
 
 **Outputs**
 
-(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。
 
-| ori_mean | ori_std | syn_mean | syn_std | pct_change |
+| ori_mean | ori_std | syn_mean | syn_std | diff |
 |:---:|:---:|:---:|:---:|:---:|
-| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -37.8504 |
+| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -0.378504 |
 
-In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset (noted that "(`syn_mean` - `ori_mean`)/ theoretical range" is used here). A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
+In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `diff` column signifies the difference in performance observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
 
-在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比（注意：在此使用 "(`syn_mean` - `ori_mean`)/ 分數理論值域"）。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
+在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `diff` 代表合成資料相比於原始資料上的進步差異值。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
 
 ## AutoML
 
@@ -675,15 +675,15 @@ Retrieve the evaluation results from AutoML methods.
 
 **Outputs**
 
-(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。 
+(`pd.DataFrame`): The evaluation results. Below is an example. 評估結果，範例如下。
 
-| ori_mean | ori_std | syn_mean | syn_std | pct_change |
+| ori_mean | ori_std | syn_mean | syn_std | diff |
 |:---:|:---:|:---:|:---:|:---:|
-| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -37.8504 |
+| 0.413081 | 0.084311 | 0.034577 | 0.519624 | -0.378504 |
 
-In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `pct_change` column signifies the percentage improvement of the results observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
+In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `diff` column signifies the difference in performance observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
 
-在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `pct_change` 代表相比於原始資料上的平均表現，在合成資料上表現進步的百分比。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
+在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `diff` 代表合成資料相比於原始資料上的進步差異值。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
 
 # Refenece
 
