@@ -101,6 +101,26 @@ def safe_astype(
     elif declared_dtype_name.startswith('category'):
         is_change_dtype = True
 
+        # Check if the class variables of the input data
+        #   all belong to the declared class variables.
+        #   If not, first try to assume that the problem is caused by
+        #       the dtype conversion of the class variables themselves,
+        #   try to check the declared class variables,
+        #    sequentially try to convert them to str, float, int,
+        #    and if none of them are correct, throw an error.
+        col_cardinality: list = col.unique().tolist()
+        declared_cardinality: list = declared_dtype.categories.values.tolist()
+        for cat_dtype in ['str', 'float', 'int']:
+            if all(item in declared_cardinality for item in col_cardinality):
+                break
+
+            # consider there might be multiple dtype in declared_cardinality object
+            declared_cat_dtypes = list(set(
+                safe_dtype(type(item)) for item in declared_cardinality))
+
+            if cat_dtype in declared_cat_dtypes:
+                col = col.astype(cat_dtype)
+                col_cardinality = col.unique().tolist()
     elif declared_dtype_name.startswith('datetime') \
             and (is_float_dtype(data_dtype_name)
                  or is_integer_dtype(data_dtype_name)
