@@ -403,10 +403,11 @@ class Stats(EvaluatorBase):
             UnsupportedMethodError:
                 If an unsupported statistics method is encountered.
         """
-        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
             raise ConfigError
-        if 'control' in data:
-            data.pop('control')
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
         self.columns_info = self._create_columns_info()
 

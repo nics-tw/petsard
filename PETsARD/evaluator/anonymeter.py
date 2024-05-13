@@ -135,8 +135,11 @@ class Anonymeter(EvaluatorBase):
             None. Anonymeter class store in self.evaluator.
 
         """
-        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(['ori', 'syn', 'control']).issubset(set(data.keys())):
             raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn', 'control']
+        }
         self.data = data
 
         method_code: int = self.config['method_code']
