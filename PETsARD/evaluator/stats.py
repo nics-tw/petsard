@@ -9,9 +9,9 @@ from pandas.api.types import is_numeric_dtype
 from scipy.spatial.distance import jensenshannon
 
 from PETsARD import Metadata
+from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util import safe_round
-from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
 class StatsBase(ABC):
