@@ -86,10 +86,11 @@ class AutoML(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             and 'syn, and the value should be a pandas DataFrame.
         """
-        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
             raise ConfigError
-        if 'control' in data:
-            data.pop('control')
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
 
         self.ml.create(self.data)

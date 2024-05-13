@@ -94,10 +94,11 @@ class SDMetrics(EvaluatorBase):
 
         TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
-        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
             raise ConfigError
-        if 'control' in data:
-            data.pop('control')
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
 
         data_ori_metadata = SingleTableMetadata()
