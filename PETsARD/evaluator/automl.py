@@ -1,20 +1,25 @@
+import re
 import warnings
-import pandas as pd
+
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
-    RandomForestClassifier, GradientBoostingClassifier
-from sklearn.model_selection import KFold, StratifiedKFold
+import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import f1_score, silhouette_score
+from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 from tqdm import tqdm
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util.safe_round import safe_round
-import re
 
 
 class AutoMLMap():
