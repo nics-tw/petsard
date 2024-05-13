@@ -1,15 +1,19 @@
 import re
 import warnings
 
-import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
-    RandomForestClassifier, GradientBoostingClassifier
+import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import f1_score, silhouette_score
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.svm import SVC
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -78,8 +82,11 @@ class MLUtility(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             'syn, and 'control', and the value should be a pandas DataFrame.
         """
-        if not set(data.keys()) == set(['ori', 'syn', 'control']):
+        if not set(['ori', 'syn', 'control']).issubset(set(data.keys())):
             raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn', 'control']
+        }
         self.data = data
 
         self.ml.create(self.data)

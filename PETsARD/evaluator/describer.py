@@ -36,8 +36,9 @@ class Describer:
             data (dict): The data to be described. The key should be 'data',
             and the value should be a pandas DataFrame.
         """
-        if not set(data.keys()) == set(['data']):
+        if not set(['data']).issubset(set(data.keys())):
             raise ConfigError
+        data = {key: value for key, value in data.items() if key == 'data'}
         self.data = data
         self.agg = DescriberAggregator(self.config)
         self.agg.create(self.data['data'])
