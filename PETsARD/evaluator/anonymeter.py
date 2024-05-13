@@ -119,7 +119,7 @@ class Anonymeter(EvaluatorBase):
 
         self.evaluator = None
 
-    def create(self, data: dict) -> None:
+    def _create(self, data: dict) -> None:
         """
         Create a new instance of the anonymeter class with the given data.
 
@@ -139,11 +139,11 @@ class Anonymeter(EvaluatorBase):
             None. Anonymeter class store in self.evaluator.
 
         """
-        method_code: int = self.config['method_code']
-
-        if 'ori' not in data or 'syn' not in data or 'control' not in data:
+        if not set(data.keys()) == set(['ori', 'syn', 'control']):
             raise ConfigError
         self.data = data
+
+        method_code: int = self.config['method_code']
 
         # Conditional adjusts `n_attacks` to `n_max_attacks`
         self.config['n_max_attacks'] = self._calculate_n_max_attacks()
