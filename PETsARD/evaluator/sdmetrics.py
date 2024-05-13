@@ -94,8 +94,10 @@ class SDMetrics(EvaluatorBase):
 
         TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
-        if not set(data.keys()) == set(['ori', 'syn']):
+        if not set(data.keys()) == set(['ori', 'syn', 'control']):
             raise ConfigError
+        if 'control' in data:
+            data.pop('control')
         self.data = data
 
         data_ori_metadata = SingleTableMetadata()
