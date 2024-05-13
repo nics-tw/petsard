@@ -1,9 +1,6 @@
 from abc import abstractmethod
 import re
-from typing import (
-    Optional,
-    Union,
-)
+from typing import Union
 import warnings
 
 from anonymeter.evaluators import (
