@@ -392,7 +392,7 @@ class Stats(EvaluatorBase):
         else:
             self.config[method_name] = self.DEFAULT_METHODS[method_name]
 
-    def _create(self, data: dict) -> None:
+    def create(self, data: dict) -> None:
         """
         Args:
             data (dict): The input data dictionary containing 'ori' and 'syn' data.
@@ -403,7 +403,7 @@ class Stats(EvaluatorBase):
             UnsupportedMethodError:
                 If an unsupported statistics method is encountered.
         """
-        if not set(data.keys()) == set(['ori', 'syn']):
+        if not all(key in data for key in ['ori', 'syn']):
             raise ConfigError
         self.data = data
         self.columns_info = self._create_columns_info()

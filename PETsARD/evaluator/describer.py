@@ -14,8 +14,8 @@ class Describer:
     Args:
         config (dict): A dictionary containing the configuration settings.
             - method (str): The method name of how you evaluating data.
-            - describe (list): A list of methods to describe the data.
-            If the method requires a parameter, it should be a dictionary
+            - describe (list): A list of methods to describe the data. 
+            If the method requires a parameter, it should be a dictionary 
             with the method name as the key and the parameter as the value.
     """
 
@@ -28,16 +28,14 @@ class Describer:
 
         self.agg = None
 
-    def _create(self, data):
+    def create(self, data):
         """
         Create the worker and send the data to the worker.
 
         Args:
-            data (dict): The data to be described. The key should be 'data',
+            data (dict): The data to be described. The key should be 'data', 
             and the value should be a pandas DataFrame.
         """
-        if not set(data.keys()) == set(['data']):
-            raise ConfigError
         self.data = data
         self.agg = DescriberAggregator(self.config)
         self.agg.create(self.data['data'])
@@ -403,8 +401,8 @@ class DescriberAggregator(Describer):
     Args:
         config (dict): A dictionary containing the configuration settings.
             - method (str): The method name of how you evaluating data.
-            - describe (list): A list of methods to describe the data.
-            If the method requires a parameter, it should be a dictionary
+            - describe (list): A list of methods to describe the data. 
+            If the method requires a parameter, it should be a dictionary 
             with the method name as the key and the parameter as the value.
     """
 
@@ -455,16 +453,17 @@ class DescriberAggregator(Describer):
         """
         Aggregates the results of multiple Describers.
 
-        It aggregates the results of multiple Describers and
+        It aggregates the results of multiple Describers and 
         stores the result in self.result.
         """
         # if self.config['method'] is 'default', generate selected describers
         if self.config['method'] == 'default':
-            self.config['describe'] = ['row_count', 'col_count',
+            self.config['describe'] = ['row_count', 'col_count', 
                                        'global_na_count', 'mean', 'median',
                                        'std', 'min', 'max', 'kurtosis',
                                        'skew', 'q1', 'q3', 'col_na_count',
                                        'nunique', 'corr']
+
 
         for met in self.config['describe']:
             if type(met) is not str:
@@ -505,9 +504,9 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The column-wise result of the description/evaluation.
         """
-        c_table = pd.concat([d.get_columnwise()
-                             for d in self.column_description], axis=1)
-
+        c_table =  pd.concat([d.get_columnwise() 
+                              for d in self.column_description], axis=1)
+        
         for col in c_table.columns:
             if col in self._INT_DESCRIBER:
                 c_table[col] = c_table[col].fillna(-1).astype(int)\
@@ -525,9 +524,9 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The pairwise result of the description/evaluation.
         """
-        p_table = pd.concat([d.get_pairwise()
+        p_table = pd.concat([d.get_pairwise() 
                              for d in self.pairwise_description], axis=1)
-
+        
         for col in p_table.columns:
             p_table[col] = safe_round(p_table[col]).fillna(pd.NA)
 

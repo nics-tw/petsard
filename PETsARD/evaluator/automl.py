@@ -59,8 +59,8 @@ class AutoML(EvaluatorBase):
             a numerical column for regression.
             - n_splits (int, default=5): The parameter for k-fold cross validation. Should
             be greater than 1.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
-            clusters for clustering. Required for clustering.
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. 
             Ignored for regression and classification.
     """
 
@@ -73,7 +73,7 @@ class AutoML(EvaluatorBase):
 
         self.ml = ML(self.config)
 
-    def _create(self, data):
+    def create(self, data):
         """
         Create a worker and send the data to the worker.
 
@@ -81,8 +81,6 @@ class AutoML(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             and 'syn, and the value should be a pandas DataFrame.
         """
-        if not set(data.keys()) == set(['ori', 'syn']):
-            raise ConfigError
         self.data = data
 
         self.ml.create(self.data)
@@ -126,10 +124,10 @@ class ML:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int, default=5): The parameter for k-fold cross
+            - n_splits (int, default=5): The parameter for k-fold cross 
             validation. Should be greater than 1.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
-            clusters for clustering. Required for clustering. Ignored for
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
+            clusters for clustering. Required for clustering. Ignored for 
             regression and classification.
     """
 
@@ -482,7 +480,7 @@ class ML:
                                   index=[0])
 
         compare_df['diff'] = safe_round(
-            compare_df['syn_mean'] - compare_df['ori_mean'])
+             compare_df['syn_mean'] - compare_df['ori_mean'])
 
         return compare_df
 

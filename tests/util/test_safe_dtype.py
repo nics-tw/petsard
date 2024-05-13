@@ -16,7 +16,7 @@ def test_safe_dtype():
 
     # Test case for pd.CategoricalDtype
     cat_dtype = pd.CategoricalDtype(categories=['A', 'B', 'C'])
-    assert safe_dtype(cat_dtype) == 'category[object]'
+    assert safe_dtype(cat_dtype) == 'category'
 
     # Test case for pd.IntervalDtype
     interval_dtype = pd.IntervalDtype(subtype=np.int64)
