@@ -11,7 +11,12 @@ from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
 from PETsARD.processor.discretizing import *
 from PETsARD.error import *
-from PETsARD.util import safe_astype
+from PETsARD.util import (
+    safe_astype,
+    safe_dtype,
+    safe_infer_dtype,
+    optimize_dtype,
+)
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -394,6 +399,22 @@ class Processor:
 
                     transformed[col] = obj.transform(transformed[col])
 
+                    col_metadata: dict = self._metadata.metadata['col'][col]
+                    if col_metadata['infer_dtype'] == 'datetime':
+                        # it is fine to re-adjust mulitple times
+                        #   for get the final dtype,
+                        # and it is impossible for re-adjust under current logic
+                        if isinstance(obj, (
+                            EncoderUniform,
+                            EncoderLabel,
+                            EncoderOneHot,
+                            ScalerStandard,
+                            ScalerZeroCenter,
+                            ScalerMinMax,
+                            ScalerLog,
+                        )):
+                            self._adjust_metadata(col, transformed[col])
+
                 logging.info(f'{processor} transformation done.')
             else:
                 # if the processor is not a string,
@@ -619,3 +640,26 @@ class Processor:
             data[col] = safe_astype(data[col], val['dtype'])
 
         return data
+
+    def _adjust_metadata(self, col: str, data: pd.Series) -> None:
+        """
+        Adjusts the metadata for a given column based on the processed data.
+
+        Args:
+            col (str): The name of the column.
+            data (pd.Series): The processed data for the column.
+
+        Raises:
+            ConfigError: If the specified column is not found in the metadata.
+
+        Returns:
+            None
+        """
+        if col not in self._metadata.metadata['col']:
+            raise ConfigError(f'{col} is not in the metadata.')
+
+        dtype_after_preproc: str = optimize_dtype(data)
+        self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
+            dtype_after_preproc
+        self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
+            safe_infer_dtype(safe_dtype(dtype_after_preproc))
