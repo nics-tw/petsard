@@ -1,5 +1,4 @@
 import re
-import time
 
 from scipy.stats._warnings_errors import FitError
 from sdv.metadata import SingleTableMetadata
@@ -11,7 +10,8 @@ from sdv.single_table import (
 )
 import pandas as pd
 
-from PETsARD.synthesizer.syntheszier_base import SyntheszierBase
+from PETsARD import Metadata
+from PETsARD.synthesizer.synthesizer_base import SynthesizerBase
 from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
@@ -54,7 +54,7 @@ class SDVFactory:
 
     Args:
         data (pd.DataFrame): The data to be synthesized from.
-        metadata (dict, default=None): The metadata of the data.
+        metadata (Metadata, default=None): The metadata of the data.
         **kwargs: The other parameters.
             method (str): The synthesizer method. Default is None.
     """
@@ -89,39 +89,44 @@ class SDVFactory:
         return self.synthesizer
 
 
-class SDVSingleTable(SyntheszierBase):
+class SDVSingleTable(SynthesizerBase):
     """
     Base class for all SDV SingleTable classes.
     """
 
-    def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        metadata: Metadata = None,
+        **kwargs
+    ) -> None:
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
-            metadata (dict, default=None): The metadata of the data.
+            metadata (Metadata, default=None): The metadata of the data.
             **kwargs: The other parameters.
 
         Attr.:
             syn_module (str): The name of the synthesizer module.
             metadata (SingleTableMetadata): The metadata of the data.
         """
-        super().__init__(data, **kwargs)
+        super().__init__(data, metadata, **kwargs)
         self.syn_module: str = 'SDV'
         self.metadata: SingleTableMetadata = SingleTableMetadata()
 
         self._SingleTableMetadata(metadata)
 
-    def _SingleTableMetadata(self, metadata) -> None:
+    def _SingleTableMetadata(self, metadata: Metadata) -> None:
         """
         Create metadata for SDV.
             If metadata is provided, load it.
             Otherwise, detect the metadata from the data.
 
         Args:
-            metadata (dict): The metadata of the data.
+            metadata (Metadata): The metadata of the data.
         """
         if metadata:
-            self.metadata = self.metadata.load_from_dict(metadata)
+            self.metadata = self.metadata.load_from_dict(metadata.to_sdv())
         else:
             self.metadata.detect_from_dataframe(self.data)
 

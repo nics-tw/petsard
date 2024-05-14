@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from PETsARD import Loader
+from PETsARD import Loader, Metadata
 from PETsARD.synthesizer.sdv import SDVFactory
 from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
 from PETsARD.error import ConfigError, UnsupportedMethodError
@@ -59,13 +59,13 @@ class Synthesizer:
         self.data_syn: pd.DataFrame = None
 
 
-    def create(self, data: pd.DataFrame, metadata=None) -> None:
+    def create(self, data: pd.DataFrame, metadata: Metadata = None) -> None:
         """
         Create a synthesizer object with the given data.
 
         Args:
             data (pd.DataFrame): The input data for synthesizing.
-            metadata (dict, default=None): The metadata of the data.
+            metadata (Metadata, default=None): The metadata class of the data.
 
         # TODO: verify method in __init__
         """

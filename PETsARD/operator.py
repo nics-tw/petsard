@@ -171,7 +171,8 @@ class SplitterOperator(Operator):
             status (Status): The current status object.
 
         Returns:
-            dict: Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+            dict: Splitter input should contains
+                data (pd.DataFrame), exclude_index (list), and Metadata (Metadata)
         """
         try:
             if 'method' in self.config:
@@ -181,6 +182,7 @@ class SplitterOperator(Operator):
                 # Splitter accept Loader only
                 self.input['data'] = status.get_result('Loader')
             self.input['exclude_index'] = status.get_exist_index()
+            self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
 
@@ -193,6 +195,15 @@ class SplitterOperator(Operator):
         """
         result: dict = deepcopy(self.splitter.data[1])
         return result
+
+    def get_metadata(self) -> Metadata:
+        """
+        Retrieve the metadata.
+
+        Returns:
+            (Metadata): The updated metadata.
+        """
+        return deepcopy(self.splitter.metadata)
 
 
 class PreprocessorOperator(Operator):
@@ -250,13 +261,14 @@ class PreprocessorOperator(Operator):
 
         Returns:
             dict:
-                Preprocessor input should contains data (pd.DataFrame) and metadata (Metadata).
+                Preprocessor input should contains
+                    data (pd.DataFrame) and metadata (Metadata).
         """
         try:
             pre_module = status.get_pre_module('Preprocessor')
             if pre_module == 'Splitter':
                 self.input['data'] = status.get_result(pre_module)['train']
-            else:  # Loader only
+            else: # Loader only
                 self.input['data'] = status.get_result(pre_module)
             self.input['metadata'] = status.get_metadata()
         except:
@@ -273,14 +285,14 @@ class PreprocessorOperator(Operator):
 
     def get_metadata(self) -> Metadata:
         """
-        Retrieve the metadata of the loaded data.
+        Retrieve the metadata.
             If the encoder is EncoderUniform,
             update the metadata infer_dtype to numerical.
 
         Returns:
-            (Metadata): The metadata of the loaded data.
+            (Metadata): The updated metadata.
         """
-        metadata: Metadata = deepcopy(self.input['metadata'])
+        metadata: Metadata = deepcopy(self.processor._metadata)
 
         if 'encoder' in self.processor._sequence:
             encoder_cfg: dict = self.processor.get_config()['encoder']
@@ -338,12 +350,14 @@ class SynthesizerOperator(Operator):
                 module = 'Preprocessor'
             else:
                 module = 'Loader'
-            self.input['metadata'] = status.get_metadata(module).to_sdv()
+            self.input['metadata'] = status.get_metadata(module)
 
         try:
-            self.input['data'] = status.get_result(
-                status.get_pre_module('Synthesizer')
-            )
+            pre_module = status.get_pre_module('Synthesizer')
+            if pre_module == 'Splitter':
+                self.input['data'] = status.get_result(pre_module)['train']
+            else: # Loader or Preprocessor
+                self.input['data'] = status.get_result(pre_module)
         except:
             raise ConfigError
         return self.input
