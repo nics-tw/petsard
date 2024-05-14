@@ -33,7 +33,7 @@ class MissingHandler:
 
         self.na_percentage = na_percentage
 
-    def set_imputation_index(self, index_list: list=[]) -> None:
+    def set_imputation_index(self, index_list: list = []) -> None:
         """
         Determine which indices can be imputed as NA globally.
 
@@ -42,7 +42,7 @@ class MissingHandler:
         """
         if type(index_list) != list:
             raise ValueError('Invalid index_list. It should be a list.')
-        
+
         self._imputation_index = index_list
         self._imputation_index_len = len(index_list)
 
@@ -64,7 +64,7 @@ class MissingHandler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " + \
+        raise NotImplementedError("_fit method should be implemented " +
                                   "in subclasses.")
 
     def transform(self, data: pd.Series) -> pd.Series | np.ndarray:
@@ -82,7 +82,7 @@ class MissingHandler:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         return self._transform(data)
-    
+
     def _transform():
         """
         _transform method is implemented in subclasses.
@@ -92,7 +92,7 @@ class MissingHandler:
         _transform method is for specific procedure 
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " + \
+        raise NotImplementedError("_transform method should be implemented " +
                                   "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
@@ -108,19 +108,19 @@ class MissingHandler:
         # Check the object is fitted
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
-        
+
         if self.na_percentage == 0.0 or self._imputation_index_len == 0:
             return data
         else:
-            _na_mask = self.rng.choice(self._imputation_index, 
-                                       size=int(self.na_percentage*\
+            _na_mask = self.rng.choice(self._imputation_index,
+                                       size=int(self.na_percentage *
                                                 self._imputation_index_len),
                                        replace=False)
             _col_data = deepcopy(data)
             _col_data.iloc[_na_mask] = np.nan
 
             return _col_data
-        
+
     def _inverse_transform():
         """
         _inverse_transform method is implemented in subclasses.
@@ -130,7 +130,7 @@ class MissingHandler:
         _inverse_transform method is for specific procedure 
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +\
+        raise NotImplementedError("_inverse_transform method should be " +
                                   "implemented in subclasses.")
 
 
