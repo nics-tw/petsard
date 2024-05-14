@@ -1,15 +1,19 @@
 import re
 import warnings
 
-import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
-    RandomForestClassifier, GradientBoostingClassifier
+import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import f1_score, silhouette_score
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.svm import SVC
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -56,8 +60,8 @@ class MLUtility(EvaluatorBase):
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering.
             Ignored for regression and classification.
     """
 
@@ -70,7 +74,7 @@ class MLUtility(EvaluatorBase):
 
         self.ml = MLWorker(self.config)
 
-    def create(self, data):
+    def _create(self, data):
         """
         Create a worker and send the data to the worker.
 
@@ -78,6 +82,11 @@ class MLUtility(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             'syn, and 'control', and the value should be a pandas DataFrame.
         """
+        if not set(['ori', 'syn', 'control']).issubset(set(data.keys())):
+            raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn', 'control']
+        }
         self.data = data
 
         self.ml.create(self.data)
@@ -121,8 +130,8 @@ class MLWorker:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. Ignored for 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering. Ignored for
             regression and classification.
     """
 
@@ -385,7 +394,7 @@ class MLWorker:
                 warnings.warn('There is only one cluster in the prediction, ' +
                               'or the valid data samples are too few, ' +
                               'indicating the performance is arbitrarily poor.' +
-                              ' The score is set to the lower bound.' + 
+                              ' The score is set to the lower bound.' +
                               ' Error message: ' + str(e))
                 silhouette_score_value = -1
 
@@ -447,7 +456,7 @@ class MLWorker:
                                   index=[0])
 
         compare_df['diff'] = safe_round(
-             compare_df['syn_mean'] - compare_df['ori_mean'])
+            compare_df['syn_mean'] - compare_df['ori_mean'])
 
         return compare_df
 

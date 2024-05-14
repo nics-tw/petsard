@@ -77,7 +77,7 @@ class SDMetrics(EvaluatorBase):
 
         self.metadata: dict = None
 
-    def create(self, data: dict):
+    def _create(self, data: dict):
         """
         create() of SDMetrics.
             Defines the sub-evaluator from the SDMetrics library,
@@ -94,8 +94,11 @@ class SDMetrics(EvaluatorBase):
 
         TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
-        if 'ori' not in data or 'syn' not in data:
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
             raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
 
         data_ori_metadata = SingleTableMetadata()

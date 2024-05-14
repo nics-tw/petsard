@@ -9,9 +9,9 @@ from pandas.api.types import is_numeric_dtype
 from scipy.spatial.distance import jensenshannon
 
 from PETsARD import Metadata
+from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util import safe_round
-from PETsARD.error import ConfigError, UnsupportedMethodError
 
 
 class StatsBase(ABC):
@@ -392,7 +392,7 @@ class Stats(EvaluatorBase):
         else:
             self.config[method_name] = self.DEFAULT_METHODS[method_name]
 
-    def create(self, data: dict) -> None:
+    def _create(self, data: dict) -> None:
         """
         Args:
             data (dict): The input data dictionary containing 'ori' and 'syn' data.
@@ -403,8 +403,11 @@ class Stats(EvaluatorBase):
             UnsupportedMethodError:
                 If an unsupported statistics method is encountered.
         """
-        if not all(key in data for key in ['ori', 'syn']):
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
             raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
         self.columns_info = self._create_columns_info()
 
