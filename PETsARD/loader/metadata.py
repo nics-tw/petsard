@@ -122,6 +122,8 @@ class Metadata:
 
         for col, val in self.metadata['col'].items():
             sdtype = val.get('infer_dtype')
+            if 'infer_dtype_after_preproc' in val:
+                sdtype = val.get('infer_dtype_after_preproc')
 
             if sdtype is None or sdtype == 'object':
                 raise ValueError(f'{col} is in invalid type {sdtype}.')
