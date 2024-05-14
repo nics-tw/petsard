@@ -56,3 +56,32 @@ def safe_dtype(
         raise TypeError(f'Unsupported data type: {dtype}')
 
     return dtype_name.lower()
+
+
+def safe_infer_dtype(safe_dtype: str) -> str:
+    """
+    Auxiliary function for inferring dtypes.
+        Please using safe_dtype() before calling this function.
+
+    Args:
+        safe_dtype (str): The data type from the data.
+
+    Return:
+        (str): The inferred data type.
+
+    Raises:
+        TypeError: If the input data type is not supported.
+    """
+    if safe_dtype is None:
+        raise TypeError(f'{safe_dtype} is invalid.')
+
+    if pd.api.types.is_numeric_dtype(safe_dtype):
+        return 'numerical'
+    elif safe_dtype == 'category':
+        return 'categorical'
+    elif pd.api.types.is_datetime64_any_dtype(safe_dtype):
+        return 'datetime'
+    elif pd.api.types.is_object_dtype(safe_dtype):
+        return 'object'
+    else:
+        raise TypeError(f'{safe_dtype} is invalid.')
