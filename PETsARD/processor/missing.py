@@ -1,4 +1,5 @@
 from copy import deepcopy
+import random
 
 import numpy as np
 import pandas as pd
@@ -264,6 +265,46 @@ class MissingDrop(MissingHandler):
         self.data_backup = data
 
         return data.isna().values.ravel()
+
+    def _inverse_transform(self, data: None) -> None:
+        pass  # Redundant
+
+class MissingMode(MissingHandler):
+    """
+    Impute NA values with the mode value.
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.data_mode: list[str] | list[int] | list[float] = None
+
+    def _fit(self, data: pd.Series) -> None:
+        """
+        Gather information for transformation and reverse transformation.
+
+        Args:
+            data (pd.Series): The data needed to be transformed.
+        """
+        value_counts: pd.Series = data.value_counts()
+        max_count = value_counts.max()
+        self.data_mode = value_counts[value_counts == max_count].index.tolist()
+
+    def _transform(self, data: pd.Series) -> pd.Series:
+        """
+        Fill NA with mode.
+
+        Args:
+            data (pd.Series): The data needed to be transformed.
+
+        Return:
+            (pd.Series): The transformed data.
+        """
+        if len(self.data_mode) == 1:
+            return data.fillna(self.data_mode[0])
+        else:
+            filled = data.copy()
+            for idx, _ in filled[filled.isna()].items():
+                filled[idx] = random.choice(self.data_mode)
+            return filled
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
