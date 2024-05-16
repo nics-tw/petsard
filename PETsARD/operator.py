@@ -183,6 +183,7 @@ class SplitterOperator(Operator):
                 self.input['data'] = status.get_result('Loader')
                 self.input['metadata'] = status.get_metadata('Loader')
             self.input['exclude_index'] = status.get_exist_index()
+            self.input['metadata'] = status.get_metadata()
         except:
             raise ConfigError
 
