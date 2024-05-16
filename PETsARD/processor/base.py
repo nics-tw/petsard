@@ -106,6 +106,7 @@ class Processor:
             'missing_median': MissingMedian,
             'missing_simple': MissingSimple,
             'missing_drop': MissingDrop,
+            'missing_mode': MissingMode,
             'outlier_zscore': OutlierZScore,
             'outlier_iqr': OutlierIQR,
             'outlier_isolationforest': OutlierIsolationForest,
