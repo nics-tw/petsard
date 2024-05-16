@@ -245,6 +245,7 @@ In this section, we provide a comprehensive list of supported processor types an
 | `encoder` | Encoder | `EncoderOneHot` | 'encoder_onehot' |
 | `missing` | MissingHandler | `MissingMean` | 'missing_mean' |
 | `missing` | MissingHandler | `MissingMedian` | 'missing_median' |
+| `missing` | MissingHandler | `MissingMode` | 'missing_mode' |
 | `missing` | MissingHandler | `MissingSimple` | 'missing_simple' |
 | `missing` | MissingHandler | `MissingDrop` | 'missing_drop' |
 | `outlier` | OutlierHandler | `OutlierZScore` | 'outlier_zscore' |
@@ -399,6 +400,13 @@ Missing values are filled with the mean value of the corresponding column.
 Missing values are filled with the median value of the corresponding column.
 
 將缺失值用該欄的中位數填入。
+
+
+### `MissingMode`
+
+Missing values are filled with the mode value of the corresponding column. If there are multiple modes, it will randomly fill in one of them.
+
+將缺失值用該欄的眾數填入。如果有多個眾數會隨機填入。
 
 
 ### `MissingSimple`
