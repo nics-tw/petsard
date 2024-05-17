@@ -96,7 +96,9 @@ class Metadata:
         if dtype is None:
             raise ValueError(f'{dtype} is invalid.')
 
-        if pd.api.types.is_numeric_dtype(dtype):
+        if pd.api.types.is_bool_dtype(dtype):
+            return 'categorical'
+        elif pd.api.types.is_numeric_dtype(dtype):
             return 'numerical'
         elif isinstance(dtype, pd.CategoricalDtype):
             return 'categorical'
