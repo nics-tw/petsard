@@ -80,7 +80,9 @@ def safe_infer_dtype(safe_dtype: str) -> str:
     if safe_dtype is None:
         raise TypeError(f'{safe_dtype} is invalid.')
 
-    if pd.api.types.is_numeric_dtype(safe_dtype):
+    if pd.api.types.is_bool_dtype(safe_dtype):
+        return 'categorical'
+    elif pd.api.types.is_numeric_dtype(safe_dtype):
         return 'numerical'
     elif safe_dtype == 'category':
         return 'categorical'
