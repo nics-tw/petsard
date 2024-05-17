@@ -19,14 +19,18 @@ from PETsARD.loader.loader_pandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
-from PETsARD.loader.util import (
-    ALLOWED_COLUMN_TYPES,
-    verify_column_types,
-    optimize_dtypes,
-    casting_dataframe,
-)
 from PETsARD.loader.metadata import Metadata
-from PETsARD.error import ConfigError, NoConfigError, UnsupportedMethodError
+from PETsARD.loader.util import casting_dataframe
+from PETsARD.util import (
+    ALLOWED_COLUMN_TYPES,
+    optimize_dtypes,
+    verify_column_types,
+)
+from PETsARD.error import (
+    ConfigError,
+    NoConfigError,
+    UnsupportedMethodError,
+)
 
 
 class LoaderFileExt():
@@ -233,7 +237,7 @@ class Loader:
                 raise UnsupportedMethodError
 
         # 2. check if filepath is specified as a benchmark
-        if filepath.lower().startswith("benchmark://"):
+        if config['filepath'].lower().startswith("benchmark://"):
             config['benchmark'] = True
             config['benchmark_name'] = re.sub(
                 r'^benchmark://', '',

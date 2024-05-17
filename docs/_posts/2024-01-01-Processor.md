@@ -7,7 +7,7 @@ The `Processor` module is responsible for managing preprocessing and postprocess
 from PETsARD import Processor
 
 
-proc = Processor(metadata=load.metadata)
+proc = Processor(metadata=split.metadata)
 proc.fit(data=load.data)
 transformed_data = proc.transform(data=load.data)
 print(transformed_data.head(1))
@@ -27,15 +27,14 @@ Once you have an instance of metadata built from the `Loader` class, you can cre
 
 ```python
 proc = Processor(
-    metadata=load.metadata, # required
+    metadata=split.metadata, # required
     config=None
 )
 ```
 
 **Parameters**
 
-`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. 用於推論前處理及後處理流程的數據架構。
-    - Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information. 需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
+`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. If `Loader`/`Splitter` is used, it is recommended to get the metadata via last use module `Loader.metadata`/`Splitter.metadata`. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information. 用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
 
 `config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column. 針對每個欄位的自定義處理流程。
 
@@ -246,6 +245,7 @@ In this section, we provide a comprehensive list of supported processor types an
 | `encoder` | Encoder | `EncoderOneHot` | 'encoder_onehot' |
 | `missing` | MissingHandler | `MissingMean` | 'missing_mean' |
 | `missing` | MissingHandler | `MissingMedian` | 'missing_median' |
+| `missing` | MissingHandler | `MissingMode` | 'missing_mode' |
 | `missing` | MissingHandler | `MissingSimple` | 'missing_simple' |
 | `missing` | MissingHandler | `MissingDrop` | 'missing_drop' |
 | `outlier` | OutlierHandler | `OutlierZScore` | 'outlier_zscore' |
@@ -400,6 +400,13 @@ Missing values are filled with the mean value of the corresponding column.
 Missing values are filled with the median value of the corresponding column.
 
 將缺失值用該欄的中位數填入。
+
+
+### `MissingMode`
+
+Missing values are filled with the mode value of the corresponding column. If there are multiple modes, it will randomly fill in one of them.
+
+將缺失值用該欄的眾數填入。如果有多個眾數會隨機填入。
 
 
 ### `MissingSimple`

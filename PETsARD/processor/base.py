@@ -3,6 +3,7 @@ import logging
 from types import NoneType
 import warnings
 
+from PETsARD.loader.metadata import Metadata
 from PETsARD.processor.encoder import *
 from PETsARD.processor.missing import *
 from PETsARD.processor.outlier import *
@@ -10,7 +11,12 @@ from PETsARD.processor.scaler import *
 from PETsARD.processor.mediator import *
 from PETsARD.processor.discretizing import *
 from PETsARD.error import *
-from PETsARD.loader.metadata import Metadata
+from PETsARD.util import (
+    safe_astype,
+    safe_dtype,
+    safe_infer_dtype,
+    optimize_dtype,
+)
 
 
 logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
@@ -100,6 +106,7 @@ class Processor:
             'missing_median': MissingMedian,
             'missing_simple': MissingSimple,
             'missing_drop': MissingDrop,
+            'missing_mode': MissingMode,
             'outlier_zscore': OutlierZScore,
             'outlier_iqr': OutlierIQR,
             'outlier_isolationforest': OutlierIsolationForest,
@@ -111,7 +118,7 @@ class Processor:
             'discretizing_kbins': DiscretizingKBins,
         }
 
-        self._metadata: dict = metadata.metadata
+        self._metadata: Metadata = metadata
         logging.debug(f'Metadata loaded.')
 
         # processing sequence
@@ -126,8 +133,8 @@ class Processor:
         self.mediator_encoder: MediatorEncoder | None = None
 
         # global NA values imputation
-        self._na_percentage_global: float = self._metadata['global'].\
-            get('na_percentage', 0.0)
+        self._na_percentage_global: float = \
+            self._metadata.metadata['global'].get('na_percentage', 0.0)
         self.rng = np.random.default_rng()
 
         self._generate_config()
@@ -156,11 +163,11 @@ class Processor:
         """
 
         self._config: dict = {
-            processor: dict.fromkeys(self._metadata['col'].keys())
+            processor: dict.fromkeys(self._metadata.metadata['col'].keys())
             for processor in self._default_processor.keys()
         }
 
-        for col, val in self._metadata['col'].items():
+        for col, val in self._metadata.metadata['col'].items():
             for processor, obj in self._default_processor.items():
                 self._config[processor][col] = obj[val['infer_dtype']]()
 
@@ -186,7 +193,7 @@ class Processor:
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._metadata['col'].keys())
+            get_col_list = list(self._metadata.metadata['col'].keys())
 
         if print_config:
             for processor in self._config.keys():
@@ -393,6 +400,22 @@ class Processor:
 
                     transformed[col] = obj.transform(transformed[col])
 
+                    col_metadata: dict = self._metadata.metadata['col'][col]
+                    if col_metadata['infer_dtype'] == 'datetime':
+                        # it is fine to re-adjust mulitple times
+                        #   for get the final dtype,
+                        # and it is impossible for re-adjust under current logic
+                        if isinstance(obj, (
+                            EncoderUniform,
+                            EncoderLabel,
+                            EncoderOneHot,
+                            ScalerStandard,
+                            ScalerZeroCenter,
+                            ScalerMinMax,
+                            ScalerLog,
+                        )):
+                            self._adjust_metadata(col, transformed[col])
+
                 logging.info(f'{processor} transformation done.')
             else:
                 # if the processor is not a string,
@@ -406,6 +429,9 @@ class Processor:
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
+
+        self._metadata.metadata['global']['row_num_after_preproc'] = \
+            transformed.shape[0]
 
         return transformed
 
@@ -423,12 +449,13 @@ class Processor:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         # set NA percentage in Missingist
-        index_list: list = list(self.rng.choice(data.index,
-                                                size=int(
-                                                    data.shape[0] *
-                                                    self.
-                                                    _na_percentage_global),
-                                                replace=False).ravel())
+        index_list: list = list(
+            self.rng.choice(
+                data.index,
+                size=int(data.shape[0] * self._na_percentage_global),
+                replace=False
+            ).ravel()
+        )
 
         for col, obj in self._config['missing'].items():
             if obj is None:
@@ -443,7 +470,7 @@ class Processor:
                     # the NA percentage taking global NA percentage
                     # into consideration
                     adjusted_na_percentage: float = \
-                        self._metadata['col'][col].\
+                        self._metadata.metadata['col'][col].\
                         get('na_percentage', 0.0)\
                         / self._na_percentage_global
             # if there is no NA in the original data
@@ -494,7 +521,7 @@ class Processor:
                     #   and object PROC_TYPE is ('encoder', 'discretizing'),
                     #   then we will force convert the data type to int. (See #440)
                     if processor == 'discretizing'\
-                        and obj.PROC_TYPE == ('encoder', 'discretizing'):
+                            and obj.PROC_TYPE == ('encoder', 'discretizing'):
                         transformed[col] = transformed[col].astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
@@ -532,9 +559,9 @@ class Processor:
         }
 
         for processor, default_class in self._default_processor.items():
-            for col in self._metadata['col'].keys():
+            for col in self._metadata.metadata['col'].keys():
                 obj = self._config[processor][col]
-                default_obj = default_class[self._metadata['col']
+                default_obj = default_class[self._metadata.metadata['col']
                                             [col]['infer_dtype']]
 
                 if default_obj() is None:
@@ -588,7 +615,7 @@ class Processor:
                         for col in new_col:
                             self._working_config[processor][col] = \
                                 deepcopy(self._config[processor][ori_col])
-                            
+
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Align the data types between the data and the metadata by the following
@@ -610,48 +637,30 @@ class Processor:
         Return:
             (pd.DataFrame): The aligned data.
         """
-        for col, val in self._metadata['col'].items():
-            if data[col].dtype != val['dtype']:
-                if pd.api.types.is_integer_dtype(val['dtype']) and \
-                    pd.api.types.is_float_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].round().astype(val['dtype'])
-                    
-                elif pd.api.types.is_float_dtype(val['dtype']) and \
-                    pd.api.types.is_integer_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                elif pd.api.types.is_string_dtype(val['dtype']) or \
-                    pd.api.types.is_object_dtype(val['dtype']):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                elif pd.api.types.is_datetime64_any_dtype(val['dtype']) and \
-                    (pd.api.types.is_integer_dtype(data[col].dtype) or \
-                    pd.api.types.is_float_dtype(data[col].dtype)):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
+        for col, val in self._metadata.metadata['col'].items():
+            data[col] = safe_astype(data[col], val['dtype'])
 
-                elif val['dtype'] == 'category' and \
-                    pd.api.types.is_object_dtype(data[col].dtype):
-                    logging.info(f'{col} changes data type from' + 
-                                 f' {data[col].dtype} to {val["dtype"]}' + 
-                                 ' for metadata alignment.')
-                    data[col] = data[col].astype(val['dtype'])
-                    
-                else:
-                    raise TypeError(
-                        f'The data type of {col} is {data[col].dtype}' + 
-                        f', which is not aligned with the metadata: {val["dtype"]}.'
-                    )
-            
         return data
+
+    def _adjust_metadata(self, col: str, data: pd.Series) -> None:
+        """
+        Adjusts the metadata for a given column based on the processed data.
+
+        Args:
+            col (str): The name of the column.
+            data (pd.Series): The processed data for the column.
+
+        Raises:
+            ConfigError: If the specified column is not found in the metadata.
+
+        Returns:
+            None
+        """
+        if col not in self._metadata.metadata['col']:
+            raise ConfigError(f'{col} is not in the metadata.')
+
+        dtype_after_preproc: str = optimize_dtype(data)
+        self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
+            dtype_after_preproc
+        self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
+            safe_infer_dtype(safe_dtype(dtype_after_preproc))

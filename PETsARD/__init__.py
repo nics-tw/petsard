@@ -21,7 +21,7 @@
 from PETsARD.loader import Loader, Metadata, Splitter
 from PETsARD.processor import Processor
 from PETsARD.synthesizer import Synthesizer
-from PETsARD.evaluator import Evaluator, Describer, AutoML
+from PETsARD.evaluator import Evaluator, Describer
 from PETsARD.reporter import Reporter
 from PETsARD.util import *
 from PETsARD.config import Config, Status

@@ -1,9 +1,10 @@
 import random
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import pandas as pd
 
-from PETsARD.loader.loader import Loader  # avoid circular import
+from PETsARD.loader.loader import Loader
+from PETsARD.loader.metadata import Metadata
 from PETsARD.error import ConfigError
 
 
@@ -43,14 +44,26 @@ class Splitter:
         Attr:
             config (dict):
                 The configuration of Splitter.
-                If method is None, it contains num_samples, train_split_ratio, random_state.
-                If method is 'custom_data', it contains method, filepath, and Loader's config.
+                If method is None,
+                    it contains num_samples, train_split_ratio, random_state.
+                If method is 'custom_data',
+                    it contains method, filepath, and Loader's config.
 
             data (dict):
                 The split data of train and validation set.
                 Following the format:
                 {sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}
+
+            metadata (Metadata):
+                The metadata of the data.
+
+            loader (dict, optional):
+                The loader for 'custom_data' method.
+                Contains 'ori' and 'control' loader for train and validation data.
         """
+        self.data: dict = {}
+        self.config: dict = {}
+        self.metadata: Metadata = None
 
         # Normal Splitter use case
         if method is None:
@@ -84,18 +97,25 @@ class Splitter:
             config['method'] = method
             config['filepath'] = filepath
             self.config = config
-        self.data: dict = {}
 
-    def split(self, data: pd.DataFrame = None, exclude_index: List[int] = None):
+    def split(
+        self,
+        data: pd.DataFrame = None,
+        exclude_index: list[int] = None,
+        metadata: Metadata = None,
+    ):
         """
         Perform index bootstrapping on the Splitter-initialized data
-            and split it into train and validation sets using the generated index samples.
+            and split it into train and validation sets
+            using the generated index samples.
 
         When method is 'custom_data', the data will be loaded from the filepath.
 
         Args:
             data (pd.DataFrame, optional): The dataset which wait for split.
-            exclude_index (List[int]): The exist index we want to exclude them from our sampling.
+            exclude_index (list[int], optional):
+                The exist index we want to exclude them from our sampling.
+            metadata (Metadata, optional): The metadata class of the data.
         """
         if 'method' in self.config:
             self.loader['ori'].load()
@@ -104,6 +124,13 @@ class Splitter:
                 'train': self.loader['ori'].data,
                 'validation': self.loader['control'].data
             }
+            # Setting metadata by train
+            metadata = Metadata()
+            metadata.build_metadata(data=self.loader['ori'].data)
+            if 'row_num' in metadata.metadata['global']:
+                metadata.metadata['global']['row_num_after_split'] = \
+                    metadata.metadata['global'].pop('row_num')
+            self.metadata = metadata
         else:
             data.reset_index(drop=True, inplace=True)  # avoid unexpected index
 
@@ -118,18 +145,25 @@ class Splitter:
                     'validation': data.iloc[index['validation']].reset_index(drop=True)
                 }
 
+        if metadata is not None:
+            self.metadata = metadata
+            self.metadata.metadata['global']['row_num_after_split'] = {
+                'train': self.data[1]['train'].shape[0],
+                'validation': self.data[1]['validation'].shape[0],
+            }
+
     def _index_bootstrapping(
         self,
         index: list,
-        exclude_index: List[int] = None
-    ) -> Dict[int, List[int]]:
+        exclude_index: list[int] = None
+    ) -> dict[int, list[int]]:
         """
         Generate randomized index samples for splitting data.
 
         Args
             index (list)
                 The index list of dataset which wait for split.
-            exist_index (Dict[int, List[int]])
+            exist_index (dict[int, list[int]])
                 same as split()
         """
         if self.config['random_state'] is not None:
