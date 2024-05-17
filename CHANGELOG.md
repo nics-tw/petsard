@@ -1,6 +1,13 @@
 ## Changelog 歷史
 
 - **Beta testing 外部測試階段**
+    - **0.12.0** (2024-05-16): **Feasibility study-4** **適用性研究之四**
+        - Introduced Stats for new evaluating framework.
+        - Introduced MissingMode for new MissingHandler.
+        - Continue refining and debugging.
+        - 引入新評測架構 Stats。
+        - 引入新遺失值處理模組 MissingMode。
+        - 持續優化與除錯。
     - **0.11.0** (2024-05-02): **Feasibility study-3** **適用性研究之三**
         - Introduced MLUtility for new ML evaluating framework.
         - Continue refining and debugging.
