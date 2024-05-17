@@ -1,20 +1,25 @@
+import re
 import warnings
-import pandas as pd
+
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, \
-    RandomForestClassifier, GradientBoostingClassifier
-from sklearn.model_selection import KFold, StratifiedKFold
+import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import f1_score, silhouette_score
+from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 from tqdm import tqdm
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.util.safe_round import safe_round
-import re
 
 
 class AutoMLMap():
@@ -59,8 +64,8 @@ class AutoML(EvaluatorBase):
             a numerical column for regression.
             - n_splits (int, default=5): The parameter for k-fold cross validation. Should
             be greater than 1.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering.
             Ignored for regression and classification.
     """
 
@@ -73,7 +78,7 @@ class AutoML(EvaluatorBase):
 
         self.ml = ML(self.config)
 
-    def create(self, data):
+    def _create(self, data):
         """
         Create a worker and send the data to the worker.
 
@@ -81,6 +86,11 @@ class AutoML(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             and 'syn, and the value should be a pandas DataFrame.
         """
+        if not set(['ori', 'syn']).issubset(set(data.keys())):
+            raise ConfigError
+        data = {key: value for key, value in data.items()
+                if key in ['ori', 'syn']
+        }
         self.data = data
 
         self.ml.create(self.data)
@@ -124,10 +134,10 @@ class ML:
             - target (str): The target column of the data. Required for
             regression and classification. Ignored for clustering. Should be
             a numerical column for regression.
-            - n_splits (int, default=5): The parameter for k-fold cross 
+            - n_splits (int, default=5): The parameter for k-fold cross
             validation. Should be greater than 1.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of 
-            clusters for clustering. Required for clustering. Ignored for 
+            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
+            clusters for clustering. Required for clustering. Ignored for
             regression and classification.
     """
 
@@ -479,9 +489,8 @@ class ML:
                                    'syn_std': safe_round(np.std(syn_value))},
                                   index=[0])
 
-        compare_df['pct_change'] = safe_round((compare_df['syn_mean'] -
-                                               compare_df['ori_mean']) /
-                                              normalise_range) * 100
+        compare_df['diff'] = safe_round(
+            compare_df['syn_mean'] - compare_df['ori_mean'])
 
         return compare_df
 
