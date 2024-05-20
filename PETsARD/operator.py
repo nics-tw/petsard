@@ -317,6 +317,15 @@ class SynthesizerOperator(Operator):
         super().__init__(config)
         self.synthesizer = Synthesizer(**config)
 
+        self.sample_dict: dict = {}
+        self.sample_dict.update({
+            key: config[key]
+            for key in [
+                'sample_num_rows', 'reset_sampling', 'output_file_path',
+            ]
+            if key in config
+        })
+
     def run(self, input: dict):
         """
         Executes the data synthesizing using the Synthesizer instance.
@@ -329,7 +338,7 @@ class SynthesizerOperator(Operator):
                 An synthesizing result data.
         """
         self.synthesizer.create(**input)
-        self.synthesizer.fit_sample()
+        self.synthesizer.fit_sample(**self.sample_dict)
 
     def set_input(self, status) -> dict:
         """
