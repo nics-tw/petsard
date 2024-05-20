@@ -79,7 +79,15 @@ class Synthesizer:
         elif self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
             if 'filepath' not in self.config:
                 raise ConfigError
-            self.loader = Loader(filepath=self.config['filepath'])
+            self.loader = Loader(
+                **{k: self.config.get(k) for k in [
+                        'filepath',
+                        'column_types',
+                        'header_names',
+                        'na_values',
+                    ] if self.config.get(k) is not None
+                }
+            )
         elif self.config['method_code'] == SynthesizerMap.SDV:
             self.synthesizer = SDVFactory(**self.config).create()
         elif self.config['method_code'] == SynthesizerMap.SMARTNOISE:
