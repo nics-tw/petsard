@@ -84,15 +84,23 @@ class Splitter:
             filepath = kwargs.get('filepath', None)
             if filepath is None or not isinstance(filepath, dict):
                 raise ConfigError
-            if 'ori' not in filepath or 'control' not in filepath:
+            if not all(k in filepath for k in ('ori', 'control')):
                 raise ConfigError
 
             config = kwargs
             self.loader: dict = {}
 
             for key in ['ori', 'control']:
-                config['filepath'] = filepath[key]
-                self.loader[key] = Loader(**config)
+                self.loader[key] = Loader(
+                    filepath = filepath[key],
+                    **{
+                    k: config.get(k) for k in [
+                            'column_types',
+                            'header_names',
+                            'na_values',
+                        ] if config.get(k) is not None
+                    },
+                )
 
             config['method'] = method
             config['filepath'] = filepath

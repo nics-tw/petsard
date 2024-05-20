@@ -136,10 +136,14 @@ def _optimized_numeric_dtypes(col_data: pd.Series) -> str:
     Returns:
         str: The optimized numeric data type for the column.
     """
-    ori_dtype: str = col_data.dtype
+    ori_dtype: str = col_data.dtype.name
     opt_dtype: str = None
 
-    # 1. Setting the ranges for each numeric data type
+    # 1. verify if all of column belogn to np.nan
+    if col_data.isna().all():
+        return 'float32'
+    
+    # 2. Setting the ranges for each numeric data type
     if is_integer_dtype(col_data):
         RANGES = {
             'int8':  (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
@@ -152,16 +156,17 @@ def _optimized_numeric_dtypes(col_data: pd.Series) -> str:
             'float32': (np.finfo(np.float32).min, np.finfo(np.float32).max),
             'float64': (np.finfo(np.float64).min, np.finfo(np.float64).max),
         }
-    # 2. Check the range of the column data
+
+    # 3. Check the range of the column data
     col_min, col_max = np.nanmin(col_data), np.nanmax(col_data)
 
-    # 3. Infer the optimized dtype by their ranges
+    # 4. Infer the optimized dtype by their ranges
     for range_dtype, (min_val, max_val) in RANGES.items():
         if min_val <= col_min and col_max <= max_val:
             opt_dtype = range_dtype
             break
 
-    # 3. If none of the ranges match,
+    # 5. If none of the ranges match,
     #    then return the original dtype define by pandas dtype.
     if opt_dtype is None:
         opt_dtype = ori_dtype
