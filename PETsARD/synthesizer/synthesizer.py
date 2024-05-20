@@ -87,14 +87,14 @@ class Synthesizer:
         else:
             raise UnsupportedMethodError
 
-    def fit(self, **kwargs) -> None:
+    def fit(self) -> None:
         """
         Fits the synthesizer model with the given parameters.
         """
         if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
             self.loader.load()
         else:
-            self.synthesizer.fit(**kwargs)
+            self.synthesizer.fit()
 
     def sample(self, **kwargs) -> None:
         """
