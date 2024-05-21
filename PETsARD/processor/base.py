@@ -428,8 +428,15 @@ class Processor:
                 logging.debug(f'mediator: {processor} start transforming.')
                 logging.debug(
                     f'before transformation: data shape: {transformed.shape}')
+
                 transformed = processor.transform(transformed)
+                if isinstance(processor, MediatorEncoder):
+                    self._adjust_metadata(
+                        mode = 'global',
+                        data = transformed,
+                    )
                 self._adjust_working_config(processor, self._fitting_sequence)
+
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
@@ -661,7 +668,7 @@ class Processor:
         """
         if mode == 'columnwise':
             if not isinstance(data, pd.Series):
-                raise ConfigError('data should be pd.Series.')
+                raise ConfigError('data should be pd.Series in columnwise mode.')
             if col is None:
                 raise ConfigError('col is not specified.')
             if col not in self._metadata.metadata['col']:
@@ -673,6 +680,12 @@ class Processor:
             self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
                 safe_infer_dtype(safe_dtype(dtype_after_preproc))
         elif mode == 'global':
-            pass
+            if not isinstance(data, pd.DataFrame):
+                raise ConfigError('data should be pd.DataFrame in global mode.')
+
+            new_metadata = Metadata()
+            new_metadata.build_metadata(data=data)
+            self._metadata.metadata['col_after_preproc'] = \
+                deepcopy(new_metadata.metadata['col'])
         else:
             raise ConfigError('Invalid mode.')
