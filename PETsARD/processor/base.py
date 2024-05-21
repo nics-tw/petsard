@@ -414,7 +414,11 @@ class Processor:
                             ScalerMinMax,
                             ScalerLog,
                         )):
-                            self._adjust_metadata(col, transformed[col])
+                            self._adjust_metadata(
+                                mode = 'columnwise',
+                                data = transformed[col],
+                                col = col,
+                            )
 
                 logging.info(f'{processor} transformation done.')
             else:
@@ -642,13 +646,22 @@ class Processor:
 
         return data
 
-    def _adjust_metadata(self, col: str, data: pd.Series) -> None:
+    def _adjust_metadata(
+        self,
+        mode: str,
+        data: pd.Series | pd.DataFrame,
+        col: str = None,
+    ) -> None:
         """
         Adjusts the metadata for a given column based on the processed data.
 
         Args:
-            col (str): The name of the column.
-            data (pd.Series): The processed data for the column.
+            mode (str): The mode of adjustment.
+                'columnwise': Adjust the metadata based on the column.
+                'global': Adjust the metadata based on the whole data.
+            data (pd.Series | pd.DataFrame): The processed data for the column.
+            col (str): The name of the column. Default is None.
+                No need to specifiy when mode is 'global'.
 
         Raises:
             ConfigError: If the specified column is not found in the metadata.
@@ -656,11 +669,20 @@ class Processor:
         Returns:
             None
         """
-        if col not in self._metadata.metadata['col']:
-            raise ConfigError(f'{col} is not in the metadata.')
+        if mode == 'columnwise':
+            if not isinstance(data, pd.Series):
+                raise ConfigError('data should be pd.Series.')
+            if col is None:
+                raise ConfigError('col is not specified.')
+            if col not in self._metadata.metadata['col']:
+                raise ConfigError(f'{col} is not in the metadata.')
 
-        dtype_after_preproc: str = optimize_dtype(data)
-        self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
-            dtype_after_preproc
-        self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
-            safe_infer_dtype(safe_dtype(dtype_after_preproc))
+            dtype_after_preproc: str = optimize_dtype(data)
+            self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
+                dtype_after_preproc
+            self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
+                safe_infer_dtype(safe_dtype(dtype_after_preproc))
+        elif mode == 'global':
+            pass
+        else:
+            raise ConfigError('Invalid mode.')
