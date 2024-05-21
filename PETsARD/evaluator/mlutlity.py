@@ -86,7 +86,7 @@ class MLUtility(EvaluatorBase):
             raise ConfigError
         data = {key: value for key, value in data.items()
                 if key in ['ori', 'syn', 'control']
-        }
+                }
         self.data = data
 
         self.ml.create(self.data)
@@ -209,9 +209,18 @@ class MLWorker:
             .reset_index(name='is_cat').query('is_cat == True')['index'].values
 
         if len(cat_col) != 0:
-            ohe = OneHotEncoder(drop='first', sparse_output=False,
-                                handle_unknown='infrequent_if_exist')
-            ohe.fit(data_ori[cat_col])
+
+            # One-hot encoding
+            ohe = OneHotEncoder(
+                drop='first',
+                sparse_output=False,
+                handle_unknown='infrequent_if_exist',
+            )
+            ohe.fit(np.concatenate([
+                data_ori[cat_col],
+                data_syn[cat_col],
+            ]))
+
             data_ori_cat = ohe.transform(data_ori[cat_col])
             data_syn_cat = ohe.transform(data_syn[cat_col])
             data_test_cat = ohe.transform(data_test[cat_col])
