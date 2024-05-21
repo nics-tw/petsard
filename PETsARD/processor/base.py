@@ -622,18 +622,8 @@ class Processor:
 
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Align the data types between the data and the metadata by the following
-        rules:
-            1. If the original data type is int, and the inverse transformed
-            date type is float, it will be converted to int after rounding.
-            2. If the original data type is float, and the inverse transformed
-            date type is int, it will be converted to float using astype().
-            3. If the original data type is str/object, using astype() to convert
-            the data type regardless of the inverse transformed data type.
-            4. If the original data type is datetime, and the inverse transformed
-            data type is int/float, it will be converted to datetime using
-            astype().
-            5. Raise an error for other cases.
+        Align the data types between the data and the metadata
+            by the rules in util.safe_astypes, see it for more details.
 
         Args:
             data (pd.DataFrame): The data to be aligned.
