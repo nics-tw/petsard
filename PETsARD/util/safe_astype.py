@@ -4,6 +4,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from pandas.api.types import (
+    is_bool_dtype,
     is_datetime64_any_dtype,
     is_float_dtype,
     is_integer_dtype,
@@ -130,6 +131,9 @@ def safe_astype(
                  ):
         is_change_dtype = True
     elif declared_dtype_name == 'object':
+        is_change_dtype = True
+    elif is_bool_dtype(declared_dtype_name)\
+            and data_dtype_name == 'category[bool]':
         is_change_dtype = True
     else:
         if data_dtype_name != declared_dtype_name:
