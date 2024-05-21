@@ -252,7 +252,7 @@ class EncoderOneHot(Encoder):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = OneHotEncoder(sparse_output=False)
+        self.model = OneHotEncoder(sparse_output=False, drop='first')
 
         # for the use in Mediator
         self._transform_temp: np.ndarray = None

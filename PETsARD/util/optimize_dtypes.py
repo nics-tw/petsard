@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from pandas.api.types import (
+    is_bool_dtype,
     is_float_dtype,
     is_integer_dtype,
     is_numeric_dtype,
@@ -33,6 +34,9 @@ def optimize_dtype(col_data: pd.Series) -> str:
         # If dtype from pandas is object, infer the optimized dtype
         # by trying to convert it to datetime.
         opt_dtype = _optimized_object_dtypes(col_data=col_data)
+    elif is_bool_dtype(col_data):
+        # If dtype from pandas is boolean, keep the original dtype
+        opt_dtype = col_data.dtype.name
     elif is_numeric_dtype(col_data):
         # If dtype from pandas is numeric, infer the optimized dtype
         # by comparing the range of the column data

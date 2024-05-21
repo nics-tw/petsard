@@ -333,7 +333,7 @@ class MediatorEncoder(Mediator):
         transformed = data.copy()
 
         for col in self._process_col:
-            label_list = self._config[col].labels
+            label_list = self._config[col].labels[1:]
 
             # prevent duplicates
             n = 1
