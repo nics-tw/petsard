@@ -152,6 +152,8 @@ class MLWorker:
             raise ConfigError
 
         self.data_content: pd.DataFrame = None
+        self.n_rows: dict[str, int] = {}
+        self.col_cardinality: dict[str, dict[str, int]] = {}
 
     def create(self, data):
         """
@@ -203,12 +205,35 @@ class MLWorker:
         else:
             raise ConfigError
 
-        # One-hot encoding
+        self.n_rows['ori'] = data_ori.shape[0]
+        self.n_rows['syn'] = data_syn.shape[0]
+        self.n_rows['test'] = data_test.shape[0]
 
         cat_col = (data_ori.dtypes == 'category')\
             .reset_index(name='is_cat').query('is_cat == True')['index'].values
-
         if len(cat_col) != 0:
+            # Check and remove if too much cardinality in col
+            for col in cat_col:
+                self.col_cardinality[col] = {
+                    'ori': data_ori[col].nunique(),
+                    'syn': data_syn[col].nunique(),
+                    'test': data_test[col].nunique(),
+                }
+                if self.col_cardinality[col]['ori'] >= \
+                        round(self.n_rows['ori']/10) \
+                    or self.col_cardinality[col]['syn'] >= \
+                        round(self.n_rows['syn']/10):
+                    warnings.warn(
+                        f'The cardinality of the column {col} is too high ' +
+                        f'(ori: {self.col_cardinality[col]['ori']},' +
+                        f' syn: {self.col_cardinality[col]['syn']}). ' +
+                        f'The column is removed.'
+                    )
+                    data_ori = data_ori.drop(columns=col)
+                    data_syn = data_syn.drop(columns=col)
+                    data_test = data_test.drop(columns=col)
+                    if col in cat_col:
+                        cat_col = np.delete(cat_col, np.where(cat_col == col))
 
             # One-hot encoding
             ohe = OneHotEncoder(
