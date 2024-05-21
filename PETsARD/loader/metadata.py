@@ -120,7 +120,12 @@ class Metadata:
 
         sdv_metadata = {'columns': {}}
 
-        for col, val in self.metadata['col'].items():
+        col_name: str = (
+            'col_after_preproc' if 'col_after_preproc' in self.metadata
+            else 'col'
+        )
+
+        for col, val in self.metadata[col_name].items():
             sdtype = val.get('infer_dtype')
             if 'infer_dtype_after_preproc' in val:
                 sdtype = val.get('infer_dtype_after_preproc')
