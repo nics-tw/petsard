@@ -39,7 +39,7 @@ class Encoder:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " + \
+        raise NotImplementedError("_fit method should be implemented " +
                                   "in subclasses.")
 
     def transform(self, data: pd.Series) -> np.ndarray:
@@ -56,26 +56,26 @@ class Encoder:
         if not self._is_fitted:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
-        # Check whether the categories of the column are 
+        # Check whether the categories of the column are
         # included in the fitted instance
         if not set(data.unique()).issubset(set(self.labels)):
             raise ValueError(
                 "The data contains categories that the object hasn't seen",
-                " in the fitting process.", 
+                " in the fitting process.",
                 " Please check the data categories again.")
 
         return self._transform(data)
-    
+
     def _transform():
         """
         _transform method is implemented in subclasses.
 
-        transform method is responsible for general action 
+        transform method is responsible for general action
             defined by the base class.
-        _transform method is for specific procedure 
+        _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " + \
+        raise NotImplementedError("_transform method should be implemented " +
                                   "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> pd.Series | np.ndarray:
@@ -93,17 +93,17 @@ class Encoder:
             raise UnfittedError('The object is not fitted. Use .fit() first.')
 
         return self._inverse_transform(data)
-    
+
     def _inverse_transform():
         """
         _inverse_transform method is implemented in subclasses.
 
-        inverse_transform method is responsible for general action 
+        inverse_transform method is responsible for general action
             defined by the base class.
-        _inverse_transform method is for specific procedure 
+        _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +\
+        raise NotImplementedError("_inverse_transform method should be " +
                                   "implemented in subclasses.")
 
 
@@ -138,7 +138,7 @@ class EncoderUniform(Encoder):
         # Get values (upper and lower bounds)
         self.upper_values = np.cumsum(normalize_value_counts.values)
         self.lower_values = np.roll(self.upper_values, 1)
-        # To make sure the range of the data is in [0, 1]. 
+        # To make sure the range of the data is in [0, 1].
         # That is, the range of an uniform dist.
         self.upper_values[-1] = 1.0
         self.lower_values[0] = 0.0
@@ -148,7 +148,7 @@ class EncoderUniform(Encoder):
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """
-        Transform categorical data to a uniform distribution. 
+        Transform categorical data to a uniform distribution.
             For example, a column with two categories (e.g., 'Male', 'Female')
                   can be mapped to [0.0, 0.5) and [0.5, 1], respectively.
 
@@ -164,8 +164,8 @@ class EncoderUniform(Encoder):
         else:
             data_obj = data.copy()
 
-        return data_obj.map(lambda x: self._rgenerator.\
-                            uniform(self.cat_to_val[x][0], 
+        return data_obj.map(lambda x: self._rgenerator.
+                            uniform(self.cat_to_val[x][0],
                                     self.cat_to_val[x][1], size=1)[0]).values
 
     def _inverse_transform(self, data: pd.Series) -> pd.Series:
@@ -173,7 +173,7 @@ class EncoderUniform(Encoder):
         Inverse the transformed data to the categorical data.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (pd.Series): The categorical data needed to
             be transformed inversely.
 
         Return:
@@ -188,7 +188,7 @@ class EncoderUniform(Encoder):
 
         bins_val = np.append(self.lower_values, 1.0)
 
-        return pd.cut(data, right=False, include_lowest=True, bins=bins_val, 
+        return pd.cut(data, right=False, include_lowest=True, bins=bins_val,
                       labels=self.labels, ordered=False)
 
 
@@ -236,7 +236,7 @@ class EncoderLabel(Encoder):
         Inverse the transformed data to the categorical data.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (pd.Series): The categorical data needed to
             be transformed inversely.
 
         Return:
@@ -244,7 +244,8 @@ class EncoderLabel(Encoder):
         """
 
         return self.model.inverse_transform(data)
-    
+
+
 class EncoderOneHot(Encoder):
     """
     Implement a one-hot encoder.
@@ -291,7 +292,7 @@ class EncoderOneHot(Encoder):
         This is a dummy method, and it is implemented in MediatorEncoder.
 
         Args:
-            data (pd.Series): The categorical data needed to 
+            data (pd.Series): The categorical data needed to
             be transformed inversely.
 
         Return:

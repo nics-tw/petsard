@@ -414,7 +414,11 @@ class Processor:
                             ScalerMinMax,
                             ScalerLog,
                         )):
-                            self._adjust_metadata(col, transformed[col])
+                            self._adjust_metadata(
+                                mode = 'columnwise',
+                                data = transformed[col],
+                                col = col,
+                            )
 
                 logging.info(f'{processor} transformation done.')
             else:
@@ -424,8 +428,15 @@ class Processor:
                 logging.debug(f'mediator: {processor} start transforming.')
                 logging.debug(
                     f'before transformation: data shape: {transformed.shape}')
+
                 transformed = processor.transform(transformed)
+                if isinstance(processor, MediatorEncoder):
+                    self._adjust_metadata(
+                        mode = 'global',
+                        data = transformed,
+                    )
                 self._adjust_working_config(processor, self._fitting_sequence)
+
                 logging.debug(
                     f'after transformation: data shape: {transformed.shape}')
                 logging.info(f'{processor} transformation done.')
@@ -626,18 +637,8 @@ class Processor:
 
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Align the data types between the data and the metadata by the following
-        rules:
-            1. If the original data type is int, and the inverse transformed
-            date type is float, it will be converted to int after rounding.
-            2. If the original data type is float, and the inverse transformed
-            date type is int, it will be converted to float using astype().
-            3. If the original data type is str/object, using astype() to convert
-            the data type regardless of the inverse transformed data type.
-            4. If the original data type is datetime, and the inverse transformed
-            data type is int/float, it will be converted to datetime using
-            astype().
-            5. Raise an error for other cases.
+        Align the data types between the data and the metadata
+            by the rules in util.safe_astypes, see it for more details.
 
         Args:
             data (pd.DataFrame): The data to be aligned.
@@ -650,13 +651,22 @@ class Processor:
 
         return data
 
-    def _adjust_metadata(self, col: str, data: pd.Series) -> None:
+    def _adjust_metadata(
+        self,
+        mode: str,
+        data: pd.Series | pd.DataFrame,
+        col: str = None,
+    ) -> None:
         """
         Adjusts the metadata for a given column based on the processed data.
 
         Args:
-            col (str): The name of the column.
-            data (pd.Series): The processed data for the column.
+            mode (str): The mode of adjustment.
+                'columnwise': Adjust the metadata based on the column.
+                'global': Adjust the metadata based on the whole data.
+            data (pd.Series | pd.DataFrame): The processed data for the column.
+            col (str): The name of the column. Default is None.
+                No need to specifiy when mode is 'global'.
 
         Raises:
             ConfigError: If the specified column is not found in the metadata.
@@ -664,11 +674,26 @@ class Processor:
         Returns:
             None
         """
-        if col not in self._metadata.metadata['col']:
-            raise ConfigError(f'{col} is not in the metadata.')
+        if mode == 'columnwise':
+            if not isinstance(data, pd.Series):
+                raise ConfigError('data should be pd.Series in columnwise mode.')
+            if col is None:
+                raise ConfigError('col is not specified.')
+            if col not in self._metadata.metadata['col']:
+                raise ConfigError(f'{col} is not in the metadata.')
 
-        dtype_after_preproc: str = optimize_dtype(data)
-        self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
-            dtype_after_preproc
-        self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
-            safe_infer_dtype(safe_dtype(dtype_after_preproc))
+            dtype_after_preproc: str = optimize_dtype(data)
+            self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
+                dtype_after_preproc
+            self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
+                safe_infer_dtype(safe_dtype(dtype_after_preproc))
+        elif mode == 'global':
+            if not isinstance(data, pd.DataFrame):
+                raise ConfigError('data should be pd.DataFrame in global mode.')
+
+            new_metadata = Metadata()
+            new_metadata.build_metadata(data=data)
+            self._metadata.metadata['col_after_preproc'] = \
+                deepcopy(new_metadata.metadata['col'])
+        else:
+            raise ConfigError('Invalid mode.')
