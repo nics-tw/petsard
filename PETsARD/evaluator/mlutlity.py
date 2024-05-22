@@ -232,8 +232,8 @@ class MLWorker:
                     data_ori = data_ori.drop(columns=col)
                     data_syn = data_syn.drop(columns=col)
                     data_test = data_test.drop(columns=col)
-                    if col in cat_col:
-                        cat_col = np.delete(cat_col, np.where(cat_col == col))
+
+                    cat_col = np.delete(cat_col, np.where(cat_col == col))
 
             # One-hot encoding
             ohe = OneHotEncoder(
