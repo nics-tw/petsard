@@ -37,7 +37,7 @@ class Scaler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " + \
+        raise NotImplementedError("_fit method should be implemented " +
                                   "in subclasses.")
 
     def transform(self, data: pd.Series) -> np.ndarray:
@@ -58,17 +58,17 @@ class Scaler:
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
-    
+
     def _transform():
         """
         _transform method is implemented in subclasses.
 
-        transform method is responsible for general action 
+        transform method is responsible for general action
             defined by the base class.
-        _transform method is for specific procedure 
+        _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " + \
+        raise NotImplementedError("_transform method should be implemented " +
                                   "in subclasses.")
 
     def inverse_transform(self, data: pd.Series) -> np.ndarray:
@@ -89,17 +89,17 @@ class Scaler:
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
-    
+
     def _inverse_transform():
         """
         _inverse_transform method is implemented in subclasses.
 
-        inverse_transform method is responsible for general action 
+        inverse_transform method is responsible for general action
             defined by the base class.
-        _inverse_transform method is for specific procedure 
+        _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +\
+        raise NotImplementedError("_inverse_transform method should be " +
                                   "implemented in subclasses.")
 
 
