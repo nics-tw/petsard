@@ -684,10 +684,18 @@ class Processor:
                 raise ConfigError(f'{col} is not in the metadata.')
 
             dtype_after_preproc: str = optimize_dtype(data)
+            infer_dtype_after_preproc: str = \
+                safe_infer_dtype(safe_dtype(dtype_after_preproc))
             self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
                 dtype_after_preproc
             self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
-                safe_infer_dtype(safe_dtype(dtype_after_preproc))
+                infer_dtype_after_preproc
+
+            if 'col_after_preproc' in self._metadata.metadata:
+                self._metadata.metadata['col_after_preproc'][col]['dtype_after_preproc'] = \
+                    dtype_after_preproc
+                self._metadata.metadata['col_after_preproc'][col]['infer_dtype_after_preproc'] = \
+                    infer_dtype_after_preproc
         elif mode == 'global':
             if not isinstance(data, pd.DataFrame):
                 raise ConfigError(
