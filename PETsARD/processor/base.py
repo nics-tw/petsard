@@ -415,9 +415,9 @@ class Processor:
                             ScalerLog,
                         )):
                             self._adjust_metadata(
-                                mode = 'columnwise',
-                                data = transformed[col],
-                                col = col,
+                                mode='columnwise',
+                                data=transformed[col],
+                                col=col,
                             )
 
                 logging.info(f'{processor} transformation done.')
@@ -432,8 +432,8 @@ class Processor:
                 transformed = processor.transform(transformed)
                 if isinstance(processor, MediatorEncoder):
                     self._adjust_metadata(
-                        mode = 'global',
-                        data = transformed,
+                        mode='global',
+                        data=transformed,
                     )
                 self._adjust_working_config(processor, self._fitting_sequence)
 
@@ -540,7 +540,7 @@ class Processor:
                             processor == 'encoder'
                             and isinstance(obj, EncoderLabel)
                             and safe_dtype(transformed[col].dtype).startswith('float')
-                        ):
+                    ):
                         transformed[col] = transformed[col].round().astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
@@ -676,7 +676,8 @@ class Processor:
         """
         if mode == 'columnwise':
             if not isinstance(data, pd.Series):
-                raise ConfigError('data should be pd.Series in columnwise mode.')
+                raise ConfigError(
+                    'data should be pd.Series in columnwise mode.')
             if col is None:
                 raise ConfigError('col is not specified.')
             if col not in self._metadata.metadata['col']:
@@ -689,7 +690,8 @@ class Processor:
                 safe_infer_dtype(safe_dtype(dtype_after_preproc))
         elif mode == 'global':
             if not isinstance(data, pd.DataFrame):
-                raise ConfigError('data should be pd.DataFrame in global mode.')
+                raise ConfigError(
+                    'data should be pd.DataFrame in global mode.')
 
             new_metadata = Metadata()
             new_metadata.build_metadata(data=data)
