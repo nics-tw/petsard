@@ -225,8 +225,8 @@ class MLWorker:
                         round(self.n_rows['syn']/10):
                     warnings.warn(
                         f'The cardinality of the column {col} is too high ' +
-                        f'(ori: {self.col_cardinality[col]['ori']},' +
-                        f' syn: {self.col_cardinality[col]['syn']}). ' +
+                        f'(ori: {self.col_cardinality[col]["ori"]},' +
+                        f' syn: {self.col_cardinality[col]["syn"]}). ' +
                         f'The column is removed.'
                     )
                     data_ori = data_ori.drop(columns=col)
