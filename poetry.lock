@@ -2335,13 +2335,13 @@ yaml = ["PyYaml (>=6.0.1)"]
 
 [[package]]
 name = "python-semantic-release"
-version = "9.12.1"
+version = "9.12.2"
 description = "Automatic Semantic Versioning for Python projects"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "python_semantic_release-9.12.1-py3-none-any.whl", hash = "sha256:d46d124f9170a6a01e9cc37e503abcc334f5688b49221111f0e2959a2685b5d5"},
-    {file = "python_semantic_release-9.12.1.tar.gz", hash = "sha256:49df114c5a31760e838c241de5b09795307329f0539227c5c9d5ea6b33ba9574"},
+    {file = "python_semantic_release-9.12.2-py3-none-any.whl", hash = "sha256:af9c89ff72020ddfaa6d969d3131946bb4fd0d192a6ce3448430a44d36df9d3e"},
+    {file = "python_semantic_release-9.12.2.tar.gz", hash = "sha256:8546e1ad92975cfda08dc026f06327fa043502832c29f76e89760142371ad5f2"},
 ]
 
 [package.dependencies]
@@ -2780,13 +2780,13 @@ test = ["Cython", "array-api-strict (>=2.0)", "asv", "gmpy2", "hypothesis (>=6.3
 
 [[package]]
 name = "sdmetrics"
-version = "0.14.1"
+version = "0.16.0"
 description = "Metrics for Synthetic Data Generation Projects"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "sdmetrics-0.14.1-py3-none-any.whl", hash = "sha256:8c859fa625767f16fc7090f1743c422e610741111fcf36bee308132b6cf3556e"},
-    {file = "sdmetrics-0.14.1.tar.gz", hash = "sha256:8add8b639aaa82cc9a167dd364cd64d6b8cc1be243b7fb4658c751f9e53319e9"},
+    {file = "sdmetrics-0.16.0-py3-none-any.whl", hash = "sha256:90a2c0f178b423dbcfe821432e04b161e9a06ccec280afc5212606274a079347"},
+    {file = "sdmetrics-0.16.0.tar.gz", hash = "sha256:6fa78d525e6e1e0782c6eeb03009f5459ef3aafb4f44ee9605a44234f92dd1fb"},
 ]
 
 [package.dependencies]
@@ -2799,20 +2799,20 @@ scipy = {version = ">=1.9.2", markers = "python_version >= \"3.10\" and python_v
 tqdm = ">=4.29"
 
 [package.extras]
-dev = ["autoflake (>=1.1,<3)", "autopep8 (>=1.4.3,<3)", "build (>=1.0.0,<2)", "bump-my-version (>=0.18.3,<1)", "coverage (>=4.5.12,<8)", "dlint (>=0.11.0,<1)", "flake8 (>=3.7.7,<8)", "flake8-absolute-import (>=1.0,<2)", "flake8-builtins (>=1.5.3,<3)", "flake8-comprehensions (>=3.6.1,<4)", "flake8-debugger (>=4.0.0,<5)", "flake8-docstrings (>=1.5.0,<2)", "flake8-eradicate (>=1.1.0,<2)", "flake8-expression-complexity (>=0.0.9,<0.1)", "flake8-fixme (>=1.1.1,<1.2)", "flake8-mock (>=0.3,<1)", "flake8-multiline-containers (>=0.0.18,<0.1)", "flake8-mutable (>=1.2.0,<1.3)", "flake8-print (>=4.0.0,<4.1)", "flake8-pytest-style (>=2.0.0,<3)", "flake8-quotes (>=3.3.0,<4)", "flake8-sfs (>=0.0.3,<2)", "flake8-variables-names (>=0.0.4,<0.1)", "isort (>=5.13.2,<6)", "packaging (>=20,<25)", "pandas-vet (>=0.2.3,<2024)", "pep8-naming (>=0.12.1,<1)", "pip (>=9.0.1)", "pydocstyle (>=6.1.1,<7)", "sdmetrics[test,torch]", "tox (>=2.9.1,<5)", "twine (>=1.10.0,<6)", "watchdog (>=1.0.1,<5)", "wheel (>=0.30.0)"]
+dev = ["build (>=1.0.0,<2)", "bump-my-version (>=0.18.3,<1)", "coverage (>=4.5.12,<8)", "packaging (>=20,<25)", "pip (>=9.0.1)", "ruff (>=0.3.2,<1)", "sdmetrics[test,torch]", "tox (>=2.9.1,<5)", "twine (>=1.10.0,<6)", "watchdog (>=1.0.1,<5)", "wheel (>=0.30.0)"]
 pomegranate = ["pomegranate (>=0.14.1,<0.14.7)"]
 test = ["invoke", "jupyter (>=1.0.0,<2)", "pytest (>=6.2.5,<7)", "pytest-cov (>=2.6.0,<3)", "pytest-rerunfailures (>=10.3,<15)", "pytest-runner (>=2.11.1)", "rundoc (>=0.4.3,<0.5)", "sdmetrics[torch]", "tomli (>=2.0.0,<3)"]
 torch = ["torch (>=1.8.0)", "torch (>=2.0.0)", "torch (>=2.2.0)"]
 
 [[package]]
 name = "sdv"
-version = "1.16.1"
+version = "1.17.1"
 description = "Generate synthetic data for single table, multi table and sequential data"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "sdv-1.16.1-py3-none-any.whl", hash = "sha256:ec2d773ff2968f81e6371f278446349946b29fa6550d45c6532d9ad854f61aaf"},
-    {file = "sdv-1.16.1.tar.gz", hash = "sha256:1be404c934c428b66aca0724610a537b4dd2b228e185be85b73924d810692cac"},
+    {file = "sdv-1.17.1-py3-none-any.whl", hash = "sha256:38aee9af83bd6438a087ae7c9016c7e0b9dd7c84e5f6fb7e7589c5f5a433386f"},
+    {file = "sdv-1.17.1.tar.gz", hash = "sha256:aa2fb2146f8e2193c465d98592e1e16700d82fe16ad3c4b23d157affe9d595cd"},
 ]
 
 [package.dependencies]
@@ -2828,14 +2828,14 @@ pandas = {version = ">=1.4.0", markers = "python_version < \"3.11\""}
 platformdirs = ">=4.0"
 pyyaml = ">=6.0.1"
 rdt = ">=1.12.3"
-sdmetrics = ">=0.14.0"
+sdmetrics = ">=0.16.0"
 tqdm = ">=4.29"
 
 [package.extras]
 dev = ["Jinja2 (>=2,<4)", "Sphinx (>=3,<8)", "build (>=1.0.0,<2)", "bump-my-version (>=0.18.3,<1)", "coverage (>=4.5.12,<8)", "docutils (>=0.12,<1)", "invoke", "markupsafe (<3)", "nbsphinx (>=0.5.0,<1)", "pip (>=9.0.1)", "pydata-sphinx-theme (<1)", "ruff (>=0.4.5,<1)", "sdv[test]", "sphinx-toolbox (>=2.5,<4)", "tox (>=2.9.1,<5)", "twine (>=1.10.0,<6)", "watchdog (>=1.0.1,<5)", "wheel (>=0.30.0)"]
 excel = ["pandas[excel]"]
 pomegranate = ["pomegranate (>=0.14.3,<0.15)"]
-test = ["jupyter (>=1.0.0,<2)", "pytest (>=3.4.2)", "pytest-cov (>=2.6.0)", "pytest-rerunfailures (>=10.3,<15)", "pytest-runner (>=2.11.1)", "rundoc (>=0.4.3,<0.5)", "sdv[excel]", "tomli (>=2.0.0,<3)"]
+test = ["gitpython", "google-api-python-client", "google-auth", "google-auth-oauthlib", "jupyter (>=1.0.0,<2)", "pyarrow", "pytest (>=3.4.2)", "pytest-cov (>=2.6.0)", "pytest-rerunfailures (>=10.3,<15)", "pytest-runner (>=2.11.1)", "requests", "rundoc (>=0.4.3,<0.5)", "sdv[excel]", "slack-sdk (>=3.23,<4.0)", "tomli (>=2.0.0,<3)"]
 
 [[package]]
 name = "shellingham"
@@ -3027,13 +3027,13 @@ files = [
 
 [[package]]
 name = "tqdm"
-version = "4.66.6"
+version = "4.67.0"
 description = "Fast, Extensible Progress Meter"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "tqdm-4.66.6-py3-none-any.whl", hash = "sha256:223e8b5359c2efc4b30555531f09e9f2f3589bcd7fdd389271191031b49b7a63"},
-    {file = "tqdm-4.66.6.tar.gz", hash = "sha256:4bdd694238bef1485ce839d67967ab50af8f9272aab687c0d7702a01da0be090"},
+    {file = "tqdm-4.67.0-py3-none-any.whl", hash = "sha256:0cd8af9d56911acab92182e88d763100d4788bdf421d251616040cc4d44863be"},
+    {file = "tqdm-4.67.0.tar.gz", hash = "sha256:fe5a6f95e6fe0b9755e9469b77b9c3cf850048224ecaa8293d7d2d31f97d869a"},
 ]
 
 [package.dependencies]
@@ -3041,6 +3041,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [package.extras]
 dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+discord = ["requests"]
 notebook = ["ipywidgets (>=6)"]
 slack = ["slack-sdk"]
 telegram = ["requests"]
@@ -3149,4 +3150,4 @@ test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "1eb62784cbd08a9ff3edae7ac73bbfd91c7eb28dd921a8a96ef5c3495ae90c3f"
+content-hash = "d8b6c436ea68d3d06265f7d048931888aa0ba2db3115a8cdb6ad7224bce9ce40"
