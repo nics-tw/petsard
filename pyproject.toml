@@ -34,20 +34,6 @@
 #        - 關鍵套件：合成器與評估器。詳情見下文
 #
 # ......
-# Special installation method
-# 特殊安裝方法
-#
-# Due to the current dependency requiring pyyaml version 5.4.1,
-#     which cannot be installed using the PEP 517 method,
-#     the current executable version (as of 2024/02/15)
-#     requires the following installation method:
-# 由於目前 Smartnoise 1.0.3 的相依性有問題，
-#     故現行 (2024/05/02) 的可執行版本，需要按照以下安裝方式：
-#
-# 1. poetry run pip install --no-build-isolation "smartnoise-synth==1.0.3"
-# 2. poetry add sdv@^1.12.1 anonymeter@^1.0.0 sdmetrics@^0.14.0 pyyaml==6.0.1 boto3 requests jax jaxlib git+https://github.com/ryan112358/private-pgm.git
-#
-# ......
 #
 #    Development environment
 #    開發環境
@@ -72,19 +58,18 @@
 #
 # 1. SDV: 1.10 above
 #    - https://github.com/sdv-dev/SDV
-#    - Latest 1.10 update: 2024/02/15
 #    - Latest 1.17.1 update: 2024/10/10
 # 2. SDMetrics: 0.13 above
 #    - https://github.com/sdv-dev/SDMetrics
-#    - Latest 0.13.0 update: 2023/12/04
 #    - Latest 0.16.0 update: 2024/09/25
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
 # 4. smartnoise-synth: 1.0.3 above
 #    - https://github.com/opendp/smartnoise-sdk
-#    - 0.3.3 update: undefined, but nearest 0.3.0 is 2022/10/09
-#    - 1.0.3 update: undefined, but nearest 1.0.2 update: 2023/11/05
+#    - Latest 1.0.4 update: 2024/07.31
+# 5. private-pgm
+#    - see opendp/smartnoise-sdk/pull/602
 #
 # ......
 # Python 語義版本控制 python-semantic-release
@@ -108,16 +93,14 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.10"
-wheel = "^0.43.0"
-sdv = "^1.17.1" # "^1.12.1"
-anonymeter = "^1.0.0"
-sdmetrics = "^0.16.0" # "^0.14.0"
-pyyaml = "6.0.1"
-boto3 = "1.34.58"
-requests = "2.31.0"
+sdv = "1.17.1"
+smartnoise-synth = "1.0.4"
 private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
-jax = "^0.4.26"
-jaxlib = "^0.4.26"
+anonymeter = "1.0.0"
+sdmetrics = "0.16.0"
+pyyaml = "^6.0.2"
+boto3 = "^1.35.55"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
