@@ -1,5 +1,6 @@
 from copy import deepcopy
 import logging
+import sys
 from types import NoneType
 import warnings
 
@@ -19,7 +20,7 @@ from PETsARD.util import (
 )
 
 
-logging.basicConfig(level=logging.INFO, filename='log.txt', filemode='w',
+logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
