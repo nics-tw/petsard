@@ -1,4 +1,5 @@
 import logging
+import sys
 from typing import Union
 
 import numpy as np
@@ -15,7 +16,7 @@ from PETsARD.util.optimize_dtypes import optimize_dtype
 from PETsARD.util.safe_dtype import safe_dtype
 
 
-logging.basicConfig(level=logging.INFO, filename='PETsARD_log.txt', filemode='a',
+logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format='[%(levelname).1s %(asctime)s] %(message)s',
                     datefmt='%Y%m%d %H:%M:%S')
 
