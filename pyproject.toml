@@ -73,11 +73,11 @@
 # 1. SDV: 1.10 above
 #    - https://github.com/sdv-dev/SDV
 #    - Latest 1.10 update: 2024/02/15
-#    - Latest 1.12.1 update: 2024/04/19
+#    - Latest 1.17.1 update: 2024/10/10
 # 2. SDMetrics: 0.13 above
 #    - https://github.com/sdv-dev/SDMetrics
 #    - Latest 0.13.0 update: 2023/12/04
-#    - Latest 0.14.0 update: 2023/12/04
+#    - Latest 0.16.0 update: 2024/09/25
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
@@ -109,9 +109,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "~3.10"
 wheel = "^0.43.0"
-sdv = "^1.12.1"
+sdv = "^1.17.1" # "^1.12.1"
 anonymeter = "^1.0.0"
-sdmetrics = "^0.14.0"
+sdmetrics = "^0.16.0" # "^0.14.0"
 pyyaml = "6.0.1"
 boto3 = "1.34.58"
 requests = "2.31.0"
