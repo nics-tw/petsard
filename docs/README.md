@@ -162,10 +162,20 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 # License 授權
 
-Undefined 未定
-<!--
-TODO Defined License
--->
+This project is licensed under MIT License with additional restrictions due to dependencies. The most significant restriction comes from SDV's Business Source License 1.1, which prohibits using this software as a commercial synthetic data service. For detailed licensing information, please see the LICENSE file.
+
+本專案採用 MIT 授權，但因相依套件而有額外限制。最主要的限制來自 SDV 的 Business Source License 1.1，禁止將本軟體用於商業性的合成資料服務。詳細的授權資訊請參閱 LICENSE 檔案。
+
+Key Dependencies' Licenses 主要相依套件授權：
+
+- SDV: Business Source License 1.1
+- Anonymeter: The Clear BSD License
+- SDMetrics: MIT License
+- Smartnoise: MIT License
+
+For commercial use involving synthetic data services, please contact DataCebo, Inc.
+
+如需將本軟體用於合成資料的商業服務，請聯絡 DataCebo, Inc.
 
 
 # Citation 引用
