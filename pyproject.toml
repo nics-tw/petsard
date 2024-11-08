@@ -86,6 +86,7 @@ name = "petsard"
 version = "0.12.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
+    "NICS CAPE" <cape@nics.nat.gov.tw>,
     "alexchen830 <alexchen830@gmail.com>",
     "matheme-justyn <matheme.justyn@gmail.com>"
 ]
