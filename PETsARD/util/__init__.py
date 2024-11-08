@@ -1,19 +1,16 @@
-from PETsARD.util.optimize_dtypes import (
+from PETsARD.util.dtype_operations import (
     optimize_dtype,
     optimize_dtypes,
-)
-from PETsARD.util.safe_astype import safe_astype
-from PETsARD.util.safe_dtype import (
+    safe_astype,
     safe_dtype,
     safe_infer_dtype,
+    verify_column_types,
 )
-from PETsARD.util.safe_round import safe_round
-from PETsARD.util.verify_column_types import verify_column_types
+from PETsARD.util.numeric_operations import safe_round
 from PETsARD.util.params import (
     ALLOWED_COLUMN_TYPES,
     OPTIMIZED_DTYPES,
 )
-
 
 __all__ = [
     'optimize_dtype',
@@ -24,4 +21,3 @@ __all__ = [
     'safe_round',
     'verify_column_types',
 ]
-
