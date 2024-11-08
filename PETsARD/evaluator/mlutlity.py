@@ -17,7 +17,7 @@ from sklearn.svm import SVC
 
 from PETsARD.error import ConfigError, UnsupportedMethodError
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.util.safe_round import safe_round
+from PETsARD.util import safe_round
 
 
 class MLUtilityMap():
