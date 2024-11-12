@@ -110,8 +110,6 @@ class Evaluator:
             self.evaluator = SDMetrics(config=self.config)
         elif method_code == EvaluatorMap.STATS:
             self.evaluator = Stats(config=self.config)
-        elif method_code == EvaluatorMap.AUTOML:
-            self.evaluator = AutoML(config=self.config)
         elif method_code == EvaluatorMap.MLUTILITY:
             self.evaluator = MLUtility(config=self.config)
         else:
