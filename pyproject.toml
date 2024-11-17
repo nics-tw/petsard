@@ -86,7 +86,7 @@ name = "petsard"
 version = "0.12.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
-    "NICS CAPE" <cape@nics.nat.gov.tw>,
+    "NICS CAPE <cape@nics.nat.gov.tw>",
     "alexchen830 <alexchen830@gmail.com>",
     "matheme-justyn <matheme.justyn@gmail.com>"
 ]
@@ -102,6 +102,11 @@ sdmetrics = "0.16.0"
 pyyaml = "^6.0.2"
 boto3 = "^1.35.55"
 requests = "^2.32.3"
+# for dependency bot management
+scikit-learn = "^1.5.0" # 582
+certifi = "^2024.7.4" # 581
+urllib3 = "^2.2.2" # 580
+tornado = "^6.4.1" # 579
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
