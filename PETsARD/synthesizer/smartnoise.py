@@ -114,10 +114,12 @@ class SmartNoiseFactory:
         epochs: int = kwargs.get('epochs', 300)  # for all gan
         sigma: float = kwargs.get('sigma', 5.0)  # for dpctgan
         disabled_dp: bool = kwargs.get('disabled_dp', False)  # for dpctgan
+        metadata = kwargs.get('metadata', None)
 
         if method.startswith('smartnoise-'):
             self.synthesizer = SmartNoiseCreator(
                 data,
+                metadata=metadata,
                 method=method.split('-')[1],
                 epsilon=epsilon,
                 batch_size=batch_size,
@@ -144,15 +146,17 @@ class SmartNoiseCreator(SmartNoise):
 
     def __init__(self, data: pd.DataFrame,
                  method: str, epsilon: float, batch_size: int,
-                 epochs: int, sigma: float, disabled_dp: bool, **kwargs):
+                 epochs: int, sigma: float, disabled_dp: bool,
+                 metadata: Metadata = None, **kwargs):
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
             method (str): The synthesizing method to be applied.
             epsilon (float, default = 5.0): The privacy budget.
+            metadata (Metadata, default=None): The metadata of the data.
             **kwargs: The other parameters.
         """
-        super().__init__(data, **kwargs)
+        super().__init__(data, metadata, **kwargs)
         self.syn_method: str = method
 
         if method == 'dpctgan':

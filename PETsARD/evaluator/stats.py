@@ -192,7 +192,8 @@ class StatsNUnique(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return isinstance(self.data['col'].dtype, pd.CategoricalDtype)
+        return isinstance(self.data['col'].dtype, pd.CategoricalDtype) \
+            or self.data['col'].dtype == np.dtype('bool')
 
     def _eval(self) -> int:
         """
@@ -215,6 +216,8 @@ class StatsJSDivergence(StatsBase):
         """
         return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
                 and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
+                ) or ((self.data['col_ori'].dtype == np.dtype('bool'))
+                and (self.data['col_syn'].dtype == np.dtype('bool'))
                 )
 
     def _eval(self) -> int:
