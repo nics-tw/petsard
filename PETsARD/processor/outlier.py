@@ -37,7 +37,7 @@ class OutlierHandler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " + \
+        raise NotImplementedError("_fit method should be implemented " +
                                   "in subclasses.")
 
     def transform(self, data: pd.Series) -> np.ndarray:
@@ -58,17 +58,17 @@ class OutlierHandler:
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
-    
+
     def _transform():
         """
         _transform method is implemented in subclasses.
 
-        transform method is responsible for general action 
+        transform method is responsible for general action
             defined by the base class.
-        _transform method is for specific procedure 
+        _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " + \
+        raise NotImplementedError("_transform method should be implemented " +
                                   "in subclasses.")
 
 
@@ -153,7 +153,7 @@ class OutlierIQR(OutlierHandler):
 
 class OutlierIsolationForest(OutlierHandler):
     """
-    Dummy class, doing nothing related to the method. 
+    Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
     """
     # indicator of whether the fit and transform process involved other columns

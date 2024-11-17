@@ -31,28 +31,36 @@ The main functionalities include dataset description, various dataset generation
 
 # Installation 安裝
 
-This package has encountered dependency conflicts due to third-party packages, therefore we are unable to provide installation methods such as `requirements.txt`. However, the functionality within this package itself operates normally. We kindly request users to follow the `pip install` instructions below to set up their environment:
+To install this package, please follow these steps to set up your environment using the `requirements.txt` file:
 
-本套件因為有碰到第三方套件引起的相依性衝突，所以我們沒法提供如 `requirements.txt` 這類的安裝方式。但是，這套件裡面的功能本身是能正常運作的，麻煩使用者跟著下面的 `pip install` 指示來設定環境：
+要安裝本套件，請依照以下步驟使用 `requirements.txt` 檔案來設定您的環境：
+
+1. Create a virtual environment and activate it:
+
+1. 建立虛擬環境並啟動：
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or 或是
+venv\Scripts\activate     # Windows
+```
+
+2. Upgrade pip:
+
+2. 升級 pip：
 
 ```bash
 python -m pip install --upgrade pip
-pip install smartnoise-synth==1.0.3
-pip install ipykernel pyyaml==6.0.1 requests boto3 sdv==1.12.1 sdmetrics==0.14.0 anonymeter==1.0.0 git+https://github.com/ryan112358/private-pgm.git
 ```
 
-The known conflicts are as follows. The primary cause is the dependencies of the current version of smartnoise:
+3. Install the required packages using `requirements.txt`:
 
-已知的衝突如下。主因是 smartnoise 現有版本的相依性：
+3. 使用 `requirements.txt` 安裝所需套件：
 
-> \> pip install smartnoise-synth # Error can be ignored
->
-> ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-> rdt 1.9.2 requires Faker<20,>=17, but you have faker 15.3.4 which is incompatible.
-
-> > pip install --upgrade torch # Error can be ignored
-> ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-> smartnoise-synth 1.0.3 requires torch<2.0.0, but you have torch 2.2.1 which is incompatible.
+```bash
+pip install -r requirements.txt
+```
 
 
 # Getting Started 入門指南
@@ -162,10 +170,20 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 # License 授權
 
-Undefined 未定
-<!--
-TODO Defined License
--->
+This project is licensed under MIT License with additional restrictions due to dependencies. The most significant restriction comes from SDV's Business Source License 1.1, which prohibits using this software as a commercial synthetic data service. For detailed licensing information, please see the LICENSE file.
+
+本專案採用 MIT 授權，但因相依套件而有額外限制。最主要的限制來自 SDV 的 Business Source License 1.1，禁止將本軟體用於商業性的合成資料服務。詳細的授權資訊請參閱 LICENSE 檔案。
+
+Key Dependencies' Licenses 主要相依套件授權：
+
+- SDV: Business Source License 1.1
+- Anonymeter: The Clear BSD License
+- SDMetrics: MIT License
+- Smartnoise: MIT License
+
+For commercial use involving synthetic data services, please contact DataCebo, Inc.
+
+如需將本軟體用於合成資料的商業服務，請聯絡 DataCebo, Inc.
 
 
 # Citation 引用

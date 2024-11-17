@@ -88,9 +88,9 @@ class MissingHandler:
         """
         _transform method is implemented in subclasses.
 
-        transform method is responsible for general action 
+        transform method is responsible for general action
             defined by the base class.
-        _transform method is for specific procedure 
+        _transform method is for specific procedure
             conducted by each subclasses.
         """
         raise NotImplementedError("_transform method should be implemented " +
@@ -126,9 +126,9 @@ class MissingHandler:
         """
         _inverse_transform method is implemented in subclasses.
 
-        inverse_transform method is responsible for general action 
+        inverse_transform method is responsible for general action
             defined by the base class.
-        _inverse_transform method is for specific procedure 
+        _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
         raise NotImplementedError("_inverse_transform method should be " +
@@ -269,10 +269,12 @@ class MissingDrop(MissingHandler):
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
 
+
 class MissingMode(MissingHandler):
     """
     Impute NA values with the mode value.
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.data_mode: list[str] | list[int] | list[float] = None
