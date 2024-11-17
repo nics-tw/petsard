@@ -96,7 +96,9 @@ class Metadata:
         if dtype is None:
             raise ValueError(f'{dtype} is invalid.')
 
-        if pd.api.types.is_numeric_dtype(dtype):
+        if pd.api.types.is_bool_dtype(dtype):
+            return 'categorical'
+        elif pd.api.types.is_numeric_dtype(dtype):
             return 'numerical'
         elif isinstance(dtype, pd.CategoricalDtype):
             return 'categorical'
@@ -120,7 +122,12 @@ class Metadata:
 
         sdv_metadata = {'columns': {}}
 
-        for col, val in self.metadata['col'].items():
+        col_name: str = (
+            'col_after_preproc' if 'col_after_preproc' in self.metadata
+            else 'col'
+        )
+
+        for col, val in self.metadata[col_name].items():
             sdtype = val.get('infer_dtype')
             if 'infer_dtype_after_preproc' in val:
                 sdtype = val.get('infer_dtype_after_preproc')

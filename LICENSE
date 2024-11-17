@@ -1,0 +1,52 @@
+# License
+
+PETsARD incorporates code from multiple sources with different licenses. Below is a detailed breakdown of the licensing terms:
+
+## PETsARD License
+Copyright (c) 2024 PETsARD Contributors
+
+This software is provided under MIT License with additional restrictions inherited from its dependencies.
+
+## Important Notice
+This software includes components from SDV which is licensed under Business Source License 1.1. As such:
+- You may NOT use this software as a "Synthetic Data Service" (a commercial offering that allows third parties to access synthetic data generation functionality)
+- For commercial usage involving synthetic data generation services, you must obtain a commercial license from DataCebo, Inc.
+
+## Dependencies and Their Licenses
+
+### SDV
+- Licensed under Business Source License 1.1
+- Copyright (c) DataCebo, Inc.
+- Additional restrictions apply to synthetic data services
+- Will convert to MIT License four years after release date
+
+### Anonymeter
+- Licensed under The Clear BSD License
+- Copyright (c) 2022 Anonos IP LLC
+- Restrictions:
+  - Must retain copyright notice
+  - Cannot use contributors' names for promotion without permission
+  - No patent rights granted
+
+### SDMetrics
+- Licensed under MIT License
+- Copyright (c) 2020, MIT Data To AI Lab
+
+### Smartnoise
+- Licensed under MIT License
+- Copyright (c) 2020-2021 President and Fellows of Harvard College
+
+## Terms and Conditions
+1. Any redistribution must include this license notice
+2. Commercial use as a synthetic data service is prohibited (per SDV license)
+3. All original copyright notices must be preserved
+4. No warranty is provided
+
+For full license texts of dependencies, please see their respective repositories:
+- SDV: https://github.com/sdv-dev/SDV
+- Anonymeter: https://github.com/statice/anonymeter
+- SDMetrics: https://github.com/sdv-dev/SDMetrics
+- Smartnoise: https://github.com/opendp/smartnoise-sdk
+
+## Commercial Usage
+For commercial applications involving synthetic data services, please contact DataCebo, Inc. for licensing options.
