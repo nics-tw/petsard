@@ -116,7 +116,7 @@ anonymeter = "^1.0.0"
 sdmetrics = "^0.14.0"
 pyyaml = "6.0.1"
 boto3 = "1.34.58"
-requests = "2.31.0"
+requests = "2.32.2"
 private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
 jax = "^0.4.26"
 jaxlib = "^0.4.26"
