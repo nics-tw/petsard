@@ -94,11 +94,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.10"
-sdv = "1.17.1"
+sdv = "^1.17.1"
 smartnoise-synth = "1.0.4"
 private-pgm = {git = "https://github.com/ryan112358/private-pgm.git"}
-anonymeter = "1.0.0"
-sdmetrics = "0.16.0"
+anonymeter = "^1.0.0"
+sdmetrics = "^0.16.0"
+wheel = "^0.43.0"
 pyyaml = "^6.0.2"
 boto3 = "^1.35.55"
 requests = "^2.32.3"
