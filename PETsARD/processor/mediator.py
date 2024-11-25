@@ -8,7 +8,7 @@ from PETsARD.processor.outlier import *
 
 class Mediator:
     """
-    Deal with the processors with the same type to 
+    Deal with the processors with the same type to
     manage (column-wise) global behaviours including dropping the records.
     It is responsible for two actions:
         1. Gather all columns needed to process
@@ -43,7 +43,7 @@ class Mediator:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " + \
+        raise NotImplementedError("_fit method should be implemented " +
                                   "in subclasses.")
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -63,19 +63,19 @@ class Mediator:
             return data
         else:
             return self._transform(data)
-        
+
     def _transform():
         """
         _transform method is implemented in subclasses.
 
-        transform method is responsible for general action 
+        transform method is responsible for general action
             defined by the base class.
-        _transform method is for specific procedure 
+        _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " + \
+        raise NotImplementedError("_transform method should be implemented " +
                                   "in subclasses.")
-    
+
     def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Base method of `inverse_transform`.
@@ -94,17 +94,17 @@ class Mediator:
             return data
         else:
             return self._inverse_transform(data)
-        
+
     def _inverse_transform():
         """
         _inverse_transform method is implemented in subclasses.
 
-        inverse_transform method is responsible for general action 
+        inverse_transform method is responsible for general action
             defined by the base class.
-        _inverse_transform method is for specific procedure 
+        _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be implemented " + \
+        raise NotImplementedError("_inverse_transform method should be implemented " +
                                   "in subclasses.")
 
 
@@ -116,7 +116,7 @@ class MediatorMissing(Mediator):
     def __init__(self, config: dict) -> None:
         """
         Args:
-            config (dict): The config related to the processing data 
+            config (dict): The config related to the processing data
             to cope with global behaviours.
         """
         super().__init__()
@@ -153,7 +153,7 @@ class MediatorMissing(Mediator):
 
             # restore the original data from the boolean data
             transformed[col_name] = self._config.get(col_name, None).\
-                                            data_backup[~process_filter].values
+                data_backup[~process_filter].values
 
             return transformed
         else:
@@ -166,10 +166,10 @@ class MediatorMissing(Mediator):
             for col in self._process_col:
                 # restore the original data from the boolean data
                 transformed[col] = self._config.get(col, None).\
-                                            data_backup[~process_filter].values
+                    data_backup[~process_filter].values
 
             return transformed
-        
+
     def _inverse_transform(self, data: pd.DataFrame):
         raise NotImplementedError(
             '_inverse_transform is not supported in this class'
@@ -184,18 +184,18 @@ class MediatorOutlier(Mediator):
     def __init__(self, config: dict) -> None:
         """
         Args:
-            config (dict): The config related to the processing data 
+            config (dict): The config related to the processing data
             to cope with global behaviours.
         """
         super().__init__()
         self._config: dict = config['outlier']
         self.model = None
 
-        # indicator for using global outlier methods, 
+        # indicator for using global outlier methods,
         # such as Isolation Forest and Local Outlier Factor
         self._global_model_indicator: bool = False
 
-        # if any column in the config sets outlier method 
+        # if any column in the config sets outlier method
         # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
@@ -243,7 +243,7 @@ class MediatorOutlier(Mediator):
             transformed (pd.DataFrame): The finished data.
         """
         if self._global_model_indicator:
-            # the model may classify most data as outliers 
+            # the model may classify most data as outliers
             # after transformation by other processors
             # so fit_predict will be used in _transform
             predict_result: np.ndarray = self.model.fit_predict(
@@ -264,7 +264,7 @@ class MediatorOutlier(Mediator):
 
             # restore the original data from the boolean data
             transformed[col_name] = self._config.get(col_name, None).\
-                                                data_backup[~process_filter]
+                data_backup[~process_filter]
 
             return transformed
         else:
@@ -277,15 +277,16 @@ class MediatorOutlier(Mediator):
             for col in self._process_col:
                 # restore the original data from the boolean data
                 transformed[col] = self._config.get(col, None).\
-                                                data_backup[~process_filter]
+                    data_backup[~process_filter]
 
             return transformed
-        
+
     def _inverse_transform(self, data: pd.DataFrame):
         raise NotImplementedError(
             '_inverse_transform is not supported in this class'
         )
-    
+
+
 class MediatorEncoder(Mediator):
     """
     Deal with global behaviours in Encoder.
@@ -294,7 +295,7 @@ class MediatorEncoder(Mediator):
     def __init__(self, config: dict) -> None:
         """
         Args:
-            config (dict): The config related to the processing data 
+            config (dict): The config related to the processing data
             to cope with global behaviours.
         """
         super().__init__()
@@ -333,7 +334,7 @@ class MediatorEncoder(Mediator):
         transformed = data.copy()
 
         for col in self._process_col:
-            label_list = self._config[col].labels
+            label_list = self._config[col].labels[1:]
 
             # prevent duplicates
             n = 1
@@ -344,19 +345,19 @@ class MediatorEncoder(Mediator):
                 n = n + 1
                 new_labels = [str(col) + '_' * n + str(l) for l in label_list]
 
-            ohe_df = pd.DataFrame(self._config[col]._transform_temp, 
+            ohe_df = pd.DataFrame(self._config[col]._transform_temp,
                                   columns=new_labels)
-            
+
             self.map[col] = new_labels
-            
+
             # clear the temp
             self._config[col]._transform_temp = None
 
             transformed.drop(col, axis=1, inplace=True)
             transformed = pd.concat([transformed, ohe_df], axis=1)
-            
+
         return transformed
-    
+
     def _inverse_transform(self, data: pd.DataFrame):
         """
         Conduct global inverse transformation.
@@ -376,5 +377,5 @@ class MediatorEncoder(Mediator):
             transformed.drop(new_col, axis=1, inplace=True)
             transformed[ori_col] = self._config[ori_col].model.\
                 inverse_transform(data[new_col]).ravel()
-            
+
         return transformed.reindex(columns=self._colname)
