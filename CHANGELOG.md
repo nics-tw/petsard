@@ -1,5 +1,14 @@
 ## Changelog 歷史
 
+- **Formal Release 正式版**
+    - **1.0.0** (2024-11-25): **Release to moda** **交付給數發部**
+        - Fix critical and urgent issues.
+        - Close all issues and pull requests.
+        - Clean up temporary files from development.
+        - 解決必要且急迫的問題。
+        - 關閉 issue 與 PR。
+        - 清理開發過程中暫存臨時檔。
+
 - **Beta testing 外部測試階段**
     - **0.12.0** (2024-05-16): **Feasibility study-4** **適用性研究之四**
         - Introduced Stats for new evaluating framework.
