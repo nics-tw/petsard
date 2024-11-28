@@ -2,15 +2,10 @@ YAML (YAML Ain't Markup Language) is a highly readable format used to express da
 
 This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](https://nics-tw.github.io/PETsARD/User-Story.html) also).
 
-YAML（YAML Ain't Markup Language）是一個可讀性高，用來表達資料序列化的格式，它旨在易於人類閱讀和編輯，同時也能被電腦輕鬆解析。`PETsARD` 的 `Executor` 讓使用者以 YAML 格式配置 `PETsARD` 的程式設定，藉由本文的介紹，期待讓使用者能以最快時間上手，無痛設定並執行自己的實驗，並利用 YAML 方便管理自己的實驗設定（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）。
-
-本文僅說明基本的 YAML 設定，建議搭配程式碼庫中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/User Story*.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現（亦參考 [User Story 頁面](https://nics-tw.github.io/PETsARD/User-Story.html)）。
 
 # Tutorial
 
 Below is a demo YAML file and the illustration of how it works.
-
-以下是 YAML 範例以及對應的執行圖解。
 
 ```
 Loader:
@@ -95,15 +90,10 @@ Reporter:
 
 Noted that in each module (enclosed by the dash line), it will be executed/created several times, depending on the number of upstream tasks/instances. See [Config generation](https://nics-tw.github.io/PETsARD/YAML.html#config-generation) for details.
 
-值得注意的是，每個模組（圓角虛線範圍內）會被執行/創建多次，次數取決於上游任務/物件的數目，詳見 [Config generation](https://nics-tw.github.io/PETsARD/YAML.html#config-generation) 章節。
-
 
 # YAML
 
 The basic format of YAML is as follows:
-
-YAML 的基礎格式如下：
-
 
 ```YAML
 ---
@@ -112,7 +102,6 @@ YAML 的基礎格式如下：
         {config of module}: ...
 ...
 ```
-
 
 A YAML document starts and ends with `---` and `...`, respectively. The markers used in this tutorial are primarily to display the format formally. In reality, both of these settings are optional, and `pyyaml` can compile without setting either. It is important to note that `---` is also often used to separate multiple YAML configuration files within a single document, but `PETsARD` only supports the format of one configuration file per document.
 - `module name`: A module that performs specific tasks. The modules required for `PETsARD` include:
@@ -128,30 +117,15 @@ A YAML document starts and ends with `---` and `...`, respectively. The markers 
 
 Ideally, you can pass the parameters accepted by the module in YAML format. See [Config Setup page](https://nics-tw.github.io/PETsARD/YAML.html#config-setup) for details. However, there are several parameters and commands in YAML accepted by `Executor`, please refer to the following section.
 
-YAML 文件以 `---` 開始、以 `...` 結束。本教學使用這些標記，主要是為了正式展現格式。實際上，這兩項設定都是可選的，且 `pyyaml` 能夠在不設定這兩項的情況下進行編譯。需要特別留意的是，`---` 也常被用於在單一文件中分隔多個 YAML 設定檔，但 `PETsARD` 只支援一個檔案一個設定檔的形式。
-- `module name`：執行特定工作的模組。`PETsARD` 的模組包含：
-    - `Loader`: 資料讀取。見 [Loader 頁面](https://nics-tw.github.io/PETsARD/Loader.html).
-    - `Preprocessor`: 資料前處理。見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html).
-    - `Synthesizer`: 資料合成。見 [Synthesizer 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html).
-    - `Postprocessor`: 資料後處理。見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html).
-    - `Evaluator`: 資料評估。見 [Evaluator 頁面](https://nics-tw.github.io/PETsARD/Evaluator.html).
-    - `Describer`: 資料描述。見 [Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html).
-    - `Reporter`: 資料/報表輸出。見 [Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html).
-- `experiment name`：對於該模組，單一個實驗參數的自訂名稱。必填。
-- `config of module`：完整參數請參考各模組於手冊上的說明。
-
-一般來說，使用者可以透過 YAML 格式將模組所需參數傳入，詳見 [Config Setup 頁面](https://nics-tw.github.io/PETsARD/YAML.html#config-setup)。然而，`Executor` 可以接受其他在 YAML 檔案上的特殊參數與指令，請參閱後續章節。
 
 # Parameters Specific to `Executor`
 
-## `Loader`
 
+## `Loader`
 
 ### `method`
 
 The parameter `method` in the `Loader` section is only used for `method = 'default'` and `method = 'custom_data'`. The former is equivalent to `filepath = 'benchmark://adult-income'`, and the latter is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
-
-`Loader` 區段中的 `method` 參數只能用於設定 `method = 'default'` 與 `method = 'custom_data'`。前者相當於 `filepath = 'benchmark://adult-income'` 的設置，後者則是用於自定義資料集與深度客製化評估過程，因此使用者必須自行決定預先準備資料集的在分析流程中的放置位置。詳見用戶故事 C-2a 跟 C-2b。
 
 
 ## `Splitter`
@@ -160,13 +134,9 @@ The parameter `method` in the `Loader` section is only used for `method = 'defau
 
 The parameter `method` in the `Splitter` section is only used for `method = 'custom_data'`. It is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
 
-`Splitter` 區段中的 `method` 參數只能用於設定 `method = 'custom_data'`，其用於自定義資料集與深度客製化評估過程，因此使用者必須自行決定預先準備資料集的在分析流程中的放置位置。詳見用戶故事 C-2a 跟 C-2b。
-
 ## `Preprocessor`
 
 `Preprocessor` is part of the `Processor` class. According to [Processor page](https://nics-tw.github.io/PETsARD/Processor.html), `metadata` is required. However, it is ignored, and `Executor` will take care of this, when using YAML. To pass the `config` from `Processor`, you can provide the nested structure `config` (in YAML format) directly. The parameter `sequence` in `Processor.fit()` is acceptable in this section as well.
-
-`Preprocessor` 是一部分的 `Processor` 類別。根據 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html)，`metadata` 是必須參數。然而若您使用 YAML 進行實驗，此參數會被忽略，且 `Executor` 會處理這個部分。另外，若要傳入 `Processor` 中的 `config`，您可以直接提供 `config` 的巢狀結構（以 YAML 的形式）。`Processor.fit()` 中的 `sequence` 也可以在此使用。
 
 
 ## `Synthesizer`
@@ -175,22 +145,17 @@ The parameter `method` in the `Splitter` section is only used for `method = 'cus
 
 `method` specifies the desired synthesis method (see the manual for complete options). Mandatory. `method = 'default'` will use the default method for synthesis (currently Gaussian Copula from `sdv`). Besides, `method = 'custom_data'` is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
 
-`method` 指定所希望使用的合成方法（完整選項見手冊）。必填。`method = 'default'` 將使用預設的方式做合成（目前是 `sdv` 的 Gaussian Copula）。此外，`method = 'custom_data'` 用於自定義資料集與深度客製化評估過程，因此使用者必須自行決定預先準備資料集的在分析流程中的放置位置。詳見用戶故事 C-2a 跟 C-2b。
 
 ## `Postprocessor`
 
 `Postprocessor` is part of the `Processor` class. It should be identical to `Preprocessor`. Hence, it is recommended to using the same experiment name as `Preprocessor`. Besides, the `method` should be `'default'`.
 
-`Postprocessor` 是一部分的 `Processor` 類別。它必須與 `Preprocessor` 一致，因此建議使用與 `Preprocessor` 相同的實驗名稱，另外 `method` 需設為 `'default'`。
 
 ## `Evaluator`
-
 
 ### `method`
 
 `method` specifies the desired evaluate method (see the manual for detailed options). Mandatory. `method = 'default'` will use the default method for evaluate (currently QualityReport from `sdmetrics`). Besides, `method = 'custom_method'` performed evaluation according to the user-provided Python code path (`filepath`) and class (`method` specifies the class name). The user-defined class should include an `__init__` method that accepts settings (`config`), a `.create()` method that takes a dictionary named `data` for input of evaluation data, and `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` methods to output results at different levels of granularity for the entire dataset, individual fields, and between fields, respectively. We recommend inheriting the `EvaluatorBase` class directly to meet the requirements. You can import the module using the following code.
-
-`method` 指定所希望使用的評估方法（完整選項見手冊）。必填。`method = 'default'` 將使用預設的方式做評估（目前是 `sdmetrics` 的 QualityReport）。`method = 'custom_method'` 則依照使用者給定的 Python 程式碼路徑 (`filepath`) 與類別 (`method` 指定類別名稱) 做評估。自訂評測需要使用者自訂一個符合格式的 Python 類別。該類別應該在 `__init__` 時接受設定 (`config`)，提供 `.create()` 方法接受名為 `data` 的字典做評測資料的輸入，以及 `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` 方法以分別輸出全資料集、個別欄位、與欄位與欄位間不同報告顆粒度的結果。我們建議直接繼承 `EvaluatorBase` 類別來滿足要求。可利用下方程式碼導入：
 
 ```Python
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
@@ -199,12 +164,9 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 
 ## `Describer`
 
-
 ### `method`
 
 `method` specifies the desired describing method (see the manual for detailed options). Mandatory. `method = 'default'` will use the default method for describe.
-
-`method` 指定所希望使用的描述方法（完整選項見手冊）。必填。`method = 'default'` 將使用預設的方式做描述。
 
 
 ## `Reporter`
@@ -213,35 +175,20 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 
 `method` specifies the desired reporting method. Either of two values is accepted: `'save_data'` and `'save_report'`.
 
-`method` 指定所希望使用的報告產出方法。可接受的值為以下兩者之一：`'save_data'`、`'save_report'`。
-
 #### `'save_data'`
 
 When `method = 'save_data'`, it will capture and output the result data of the module. `source` is a parameter unique to `method = 'save_data'`, specifying which module(s) results to output. Specifying `'Postprocessor'` means wishing to obtain the results of the Postprocessor, that is, data that has undergone preprocessing, synthesis, and postprocessing, which retains the data's privacy-enhanced characteristics and ensures the data format matches the original.
-
-當 `method = 'save_data'`，模組會擷取模組的結果資料做輸出。`source` 是 `method = 'save_data'` 特有的參數，指定哪個/哪些模組的結果做輸出。這邊指定為 `'Postprocessor'` 代表希望拿 Postprocessor 的結果，即經過前處理、合成、後處理的資料，其保有隱私強化的資料特性、且資料樣態將符合原始資料。
-
 
 #### `'save_report'`
 
 When `method = 'save_report'`, it will capture and output the result data from the `Evaluator`/`Describer` module. `eval` is a parameter unique to `method = 'save_report'`, specifying which experiment results to output by their experiment name. Specifying `'demo'` means wishing to obtain the results from the Evaluator named `'demo'`.
 
-當 `method = 'save_report'`，則會擷取 `Evaluator`/`Describer` 模組評測的結果資料做輸出。`eval` 是 `method = 'save_data'` 特有的參數，藉由實驗名稱指定哪個實驗的結果做輸出。這邊指定為 `'demo'` 代表希望拿名為 `'demo'` 的 Evaluator 的結果。
-
-
 `granularity` is another parameter unique to `method = 'save_report'`, specifying the level of detail, or granularity, of the result data. Specifying `'global'` means that the granularity of the score obtained covers the entire dataset as a whole. Depending on the evaluation methods of different `Evaluator`/`Describer`, scoring might be based on calculating a comprehensive score for the entire dataset, or it might involve calculating scores for each field individually, or even calculating scores between fields.
-
-`granularity` 是 `method = 'save_report'` 特有的參數，指定結果資料的細節程度、我們稱為粒度。這邊指定為 `'global'` 代表取得的是整個資料集一個總體評分的粒度。根據不同 `Evaluator`/`Describer` 的評測方式，其評分可能是基於整個資料集計算出一個總體分數，或者可能是針對每個欄位單獨計算分數，甚至是欄位與欄位間計算分數。
 
 
 # Module and Experiment Name
 
-
 The module names in YAML are unique, and its arrangement dictates the execution order of the modules within YAML. If users wish to conduct multiple different experimental setups simultaneously, such as using the same dataset for different synthetic data generation methods, this falls under the experiment name level. You can set up multiple experiment names under the same module name. For example, you could set up two experiment names under `Synthesizer`, let's assume they are called `A` and `B`:
-
-
-YAML 的模組名稱是唯一的，其編排的順序即是 YAML 執行各模組的順序 (`sequence`)。如果使用者希望同時做多種不同的實驗設定，例如您想用同樣的資料集做不同的合成資料方式，這屬於實驗名稱層級，您可以在同一個模組名稱中設定多個實驗名稱。以這個例子來說，也就是在 `Synthesizer` 下設定兩個實驗名稱，假設叫 `A` 跟 `B`：
-
 
 ```YAML
 Loader:
@@ -263,18 +210,14 @@ Report:
         {config of my_save_data}: ...
 ```
 
-
 The `sequence` of modules in this YAML would be:
 
-這個 YAML 的模組順序 (`sequence`) 即為：
 
 ```
 Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Reporter
 ```
 
 And the `Config.config` would be expanded according to the module `sequence` as:
-
-而設定 (`Config.config`) 則會依照模組順序 (`sequence`) ，擴展為：
 
 ```
 Loader: my_load -> Preprocessor: my_preproc -> Synthesizer: A -> Postprocessor: my_preproc -> Reporter: my_save_data
@@ -283,26 +226,14 @@ Loader: my_load -> Preprocessor: my_preproc -> Synthesizer: A -> Postprocessor: 
 
 In the next chapter, "Config Generation," we will provide more specific explanations on how multiple experiment names are expanded.
 
-我們在下一章 Config Generation 會更具體的說明多個實驗名稱如何擴展。
-
-
 In summary, experiment name are customisable, but they cannot be duplicated within the same module. It is important to note that the following specific experiment name string formats are not usable due to `PETsARD`'s internal operations. The `Executor` will return an error and stop if they are used: `*_[*]`, which ends an experiment name with an underscore followed by an open bracket, any string, and then a close bracket. `PETsARD` uses this format to append to the experiment names to describe specific experimental process results.
-
-總結而言，實驗名稱是可自訂的，但在同一個模組內不能重複。特別說明，以下這種特定的實驗名稱字串型態，因為涉及 `PETsARD` 的內部操作，是無法使用的，`Executor` 會回傳錯誤並停止：`*_[*]`（以半形底線接左中括號、接任意字串、然後接右中括號做實驗名稱的結尾）。 `PETsARD` 會用這樣的形態串連您的實驗名稱以供後續使用。
 
 
 # Config Generation
 
-
 When the user provides a YAML config file, the `Executor` invokes the internal `Config` class to organise the configuration.
 
 The `Config` class employs a Depth-First Search strategy, treating the configuration file as a traversal tree based on the module name order (`sequence`). It backtracks to the previous junction after reaching the end of each branch, continuing to explore settings for other experiment names. This approach allows the `Executor` to implement a combination of multiple experiments within a single YAML configuration file, efficiently reusing the same experiment setup for numerous experiments. Let's look at an example:
-
-
-針對使用者提供 YAML 設定檔時，`Executor` 會呼叫內部的 `Config` 類別來組織設定。
-
-`Config` 採用深度優先搜尋策略，依照模組名稱的順序 (`sequence`)，將設定檔視作一個遍歷樹，它在達到每個分支的末端後、會回溯至前一個分岔路口，繼續探索其他的實驗名稱設定。這個方法允許 `Executor` 在一個 YAML 設定檔中，實施多種實驗的組合，並高效重用相同的實驗設置進行多次實驗。我們來看例子：
-
 
 ```YAML
 ---
@@ -335,10 +266,7 @@ Report:
 ...
 ```
 
-
 The `sequence` of modules in this YAML would be:
-
-這個 YAML 的模組順序 (`sequence`) 即為：
 
 ```
 Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Evaluator -> Reporter
@@ -355,70 +283,42 @@ Let's explain in detail how the `Config.config` traverse the experiments, consid
 - Juction 4 - `Reporter`: `save_data` or `save_report`
 ```
 
-我們來搭配每個分岔點，具體說明 `Config.config` 是怎麼遍歷實驗的：
-
-```
-- 分岔點 1 - Loader: `data_a` 或 `data_b`
-- Preprocessor: `preproc`
-- 分岔點 2 - Synthesizer: `syn_a` 或 `syn_b`
-- Postprocessor: `preproc`
-- 分岔點 3 - Evaluator: `eval_a` 或 `eval_b`
-- 分岔點 4 - Reporter: `save_data` 或 `save_report`
-```
-
-
 With four junction points, each having two paths, we should have `2*2*2*2 = 16` experiment combinations. We will only list the complete version for the first path, and for the remaining fifteen paths, we will provide a brief explanation:
-
-四個分岔點，每個分岔各兩條路，我們應該有 `2*2*2*2 = 16` 個實驗組合。我們僅列出第一條路的完整版，後面的十五條路，僅概略說明：
 
 ```
 1. Loader: data_a -> Preprocessor: preproc -> Synthesizer: syn_a -> Postprocessor: preproc -> Evaluator: eval_a -> Reporter: save_data
 
-Back to Evaluator 
-回到 Evaluator
+Back to Evaluator
 
 2. -> Reporter: save_report
 
-Back to Postprocessor 
-回到 Postprocessor
+Back to Postprocessor
 
 3. -> Evaluator: eval_b -> Reporter: save_data
 
-Back to Evaluator 
-回到 Evaluator
+Back to Evaluator
 
 4. -> Reporter: save_report
 
-Back to Synthesizer 
-回到 Synthesizer
+Back to Synthesizer
 
 5. -> Synthesizer: syn_b -> Postprocessor: preproc -> Evaluator: eval_a -> Reporter: save_data
 
 6.~8. just repeat 2.~3. under Synthesizer: syn_b
-6.~8. 只是在 Synthesizer: syn_b 下重複 2.~3.
 
-Back to Loader 
-回到 Loader
+Back to Loader
 
 9. Loader: data_b -> Preprocessor: preproc -> Synthesizer: syn_a -> Postprocessor: preproc -> Evaluator: eval_a -> Reporter: save_data
 
 10.~16. just repeat 2.~8. under Loader: data_b
-10.~16. 只是在 Loader: data_b 下重複 2.~8.
 ```
 
-
 From the above, we will obtain 16 experiment results. It's worth noting that `Reporter`'s `method: 'save_data'` and `method: 'save_report'` perform different tasks. `'save_data'` exports the results of the specified module within the experiment combination, while `'save_report'` exports the results of the specified `Evaluator`/`Describer` according to config. Therefore, in reality, we obtain 8 datasets results, plus 8 evaluation reports, totaling 16 experiment results. For more details, please refer to the [Reporter page](https://nics-tw.github.io/PETsARD/Reporter.html).
-
-
-以上我們將得到 16 個實驗結果。值得注意的是，`Reporter` 的 `method: 'save_data'` 跟 `method: 'save_report'` 做的是不同事情。`'save_data'` 會把該實驗組合當中指定的模組結果輸出，而 `'save_report'` 則會把指定的 `Evaluator`/`Describer` 結果按設定輸出。所以實際上我們是得到 8 個資料集結果、加上 8 個評估報告共 16 個實驗結果。詳情請參考[Reporter頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
 
 
 # Config Setup
 
 For the third layer in YAML, the parameters for each module should be considered as a dictionary to pass in. In this case, the keys of the dictionary are the parameters of the module. Please see the example below:
-
-對於 YAML 的第三層，每個模組各自的參數，使用者應該將參數視作一個字典來傳入，此時字典的鍵值便是模組的參數。請看下面的例子：
-
 
 ```Python
 from PETsARD import Loader
@@ -450,12 +350,7 @@ load.load()
 print(load.data.head(1))
 ```
 
-
-
 At this point, it would be written in YAML as:
-
-此時轉成 YAML 便會寫成：
-
 
 ```YAML
 ---
@@ -480,18 +375,9 @@ Loader:
 ...
 ```
 
-
 The third layer of YAML contains three keys: `filepath`, `column_types`, and `na_values`, corresponding to the parameters of `Loader` module. The values for each parameter are set according to the module page. Taking `Loader` as an example:
 - `filepath` is a string. If the string content does not contain any special characters, single or double quotes are not necessary.
 - `na_values` is a dictionary where both keys and values are strings. Dictionaries in YAML are represented as `key: value`, with a space following the colon. The question mark is a special character, hence it is enclosed in single quotes.
 - `column_types` is also a dictionary, which the value of the key `'category'` is a list. Values in the list are represented as `- value`, with a space following the hyphen.
 
 For other YAML formats, please refer to resources [wiki - YAML](https://en.wikipedia.org/wiki/YAML).
-
-YAML 的第三層有三個鍵 `filepath`、`column_types`、`na_values`，對應 [Loader 模組](https://nics-tw.github.io/PETsARD/Loader.html)的參數。各參數的值均參考模組頁面進行設定。以本例 `Loader` 來說：
-- `filepath` 為字串。當字串內容沒有特殊字元時，不需要使用單雙引號。
-- `na_values` 為鍵值對均為字串的字典。YAML 的字典以 `key: value` 方式表示，半形冒號後面需要有一個半形空格。問號為特殊字元，故使用單引號。
-- `column_types` 亦為字典，而鍵 `'category'` 的值為列表。列表中的值以 `- value` 方式表示，半形連字號後面需要有一個半形空格。
-
-其他 YAML 格式，可參閱 [wiki - YAML](https://zh.wikipedia.org/zh-tw/YAML) 等資源。
-

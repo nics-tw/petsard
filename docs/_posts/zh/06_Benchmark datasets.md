@@ -1,11 +1,6 @@
-Benchmark datasets is an extended feature of the `loader` module in `PETsARD`, providing users with convenient and reliable example data for algorithm feasibility analysis and PETs evaluation. Therefore, this document focuses on the introduction to various datasets. For details on how to use `Loader`, please refer to the `Loader` documentation.
-
-The usage of benchmark datasets is straightforward. All you need to do is to place the corresponding "Benchmark dataset name" in the `filepath` parameter of `Loader`: `benchmark://{Benchmark dataset name}` (case-insensitive). `PETsARD` will download the corresponding dataset and load it into `Loader.data`. You are able to customize the dataset's `metadata` according to other `Loader` parameters. Here is an example of calling the "adult" dataset:
-
 基準資料集 (Benchmark datasets) 是 `PETsARD` 的 `loader` 模組的延伸功能，提供使用者方便呼叫、且可靠的範例資料，讓後續的演算法適用性分析或隱私強化驗測都更為方便。因此，本文將著重在各資料集的介紹上，關於 `Loader` 的使用方式詳見 `Loader` 文檔。
 
 基準資料集的使用非常簡單，你只要將各資料集對應的 "Benchmark dataset name" 標籤，以 `benchmark://{Benchmark dataset name}` 的形式放到 `Loader` 的 `filepath` 參數中（大小寫不限），`PETsARD` 便會將對應的資料集下載好，並遵照 `Loader` 的功能加載在 `Loader.data`，而你仍可以按照 `Loader` 的其他參數去自定義資料集的 `metadata`。以下是呼叫 "adult" 資料集的例子：
-
 
 ```Python
 from PETsARD import Loader
@@ -23,16 +18,7 @@ print(loader.data.head(1))
 ```
 
 
-# Motivation
-
-
-Classic benchmark datasets are often used in various data analysis or machine learning scenarios. However, in practical experience, it is common to find inconsistencies for two datasets with the same name. Common patterns include:
-
-- Inconsistent variable encoding transformations (e.g., Original categorical variables recorded as strings, `Label Encoding` encoded versions, or generalized categorical versions).
-- Inconsistent row counts (e.g., versions before or after removing missing values).
-- Inconsistent columns (e.g., column renaming, or versions after feature engineering).
-
-Usually, The reasons for these patterns are not malicious tampering, but rather for  optimization or preprocessing, which is then inadvertently released by subsequent users. Since the preprocessing methods for privacy-enhancing technologies are crucial, obtaining the same version of the benchmark dataset is the recommended experimental procedure in `PETsARD`.
+# 動機
 
 經典的基準資料集常被用於各種資料分析或機器學習的場合，但實務經驗上，常遇到討論同一個資料集的時候，發現彼此的資料集內容不一致。常見的樣態有：
 
@@ -43,25 +29,16 @@ Usually, The reasons for these patterns are not malicious tampering, but rather 
 造成這些樣態原因常常不是惡意竄改，而是某些優化過、或是前處理過的資料被釋出，而後續使用者不經意地加以傳播所導致。由於隱私強化技術的前處理方式至關重要，於是取得相同版本的基準資料集是 `PETsARD` 建議的實驗程序。
 
 
-# Storage
-
-
-The module first downloads the requested raw data, and store it in a "benchmark" folder within the working directory (in lowercase). If the folder does not exist, it will be created automatically (`./benchmark/{Benchmark filename}`). Subsequently, it will follow the regular `Loader` process for loading. When using it, please make sure that you have appropriate permissions and available hardware space.
-
-If the "benchmark" folder already contains a file with the same filename, the program will check if the local data matches the records in `PETsARD`. If they are matched, the program will skip the download and use the local data directly, making it convenient for users to reuse the data. It's important to note that if there is a file with the same name but with different content, `Loader` will issue a warning and stop. In such cases, users should be aware that the benchmark dataset might have been tampered with and contaminating the experimental results potentially.
+# 儲存
 
 基準資料集功能會先下載你所請求的原始資料，存到工作目錄下方的 "benchmark" 資料夾裡（小寫），如果不存在會自動開一個 (`./benchmark/{Benchmark filename}`)，之後照一般的 `Loader` 流程加載。使用時請注意你的權限與硬體空間。
 
 如果你的 "benchmark" 資料夾裡面已經有該資料集對應的同名檔案了，則程式會檢驗本地端的資料是否與 `PETsARD` 的紀錄一致，如果一致的話，便會省去下載、直接使用本地端資料，方便使用者多次使用。要注意的是如果同檔名但檢驗不一致的話，`Loader` 會告警並停止，此時使用者應該留意到可能儲存到了非原版的基準資料集，這很有可能對實驗結果造成汙染。
 
 
-## Verify SHA256 (optional)
-
-
-The function for calculating the SHA256 of a file in the `PETsARD` package is as follows:
+## 校驗 SHA256（可選）
 
 `PETsARD` 套件中計算檔案 SHA256 的函式如下：
-
 
 ```Python
 from PETsARD.loader.util import DigestSha256
@@ -76,34 +53,32 @@ print(sha256)
 ```
 
 
-# Available Benchmark Datasets
+# 可用的基準資料集
+
+* **名稱**: 資料集名稱。
+* **檔名**: 在 `PETsARD` 中的資料集名稱。
+* **權縣**: 公開/私有訪問。
+    - 私有資料集包含了資料集本身授權的限制、或是資料提供方的考量等原因，僅供團隊與合作方內部使用。相關問題請聯絡開發團隊。
+* **欄位數**: 欄位數。
+* **筆數**: 資料筆數。
+* **檔案大小**: 檔案大小。
+  - 小於 1 MB 的檔案會被標註為 "< 1 MB"。
+* **授權**: 資料集的原始授權。
+* **小樣本**: 資料集少於 5000 筆資料。
+* **類別為主**: 超過 75% 的欄位為類別欄位。
+* **數值為主**: 超過 75% 的欄位為數值欄位。
+* **均衡型態**: 類別欄位與數值欄位皆未超過 75%。
+* **極端值**: 任一欄位 $\text{abs}(\text{skewness})\geq 3$，符合條件的欄位數會標注在表格中。
+* **高基數**: 任一類別資料欄位類別數 $\geq 10$，符合條件的欄位數會標注在表格中。
+* **哈希值**: 在基準資料集中的哈希值。
+    - 僅記錄前七碼。
 
 
-* **Name**: Dataset name. 資料集名稱。
-* **Filename**: Name used in `PETsARD`. 在 `PETsARD` 中的資料集名稱。
-* **Access**: Whether the dataset is public or private. 公開/私有訪問。
-    - For private datasets, which may have restrictions based on the dataset's authorization or considerations from the data provider, are intended for internal use by the development team and collaborating parties. For any related inquiries, please contact the development team. 私有資料集包含了資料集本身授權的限制、或是資料提供方的考量等原因，僅供團隊與合作方內部使用。相關問題請聯絡開發團隊。
-* **Columns**: Number of columns. 欄位數。
-* **Rows**: Number of rows. 資料數。
-* **File Size**: File size. 檔案大小。
-  - If it is less than 1 MB, it will be denoted as "< 1 MB". 小於 1 MB 的檔案會被標註為 "< 1 MB"。
-* **License**: License of the dataset. 資料集的原始授權。
-* **Too Few Samples**: Less than 5,000 rows. 資料集少於 5000 筆資料。
-* **Categorical-dominant**: Over 75% columns are categorical. 超過 75% 的欄位為類別欄位。
-* **Numerical-dominant**: Over 75% columns are numerical. 超過 75% 的欄位為數值欄位。
-* **Non-dominant**: Neither categorical nor numerical columns are over 75%. 類別欄位與數值欄位皆未超過 75%。
-* **Extreme Values**: $\text{abs}(\text{skewness})\geq 3$ for any column. The number of columns meeting the requirement is shown in the table. 任一欄位 $\text{abs}(\text{skewness})\geq 3$，符合條件的欄位數會標注在表格中。
-* **High Cardinality**: Categories $\geq 10$ for any categorical column. The number of columns meeting the requirement is shown in the table. 任一類別資料欄位類別數 $\geq 10$，符合條件的欄位數會標注在表格中。
-* **Hash**: Hash value in Benchmark Datasets. 在 Benchmark Datasets 中的 hash value。
-    - Only the first seven characters are recorded. 僅記錄前七碼。
-
-
-## Demographic
-
+## 人口學 (Demographic)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | adult | Adult [^1] | adult_uci.csv | Public | 15 | 32,561 | 3.6 MB | CC BY 4.0 |  |  |  | ✅ | ✅2 | ✅3 | `b1ee591` |
 | adult-income | Adult income dataset [^2]  | adult-income.csv | Public | 15 | 48,842 | 5.1 MB | Unknown |  |  |  | ✅ | ✅2 | ✅3 | `1f13ee2` |
@@ -122,7 +97,6 @@ print(sha256)
 
 </div>
 
-
 [^1]: https://archive.ics.uci.edu/dataset/2/adult
 [^2]: https://www.kaggle.com/datasets/wenruliu/adult-income-dataset
 [^3]: https://archive.ics.uci.edu/dataset/117/census+income+kdd
@@ -134,12 +108,11 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^8]: https://www.census.gov/programs-surveys/cps/data/datasets.html
 
 
-## Business
-
+## 商業 (Business)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準 | 名稱 | 檔名 | 權限 | 欄位數 | 筆樹 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | insurance_synthetic | insurance_synthetic_data [^9] | insurance_synthetic.csv | Public | 10 | 700 | < 1 MB | Unknown | ✅ |  |  | ✅ |  | ✅4 | `462bc38` |
 | coil2000 | Insurance Company Benchmark (COIL 2000) [^10] | ticdata.csv | Public | 86 | 9,822 | 1.6 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  | `1b5669a` |
@@ -155,7 +128,6 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 </div>
 
-
 [^9]: https://www.kaggle.com/datasets/jayrdixit/insurance-synthetic-data
 [^10]: https://archive.ics.uci.edu/dataset/125/insurance+company+benchmark+coil+2000
 [^11]: https://archive.ics.uci.edu/dataset/222/bank+marketing
@@ -168,12 +140,11 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^18]: https://www.kaggle.com/datasets/serapgr/telco-customer-churn
 
 
-## Biology
-
+## 生物 (Biology)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | covertype | Covertype [^19] | covertype.csv | Public | 55 | 581,012 | 71.7 MB | CC BY 4.0 |  |  | ✅ |  | ✅39 |  | `ea35ca6` |
 | penguins_size | Palmer Archipelago (Antarctica) penguin data [^20] | penguins_size.csv | Public | 7 | 344 | < 1 MB | CC0 | ✅ |  |  | ✅ |  |  | `aa72859` |
@@ -181,34 +152,31 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 </div>
 
-
 [^19]: https://archive.ics.uci.edu/dataset/31/covertype
 [^20]: https://www.kaggle.com/datasets/parulpandey/palmer-archipelago-antarctica-penguin-data
 [^21]: https://www.kaggle.com/datasets/himanshunakrani/iris-dataset
 
 
-## Environment
-
+## 環境 (Environment)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | energydata_complete | energydata_complete [^22] | energydata_complete.csv | Public | 29 | 19,735 | 11.4 MB | Unknown |  |  | ✅ |  | ✅1 | ✅1 | `2820bf7` |
 | airquality | AirQuality_UCI [^23] | airquality.csv | Public | 15 | 9,357 | < 1 MB | Unknown |  |  |  | ✅ | ✅1 | ✅7 | `b602b78` |
 
 </div>
 
-
 [^22]: https://www.kaggle.com/datasets/oladimejiwilliams/energydata-complete
 [^23]: https://www.kaggle.com/datasets/parimalbhoyar25/airquality-uci
 
 
-## Human Resource
+## 人文科學 (Human Resource)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | ds_salary | Data Science Jobs Salaries Dataset [^24] | ds_salary.csv | Public | 11 | 245 | < 1 MB | CC0 | ✅ |  |  | ✅ | ✅1 | ✅4 | `01e439a` |
 | candidates_list | Candidates_list [^25] | candidates.csv | Public | 24 | 392 | < 1 MB | Unknown | ✅ |  |  | ✅ | ✅3 | ✅9 | `d08b595` |
@@ -216,18 +184,16 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 </div>
 
-
 [^24]: https://www.kaggle.com/datasets/saurabhshahane/data-science-jobs-salaries
 [^25]: https://www.kaggle.com/datasets/saikrishna20/candidates-list
 [^26]: https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset
 
 
-## Medical
-
+## 醫療 (Medical)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | nhanes_diabetes | NHANES diabetes [^27] [^28] | nhanes_diabetes.csv | Public | 12 | 4,189 | < 1 MB | Unknown | ✅ |  |  | ✅ |  |  | `aa46d7a` |
 | smokingdrinking | Smoking and Drinking Dataset with body signal [^29] | smokingdrinking.csv | Public | 24 | 991,346 | 103.5 MB | CC BY-NC-SA 4.0 DEED |  |  | ✅ |  | ✅14 |  | `d07c6e7` |
@@ -240,7 +206,6 @@ https://www.census.gov/programs-surveys/acs/data.html
 
 </div>
 
-
 [^27]: https://github.com/kikn88/pwscup2021
 [^28]: https://www.kaggle.com/datasets/cdc/national-health-and-nutrition-examination-survey
 [^29]: https://www.kaggle.com/datasets/sooyoungher/smoking-drinking-dataset/data
@@ -250,12 +215,11 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^33]: https://www.kaggle.com/datasets/drscarlat/mimic3c/data
 
 
-## Computer Science
-
+## 電腦科學 (Computer Science)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | isolet | ISOLET [^34] | isolet.csv | Public | 618 | 7,797 | 31.2 MB | CC BY 4.0 |  |  | ✅ |  | ✅50 |  | `03b5454` |
 | kddcup1999 | KDD Cup 1999 [^35] [^36] | kddcup.csv | Public | 42 | 4,898,431 | 644.2 MB | Unknown |  |  | ✅ |  | ✅25 | ✅3 | `deffe97` |
@@ -264,7 +228,6 @@ https://www.census.gov/programs-surveys/acs/data.html
 | rt_iot2022 | RT-IoT2022 [^41] | rt_iot.csv | Public | 84 | 123,117 | 50.0 MB | CC BY 4.0 |  |  | ✅ |  | ✅65 | ✅2 | `416a637` |
 
 </div>
-
 
 [^34]: https://archive.ics.uci.edu/dataset/54/isolet
 [^35]: https://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html
@@ -276,44 +239,39 @@ https://www.census.gov/programs-surveys/acs/data.html
 [^41]: https://archive.ics.uci.edu/dataset/942/rt-iot2022
 
 
-## Social Science
-
+## 社會科學 (Social Science)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | dowjones | Dow Jones Index [^42] | dowjones.csv | Public | 16 | 750 | < 1 MB | CC BY 4.0 | ✅ |  |  | ✅ | ✅3 | ✅8 | `5e9d6d2` |
 | election-portugal-2019 | Real Time Election Results: Portugal 2019 Data Set [^43] | election.csv | Public | 28 | 21,643 | 3.0 MB | ODbL v1.0 |  |  | ✅ |  | ✅16 | ✅3 | `2662ee9` |
 
 </div>
 
-
 [^42]: https://archive.ics.uci.edu/dataset/312/dow+jones+index
 [^43]: https://www.kaggle.com/datasets/ishandutta/real-time-election-results-portugal-2019-data-set
 
 
-## Transportation
-
+## 交通 (Transportation)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | PEMS-SF [^44] | pems_sf.csv | Public | 137,710 | 440 | 401.3 MB | CC BY 4.0 | ✅ |  | ✅ |  |  |  | `1d4c800` |
 
 </div>
 
-
 [^44]: https://archive.ics.uci.edu/dataset/204/pems+sf
 
 
-## Others
-
+## 其他 (Others)
 
 <div class="table-wrapper" markdown="block">
 
-| Benchmark | Name | Filename | Access | Columns | Rows | File Size | License | Too Few Samples | Categorical-dominant | Numerical-dominant | Non-dominant | Extreme Values | High Cardinality | Hash |
+| 基準名 | 名稱 | 檔名 | 權限 | 欄位數 | 筆數 | 檔案大小 | 授權 | 小樣本 | 類別為主 | 數值為主 | 均衡型態 | 極端值 | 高基數 | 哈希值 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | winequality_red | wine (red wine) [^45] | winequality_red.csv | Public | 12 | 1,599 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅2 |  | `7d246d4` |
 | winequality_white | wine (white wine) [^45]| winequality_white.csv | Public | 12 | 4898 | < 1 MB | CC BY 4.0 | ✅ |  | ✅ |  | ✅1 |  | `91e7afe` |
@@ -321,7 +279,6 @@ https://www.census.gov/programs-surveys/acs/data.html
 | poker_hand | Poker Hand [^47] | poker_hand.csv | Public | 11 | 1,025,010 | 23.0 MB | CC BY 4.0 |  | ✅ |  |  |  | ✅6 | `f458aba` |
 
 </div>
-
 
 [^45]: https://archive.ics.uci.edu/dataset/186/wine+quality
 [^46]: https://archive.ics.uci.edu/dataset/19/car+evaluation
