@@ -42,7 +42,7 @@ menu:
         type: search
     - name: GitHub
       weight: 5
-      url: "https://github.com/nics-tw/petsard-test"
+      url: "https://github.com/nics-tw/PETsARD"
       params:
         icon: github
 
