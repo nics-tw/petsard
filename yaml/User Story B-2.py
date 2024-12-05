@@ -25,7 +25,7 @@ class UserStory_B2(EvaluatorBase):
         """
         super().__init__(config=config)
 
-    def create(self, data: dict) -> None:
+    def _create(self, data: dict) -> None:
         """
         Creates the object.
 

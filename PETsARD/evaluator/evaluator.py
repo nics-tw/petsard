@@ -4,7 +4,6 @@ import re
 import pandas as pd
 
 from PETsARD.evaluator.anonymeter import Anonymeter
-from PETsARD.evaluator.automl import AutoML
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 from PETsARD.evaluator.mlutlity import MLUtility
 from PETsARD.evaluator.sdmetrics import SDMetrics
@@ -24,8 +23,7 @@ class EvaluatorMap():
     SDMETRICS:     int = 20
     STATS:         int = 21
     # Utility
-    AUTOML:        int = 30
-    MLUTILITY:     int = 31
+    MLUTILITY:     int = 30
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -112,8 +110,6 @@ class Evaluator:
             self.evaluator = SDMetrics(config=self.config)
         elif method_code == EvaluatorMap.STATS:
             self.evaluator = Stats(config=self.config)
-        elif method_code == EvaluatorMap.AUTOML:
-            self.evaluator = AutoML(config=self.config)
         elif method_code == EvaluatorMap.MLUTILITY:
             self.evaluator = MLUtility(config=self.config)
         else:
