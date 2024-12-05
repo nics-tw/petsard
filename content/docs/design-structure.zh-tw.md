@@ -1,7 +1,6 @@
 ---
 title: 設計架構
 weight: 1
-prev: docs/
 next: docs/usage/
 ---
 

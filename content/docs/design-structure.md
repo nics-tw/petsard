@@ -1,7 +1,6 @@
 ---
 title: Design Structure
 weight: 1
-prev: docs/
 next: docs/usage/
 ---
 
