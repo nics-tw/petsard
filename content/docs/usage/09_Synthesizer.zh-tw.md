@@ -1,9 +1,5 @@
 ---
 title: "Synthesizer"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 20
 toc: true
@@ -40,7 +36,7 @@ syn = Synthesizer(
 
 `method` (`str`): 合成方法。格式須為 `{套件名}-{函式名}`，例如：`'sdv-single_table-gaussiancopula'`
 
-`epsilon` (`float`, default=`5.0`, optional): 用於差分隱私 (DP) 演算法的 epsilon。如果合成方法不包含 DP，此參數會被忽略。詳見 "[Available Synthesizer Types](https://nics-tw.github.io/PETsARD/Synthesizer.html#Available-Synthesizer-Types)"。
+`epsilon` (`float`, default=`5.0`, optional): 用於差分隱私 (DP) 演算法的 epsilon。如果合成方法不包含 DP，此參數會被忽略。詳見 "[Available Synthesizer Types](PETsARD/zh-tw/docs/usage/09_synthesizer#selfdata_syn)"。
 
 `**kwargs` (`dict`): 合成方法的自定義參數。詳見後續章節。
 
@@ -52,7 +48,7 @@ syn = Synthesizer(
 
 `data` (`pd.DataFrame`): 用來合成的資料。
 
-`metadata` (`Metadata`, default=`None`): 元資料。如果使用 `Loader`/`Splitter`/`Processor`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
+`metadata` (`Metadata`, default=`None`): 元資料。如果使用 `Loader`/`Splitter`/`Processor`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
 
 ## `fit()`
 
@@ -60,7 +56,7 @@ syn = Synthesizer(
 
 ## `sample()`
 
-生成合成資料。合成資料會存在物件本身 (`self.data_syn`)。詳見 "[`self.data_syn`](https://nics-tw.github.io/PETsARD/Synthesizer.html#selfdata_syn)"。
+生成合成資料。合成資料會存在物件本身 (`self.data_syn`)。詳見 "[`self.data_syn`](PETsARD/zh-tw/docs/usage/09_synthesizer#selfdata_syn)"。
 
 **參數**
 

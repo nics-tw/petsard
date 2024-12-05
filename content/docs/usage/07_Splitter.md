@@ -1,9 +1,5 @@
 ---
 title: "Splitter"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 18
 toc: true
@@ -63,7 +59,7 @@ When using `split()` without setting `method` to `'custom_data'`, it is required
 
 `exclude_index` (`List[int]`, optional): The exist indeces to be excluded during the sampling process.
 
-`metadata` (`Metadata`, optional): The metadata of data. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information.
+`metadata` (`Metadata`, optional): The metadata of data. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
 
 ## `self.config`
 

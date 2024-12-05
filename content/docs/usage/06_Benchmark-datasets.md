@@ -1,17 +1,8 @@
 ---
 title: "Benchmark datasets"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 17
 toc: true
-seo:
-  title: "" # custom title (optional)
-  description: "" # custom description (recommended)
-  canonical: "" # custom canonical URL (optional)
-  noindex: false # false (default) or true
 ---
 
 Benchmark datasets is an extended feature of the `loader` module in `PETsARD`, providing users with convenient and reliable example data for algorithm feasibility analysis and PETs evaluation. Therefore, this document focuses on the introduction to various datasets. For details on how to use `Loader`, please refer to the `Loader` documentation.

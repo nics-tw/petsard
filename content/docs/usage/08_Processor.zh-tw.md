@@ -1,9 +1,5 @@
 ---
 title: "Processor"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 19
 toc: true
@@ -39,7 +35,7 @@ proc = Processor(
 
 **參數**
 
-用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
+用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
 
 `config` (`dict`, default=`None`): 針對每個欄位的自定義處理流程。
 

@@ -1,17 +1,13 @@
 ---
 title: "YAML"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 13
 toc: true
 ---
 
-YAML (YAML Ain't Markup Language) is a highly readable format used to express data serialization, designed for easily reading and editing, while also being easily parsed by computers. `Executor` in `PETsARD` allows users to configure the settings of PETsARD in YAML format. Through the introduction of this document, we hope that users can quickly get started, effortlessly set up and run their experiments effortlessly, and manage their experimental settings with YAML conveniently (See [Executor page](https://nics-tw.github.io/PETsARD/Executor.html) also).
+YAML (YAML Ain't Markup Language) is a highly readable format used to express data serialization, designed for easily reading and editing, while also being easily parsed by computers. `Executor` in `PETsARD` allows users to configure the settings of PETsARD in YAML format. Through the introduction of this document, we hope that users can quickly get started, effortlessly set up and run their experiments effortlessly, and manage their experimental settings with YAML conveniently (See [Executor page](PETsARD/docs/usage/01_executor/) also).
 
-This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](https://nics-tw.github.io/PETsARD/User-Story.html) also).
+This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](PETsARD/docs/usage/03_user-story/) also).
 
 # Tutorial
 

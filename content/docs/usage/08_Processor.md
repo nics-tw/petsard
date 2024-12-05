@@ -1,9 +1,5 @@
 ---
 title: "Processor"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 19
 toc: true
@@ -39,7 +35,7 @@ proc = Processor(
 
 **Parameters**
 
-`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. If `Loader`/`Splitter` is used, it is recommended to get the metadata via last use module `Loader.metadata`/`Splitter.metadata`. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](https://nics-tw.github.io/PETsARD/Metadata.html) for more information.
+`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. If `Loader`/`Splitter` is used, it is recommended to get the metadata via last use module `Loader.metadata`/`Splitter.metadata`. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
 
 `config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column.
 
@@ -208,7 +204,7 @@ In this section, we provide a comprehensive list of supported processor types an
 
 </div>
 
-預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。詳見 [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) 頁面。
+The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`. See [Metadata](PETsARD/docs/usage/05_metadata/) page for details.
 
 ```plain_text
 {

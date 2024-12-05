@@ -1,17 +1,13 @@
 ---
 title: "YAML"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 13
 toc: true
 ---
 
-YAML（YAML Ain't Markup Language）是一個可讀性高，用來表達資料序列化的格式，它旨在易於人類閱讀和編輯，同時也能被電腦輕鬆解析。`PETsARD` 的 `Executor` 讓使用者以 YAML 格式配置 `PETsARD` 的程式設定，藉由本文的介紹，期待讓使用者能以最快時間上手，無痛設定並執行自己的實驗，並利用 YAML 方便管理自己的實驗設定（同時參見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)）。
+YAML（YAML Ain't Markup Language）是一個可讀性高，用來表達資料序列化的格式，它旨在易於人類閱讀和編輯，同時也能被電腦輕鬆解析。`PETsARD` 的 `Executor` 讓使用者以 YAML 格式配置 `PETsARD` 的程式設定，藉由本文的介紹，期待讓使用者能以最快時間上手，無痛設定並執行自己的實驗，並利用 YAML 方便管理自己的實驗設定（同時參見 [Executor 頁面](PETsARD/zh-tw/docs/usage/01_executor/)）。
 
-本文僅說明基本的 YAML 設定，建議搭配程式碼庫中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/User Story*.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現（亦參考 [User Story 頁面](https://nics-tw.github.io/PETsARD/User-Story.html)）。
+本文僅說明基本的 YAML 設定，建議搭配程式碼庫中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/User Story*.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現（亦參考 [User Story 頁面](PETsARD/zh-tw/docs/usage/03_user-story/)）。
 
 # 教學
 

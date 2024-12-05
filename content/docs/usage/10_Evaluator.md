@@ -1,9 +1,5 @@
 ---
 title: "Evaluator"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 21
 toc: true
@@ -70,7 +66,7 @@ Create an `Evaluator` object with the given data.
 - `SDMetrics` required two types of data:
   - The original data utilised for synthesis (referred to as `'ori'`)
   - The synthetic data generated from `'ori'` (referred to as `'syn'`)
-- Fortunately, if you are utilizing our `Executor` (see [Executor page](https://nics-tw.github.io/PETsARD/Executor.html)), there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
+- Fortunately, if you are utilizing our `Executor` (see [Executor page](PETsARD/docs/usage/01_executor/)), there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
 
 ```Python
 eval.create(
@@ -129,7 +125,7 @@ The instantiated evaluator itself.
 
 ## `self.data`
 
-Stored the `data` input from `.create()` function. See the [`create()`](https://nics-tw.github.io/PETsARD/Evaluator.html#create) documentation for more information.
+Stored the `data` input from `.create()` function. See the [`create()`](PETsARD/docs/usage/10_evaluator/#create) documentation for more information.
 
 ## `self.result`
 
@@ -277,13 +273,15 @@ Retrieve the evaluation results from `anonymeter` methods.
   - Perfect Attacker is a concept that represents an all-knowing, all-powerful attacker. In our evaluating, this means they have a 100% chance of a successful attack. Therefore, the underlying idea behind this score is that Main Attack, due to their access to synthesized data, have a higher success rate compared to Control Attack. However, the proportion of this success rate increase relative to the Perfect Attacker's perfect success rate is what matters.
   - Ranging from zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
 
-$$\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}$$
+```math
+\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}
+```
 
 - Attack Rate refers to the proportion of successful executions of a specific attack, whether by malicious or honest-but-curious users. Also called Success Attack Rate.
   - Since it is assumed that each attack is independent, and attacks are only concerned with either success or failure, they can be modeled as Bernoulli trials. The Wilson Score Interval can be used to estimate the binomial success rate and adjusted confidence interval as below. The default of confidence level is 95%.
   - From zero to one, a higher number indicates a higher success rate for that specific attack.
 
-$$
+```math
 \text{AttackRate} =
 \frac{N_{\text{Success}}+\frac{ {Z}^{2} }{2} }{ N_{\text{Total}}+{Z}^{2} }\quad\left
 \{\begin{matrix}
@@ -292,7 +290,7 @@ N_{\text{Total}} & \text{Number of Total Attacks}\\
 Z & Z\text{ score of confidence level}
 \end{matrix}
 \right.
-$$
+```
 
 - Main Attack Rate refers to the attack rate inferred from the training data records using synthetic data.
 

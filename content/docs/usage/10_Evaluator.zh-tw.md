@@ -1,9 +1,5 @@
 ---
 title: "Evaluator"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 21
 toc: true
@@ -70,7 +66,7 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 - `SDMetrics` 需要兩種類型的資料：
   - 用於合成資料的原始資料（`'ori'`）
   - 利用原始資料合成的合成資料（`'syn'`）
-- 如果您使用此套件提供的 `Executor` （見 [Executor 頁面](https://nics-tw.github.io/PETsARD/Executor.html)），則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
+- 如果您使用此套件提供的 `Executor` （見 [Executor 頁面](PETsARD/zh-tw/docs/usage/01_executor/)），則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
 
 ```Python
 eval.create(
@@ -129,7 +125,7 @@ eval.create(
 
 ## `self.data`
 
-按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](https://nics-tw.github.io/PETsARD/Evaluator.html#create) 說明。
+按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](PETsARD/zh-tw/docs/usage/10_evaluator/#create) 說明。
 
 ## `self.result`
 
@@ -277,13 +273,15 @@ for secret in columns:
   - 完美攻擊者是一個概念，代表著一個全知全能的攻擊者，在我們的驗測中，這表示他有 100% 的成功攻擊機會。因此，這個分數背後的思想是，主要攻擊因為取得合成資料，因此相對於控制攻擊有更高的成功率，但這個成功率提升，相對於完美攻擊者完美的成功率提升，所佔的比例有多少。
   - 0 到 1，數字越大代表隱私的風險越高，合成資料提供的資訊能使攻擊者越接近完美攻擊者。
 
-$$\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}$$
+```math
+\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}$$
+```
 
 - 攻擊率意指無論是由惡意還是誠實但好奇的使用者成功執行特定攻擊的比例。又被稱為成功攻擊率。
   - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用威爾遜分數區間來估算二項式成功率與調整後的信賴區間如下。預設信心水準為 95%。
   - 0 到 1，數字越大代表該特定攻擊的成功率越高。
 
-$$
+```math
 \text{AttackRate} =
 \frac{N_{\text{Success}}+\frac{ {Z}^{2} }{2} }{ N_{\text{Total}}+{Z}^{2} }\quad\left
 \{\begin{matrix}
@@ -292,7 +290,7 @@ N_{\text{Total}} & \text{Number of Total Attacks}\\
 Z & Z\text{ score of confidence level}
 \end{matrix}
 \right.
-$$
+```
 
 - 主要攻擊率 (Main Attack Rate) 是指使用合成資料來推斷訓練資料紀錄的攻擊率。
 

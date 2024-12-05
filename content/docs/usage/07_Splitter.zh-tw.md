@@ -1,9 +1,5 @@
 ---
 title: "Splitter"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 18
 toc: true
@@ -63,7 +59,7 @@ split.split(
 
 `exclude_index` (`List[int]`, optional): 在抽樣過程中欲排除的索引值。
 
-`metadata` (`Metadata`, optional): 資料集的元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](https://nics-tw.github.io/PETsARD/Metadata.html)
+`metadata` (`Metadata`, optional): 資料集的元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
 
 ## `self.config`
 

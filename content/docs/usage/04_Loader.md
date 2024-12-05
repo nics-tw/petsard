@@ -1,9 +1,5 @@
 ---
 title: "Loader"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 15
 toc: true
@@ -79,14 +75,14 @@ Read and load the data.
 The configuration of `Loader` module:
 
 - `filepath` (`str`): The file path for the actual local data.
-  - When using [benchmark dataset](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html), it will be replaced by the filename of the data actually downloaded and saved.
+  - When using [benchmark dataset](PETsARD/docs/usage/06_benchmark-datasets/), it will be replaced by the filename of the data actually downloaded and saved.
 - `method` (`str`): Same as input.
 - `file_ext` (`str`): The file extension of the local data.
-- `benchmark` (`bool`): Indicates whether it is a [benchmark dataset](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
+- `benchmark` (`bool`): Indicates whether it is a [benchmark dataset](PETsARD/docs/usage/06_benchmark-datasets/).
 - `dtypes` (`dict`): The dictionary of column names and their types as format.
 - `column_types` (`dict`, optional), `header_name` (`list`, optional), `na_values` (`str | list | dict`, optional): Same as input.
 
-The following parameters are exclusive to using a benchmark dataset. See [benchmark dataset](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
+The following parameters are exclusive to using a benchmark dataset. See [benchmark dataset](PETsARD/docs/usage/06_benchmark-datasets/).
 
 - `filepath_raw` (`str`): Keep original filepath input by user.
 - `benchmark_name` (`str`): The name of benchmark dataset by user.
@@ -106,4 +102,4 @@ The loaded data is stored in `self.data` in the format of `pd.DataFrame`.
 
 ## `self.metadata.metadata`
 
-The metadata is stored in `self.metadata.metadata` in the format of nested `dict`. See the page ["Metadata"](https://nics-tw.github.io/PETsARD/Metadata.html).
+The metadata is stored in `self.metadata.metadata` in the format of nested `dict`. See the page ["Metadata"](PETsARD/docs/usage/05_metadata/).
