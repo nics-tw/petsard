@@ -1,9 +1,5 @@
 ---
 title: "Executor"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 12
 toc: true
@@ -21,7 +17,7 @@ exec.run()
 
 # `Executor`
 
-只要提供 `YAML` 格式的實驗設計檔案路徑即可初始化 `Executor`。請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html) 以了解 `YAML` 檔案的格式與內容。
+只要提供 `YAML` 格式的實驗設計檔案路徑即可初始化 `Executor`。請參考 [YAML 頁面](/PETsARD/docs/usage/02_yaml) 以了解 `YAML` 檔案的格式與內容。
 
 ```Python
 exec = Executor(config)

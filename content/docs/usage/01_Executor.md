@@ -1,9 +1,5 @@
 ---
 title: "Executor"
-# description: "Guides lead a user through a specific task they want to accomplish, often with a sequence of steps."
-# summary: ""
-date: 2023-09-07T16:04:48+02:00
-lastmod: 2023-09-07T16:04:48+02:00
 draft: false
 weight: 12
 toc: true
@@ -21,7 +17,7 @@ exec.run()
 
 # `Executor`
 
-The basic usage of `Executor` is providing the path of the experiment design file in `yaml` format for initialisation. See [YAML page](https://nics-tw.github.io/PETsARD/YAML.html) to know the format and content of the `YAML` file.
+The basic usage of `Executor` is providing the path of the experiment design file in `yaml` format for initialisation. See [YAML page](/PETsARD/docs/usage/02_yaml) to know the format and content of the `YAML` file.
 
 ```Python
 exec = Executor(config)
