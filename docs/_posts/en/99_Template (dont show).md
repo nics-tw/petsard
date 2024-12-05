@@ -1,8 +1,5 @@
 Concise introduction.
 
-中文。
-
-
 ```Python
 Short demo # if any, only for interface
 ```
@@ -10,10 +7,7 @@ Short demo # if any, only for interface
 
 # Step (What does the module/class do?)
 
-
 Description.
-
-中文。
 
 ```Python
 # Detailed structure of the class
@@ -25,17 +19,12 @@ processor = Processor(
 
 **Parameters**
 
-
-`parameter_name` (`expected type (if any)`, default=False): Description. 中文。
+`parameter_name` (`expected type (if any)`, default=False): Description.
 
 
 ## `method()`
 
-
 Description.
-
-中文。
-
 
 ```Python
 # Detailed structure of the function
@@ -52,22 +41,17 @@ processor.get_config(
 
 **Parameters**
 
-
-`parameter_name` (`expected type (if any)`): Description. 中文。
+`parameter_name` (`expected type (if any)`): Description.
 
 
 **Outputs**
 
-
-(`expected type (if any)`): Description. 中文。
+(`expected type (if any)`): Description.
 
 
 ## `method2()`
 
-
 Description.
-
-中文。
 
 
 ```Python
@@ -80,17 +64,12 @@ processor.get_config(
 
 **Parameters**
 
-
-`parameter_name` (`expected type (if any)`): Description. 中文。
+`parameter_name` (`expected type (if any)`): Description.
 
 
 ## `method3()`
 
-
 Description.
-
-中文。
-
 
 ```Python
 # Detailed structure of the function
@@ -100,16 +79,12 @@ processor.get_config()
 
 **Outputs**
 
-
-(`expected type (if any)`): Description. 中文。
+(`expected type (if any)`): Description.
 
 
 ## `method4()`
 
-
 Description.
-
-中文。
 
 
 ```Python
