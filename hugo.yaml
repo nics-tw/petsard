@@ -12,7 +12,7 @@ languages:
     languageName: English
     weight: 1
   zh-tw:
-    languageName: 臺灣華語
+    languageName: 繁體中文
     weight: 2
 
 markup:
