@@ -3,6 +3,7 @@ title: "Evaluator"
 draft: false
 weight: 21
 toc: true
+math: true
 ---
 
 `Evaluator` 模組負責評估合成資料的品質。您可以在 `Evaluator` 類別中指定評估方式並檢驗合成資料。
@@ -273,24 +274,29 @@ for secret in columns:
   - 完美攻擊者是一個概念，代表著一個全知全能的攻擊者，在我們的驗測中，這表示他有 100% 的成功攻擊機會。因此，這個分數背後的思想是，主要攻擊因為取得合成資料，因此相對於控制攻擊有更高的成功率，但這個成功率提升，相對於完美攻擊者完美的成功率提升，所佔的比例有多少。
   - 0 到 1，數字越大代表隱私的風險越高，合成資料提供的資訊能使攻擊者越接近完美攻擊者。
 
-```math
-\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}$$
-```
+$$
+\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}
+$$
+
+$$
 
 - 攻擊率意指無論是由惡意還是誠實但好奇的使用者成功執行特定攻擊的比例。又被稱為成功攻擊率。
   - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用威爾遜分數區間來估算二項式成功率與調整後的信賴區間如下。預設信心水準為 95%。
   - 0 到 1，數字越大代表該特定攻擊的成功率越高。
 
-```math
+
+$$
+
 \text{AttackRate} =
-\frac{N_{\text{Success}}+\frac{ {Z}^{2} }{2} }{ N_{\text{Total}}+{Z}^{2} }\quad\left
+\frac{N*{\text{Success}}+\frac{ {Z}^{2} }{2} }{ N*{\text{Total}}+{Z}^{2} }\quad\left
 \{\begin{matrix}
-N_{\text{Success}} & \text{Number of Success Attacks}\\
-N_{\text{Total}} & \text{Number of Total Attacks}\\
+N*{\text{Success}} & \text{Number of Success Attacks}\\
+N*{\text{Total}} & \text{Number of Total Attacks}\\
 Z & Z\text{ score of confidence level}
 \end{matrix}
 \right.
-```
+
+$$
 
 - 主要攻擊率 (Main Attack Rate) 是指使用合成資料來推斷訓練資料紀錄的攻擊率。
 
@@ -445,3 +451,4 @@ Z & Z\text{ score of confidence level}
 
 - Giomi, M., Boenisch, F., Wehmeyer, C., & Tasnádi, B. (2023). A Unified Framework for Quantifying Privacy Risk in Synthetic Data. _Proceedings of Privacy Enhancing Technologies Symposium_, 2023(2), 312–328. https://doi.org/10.56553/popets-2023-0055
 - 蔡柏毅（2021）。淺談個資「去識別化」與「合理利用」間的平衡。《金融聯合徵信》，第三十九期，2021年12月。
+$$
