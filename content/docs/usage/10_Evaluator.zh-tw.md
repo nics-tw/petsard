@@ -294,12 +294,9 @@ $$
         }{
             N_{Total}+{Z}^{2}
         }
-        \begin{cases}
-            N_{Success}\text{: ＃ Success Attacks}\\
-            N_{Total}\text{: ＃ Total Attacks}\\
-            Z\text{: Z score of confidence level}
-        \end{cases}
 $$
+
+N Success 代表成功攻擊次數，N Total 代表總攻擊次數，而 Z 則代表在該信心水平的 Z 分數。
 
 - 主要攻擊率 (Main Attack Rate) 是指使用合成資料來推斷訓練資料紀錄的攻擊率。
 

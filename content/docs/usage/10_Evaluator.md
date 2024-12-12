@@ -294,12 +294,9 @@ $$
         }{
             N_{Total}+{Z}^{2}
         }
-        \begin{cases}
-            N_{Success}\text{: ＃ Success Attacks}\\
-            N_{Total}\text{: ＃ Total Attacks}\\
-            Z\text{: Z score of confidence level}
-        \end{cases}
 $$
+
+N Success means numbers of Success Attacks，N Total means numbers of Total Attacks, and Z means Z score under confidence level.
 
 - Main Attack Rate refers to the attack rate inferred from the training data records using synthetic data.
 
