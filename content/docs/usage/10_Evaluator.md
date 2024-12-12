@@ -274,21 +274,21 @@ Retrieve the evaluation results from `anonymeter` methods.
   - Perfect Attacker is a concept that represents an all-knowing, all-powerful attacker. In our evaluating, this means they have a 100% chance of a successful attack. Therefore, the underlying idea behind this score is that Main Attack, due to their access to synthesized data, have a higher success rate compared to Control Attack. However, the proportion of this success rate increase relative to the Perfect Attacker's perfect success rate is what matters.
   - Ranging from zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
 
-\begin{equation}
-    {Privacy}\space{Risk} =
-        \cfrac{
-            {Attack}\space{Rate}_{Main} - {Attack}\space{Rate}_{Control}
+$$
+    \text{Privacy Risk} =
+        \frac{
+            {Attack Rate}_{Main} - {Attack Rate}_{Control}
         }{
-            1 - {Attack}\space{Rate}_{Control
-        }}
-\end{equation}
+            1 - {Attack Rate}_{Control}
+        }
+$$
 
 - Attack Rate refers to the proportion of successful executions of a specific attack, whether by malicious or honest-but-curious users. Also called Success Attack Rate.
   - Since it is assumed that each attack is independent, and attacks are only concerned with either success or failure, they can be modeled as Bernoulli trials. The Wilson Score Interval can be used to estimate the binomial success rate and adjusted confidence interval as below. The default of confidence level is 95%.
   - From zero to one, a higher number indicates a higher success rate for that specific attack.
 
-\begin{equation}
-    {Attack}\space{Rate} =
+$$
+    {Attack Rate} =
         \frac{
             N_{Success} + \frac{ {Z}^{2} }{2}
         }{
@@ -296,11 +296,11 @@ Retrieve the evaluation results from `anonymeter` methods.
         }
         \quad
         \begin{cases}
-            N_{Success} & {Number}\space{of}\space{Success}\space{Attacks}\\
-            N_{Total}   & {Number}\space{of}\space{Total}\space{Attacks}  \\
-            Z           & {Z}\space{score}\space{of}\space{confidence}\space{level}
-        \end{cases}$$
-\end{equation}
+            N_{Success} & \text{Number of Success Attacks}\\
+            N_{Total}   & \text{Number of Total Attacks}  \\
+            Z           & \text{Z score of confidence level}
+        \end{cases}
+$$
 
 - Main Attack Rate refers to the attack rate inferred from the training data records using synthetic data.
 
