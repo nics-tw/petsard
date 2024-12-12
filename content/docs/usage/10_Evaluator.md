@@ -295,9 +295,9 @@ $$
             N_{Total}+{Z}^{2}
         }
         \begin{cases}
-            N_{Success} & \text{Number of Success Attacks}\\
-            N_{Total}   & \text{Number of Total Attacks}  \\
-            Z           & \text{Z score of confidence level}
+            N_{Success}\text{: ＃ Success Attacks}\\
+            N_{Total}\text{: ＃ Total Attacks}\\
+            Z\text{: Z score of confidence level}
         \end{cases}
 $$
 
