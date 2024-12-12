@@ -20,7 +20,7 @@ print(split.data[1]['train'].head(1))
 print(split.data[1]['validation'].head(1))
 ```
 
-# `Splitter`
+## `Splitter`
 
 您可以依照需求自訂切分方法。
 
@@ -42,7 +42,7 @@ split = Splitter(
 
 `random_state` (`int`, default=`None`, optional): 控制隨機切分過程，以便未來產生出相同切分結果的資料集。
 
-## `split()`
+### `split()`
 
 ```Python
 split.split(
@@ -61,14 +61,14 @@ split.split(
 
 `metadata` (`Metadata`, optional): 資料集的元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
 
-## `self.config`
+### `self.config`
 
 `Splitter` 模組的參數：
 
 - 在標準使用情況下，它包括 `num_samples`（樣本數量）、`train_split_ratio`（訓練集分割比例）與 `random_state`（隨機狀態）。
 - 當 `method` 設為 `'custom_data'` 時，它包含 `method`（方法）、`filepath`（檔案路徑）以及其他 `Loader` 的配置。
 
-## `self.data`
+### `self.data`
 
 切分結果會以巢狀 `dict` 的形式存於 `self.data`。其結構如下：
 

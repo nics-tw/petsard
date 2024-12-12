@@ -20,7 +20,7 @@ print(split.data[1]['train'].head(1))
 print(split.data[1]['validation'].head(1))
 ```
 
-# `Splitter`
+## `Splitter`
 
 You can set different split methods as your requirements.
 
@@ -42,7 +42,7 @@ split = Splitter(
 
 `random_state` (`int`, default=`None`, optional): Controls the random sampling for reproducible output.
 
-## `split()`
+### `split()`
 
 ```Python
 split.split(
@@ -61,14 +61,14 @@ When using `split()` without setting `method` to `'custom_data'`, it is required
 
 `metadata` (`Metadata`, optional): The metadata of data. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
 
-## `self.config`
+### `self.config`
 
 The configuration of `Splitter` module:
 
 - For standard usage, it contains `num_samples`, `train_split_ratio`, `random_state`.
 - When the `method` is set to `'custom_data'`, it encompasses `method`, `filepath`, and the configuration of `Loader`.
 
-## `self.data`
+### `self.data`
 
 The split results are stored in `self.data` in the form of nested `dict`. The structure is shown below:
 

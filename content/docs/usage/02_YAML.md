@@ -9,7 +9,7 @@ YAML (YAML Ain't Markup Language) is a highly readable format used to express da
 
 This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](PETsARD/docs/usage/03_user-story/) also).
 
-# Tutorial
+## Tutorial
 
 Below is a demo YAML file and the illustration of how it works.
 
@@ -96,7 +96,7 @@ Reporter:
 
 Noted that in each module (enclosed by the dash line), it will be executed/created several times, depending on the number of upstream tasks/instances. See [Config Setup](PETsARD/docs/usage/02_yaml/) for details.
 
-# YAML
+## YAML
 
 The basic format of YAML is as follows:
 
@@ -123,37 +123,37 @@ A YAML document starts and ends with `---` and `...`, respectively. The markers 
 
 Ideally, you can pass the parameters accepted by the module in YAML format. See [Config Setup page](https://nics-tw.github.io/PETsARD/YAML.html#config-setup) for details. However, there are several parameters and commands in YAML accepted by `Executor`, please refer to the following section.
 
-# Parameters Specific to `Executor`
+## Parameters Specific to `Executor`
 
-## `Loader`
+### `Loader`
 
-### `method`
+#### `method`
 
 The parameter `method` in the `Loader` section is only used for `method = 'default'` and `method = 'custom_data'`. The former is equivalent to `filepath = 'benchmark://adult-income'`, and the latter is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
 
-## `Splitter`
+### `Splitter`
 
-### `method`
+#### `method`
 
 The parameter `method` in the `Splitter` section is only used for `method = 'custom_data'`. It is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
 
-## `Preprocessor`
+### `Preprocessor`
 
 `Preprocessor` is part of the `Processor` class. According to [Processor page](PETsARD/docs/usage/08_processor/), `metadata` is required. However, it is ignored, and `Executor` will take care of this, when using YAML. To pass the `config` from `Processor`, you can provide the nested structure `config` (in YAML format) directly. The parameter `sequence` in `Processor.fit()` is acceptable in this section as well.
 
-## `Synthesizer`
+### `Synthesizer`
 
-### `method`
+#### `method`
 
 `method` specifies the desired synthesis method (see the manual for complete options). Mandatory. `method = 'default'` will use the default method for synthesis (currently Gaussian Copula from `sdv`). Besides, `method = 'custom_data'` is used for custom datasets and in-depth evaluation process customisation and requires users to decide the placement of the dataset in the analysis process. Please refer to User Stories C-2a and C-2b for more details.
 
-## `Postprocessor`
+### `Postprocessor`
 
 `Postprocessor` is part of the `Processor` class. It should be identical to `Preprocessor`. Hence, it is recommended to using the same experiment name as `Preprocessor`. Besides, the `method` should be `'default'`.
 
-## `Evaluator`
+### `Evaluator`
 
-### `method`
+#### `method`
 
 `method` specifies the desired evaluate method (see the manual for detailed options). Mandatory. `method = 'default'` will use the default method for evaluate (currently QualityReport from `sdmetrics`). Besides, `method = 'custom_method'` performed evaluation according to the user-provided Python code path (`filepath`) and class (`method` specifies the class name). The user-defined class should include an `__init__` method that accepts settings (`config`), a `.create()` method that takes a dictionary named `data` for input of evaluation data, and `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` methods to output results at different levels of granularity for the entire dataset, individual fields, and between fields, respectively. We recommend inheriting the `EvaluatorBase` class directly to meet the requirements. You can import the module using the following code.
 
@@ -161,29 +161,29 @@ The parameter `method` in the `Splitter` section is only used for `method = 'cus
 from PETsARD.evaluator.evaluator_base import EvaluatorBase
 ```
 
-## `Describer`
+### `Describer`
 
-### `method`
+#### `method`
 
 `method` specifies the desired describing method (see the manual for detailed options). Mandatory. `method = 'default'` will use the default method for describe.
 
-## `Reporter`
+### `Reporter`
 
-### `method`
+#### `method`
 
 `method` specifies the desired reporting method. Either of two values is accepted: `'save_data'` and `'save_report'`.
 
-#### `'save_data'`
+##### `'save_data'`
 
 When `method = 'save_data'`, it will capture and output the result data of the module. `source` is a parameter unique to `method = 'save_data'`, specifying which module(s) results to output. Specifying `'Postprocessor'` means wishing to obtain the results of the Postprocessor, that is, data that has undergone preprocessing, synthesis, and postprocessing, which retains the data's privacy-enhanced characteristics and ensures the data format matches the original.
 
-#### `'save_report'`
+##### `'save_report'`
 
 When `method = 'save_report'`, it will capture and output the result data from the `Evaluator`/`Describer` module. `eval` is a parameter unique to `method = 'save_report'`, specifying which experiment results to output by their experiment name. Specifying `'demo'` means wishing to obtain the results from the Evaluator named `'demo'`.
 
 `granularity` is another parameter unique to `method = 'save_report'`, specifying the level of detail, or granularity, of the result data. Specifying `'global'` means that the granularity of the score obtained covers the entire dataset as a whole. Depending on the evaluation methods of different `Evaluator`/`Describer`, scoring might be based on calculating a comprehensive score for the entire dataset, or it might involve calculating scores for each field individually, or even calculating scores between fields.
 
-# Module and Experiment Name
+## Module and Experiment Name
 
 The module names in YAML are unique, and its arrangement dictates the execution order of the modules within YAML. If users wish to conduct multiple different experimental setups simultaneously, such as using the same dataset for different synthetic data generation methods, this falls under the experiment name level. You can set up multiple experiment names under the same module name. For example, you could set up two experiment names under `Synthesizer`, let's assume they are called `A` and `B`:
 
@@ -224,7 +224,7 @@ In the next chapter, "Config Generation," we will provide more specific explanat
 
 In summary, experiment name are customisable, but they cannot be duplicated within the same module. It is important to note that the following specific experiment name string formats are not usable due to `PETsARD`'s internal operations. The `Executor` will return an error and stop if they are used: `*_[*]`, which ends an experiment name with an underscore followed by an open bracket, any string, and then a close bracket. `PETsARD` uses this format to append to the experiment names to describe specific experimental process results.
 
-# Config Generation
+## Config Generation
 
 When the user provides a YAML config file, the `Executor` invokes the internal `Config` class to organise the configuration.
 
@@ -310,7 +310,7 @@ Back to Loader
 
 From the above, we will obtain 16 experiment results. It's worth noting that `Reporter`'s `method: 'save_data'` and `method: 'save_report'` perform different tasks. `'save_data'` exports the results of the specified module within the experiment combination, while `'save_report'` exports the results of the specified `Evaluator`/`Describer` according to config. Therefore, in reality, we obtain 8 datasets results, plus 8 evaluation reports, totaling 16 experiment results. For more details, please refer to the [Reporter page](PETsARD/docs/usage/12_reporter/).
 
-# Config Setup
+## Config Setup
 
 For the third layer in YAML, the parameters for each module should be considered as a dictionary to pass in. In this case, the keys of the dictionary are the parameters of the module. Please see the example below:
 
@@ -318,7 +318,7 @@ For the third layer in YAML, the parameters for each module should be considered
 from PETsARD import Loader
 
 
-# experiment name: my-adult-income
+## experiment name: my-adult-income
 load = Loader(
     filepath='benchmark/adult-income.csv',
     column_types={

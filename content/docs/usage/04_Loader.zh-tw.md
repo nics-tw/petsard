@@ -15,7 +15,7 @@ load = Loader('data.csv')
 load.load()
 ```
 
-# `Loader`
+## `Loader`
 
 只要提供檔案路徑即可初始化 `Loader`。您也可以加入其他參數以達到客製化的目的。
 
@@ -66,11 +66,11 @@ print(load.data.head(1))
 
 `na_values` (`str | list | dict`, default=`None`, optional): 視為 `NA/NaN` 的值，如果輸入的是一個 `dict`，則可以針對各欄位指定被視為 `NA/NaN` 的值，格式為 `{colname: na_values}`。預設情況下它僅會採用 `pandas` 的預設值。詳見 [pandas 文件](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html)。
 
-## `load()`
+### `load()`
 
 讀取與載入資料。
 
-## `self.config`
+### `self.config`
 
 `Loader` 模組的參數：
 
@@ -92,14 +92,14 @@ print(load.data.head(1))
 - `benchmark_bucket_name` (`str`): 基準資料集的亞馬遜桶名稱。
 - `benchmark_sha256` (`str`): 基準資料集的SHA-256校驗值。
 
-## `self.loader`
+### `self.loader`
 
 被實例化的讀取器本身。
 
-## `self.data`
+### `self.data`
 
 已寫入的資料會以 `pd.DataFrame` 的格式存於 `self.data`。
 
-## `self.metadata.metadata`
+### `self.metadata.metadata`
 
 元資料以巢狀 `dict` 存於 `self.metadata.metadata`。詳見 ["Metadata"](PETsARD/zh-tw/docs/usage/05_metadata/) 頁面。

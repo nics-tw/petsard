@@ -16,13 +16,13 @@ proc.fit(data=load.data)
 transformed_data = proc.transform(data=load.data)
 print(transformed_data.head(1))
 
-# synthetic_data = ...
+## synthetic_data = ...
 
 inverse_transformed_data = proc.inverse_transform(data=synthetic_data)
 print(inverse_transformed_data.head(1))
 ```
 
-# `Processor`
+## `Processor`
 
 Once you have an instance of metadata built from the `Loader` class, you can create a `Processor`. The `config` parameter is optional, allowing you to customise procedures. Upon creation, the processor analyses the metadata to determine the necessary preprocessing and postprocessing procedures. If a `config` is passed, the processor will overwrite default settings and follow the procedures specified in the `config`.
 
@@ -39,7 +39,7 @@ proc = Processor(
 
 `config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column.
 
-## `config`
+### `config`
 
 `config` is a nested `dict` defining the processing proceures. The structure is shown below:
 
@@ -53,7 +53,7 @@ proc = Processor(
 
 Noted that `processor_obj` can be an initialised object from processing submodules or a class name (see "Available Processor Types").
 
-## `get_config()`
+### `get_config()`
 
 Use this method to access the configuration of procedures to be done during the transformation/inverse transform process. It is summarised by the processor types (e.g., missing, outlier, encoder, scaler, discretizing) and columns, storing all data processing objects for user access.
 
@@ -97,7 +97,7 @@ proc.get_config(
 
 (`dict`): The config with selected columns.
 
-## `update_config()`
+### `update_config()`
 
 Update part of the config.
 
@@ -109,7 +109,7 @@ proc.update_config(config=config)
 
 `config` (`dict`): The `dict` with the same format as the config class.
 
-## `get_changes()`
+### `get_changes()`
 
 Compare the differences between the current config and the default config. See "Available Processor Types" to know more about the default config.
 
@@ -121,7 +121,7 @@ proc.get_changes()
 
 (`pandas.DataFrame`): A dataframe recording the differences bewteen the current config and the default config.
 
-## `fit()`
+### `fit()`
 
 Learn the structure of the data.
 
@@ -137,7 +137,7 @@ proc.fit(
 `data` (`pandas.DataFrame`): The data to be fitted.
 `sequence` (`list`, default=`None`): The processing sequence, allowing users to skip procedures and alter the execution order. Avaliable procedures: `'missing'`, `'outlier'`, `'encoder'`, `'scaler'`, `'discretizing'`. `['missing', 'outlier', 'encoder', 'scaler']` is the default sequence if the user doesn't pass a sequence to the method. Noted that `'discretizing'` and `'encoder'` cannot be used in a sequence at the same time, and `'discretizing'` must be the last element if it exists in a sequence.
 
-## `transform()`
+### `transform()`
 
 Conduct the data preprocessing procedure.
 
@@ -153,7 +153,7 @@ transformed_data = proc.transform(data=data)
 
 (`pandas.DataFrame`): The data after transformation.
 
-## `inverse_transform()`
+### `inverse_transform()`
 
 Conduct the data postprocessing procedure. Noted that it also transforms the data types to align with the metadata using the following rules, and raises an error for other cases.
 
@@ -176,7 +176,7 @@ inverse_transformed = proc.inverse_transform(data=data)
 
 (`pandas.DataFrame`): The data after inverse transformation.
 
-# Available Processor Types
+## Available Processor Types
 
 In this section, we provide a comprehensive list of supported processor types and their associated classes to facilitate thorough customization. You have the option to specify the processor classes for `config` either by initializing an object or by directly entering the class name (outlined below). The former approach offers flexibility for customization, while the latter offers simplicity of use.
 
@@ -241,11 +241,11 @@ The following processors represent the default ones assigned based on `'inder_dt
 }
 ```
 
-## Encoder
+### Encoder
 
 The `encoder` submodule transforms categorical data into numerical format, a requirement for many modeling procedures.
 
-### `EncoderUniform`
+#### `EncoderUniform`
 
 Applying uniform encoders during data processing, as suggested by [datacebo](https://datacebo.com/blog/improvement-uniform-encoder/), can enhance the performance of generative algorithms compared to other encoders. The concept is straightforward: map each category to a specific range in the uniform distribution, with ranges determined by the relative proportion of each category in the data. Major categories occupy larger areas under the distribution.
 
@@ -269,35 +269,35 @@ After transformation by the uniform encoder, data belonging to category 'a' will
 
 To inverse transform numerical data to categorical data, simply check the range in which the value falls and convert it back to the corresponding category using the mapping relationship.
 
-### `EncoderLabel`
+#### `EncoderLabel`
 
 Transform categorical data into numerical data by assigning a series of integers (1, 2, 3,...) to the categories.
 
-### `EncoderOneHot`
+#### `EncoderOneHot`
 
 Transform categorical data into a one-hot numeric data.
 
-## MissingHandler
+### MissingHandler
 
 The `missing` submodule handles missing values in a dataset.
 
-### `MissingDrop`
+#### `MissingDrop`
 
 This method involves dropping the rows containing missing values in any column.
 
-### `MissingMean`
+#### `MissingMean`
 
 Missing values are filled with the mean value of the corresponding column.
 
-### `MissingMedian`
+#### `MissingMedian`
 
 Missing values are filled with the median value of the corresponding column.
 
-### `MissingMode`
+#### `MissingMode`
 
 Missing values are filled with the mode value of the corresponding column. If there are multiple modes, it will randomly fill in one of them.
 
-### `MissingSimple`
+#### `MissingSimple`
 
 Missing values are filled with a predefined value for the corresponding column.
 
@@ -305,51 +305,51 @@ Missing values are filled with a predefined value for the corresponding column.
 
 `value` (`float`, default=`0.0`): The value to be imputed.
 
-## OutlierHandler
+### OutlierHandler
 
 The `outlier` submodule is designed to identify and remove data classified as outliers.
 
-### `OutlierZScore`
+#### `OutlierZScore`
 
 This method classifies data as outliers if the absolute value of the z-score is greater than 3.
 
-### `OutlierIQR`
+#### `OutlierIQR`
 
 Data outside the range of 1.5 times the interquartile range (IQR) is determined as an outlier.
 
-### `OutlierIsolationForest`
+#### `OutlierIsolationForest`
 
 This method uses `IsolationForest` from `sklearn` to identify outliers. It is a global transformation, meaning that if any column uses the isolation forest as an outlierist, it will overwrite the entire config and apply isolation forest to all outlierists.
 
-### `OutlierLOF`
+#### `OutlierLOF`
 
 This method uses `LocalOutlierFactor` from `sklearn` to identify outliers. It is a global transformation, meaning that if any column uses the isolation forest as an outlierist, it will overwrite the entire config and apply isolation forest to all outlierists.
 
-## Scaler
+### Scaler
 
 The `scaler` submodule is designed to standardise and scale data using various methods.
 
-### `ScalerStandard`
+#### `ScalerStandard`
 
 This method applies `StandardScaler` from the `sklearn` library, transforming the data to have a mean of 0 and a standard deviation of 1.
 
-### `ScalerZeroCenter`
+#### `ScalerZeroCenter`
 
 Utilising `StandardScaler` from `sklearn`, this method centres the transformed data around a mean of 0.
 
-### `ScalerMinMax`
+#### `ScalerMinMax`
 
 By applying `MinMaxScaler` from `sklearn`, this method scales the data to fit within the range [0, 1].
 
-### `ScalerLog`
+#### `ScalerLog`
 
 This method requires the input data to be positive. It applies log transformation to mitigate the impact of extreme values.
 
-## Discretizing
+### Discretizing
 
 The `discretizing` submodule is designed to transform continuous data into categorical types, which is useful for some synthetic methods (e.g., `mwem` offered by `smartnoise`).
 
-### `DiscretizingKBins`
+#### `DiscretizingKBins`
 
 Discretize continuous data into k bins (k intervals).
 

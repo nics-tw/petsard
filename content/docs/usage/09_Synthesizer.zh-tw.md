@@ -11,7 +11,7 @@ toc: true
 from PETsARD import Synthesizer, Loader
 
 
-# load = Loader(...)
+## load = Loader(...)
 
 syn = Synthesizer(method='sdv-single_table-gaussiancopula')
 syn.create(
@@ -21,7 +21,7 @@ syn.create(
 syn.fit_sample()
 ```
 
-# `Synthesizer`
+## `Synthesizer`
 
 使用 `Synthesizer` 類別的物件，需要提供合成方法及相關的參數。
 
@@ -40,7 +40,7 @@ syn = Synthesizer(
 
 `**kwargs` (`dict`): 合成方法的自定義參數。詳見後續章節。
 
-## `create()`
+### `create()`
 
 輸入原始資料與元資料以初始化合成器。
 
@@ -50,11 +50,11 @@ syn = Synthesizer(
 
 `metadata` (`Metadata`, default=`None`): 元資料。如果使用 `Loader`/`Splitter`/`Processor`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` 取得元資料，以避免 `sdv` 自行生成元資料過程中產生的非預期錯誤。如果傳入值為 `None`，系統會自動生成一份。`metadata` 被用於 `sdv` 相關的合成器，且會被其他套件的合成器忽略。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
 
-## `fit()`
+### `fit()`
 
 從資料中學習合成模式。
 
-## `sample()`
+### `sample()`
 
 生成合成資料。合成資料會存在物件本身 (`self.data_syn`)。詳見 "[`self.data_syn`](PETsARD/zh-tw/docs/usage/09_synthesizer#selfdata_syn)"。
 
@@ -66,7 +66,7 @@ syn = Synthesizer(
 
 `output_file_path` (`str`, default=`None`): 輸出檔案位置。
 
-## `fit_sample()`
+### `fit_sample()`
 
 從資料中學習合成模式並生成合成資料。為 `fit()` 和 `sample()` 的整合。
 
@@ -74,7 +74,7 @@ syn = Synthesizer(
 
 與 `sample()` 相同。
 
-## `self.config`
+### `self.config`
 
 `Synthesizer` 模組的參數：
 
@@ -82,11 +82,11 @@ syn = Synthesizer(
 - 當 `method` 設為 `'default'` 時，`method` 將會被 `PETsARD` 預設的合成方法取代：SDV - Gaussian Copula (`sdv-single_table-gaussiancopula'`)。
 - 當 `method` 設為 `'custom_data'` 時，它包含 `method`、`method_code`、`filepath`（檔案路徑）以及其他 `Loader` 的配置。
 
-## `self.data_syn`
+### `self.data_syn`
 
 合成資料以 `pd.DataFrame` 的格式儲存。
 
-# 可用的 Synthesizer 類型
+## 可用的 Synthesizer 類型
 
 在此章節我們列出所有目前支援的合成資料方法及其對應的 `method` 名稱。
 
@@ -110,11 +110,11 @@ syn = Synthesizer(
 
 [^2]: ❌ 代表此操作不適用於此合成方法。
 
-## SDV
+### SDV
 
 `sdv` 提供了數種合成資料的方法，包含基於關聯結構 (copula)及神經網路的合成方法。詳見其官方[網站](https://sdv.dev/)、[說明文件](https://docs.sdv.dev/sdv)及 [GitHub](https://github.com/sdv-dev/SDV)。在本套件中，我們抑制了 `sdv` 原生的資料前處理流程以提升客製化的彈性。在訓練前請確保您的資料皆是數值格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中沒有 `'discretizing'`。
 
-### `'sdv-single_table-copulagan'`
+#### `'sdv-single_table-copulagan'`
 
 使用 `sdv` 提供的 `CopulaGANSynthesizer`，根據官方說明，這是實驗性的合成方法。詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/copulagansynthesizer)。
 
@@ -122,7 +122,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/copulagansynthesizer)。
 
-### `'sdv-single_table-ctgan'`
+#### `'sdv-single_table-ctgan'`
 
 使用 `sdv` 提供的 `CTGANSynthesizer`。詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/ctgansynthesizer)。
 
@@ -130,7 +130,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/ctgansynthesizer)。
 
-### `'sdv-single_table-gaussiancopula'`
+#### `'sdv-single_table-gaussiancopula'`
 
 使用 `sdv` 提供的 `GaussianCopulaSynthesizer`。詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/gaussiancopulasynthesizer)。
 
@@ -138,7 +138,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/gaussiancopulasynthesizer)。
 
-### `'sdv-single_table-tvae'`
+#### `'sdv-single_table-tvae'`
 
 使用 `sdv` 提供的 `TVAESynthesizer`。詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/tvaesynthesizer)。
 
@@ -146,11 +146,11 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/tvaesynthesizer)。
 
-## SmartNoise
+### SmartNoise
 
 `smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。請注意，若您使用需要 `discretizing` 的演算法，在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。另外提醒，若使用不需要 `discretizing` 的演算法，該物件會內隱執行 min-max 轉換，以確保程式能正常執行。
 
-### `'smartnoise-aim'`
+#### `'smartnoise-aim'`
 
 使用 `smartnoise` 提供的 Adaptive Iterative Mechanism (AIM) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
 
@@ -158,7 +158,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
 
-### `'smartnoise-mst'`
+#### `'smartnoise-mst'`
 
 使用 `smartnoise` 提供的 Maximum Spanning Tree (MST) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mst.html)。
 
@@ -166,7 +166,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mst.html)。
 
-### `'smartnoise-pacsynth'`
+#### `'smartnoise-pacsynth'`
 
 使用 `smartnoise` 提供的 PAC-Synth 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html)。
 
@@ -174,7 +174,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html)。
 
-### `'smartnoise-dpctgan'`
+#### `'smartnoise-dpctgan'`
 
 使用 `smartnoise` 提供的 DP-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
 
@@ -182,7 +182,7 @@ syn = Synthesizer(
 
 詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
 
-### `'smartnoise-patectgan'`
+#### `'smartnoise-patectgan'`
 
 使用 `smartnoise` 提供的 PATE-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
 

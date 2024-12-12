@@ -30,7 +30,7 @@ des.get_columnwise()
 des.get_pairwise()
 ```
 
-# `Describer`
+## `Describer`
 
 To initialise a `Describer`, you must specify the describing methods used to assess the data, which are stored in a `dict`-like object called `config`. Within `config`, there are two keys: `method` and `describe`, representing the operation name and the describing methods, respectively. The structure is shown below. Noted that if `method` is set to `'default'`, the default set of describing methods will be applied, including `['row_count', 'col_count', 'global_na_count', 'mean', 'median', 'std', 'min', 'max', 'kurtosis', 'skew', 'q1', 'q3', 'col_na_count', 'nunique', 'corr']`. Please refer to the subsequent section for detailed explanations of each method and a comprehensive list of all available methods.
 
@@ -49,7 +49,7 @@ des = Describer(config=config)
 
 `config` (`dict`): The describing methods. The format is specified above.
 
-## `create()`
+### `create()`
 
 Create a `Describer` object with the provided data. The data should be stored within a `dict`. Each dataset should adhere to the following structure: the key must be `'data'`, while the corresponding value represents the dataset itself in `pd.DataFrame` format.
 
@@ -65,11 +65,11 @@ des.create(data)
 
 `data` (`dict`): The dictionary contains the data to be analysed, in the form of `pd.DataFrame`. The `key` of `data` is specified above.
 
-## `eval()`
+### `eval()`
 
 Analyse the dataset. To retrieve the result, see the following sections.
 
-## `get_global()`
+### `get_global()`
 
 Get the global result of the descriptive analysis, presenting it as a single row where each property is stored in its respective column.
 
@@ -77,7 +77,7 @@ Get the global result of the descriptive analysis, presenting it as a single row
 
 (`pd.DataFrame`): The global result of the descriptive analysis.
 
-## `get_columnwise()`
+### `get_columnwise()`
 
 Get the column-wise result of the descriptive analysis, where each column represents a property and each row represents a column/variable in the dataset.
 
@@ -85,7 +85,7 @@ Get the column-wise result of the descriptive analysis, where each column repres
 
 (`pd.DataFrame`): The column-wise result of the descriptive analysis.
 
-## `get_pairwise()`
+### `get_pairwise()`
 
 Get the pairwise result of the descriptive analysis, where each column represents a property and each row represents a pair of columns/variables in the dataset.
 
@@ -93,7 +93,7 @@ Get the pairwise result of the descriptive analysis, where each column represent
 
 (`pd.DataFrame`): The pairwise result of the descriptive analysis.
 
-# Available Describer Types
+## Available Describer Types
 
 In this section, we provide a comprehensive list of supported describer types and their scope (used in `get_global`, `get_columnwise`, `get_pairwise`) and name used in `config`.
 
@@ -124,69 +124,69 @@ In this section, we provide a comprehensive list of supported describer types an
 
 </div>
 
-## `'row_count'`
+### `'row_count'`
 
 Calculate the number of rows in the dataset.
 
-## `'column_count'`
+### `'column_count'`
 
 Calculate the number of columns in the dataset.
 
-## `'global_na_count'`
+### `'global_na_count'`
 
 Calculate the number of rows with `NA` in the dataset.
 
-## `'mean'`
+### `'mean'`
 
 Calculate the mean of each numerical column in the dataset.
 
-## `'median'`
+### `'median'`
 
 Calculate the median of each numerical column in the dataset.
 
-## `'std'`
+### `'std'`
 
 Calculate the standard deviation of each numerical column in the dataset.
 
-## `'var'`
+### `'var'`
 
 Calculate the variance of each numerical column in the dataset.
 
-## `'min'`
+### `'min'`
 
 Calculate the minimum of each numerical column in the dataset.
 
 計算資料集中各數值型欄位的最小值。
 
-## `'max'`
+### `'max'`
 
 Calculate the maximum of each numerical column in the dataset.
 
-## `'kurtosis'`
+### `'kurtosis'`
 
 Calculate the kurtosis of each numerical column in the dataset.
 
-## `'skew'`
+### `'skew'`
 
 Calculate the skewness of each numerical column in the dataset.
 
-## `'q1'`
+### `'q1'`
 
 Calculate the first quartile of each numerical column in the dataset.
 
-## `'q3'`
+### `'q3'`
 
 Calculate the third quartile of each numerical column in the dataset.
 
-## `'iqr'`
+### `'iqr'`
 
 Calculate the interquartile range of each numerical column in the dataset.
 
-## `'range'`
+### `'range'`
 
 Calculate the range of each numerical column in the dataset.
 
-## `'percentile'`
+### `'percentile'`
 
 Calculate the `k`\*100 th-percentile of each numerical column in the dataset. The paramter `k` is needed and should be passed in the following structure: `{'percentile': k}`.
 
@@ -194,18 +194,18 @@ Calculate the `k`\*100 th-percentile of each numerical column in the dataset. Th
 
 `k` (`float`): The `k`\*100 th-percentile. Should be between 0 and 1.
 
-## `'col_na_count'`
+### `'col_na_count'`
 
 Calculate the number of NA in each column in the dataset.
 
-## `'nunique'`
+### `'nunique'`
 
 Calculate the number of unique values of each categorical column in the dataset.
 
-## `'cov'`
+### `'cov'`
 
 Calculate the covariance matrix of the dataset.
 
-## `'corr'`
+### `'corr'`
 
 Calculate the correlation matrix of the dataset.

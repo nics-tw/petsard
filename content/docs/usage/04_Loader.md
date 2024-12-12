@@ -15,7 +15,7 @@ load = Loader('data.csv')
 load.load()
 ```
 
-# `Loader`
+## `Loader`
 
 The basic usage of `Loader` is providing the file path for initialisation. We offer various optional parameters to facilitate customization according to specific requirements.
 
@@ -66,11 +66,11 @@ print(load.data.head(1))
 
 `na_values` (`str | list | dict`, default=`None`, optional): The values to be recognized as `NA/NaN`. If a `dict` passed, `NA` values can be specified per-column. The format is `{colname: na_values}`. In the default setting, it will adopt the default checking in `pandas` only. Check [pandas document](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html) for details.
 
-## `load()`
+### `load()`
 
 Read and load the data.
 
-## `self.config`
+### `self.config`
 
 The configuration of `Loader` module:
 
@@ -92,14 +92,14 @@ The following parameters are exclusive to using a benchmark dataset. See [benchm
 - `benchmark_bucket_name` (`str`): The Amazon bucket name of benchmark dataset.
 - `benchmark_sha256` (`str`): The SHA-256 value of benchmark dataset.
 
-## `self.loader`
+### `self.loader`
 
 The instantiated loader itself.
 
-## `self.data`
+### `self.data`
 
 The loaded data is stored in `self.data` in the format of `pd.DataFrame`.
 
-## `self.metadata.metadata`
+### `self.metadata.metadata`
 
 The metadata is stored in `self.metadata.metadata` in the format of nested `dict`. See the page ["Metadata"](PETsARD/docs/usage/05_metadata/).

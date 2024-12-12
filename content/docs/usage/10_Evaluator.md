@@ -27,7 +27,7 @@ eval.eval()
 print(eval.get_global())
 ```
 
-# `Evaluator`
+## `Evaluator`
 
 To initialise an `Evaluator`, you need to specify the evaluation method to assess the data. It is important to note that for each evaluation method, a separate `Evaluator` needs to be created. In other words, if you need to evaluate a dataset with five different methods, there will be five corresponding `Evaluator` instances.
 
@@ -54,7 +54,7 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 
 `**kwargs` (`dict`, optional): The parameters defined by each evaluation methods. See the following sections.
 
-## `create()`
+### `create()`
 
 Create an `Evaluator` object with the given data. There are three types of data that may be required: the original data utilised for synthesis (referred to as "ori"), the synthetic data generated from "ori" (referred to as "syn"), and the original data that was not employed for synthesis (referred to as "control"). Different evaluation methods have different requirements, see the following section for details. Fortunately, if you are utilizing our pipeline, there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
 
@@ -83,11 +83,11 @@ eval.create(
 
 `data` (`dict`): The dictionary contains 3 types of data, in the forms of `pd.DataFrame`s. The `keys` of `data` are specified above.
 
-## `eval()`
+### `eval()`
 
 Evaluate the synthetic dataset.
 
-## `get_global()`
+### `get_global()`
 
 Returns the global evaluation result.
 
@@ -95,7 +95,7 @@ Returns the global evaluation result.
 
 (`pandas.DataFrame`): A dataFrame with the global evaluation result. One row only for representing the whole data result.
 
-## `get_columnwise()`
+### `get_columnwise()`
 
 Returns the column-wise evaluation result.
 
@@ -103,7 +103,7 @@ Returns the column-wise evaluation result.
 
 (`pandas.DataFrame`): A dataFrame with the column-wise evaluation result. Each row contains one column in original data.
 
-## `get_pairwise()`
+### `get_pairwise()`
 
 Retrieves the pairwise evaluation result.
 
@@ -111,7 +111,7 @@ Retrieves the pairwise evaluation result.
 
 (`pandas.DataFrame`): A dataFrame with the pairwise evaluation result. Each row contains the pairwise relationship between two columns (column x column) in original data.
 
-## `self.config`
+### `self.config`
 
 The configuration of `Evaluator` module:
 
@@ -120,19 +120,19 @@ The configuration of `Evaluator` module:
 - When `method` is set to `'custom_method'`, it encompasses `method`, `custom_method`.
   - The `custom_method` dictionary further contains `filepath` and `method` as parameters.
 
-## `self.evaluator`
+### `self.evaluator`
 
 The instantiated evaluator itself.
 
-## `self.data`
+### `self.data`
 
 Stored the `data` input from `.create()` function. See the [`create()`](PETsARD/docs/usage/10_evaluator/#create) documentation for more information.
 
-## `self.result`
+### `self.result`
 
 A dictionary storing evaluator results. The format varies with different modules.
 
-# Available Evaluator Types
+## Available Evaluator Types
 
 In this section, we provide a comprehensive list of supported evaluator types, their `method` name, and their data requirements.
 
@@ -151,7 +151,7 @@ In this section, we provide a comprehensive list of supported evaluator types, t
 
 </div>
 
-## Anonymeter
+### Anonymeter
 
 `anonymeter` is a comprehensive Python library that evaluates various aspects of privacy risks in synthetic tabular data, including Singling Out, Linkability, and Inference risks.
 
@@ -159,7 +159,7 @@ These three points are based on the criteria established by [Article 29 Data Pro
 
 Therefore, `PETsARD` includes built-in calls to `anonymeter`. For more details, please refer to its official GitHub: [statice/anonymeter](https://github.com/statice/anonymeter)
 
-### `'anonymeter-singlingout'`
+#### `'anonymeter-singlingout'`
 
 Singling Out risk represents the possibility of still being able to identify a particular individual, their part, or complete records, even after any Privacy-Enhancing Techniques have been applied. In the example from the `anonymeter`, it refers to the scenario where "there is only one person with attributes X, Y, and Z". In other words, attackers may attempt to identify specific individuals.
 
@@ -173,7 +173,7 @@ The paper on `anonymeter` specifically mentions: "It's important to note that si
 
 `max_attempts` (`int`, default=`500000`): The maximum number of attempts to find a successful attack.
 
-### `'anonymeter-linkability'`
+#### `'anonymeter-linkability'`
 
 Linkability risk represents the possibility that, even after Privacy-Enhancing Techniques have been applied, or when records exist in different databases, at least two records about the same individual or group of individuals can still be linked together. In the example from the `anonymeter`, it refers to the scenario where "records A and B belong to the same person". In particular, even if attackers cannot single out the specific individual's identity, they may still attempt to establish links between records through shared features or information.
 
@@ -205,7 +205,7 @@ aux_cols = [
 > - Categorical variables: Gower's Distance is 1 if the values are not equal.
 >   After combining all attributes, the Manhattan Distance is calculated, and return the nearest N neighbors. So, in the context of Linkability risk, `n_neighbors` represents how close the two sets of data from the same person need to be linked to be considered a successful linkability attack.
 
-### `'anonymeter-inference'`
+#### `'anonymeter-inference'`
 
 Inference risk represents the possibility that, even after Privacy-Enhancing Techniques have been applied, there is still a significant chance of deducing the value of an attribute from the values of a set of other attributes. In the example from the `anonymeter`, it refers to the scenario where "a person with attributes X and Y also have Z". To phrase it differently, even if attackers cannot single out individual identities or cannot link different records, they may still be able to deduce specific information via statistical analysis or other methods.
 
@@ -236,7 +236,7 @@ for secret in columns:
 
 > This approach allows us to iterate through each column considered as a `secret`. And following the method outlined in the `anonymeter` paper, averaging all the risk results for the `secret` attributes results in the dataset's overall inference risk.
 
-### `get_global()`
+#### `get_global()`
 
 Retrieve the evaluation results from `anonymeter` methods.
 
@@ -300,15 +300,15 @@ $$
 
 - Control Attack Rate is the attack rate inferred from the control data records using synthetic data.
 
-## SDMetrics
+### SDMetrics
 
 The Python library `sdmetrics`, which is developed by [datacebo](https://docs.sdv.dev/sdmetrics/) evaluates the synthetic data in two perspectives: data validity (`'sdmetrics-diagnosticreport'`) and data quality (`'sdmetrics-qualityreport'`).
 
-### `'sdmetrics-diagnosticreport'`
+#### `'sdmetrics-diagnosticreport'`
 
 It evaluates whether the data structure of the synthetic data is similar to that of the original data. Given that these two datasets are expected to exhibit similarity in basic properties, such as identical column names and comparable column ranges, the evaluation score should ideally approach 100%.
 
-#### `get_global()`
+##### `get_global()`
 
 Retrieve the global evaluation results from `'sdmetrics-diagnosticreport'` methods.
 
@@ -326,7 +326,7 @@ Retrieve the global evaluation results from `'sdmetrics-diagnosticreport'` metho
 
 The `Score` is calculated as the average of two properties: `Data Validity` and `Data Structure`. The former metrics is the average of the data validity score across all columns. The data validity score for each column is the average of the following metrics: `KeyUniqueness` (ensuring uniqueness of primary keys), `BoundaryAdherence` or `CategoryAdherence` (verifying that the synthetic data's range or categories conform to those of the original data). On the other hand, `Data Structure` checks whether the synthetic data shares identical column names with the original data. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included) for more information.
 
-#### `get_columnwise()`
+##### `get_columnwise()`
 
 Retrieve the column-wise evaluation results from `'sdmetrics-diagnosticreport'` methods. Only `Data Validity` metric is provided. See the above section for further information about `Data Validity`.
 
@@ -342,11 +342,11 @@ Retrieve the column-wise evaluation results from `'sdmetrics-diagnosticreport'` 
 
 </div>
 
-### `'sdmetrics-qualityreport'`
+#### `'sdmetrics-qualityreport'`
 
 It evaluates whether the synthetic data is similar to the original data in the respect to statistics. The higher the score, the better the quality.
 
-#### `get_global()`
+##### `get_global()`
 
 Retrieve the global evaluation results from `'sdmetrics-qualityreport'` methods.
 
@@ -364,7 +364,7 @@ Retrieve the global evaluation results from `'sdmetrics-qualityreport'` methods.
 
 The `Score` is calculated as the average of two properties: `Column Shapes` and `Column Pair Trends`. The former metrics is the average of the KSComplement/TVComplement across all columns. The latter metrics is the average of Correlation Similarity/Contingency Similarity across all columns pairs. See [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included) for more information.
 
-#### `get_columnwise()`
+##### `get_columnwise()`
 
 Retrieve the column-wise evaluation results from `'sdmetrics-qualityreport'` methods. Only `Column Shapes` metric is provided. See the above section for further information about `Column Shapes`.
 
@@ -380,7 +380,7 @@ Retrieve the column-wise evaluation results from `'sdmetrics-qualityreport'` met
 
 </div>
 
-#### `get_pairwise()`
+##### `get_pairwise()`
 
 Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` methods. Only `Column Pair Trends` metric is provided. See the above section for further information about `Column Pair Trends`.
 
@@ -396,11 +396,11 @@ Retrieve the pairwise evaluation results from `'sdmetrics-qualityreport'` method
 
 </div>
 
-## MLUtility
+### MLUtility
 
 To assess the utility of synthetic datasets, one may train the same machine learning models on original and synthetic datasets and compare the test results on control dataset. If the score from the synthetic one closely approximate or even surpass that from the original one, it suggests that the synthetic datasets are suitable for utilisation. To ensure the robustness of the results, several kinds of model will be trained, and the average of the results will be computed to derive the final result. Only basic data preprocessing steps will be applied, such as removing missing values and normalization.
 
-### `'mlutility-regression'`
+#### `'mlutility-regression'`
 
 Evaluate the utility based on regression tasks, where the data will undergo training on linear regression, random forest regression, and gradient boosting regression using default hyper-parameters. The evaluation metric employed will be the coefficient of determination ($R^2$).
 
@@ -408,7 +408,7 @@ Evaluate the utility based on regression tasks, where the data will undergo trai
 
 `target` (`str`): The target column of the data. Should be a numerical column.
 
-### `'mlutility-classification'`
+#### `'mlutility-classification'`
 
 Evaluate the utility based on classification tasks, where the data will undergo training on logistic regression, SVC, random forest, and gradient boosting classification using default hyper-parameters. The evaluation metric employed will be the F1-score.
 
@@ -416,7 +416,7 @@ Evaluate the utility based on classification tasks, where the data will undergo 
 
 `target` (`str`): The target column of the data.
 
-### `'mlutility-cluster'`
+#### `'mlutility-cluster'`
 
 Evaluate the utility based on clustering tasks, where the data will undergo training on k-means with different cluster numbers: 4, 5, and 6 (can be changed via `n_clusters`). Other hyper-parameters are the same. The evaluation metric employed will be the silhouette score.
 
@@ -424,7 +424,7 @@ Evaluate the utility based on clustering tasks, where the data will undergo trai
 
 `n_clusters` (`list`, default=`[4, 5, 6]`): A list of numbers of clusters.
 
-### `get_global()`
+#### `get_global()`
 
 Retrieve the evaluation results from MLUtility methods.
 
@@ -438,7 +438,7 @@ Retrieve the evaluation results from MLUtility methods.
 
 In the table provided, `ori_mean` and `syn_mean` represent the average scores across all runs and models obtained from the original dataset and the synthetic dataset, respectively. Correspondingly, `ori_std` and `syn_std` denote the respective standard deviations. The `diff` column signifies the difference in performance observed on the synthetic dataset compared to the original dataset. A positive value in this column indicates that the performance of the synthetic dataset surpasses that of the original dataset, while a negative value suggests the opposite.
 
-# Refenece
+## Refenece
 
 For explanations of the library in this paper and translations of terminologies between Chinese and English, please refer to the following references:
 

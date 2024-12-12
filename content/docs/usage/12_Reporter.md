@@ -18,9 +18,9 @@ from PETsARD import Reporter
 syn_expt_name: str = 'default'
 syn_idx: tuple = ('Synthesizer', syn_expt_name)
 
-# syn = Synthesizer(...)
-# syn.create(data=...)
-# syn.fit_sample()
+## syn = Synthesizer(...)
+## syn.create(data=...)
+## syn.fit_sample()
 
 rpt_data = Reporter(
     method = 'save_data',
@@ -49,9 +49,9 @@ from PETsARD import Reporter
 granularity: str = 'global'
 eval_idx: tuple = ('Evaluator', f"{eval_name}_[{granularity}]")
 
-# eval = Evaluator(...)
-# eval.create(data={...})
-# eval.eval()
+## eval = Evaluator(...)
+## eval.create(data={...})
+## eval.eval()
 
 rpt_report = Reporter(
     method = 'save_report',
@@ -71,7 +71,7 @@ Now is PETsARD[Report]_default_[global] save to csv...
 output: PETsARD[Report]_default_[global].csv
 ```
 
-# `Reporter`
+## `Reporter`
 
 The `Reporter` has two functions: `'save_data'`, which exports a DataFrame to CSV, and `'save_report'`, which exports the results of the `Evaluator` and `Describer` to CSV. These two functions have different requirements for parameters and input data.
 
@@ -112,7 +112,7 @@ It is also fine if the user has generated synthetic data or evaluation using oth
 
 `eval` (`str | List[str]`, optional): To specify which `Evaluator` or `Describer`'s evaluating report to output. Accepted only for `method = 'save_report'`.
 
-## `create()`
+### `create()`
 
 Create an `Reporter` object with the given data.
 
@@ -182,7 +182,7 @@ result            0.625879
 result            0.609297  }}
 ```
 
-### `full_expt_tuple`
+#### `full_expt_tuple`
 
 `full_expt_tuple` (`tuple[str]`): The full experiment tuple comes in pairs, with an even number of elements, where each pair represents `({module_name}, {expt_name})`.
 
@@ -231,7 +231,7 @@ data = {
 }
 ```
 
-### `full_expt_name`
+#### `full_expt_name`
 
 The full experiment name is created by assembling the full experiment tuple into a single string according to a specific format, serving as an identifier in the report.
 
@@ -242,7 +242,7 @@ The specific format is `{module_name}[expt_name]`, which means each pair of modu
 - ('Loader', 'my_expt', 'Synthesizer', 'default') # A-2
   - `full_expt_name` = 'Loader[my_expt]\_Synthesizer[default]'
 
-## `report()`
+### `report()`
 
 Save the report results in particular format.
 
@@ -264,7 +264,7 @@ For the `'save_report'` method, the output filename will be`{output}[Report]_{ev
 
 `eval` (`str`, optional): refers to the `eval` in the `Reporter` parameters, representing the name given by the user for this evaluation method. If `eval` is not specified, it will not be displayed. If one or more `eval`s are specified, they will be connected with a hyphen and written before the granularity.
 
-## `self.config`
+### `self.config`
 
 The configuration of `Reporter` module:
 
@@ -272,11 +272,11 @@ The configuration of `Reporter` module:
 - When `method` is set to `'save_data'`, it encompasses `source`.
 - When `method` is set to `'save_report'`, it encompasses `eval` and `granularity`.
 
-## `self.reporter`
+### `self.reporter`
 
 The instantiated reporter itself, instantiated by a factory method.
 
-## `self.result`
+### `self.result`
 
 `self.result` will be stored in the form of a dictionary, with the format varying based on `method`.
 

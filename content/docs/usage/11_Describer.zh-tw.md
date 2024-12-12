@@ -30,7 +30,7 @@ des.get_columnwise()
 des.get_pairwise()
 ```
 
-# `Describer`
+## `Describer`
 
 使用 `Describer` 類別的物件之前，您需要指定敘述性統計方法，並將其存於 `dict` 形式的物件 `config`。在 `config` 中須包含兩個鍵：`method` 與 `describe`，分別代表操作名稱與統計方法。結構如下。值得注意的是，若將 `method` 名稱設為 `default`，則會自動套用預設的敘述性統計方法：`['row_count', 'col_count', 'global_na_count', 'mean', 'median', 'std', 'min', 'max', 'kurtosis', 'skew', 'q1', 'q3', 'col_na_count', 'nunique', 'corr']`，詳見後續章節以了解各方法的意涵及所有可用方法。
 
@@ -49,7 +49,7 @@ des = Describer(config=config)
 
 `config` (`dict`): 欲執行的敘述性統計方法，格式可見上述程式碼。
 
-## `create()`
+### `create()`
 
 利用資料創建 `Describer`。資料集須以 `dict` 方式儲存。每個資料集須符合下述架構：鍵為 `'data'`；值為 `pd.DataFrame` 格式的資料集。
 
@@ -65,11 +65,11 @@ des.create(data)
 
 `data` (`dict`): 欲分析的資料，存於字典中，需要是 `pd.DataFrame` 的格式。`data` 的 `key` 可見上述程式碼。
 
-## `eval()`
+### `eval()`
 
 分析資料集。取得結果的方法請詳見後續章節。
 
-## `get_global()`
+### `get_global()`
 
 獲取全域敘述性統計的分析結果。只有一列，各屬性存於欄位中。
 
@@ -77,7 +77,7 @@ des.create(data)
 
 (`pd.DataFrame`): 全域敘述性統計的分析結果。
 
-## `get_columnwise()`
+### `get_columnwise()`
 
 獲取各欄位的敘述性統計分析結果。各屬性存於欄位中，而每列則代表資料集中的一個欄位/變數。
 
@@ -85,7 +85,7 @@ des.create(data)
 
 (`pd.DataFrame`): 各欄位的敘述性統計的分析結果。
 
-## `get_pairwise()`
+### `get_pairwise()`
 
 獲取各欄位兩兩組合的敘述性統計分析結果。各屬性存於欄位中，而每列則代表資料集中的兩個欄位/變數組合。
 
@@ -93,7 +93,7 @@ des.create(data)
 
 (`pd.DataFrame`): 各欄位兩兩組合的敘述性統計的分析結果。
 
-# 可用的 Describer 類型
+## 可用的 Describer 類型
 
 在此章節我們列出所有目前支援的敘述性分析類型，及其尺度（使用於 `get_global`、`get_columnwise`、`get_pairwise`）與用於 `config` 的名稱。
 
@@ -124,67 +124,67 @@ des.create(data)
 
 </div>
 
-## `'row_count'`
+### `'row_count'`
 
 計算資料集列數。
 
-## `'column_count'`
+### `'column_count'`
 
 計算資料集欄數。
 
-## `'global_na_count'`
+### `'global_na_count'`
 
 計算資料集中含有 `NA` 值的列數。
 
-## `'mean'`
+### `'mean'`
 
 計算資料集中各數值型欄位的平均數。
 
-## `'median'`
+### `'median'`
 
 計算資料集中各數值型欄位的中位數。
 
-## `'std'`
+### `'std'`
 
 計算資料集中各數值型欄位的標準差。
 
-## `'var'`
+### `'var'`
 
 計算資料集中各數值型欄位的變異數。
 
-## `'min'`
+### `'min'`
 
 計算資料集中各數值型欄位的最小值。
 
-## `'max'`
+### `'max'`
 
 計算資料集中各數值型欄位的最大值。
 
-## `'kurtosis'`
+### `'kurtosis'`
 
 計算資料集中各數值型欄位的峰態係數。
 
-## `'skew'`
+### `'skew'`
 
 計算資料集中各數值型欄位的偏態係數。
 
-## `'q1'`
+### `'q1'`
 
 計算資料集中各數值型欄位的第一四分位數。
 
-## `'q3'`
+### `'q3'`
 
 計算資料集中各數值型欄位的第三四分位數。
 
-## `'iqr'`
+### `'iqr'`
 
 計算資料集中各數值型欄位的四分位距。
 
-## `'range'`
+### `'range'`
 
 計算資料集中各數值型欄位的全距。
 
-## `'percentile'`
+### `'percentile'`
 
 計算資料集中各數值型欄位的第 `k`\*100 百分位數。使用此方法需給定 `k`，結構如下：`{'percentile': k}`。
 
@@ -192,18 +192,18 @@ des.create(data)
 
 `k` (`float`): 第 `k`\*100 百分位數。需介於 0 到 1 之間。
 
-## `'col_na_count'`
+### `'col_na_count'`
 
 計算資料集中各欄位含有的 `NA` 值總數。
 
-## `'nunique'`
+### `'nunique'`
 
 計算資料集中各類別型欄位的類別個數。
 
-## `'cov'`
+### `'cov'`
 
 計算資料集的共變異數矩陣。
 
-## `'corr'`
+### `'corr'`
 
 計算資料集的相關性矩陣。

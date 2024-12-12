@@ -27,7 +27,7 @@ eval.eval()
 print(eval.get_global())
 ```
 
-# `Evaluator`
+## `Evaluator`
 
 使用 `Evaluator` 類別的物件之前，您需要指定資料評估方法。需要注意的是，針對每一個評估方法，需要建立各自獨立的 `Evaluator`，亦即如果您要使用五種方法評估資料集，則會需要五個 `Evaluator` 物件。
 
@@ -54,7 +54,7 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 
 `**kwargs` (`dict`, optional): 評估方法的自定義參數。詳見後續章節。
 
-## `create()`
+### `create()`
 
 利用資料創建 `Evaluator`。有 3 種類型的資料可能會被用到：用於合成資料的原始資料（"ori"），利用原始資料（"ori"）合成的合成資料（"syn"），以及沒有用於訓練合成資料模型的資料（"control"），不同的評估方法需要有不同的資料種類要求（詳見後續章節）。如果您使用此套件提供的執行流程，則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
 
@@ -83,11 +83,11 @@ eval.create(
 
 `data` (`dict`): 包含三種類型資料，需要是 `pd.DataFrame` 的格式。`data` 的 `keys` 可見上述程式碼。
 
-## `eval()`
+### `eval()`
 
 評估資料集。
 
-## `get_global()`
+### `get_global()`
 
 返回全資料集評估結果。
 
@@ -95,7 +95,7 @@ eval.create(
 
 (`pandas.DataFrame`): 一個包含全資料集評估結果的 DataFrame，只用一行來代表整體資料結果。
 
-## `get_columnwise()`
+### `get_columnwise()`
 
 返回逐欄位評估結果。
 
@@ -103,7 +103,7 @@ eval.create(
 
 (`pandas.DataFrame`): 一個包含逐欄位評估結果的 DataFrame。每一行包含原始數據中的一個欄位。
 
-## `get_pairwise()`
+### `get_pairwise()`
 
 返回欄位成對的評估結果。
 
@@ -111,7 +111,7 @@ eval.create(
 
 (`pandas.DataFrame`): 一個包含欄位成對評估結果的 DataFrame。每一行包含原始數據中的欄位與欄位之間的關係。
 
-## `self.config`
+### `self.config`
 
 `Evaluator` 模組的參數：
 
@@ -120,19 +120,19 @@ eval.create(
 - 當 `method` 設為 `'custom_method'` 時，它包含 `method`、`custom_method`（自訂方法）。
   - 在 `custom_method` 這個字典下又有 `filepath`（自訂方法檔案路徑）與 `method`（自訂方法名稱）兩個參數。
 
-## `self.evaluator`
+### `self.evaluator`
 
 被實例化的評估器本身。
 
-## `self.data`
+### `self.data`
 
 按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](PETsARD/zh-tw/docs/usage/10_evaluator/#create) 說明。
 
-## `self.result`
+### `self.result`
 
 儲存評估器結果的字典。格式隨不同模組而有所不同。
 
-# 可用的 Evaluator 類型
+## 可用的 Evaluator 類型
 
 在此章節我們列出所有目前支援的評估類型及其對應的 `method` 名稱與所需資料種類。
 
@@ -151,7 +151,7 @@ eval.create(
 
 </div>
 
-## Anonymeter
+### Anonymeter
 
 `anonymeter` 是一個全面評估合成表格資料中不同層面隱私風險的 Python 函式庫，包括指認性 (Singling Out)、連結性 (Linkability)、和推斷性(Inference)風險。
 
@@ -159,7 +159,7 @@ eval.create(
 
 因此 `PETsARD` 整合了對 `anonymeter` 的使用。更多詳情請參閱其官方 GitHub：[statice/anonymeter](https://github.com/statice/anonymeter)
 
-### `'anonymeter-singlingout'`
+#### `'anonymeter-singlingout'`
 
 指認性風險表示即便經過隱私強化技術處理，仍有多大的可能性去識別出來特定個體，其部分或完整記錄的可能性。以 `anonymeter` 的舉例，就是「只有一個人同時擁有著 X、Y、與 Z 特徵」。換句話說，攻擊者可以嘗試辨識出特定的個體。
 
@@ -173,7 +173,7 @@ eval.create(
 
 `max_attempts` (`int`, default=`500000`): 找到成功攻擊的最大嘗試次數。
 
-### `'anonymeter-linkability'`
+#### `'anonymeter-linkability'`
 
 連結性風險表示即使經過隱私強化技術處理、或是存在不同的資料庫中，仍有多大的可能，將至少兩條關於同一個人或一組人的記錄連結在一起。以 `anonymeter` 的舉例，就是「紀錄 A 與紀錄 B 屬於同一個人」。具體來說，即使攻擊者無法指認具體的個體身份，他們仍可能嘗試透過某些共同特徵或資訊，來建立記錄之間的關聯。
 
@@ -205,7 +205,7 @@ aux_cols = [
 > - 類別型變數：只要不相等，高爾距離即為 1
 >   綜合所有屬性之後計算其曼哈頓距離，最後返回最近的 N 個鄰居。於是 `n_neighbors` 在連結性風險上的意思，是指同一個人的兩批資料，要在多近的距離內被連結到，才算是連結性攻擊成功。
 
-### `'anonymeter-inference'`
+#### `'anonymeter-inference'`
 
 推斷性風險代表的是即使經過隱私強化技術處理，仍有多大的可能，從一組其他的特徵中推斷出某個特徵的值。以 `anonymeter` 的舉例，就是「擁有特徵 X 和特徵 Y 的人也擁有特徵 Z」。也就是說，即使攻擊者無法指認個體身分、也無法連結不同紀錄，攻擊者仍可以透過統計分析或其他方法來推斷出特定的資訊。
 
@@ -236,7 +236,7 @@ for secret in columns:
 
 > 這樣能遍歷每個欄位被視作 `secret`。然後參考 `anonymeter` 論文的方法，對所有 `secret` 的風險結果取平均、則為資料集整體的推論性風險。
 
-### `get_global()`
+#### `get_global()`
 
 獲取 `anonymeter` 方法的評估結果。
 
@@ -307,15 +307,15 @@ $$
 
 - 控制攻擊率 (Control Attack Rate) 則是使用合成資料來推斷控制資料紀錄的攻擊率。
 
-## SDMetrics
+### SDMetrics
 
 由 [datacebo](https://docs.sdv.dev/sdmetrics/) 開發的 Python 套件 `sdmetrics` 從以下兩個面向評估合成資料：資料效度 (data validity) (`'sdmetrics-diagnosticreport'`)及資料品質 (data quality) (`'sdmetrics-qualityreport'`)。
 
-### `'sdmetrics-diagnosticreport'`
+#### `'sdmetrics-diagnosticreport'`
 
 此指標衡量合成資料的資料結構是否與原始資料相似。由於兩資料集在基本性質上（如欄位名稱應一致、欄位的值域應相似）必須有高度相似性，因此此分數應盡可能接近 100%。
 
-#### `get_global()`
+##### `get_global()`
 
 獲取 `'sdmetrics-diagnosticreport'` 方法的全域評估結果。
 
@@ -333,7 +333,7 @@ $$
 
 `Score` 為兩指標 `Data Validity` 及 `Data Structure` 的平均。前者是資料效度分數在各欄位的平均。每個欄位的資料效度分數由以下指標組成：`KeyUniqueness` （確保資料主鍵 (primary keys) 的唯一性）, `BoundaryAdherence` or `CategoryAdherence` (確保合成資料的值域或類別與原始資料一致). 而 `Data Structure` 則是檢查合成資料與原始資料的欄位名稱是否相同。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included).
 
-#### `get_columnwise()`
+##### `get_columnwise()`
 
 獲取 `'sdmetrics-diagnosticreport'` 方法的各欄位評估結果。僅提供 `Data Validity` 指標的結果。關於 `Data Validity` 的細節，詳見上方章節。
 
@@ -349,11 +349,11 @@ $$
 
 </div>
 
-### `'sdmetrics-qualityreport'`
+#### `'sdmetrics-qualityreport'`
 
 此指標衡量合成資料是否與原始資料在統計指標上相似。分數越高代表合成資料品質越好。
 
-#### `get_global()`
+##### `get_global()`
 
 獲取 `'sdmetrics-qualityreport'` 方法的全域評估結果。
 
@@ -371,7 +371,7 @@ $$
 
 `Score` 為兩指標 `Column Shapes` 及 `Column Pair Trends` 的平均。前者是每個欄位 KSComplement/TVComplement 值的平均。後者每個欄位組（column pair，兩個欄位即為一個欄位組）的 Correlation Similarity/Contingency Similarity 的平均。詳見 [SDMetrics website](https://docs.sdv.dev/sdmetrics/reports/quality-report/whats-included).
 
-#### `get_columnwise()`
+##### `get_columnwise()`
 
 獲取 `'sdmetrics-qualityreport'` 方法的各欄位評估結果。僅提供 `Column Shapes` 指標的結果。關於 `Column Shapes` 的細節，詳見上方章節。
 
@@ -387,7 +387,7 @@ $$
 
 </div>
 
-#### `get_pairwise()`
+##### `get_pairwise()`
 
 獲取 `'sdmetrics-qualityreport'` 方法的欄位組合評估結果。僅提供 `Column Pair Trends` 指標的結果。關於 `Column Pair Trends` 的細節，詳見上方章節。
 
@@ -403,11 +403,11 @@ $$
 
 </div>
 
-## MLUtility
+### MLUtility
 
 使用者可以利用原始資料與合成資料分別訓練相同的機器學習模型，並利用控制組的資料進行結果預測。若兩個模型的表現分數接近，甚至合成資料模型超過原始資料模型的表現，代表合成資料具有高度的實用性。實驗中會使用不同的機器學習模型進行訓練，並回傳算數平均數作為結果，以提升結果的可靠性。在過程中只會進行基本的資料前處理，如移除遺失值與標準化。
 
-### `'mlutility-regression'`
+#### `'mlutility-regression'`
 
 用迴歸任務衡量實用性。使用的機器學習模型包含：線性迴歸、隨機森林迴歸、梯度提升迴歸，三者皆以預設超參數進行訓練。使用的衡量指標為 $R^2$。
 
@@ -415,7 +415,7 @@ $$
 
 `target` (`str`): 資料集中用於預測的目標欄位，需為數值欄位。
 
-### `'mlutility-classification'`
+#### `'mlutility-classification'`
 
 用分類任務衡量實用性。使用的機器學習模型包含：羅吉斯迴歸、支援向量機、隨機森林、梯度提升分類，四者皆以預設超參數進行訓練。使用的衡量指標為 F1 分數。
 
@@ -423,7 +423,7 @@ $$
 
 `target` (`str`):資料集中用於預測的目標欄位。
 
-### `'mlutility-cluster'`
+#### `'mlutility-cluster'`
 
 用聚類任務衡量實用性。使用的機器學習模型包含：不同類別數（4、5、6，可藉由 `n_clusters` 調整）的 k-平均演算法，三者皆以預設超參數進行訓練。使用的衡量指標為輪廓係數。
 
@@ -431,7 +431,7 @@ $$
 
 `n_clusters` (`list`, default=`[4, 5, 6]`): 聚類數量的列表。
 
-### `get_global()`
+#### `get_global()`
 
 獲取 MLUtility 方法的評估結果。
 
@@ -445,7 +445,7 @@ $$
 
 在上述表格中，`ori_mean` 和 `syn_mean` 分別代表原始資料與合成資料在各次執行與各模型的分數平均。同樣的，`ori_std` 和 `syn_std` 分別代表相對應的標準差。而 `diff` 代表合成資料相比於原始資料上的進步差異值。正值代表合成資料上的表現優於原始資料上的表現；負值則代表原始資料上的表現優於合成資料上的表現。
 
-# 參考
+## 參考
 
 本文之函式庫解釋與中英用詞翻譯，請參閱以下文獻：
 

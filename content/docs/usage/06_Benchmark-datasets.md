@@ -24,7 +24,7 @@ load.load()
 print(loader.data.head(1))
 ```
 
-# Motivation
+## Motivation
 
 Classic benchmark datasets are often used in various data analysis or machine learning scenarios. However, in practical experience, it is common to find inconsistencies for two datasets with the same name. Common patterns include:
 
@@ -34,13 +34,13 @@ Classic benchmark datasets are often used in various data analysis or machine le
 
 Usually, The reasons for these patterns are not malicious tampering, but rather for optimization or preprocessing, which is then inadvertently released by subsequent users. Since the preprocessing methods for privacy-enhancing technologies are crucial, obtaining the same version of the benchmark dataset is the recommended experimental procedure in `PETsARD`.
 
-# Storage
+## Storage
 
 The module first downloads the requested raw data, and store it in a "benchmark" folder within the working directory (in lowercase). If the folder does not exist, it will be created automatically (`./benchmark/{Benchmark filename}`). Subsequently, it will follow the regular `Loader` process for loading. When using it, please make sure that you have appropriate permissions and available hardware space.
 
 If the "benchmark" folder already contains a file with the same filename, the program will check if the local data matches the records in `PETsARD`. If they are matched, the program will skip the download and use the local data directly, making it convenient for users to reuse the data. It's important to note that if there is a file with the same name but with different content, `Loader` will issue a warning and stop. In such cases, users should be aware that the benchmark dataset might have been tampered with and contaminating the experimental results potentially.
 
-## Verify SHA256 (optional)
+### Verify SHA256 (optional)
 
 The function for calculating the SHA256 of a file in the `PETsARD` package is as follows:
 
@@ -56,7 +56,7 @@ print(sha256)
 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
 ```
 
-# Available Benchmark Datasets
+## Available Benchmark Datasets
 
 - **Name**: Dataset name.
 - **Filename**: Name used in `PETsARD`.
@@ -76,7 +76,7 @@ print(sha256)
 - **Hash**: Hash value in Benchmark Datasets.
   - Only the first seven characters are recorded.
 
-## Demographic
+### Demographic
 
 <div class="table-wrapper" markdown="block">
 
@@ -117,7 +117,7 @@ print(sha256)
 
 [^8]: https://www.census.gov/programs-surveys/cps/data/datasets.html
 
-## Business
+### Business
 
 <div class="table-wrapper" markdown="block">
 
@@ -157,7 +157,7 @@ print(sha256)
 
 [^18]: https://www.kaggle.com/datasets/serapgr/telco-customer-churn
 
-## Biology
+### Biology
 
 <div class="table-wrapper" markdown="block">
 
@@ -175,7 +175,7 @@ print(sha256)
 
 [^21]: https://www.kaggle.com/datasets/himanshunakrani/iris-dataset
 
-## Environment
+### Environment
 
 <div class="table-wrapper" markdown="block">
 
@@ -190,7 +190,7 @@ print(sha256)
 
 [^23]: https://www.kaggle.com/datasets/parimalbhoyar25/airquality-uci
 
-## Human Resource
+### Human Resource
 
 <div class="table-wrapper" markdown="block">
 
@@ -208,7 +208,7 @@ print(sha256)
 
 [^26]: https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset
 
-## Medical
+### Medical
 
 <div class="table-wrapper" markdown="block">
 
@@ -239,7 +239,7 @@ print(sha256)
 
 [^33]: https://www.kaggle.com/datasets/drscarlat/mimic3c/data
 
-## Computer Science
+### Computer Science
 
 <div class="table-wrapper" markdown="block">
 
@@ -269,7 +269,7 @@ print(sha256)
 
 [^41]: https://archive.ics.uci.edu/dataset/942/rt-iot2022
 
-## Social Science
+### Social Science
 
 <div class="table-wrapper" markdown="block">
 
@@ -284,7 +284,7 @@ print(sha256)
 
 [^43]: https://www.kaggle.com/datasets/ishandutta/real-time-election-results-portugal-2019-data-set
 
-## Transportation
+### Transportation
 
 <div class="table-wrapper" markdown="block">
 
@@ -296,7 +296,7 @@ print(sha256)
 
 [^44]: https://archive.ics.uci.edu/dataset/204/pems+sf
 
-## Others
+### Others
 
 <div class="table-wrapper" markdown="block">
 

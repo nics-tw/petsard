@@ -16,13 +16,13 @@ proc.fit(data=load.data)
 transformed_data = proc.transform(data=load.data)
 print(transformed_data.head(1))
 
-# synthetic_data = ...
+## synthetic_data = ...
 
 inverse_transformed_data = proc.inverse_transform(data=synthetic_data)
 print(inverse_transformed_data.head(1))
 ```
 
-# `Processor`
+## `Processor`
 
 創建 `Processor` 類別的物件之前，必須要有利用 `Loader` 建立的 metadata 物件。在 `Processor` 參數中，`config` 參數不是必須的，其功能為自訂處理流程。此物件會分析 metadata 以確定所需的前處理和後處理流程。如果有給予 `config`，物件會覆寫預設值，並依照 `config` 中自訂的流程執行。
 
@@ -39,7 +39,7 @@ proc = Processor(
 
 `config` (`dict`, default=`None`): 針對每個欄位的自定義處理流程。
 
-## `config`
+### `config`
 
 `config` 是一個定義處理流程的巢狀 `dict`，結構如下：
 
@@ -53,7 +53,7 @@ proc = Processor(
 
 其中 `processor_obj` 可以是來自子模組中已初始化的物件，或者是類別名稱（詳見 "Available Processor Types"）。
 
-## `get_config()`
+### `get_config()`
 
 使用此方法取得在轉換/逆轉換過程中的設定檔。此設定檔依據處理類型（例如：missing、outlier、encoder、scaler、discretizing）與欄位進行整理，並呈現給使用者使用，使用者可以直接透過此方法存取儲存在內的處理物件。
 
@@ -97,7 +97,7 @@ proc.get_config(
 
 (`dict`): 含有選定欄位的設定檔。
 
-## `update_config()`
+### `update_config()`
 
 更改部分設定檔。
 
@@ -109,7 +109,7 @@ proc.update_config(config=config)
 
 `config` (`dict`): 與設定檔格式相同的 `dict` 輸入。
 
-## `get_changes()`
+### `get_changes()`
 
 比較目前設定檔與預設設定檔之間的差異。詳見 "Available Processor Types" 以了解預設設定檔的內容。
 
@@ -121,7 +121,7 @@ proc.get_changes()
 
 (`pandas.DataFrame`): 記錄當前設定檔與預設設定檔兩者差異的資料表。
 
-## `fit()`
+### `fit()`
 
 學習資料整體結構。
 
@@ -138,7 +138,7 @@ proc.fit(
 
 `sequence` (`list`, default=`None`): 處理流程，可允許用戶跳過特定流程或改變執行順序。可用的流程選項： `'missing'`、`'outlier'`、`'encoder'`、`'scaler'`、`'discretizing'`。若用戶未指定流程，則使用 `['missing', 'outlier', 'encoder', 'scaler']` 作為預設序列。此外，`'discretizing'` 與 `'encoder'` 不能在序列中同時存在，且如果 `'discretizing'` 存在，其必須為最後一個元素。
 
-## `transform()`
+### `transform()`
 
 進行資料前處理。
 
@@ -154,7 +154,7 @@ transformed_data = proc.transform(data=data)
 
 (`pandas.DataFrame`): 轉換完成的資料。
 
-## `inverse_transform()`
+### `inverse_transform()`
 
 進行資料後處理。值得注意的是，它會根據以下表格對資料格式進行轉換，以符合元資料中的定義。若遇到其他狀況，則會出現錯誤訊息。
 
@@ -177,7 +177,7 @@ inverse_transformed = proc.inverse_transform(data=data)
 
 (`pandas.DataFrame`): 轉換完成的資料。
 
-# 可用的 Processor 類型
+## 可用的 Processor 類型
 
 我們列出所有目前支援的處理類型及相關類別，以提供細部的調整。若要在 `config` 使用這些處理類型，可以創造一個對應物件放入，或者直接填入類別名稱（詳見下文）。前者提供更多客製化的彈性，而後者則方便使用。
 
@@ -242,11 +242,11 @@ inverse_transformed = proc.inverse_transform(data=data)
 }
 ```
 
-## Encoder
+### Encoder
 
 `encoder` 子模組將類別資料轉換為連續型資料，方便套用大多數的模型。
 
-### `EncoderUniform`
+#### `EncoderUniform`
 
 [datacebo](https://datacebo.com/blog/improvement-uniform-encoder/) 認為在資料處理過程中使用 Uniform encoder 來處理類別資料，可以提升生成模型的表現。Uniform encoder 的概念非常直觀：將每個類別映射到 Uniform distribution 中的特定範圍，範圍由資料中各類別的比例決定，因此較常見的類別會對應到較大的範圍。
 
@@ -270,35 +270,35 @@ inverse_transformed = proc.inverse_transform(data=data)
 
 而要將連續型變數反轉為類別資料，只需檢查其值所處的範圍，然後使用映射關係將其轉換回相應的類別即可。
 
-### `EncoderLabel`
+#### `EncoderLabel`
 
 將類別變數對應到一系列的整數 (1, 2, 3,...) 藉此達到轉換為連續型資料的目的。
 
-### `EncoderOneHot`
+#### `EncoderOneHot`
 
 將類別變數對應到一系列的 one-hot 數值資料。
 
-## MissingHandler
+### MissingHandler
 
 `missing` 子模組處理數據集中的缺失值。
 
-### `MissingDrop`
+#### `MissingDrop`
 
 捨棄任何含有缺失值的列。
 
-### `MissingMean`
+#### `MissingMean`
 
 將缺失值用該欄的平均值填入。
 
-### `MissingMedian`
+#### `MissingMedian`
 
 將缺失值用該欄的中位數填入。
 
-### `MissingMode`
+#### `MissingMode`
 
 將缺失值用該欄的眾數填入。如果有多個眾數會隨機填入。
 
-### `MissingSimple`
+#### `MissingSimple`
 
 將缺失值用指定的值填入。
 
@@ -306,51 +306,51 @@ inverse_transformed = proc.inverse_transform(data=data)
 
 `value` (`float`, default=`0.0`): 要填入的自訂值。
 
-## OutlierHandler
+### OutlierHandler
 
 `outlier` 子模組旨在識別並刪除被歸類為異常值的數據。
 
-### `OutlierZScore`
+#### `OutlierZScore`
 
 此方法將 z 分數的絕對值大於 3 的資料歸類為異常值。
 
-### `OutlierIQR`
+#### `OutlierIQR`
 
 在此方法中，超過 1.5 倍四分位距（IQR）範圍的資料會被視為異常值。
 
-### `OutlierIsolationForest`
+#### `OutlierIsolationForest`
 
 此方法使用 `sklearn` 的 `IsolationForest` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
 
-### `OutlierLOF`
+#### `OutlierLOF`
 
 此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
 
-## Scaler
+### Scaler
 
 `scaler` 子模組旨在使用各種方法對數據進行標準化和縮放。
 
-### `ScalerStandard`
+#### `ScalerStandard`
 
 此方法使用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0、標準差為 1 的樣態。
 
-### `ScalerZeroCenter`
+#### `ScalerZeroCenter`
 
 利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0 的樣態。
 
-### `ScalerMinMax`
+#### `ScalerMinMax`
 
 利用 `sklearn` 中的 `MinMaxScaler`，將資料轉換至 [0, 1] 的範圍。
 
-### `ScalerLog`
+#### `ScalerLog`
 
 此方法僅能在資料為正的情形可用，可用於減緩極端值對整體資料的影響。
 
-## Discretizing
+### Discretizing
 
 `discretizing` 子模組可將連續資料轉換為類別資料，適用於部分合成資料方法，如 `smartnoise` 的 `mwem` 。
 
-### `DiscretizingKBins`
+#### `DiscretizingKBins`
 
 將連續資料切分為 k 個類別（k 個區間）。
 

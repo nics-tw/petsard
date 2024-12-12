@@ -18,9 +18,9 @@ from PETsARD import Reporter
 syn_expt_name: str = 'default'
 syn_idx: tuple = ('Synthesizer', syn_expt_name)
 
-# syn = Synthesizer(...)
-# syn.create(data=...)
-# syn.fit_sample()
+## syn = Synthesizer(...)
+## syn.create(data=...)
+## syn.fit_sample()
 
 rpt_data = Reporter(
     method = 'save_data',
@@ -49,9 +49,9 @@ from PETsARD import Reporter
 granularity: str = 'global'
 eval_idx: tuple = ('Evaluator', f"{eval_name}_[{granularity}]")
 
-# eval = Evaluator(...)
-# eval.create(data={...})
-# eval.eval()
+## eval = Evaluator(...)
+## eval.create(data={...})
+## eval.eval()
 
 rpt_report = Reporter(
     method = 'save_report',
@@ -71,7 +71,7 @@ Now is PETsARD[Report]_default_[global] save to csv...
 output: PETsARD[Report]_default_[global].csv
 ```
 
-# `Reporter`
+## `Reporter`
 
 `Reporter` 具備兩種功能：將 DataFrame 輸出為 CSV 的 `'save_data'`，以及將 `Evaluator` 跟 `Describer` 報告結果輸出為 CSV 的 `'save_report'`，這兩者對參數與輸入資料的要求不同。
 
@@ -112,7 +112,7 @@ rpt = Reporter(
 
 `eval` (`str | List[str]`, optional): 用以指定輸出目標是哪個 `Evaluator` 或 `Describer` 的評估報告。僅適用於 `method = 'save_report'`。
 
-## `create()`
+### `create()`
 
 利用給定的資料創建 `Reporter`。
 
@@ -182,7 +182,7 @@ result            0.625879
 result            0.609297  }}
 ```
 
-### `full_expt_tuple`
+#### `full_expt_tuple`
 
 `full_expt_tuple` (`tuple[str]`): 完整實驗元組為兩兩一組，必定是偶數個元素，其每組配對都代表著 `({模組名稱}, {實驗名稱})`。
 
@@ -231,7 +231,7 @@ data = {
 }
 ```
 
-### `full_expt_name`
+#### `full_expt_name`
 
 完整實驗名稱是將完整實驗元組按照特定格式組合成一個單獨的字串，用作報告中的標識。
 
@@ -242,7 +242,7 @@ data = {
 - ('Loader', 'my_expt', 'Synthesizer', 'default') # A-2
   - `full_expt_name` = 'Loader[my_expt]\_Synthesizer[default]'
 
-## `report()`
+### `report()`
 
 以特定格式儲存報告結果。
 
@@ -264,7 +264,7 @@ data = {
 
 `eval` (`str`, optional): 即 `Reporter` 參數中的 `eval`，代表著使用者為這個評估方式所取的名字。如果未指定 `eval`，則不顯示，而如果指定了一個或多個 `eval`，他們將以半形連接號連接，並寫在顆粒度前面。
 
-## `self.config`
+### `self.config`
 
 `Reporter` 模組的參數：
 
@@ -272,11 +272,11 @@ data = {
 - 當 `method` 設為 `'save_data'` 時，它包含了 `source`（輸出資料目標）。
 - 當 `method` 設為 `'save_report'` 時，它包含了 `eval`（輸出報告目標）和 `granularity`（報告顆粒度）。
 
-## `self.reporter`
+### `self.reporter`
 
 被實例化的報告器本身。
 
-## `self.result`
+### `self.result`
 
 `self.result` 會以字典的方式儲存，格式則基於 `method` 而有所不同。
 

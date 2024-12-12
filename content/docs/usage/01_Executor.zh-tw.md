@@ -15,7 +15,7 @@ exec = Executor(config=filename)
 exec.run()
 ```
 
-# `Executor`
+## `Executor`
 
 只要提供 `YAML` 格式的實驗設計檔案路徑即可初始化 `Executor`。請參考 [YAML 頁面](/PETsARD/zh-tw/docs/usage/02_yaml) 以了解 `YAML` 檔案的格式與內容。
 
@@ -27,6 +27,6 @@ exec = Executor(config)
 
 `config` (`str`): 實驗設計檔案的完整路徑。
 
-## `run()`
+### `run()`
 
 執行實驗。

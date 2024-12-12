@@ -15,7 +15,7 @@ metadata = Metadata()
 metadata.build_metadata(df)
 ```
 
-# `Metadata`
+## `Metadata`
 
 If you are utilising the `Loader` in `PETsARD`, congratulations! You already have metadata accessible via `Loader.metadata.metadata`. However, if you are not using the `Loader`, you will need this module to create metadata. No input is required for its initialization.
 
@@ -23,7 +23,7 @@ If you are utilising the `Loader` in `PETsARD`, congratulations! You already hav
 metadata = Metadata()
 ```
 
-## `build_metadata()`
+### `build_metadata()`
 
 Read the dataset and build the metadata.
 
@@ -31,7 +31,7 @@ Read the dataset and build the metadata.
 
 `data` (`pd.DataFrame`): The data to create metadata from.
 
-## `to_sdv()`
+### `to_sdv()`
 
 Within the `sdv` library, several classes necessitate metadata specifically defined by `sdv`. This function offers a method to convert the metadata stored in `Metadata` to a format acceptable by `sdv`.
 
@@ -39,7 +39,7 @@ Within the `sdv` library, several classes necessitate metadata specifically defi
 
 `sdv_metadata` (dict): The metadata in `sdv` metadata format.
 
-## `self.metadata`
+### `self.metadata`
 
 The metadata is stored in `self.metadata` in the format of nested `dict`. It records the properties of each column (in the key `'col'`), including data type (`'dtype'`, align with `pandas`), percentage of `NA` (`'na_percentage'`), and inferred data type (`'inder_dtype'`, either one of the following: 'numerical', 'categorical', 'datetime', and 'object'). It records the properties of the dataset as well (in the key `'global'`), including the dimension of the dataset (`'row_num'` and `'col_num'`) and the overall `NA` percentage (`'na_percentage'`). Below are the structure and the example of `self.metadata`.
 

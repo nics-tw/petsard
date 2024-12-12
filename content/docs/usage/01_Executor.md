@@ -15,7 +15,7 @@ exec = Executor(config=filename)
 exec.run()
 ```
 
-# `Executor`
+## `Executor`
 
 The basic usage of `Executor` is providing the path of the experiment design file in `yaml` format for initialisation. See [YAML page](/PETsARD/docs/usage/02_yaml) to know the format and content of the `YAML` file.
 
@@ -27,6 +27,6 @@ exec = Executor(config)
 
 `config` (`str`): The fullpath of the experiment design file.
 
-## `run()`
+### `run()`
 
 Execute the experiments.
