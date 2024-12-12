@@ -275,27 +275,30 @@ for secret in columns:
   - 0 到 1，數字越大代表隱私的風險越高，合成資料提供的資訊能使攻擊者越接近完美攻擊者。
 
 $$
-\text{PrivacyRisk} = \frac{\text{AttackRate}_{\text{Main}}-\text{AttackRate}_{\text{Control}}}{1-\text{AttackRate}_{\text{Control}}}
-$$
-
+    Privacy Risk =
+        \frac{
+            Attack Rate_{Main} - Attack Rate_{Control}
+        }{
+            1 - Attack Rate_{Control}
+        }
 $$
 
 - 攻擊率意指無論是由惡意還是誠實但好奇的使用者成功執行特定攻擊的比例。又被稱為成功攻擊率。
   - 由於假設每次攻擊都是獨立的，而攻擊只關心成功或失敗兩種結果，因此它們可以被建模為伯努利試驗。可以使用威爾遜分數區間來估算二項式成功率與調整後的信賴區間如下。預設信心水準為 95%。
   - 0 到 1，數字越大代表該特定攻擊的成功率越高。
 
-
 $$
-
-\text{AttackRate} =
-\frac{N*{\text{Success}}+\frac{ {Z}^{2} }{2} }{ N*{\text{Total}}+{Z}^{2} }\quad\left
-\{\begin{matrix}
-N*{\text{Success}} & \text{Number of Success Attacks}\\
-N*{\text{Total}} & \text{Number of Total Attacks}\\
-Z & Z\text{ score of confidence level}
-\end{matrix}
-\right.
-
+    {Attack Rate} =
+        \frac{
+            N_{Success} + \frac{ {Z}^{2} }{2}
+        }{
+            N_{Total}+{Z}^{2}
+        }
+        \begin{cases}
+            N_{Success} & \text{Number of Success Attacks}\\
+            N_{Total}   & \text{Number of Total Attacks}  \\
+            Z           & \text{Z score of confidence level}
+        \end{cases}
 $$
 
 - 主要攻擊率 (Main Attack Rate) 是指使用合成資料來推斷訓練資料紀錄的攻擊率。

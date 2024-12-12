@@ -275,11 +275,11 @@ Retrieve the evaluation results from `anonymeter` methods.
   - Ranging from zero to one, with higher numbers indicating higher privacy risk, the information provided by synthetic data brings attackers closer to that of a perfect attacker.
 
 $$
-    \text{Privacy Risk} =
+    Privacy Risk =
         \frac{
-            {Attack Rate}_{Main} - {Attack Rate}_{Control}
+            Attack Rate_{Main} - Attack Rate_{Control}
         }{
-            1 - {Attack Rate}_{Control}
+            1 - Attack Rate_{Control}
         }
 $$
 
@@ -294,7 +294,6 @@ $$
         }{
             N_{Total}+{Z}^{2}
         }
-        \quad
         \begin{cases}
             N_{Success} & \text{Number of Success Attacks}\\
             N_{Total}   & \text{Number of Total Attacks}  \\
