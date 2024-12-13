@@ -1,33 +1,29 @@
-<p align="center"><img width=75% src="docs/assets/images/PETsARD-logo.png"></p>
-
+<p align="center"><img width=75% src=".github/assets/PETsARD-logo.png"></p>
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange.svg)
+
 <!-- GitHub Issues number, build, dependency
 TODO Git
 -->
-
 
 `PETsARD` (Privacy Enhancing Technologies Analysis, Research, and Development, /pəˈtɑrd/) is a Python library for facilitating data generation algorithm and their evaluation processes.
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
-
 `PETsARD`（隱私強化技術分析、研究與開發）是一套為了促進資料生成演算法及其評估過程而設計的 Python 程式庫。
 
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
-
 - [Milestone](https://github.com/nics-tw/PETsARD/releases/latest)
-    - The Milestone document provide detailed information about the latest version of `PETsARD`.
-    - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
+  - The Milestone document provide detailed information about the latest version of `PETsARD`.
+  - 里程碑文件包含了 `PETsARD` 最新版本的詳細資訊。
 - [CHANGELOG.md](https://github.com/nics-tw/PETsARD/blob/main/CHANGELOG.md)
-    - The Changelog document provide the changelog for understand the evolution of the `PETsARD` over time.
-    - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
+  - The Changelog document provide the changelog for understand the evolution of the `PETsARD` over time.
+  - 歷史文件提供了提供了變更日誌，以便了解 `PETsARD` 隨時間演進的情況。
 - [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)
-    - The User Guide aims to assist developers in rapidly acquiring the necessary skills for utlisiing `PETsARD` in data synthesis, evaluating synthesized data, and enhancing the research efficiency in Privacy Enhancing Technologies-related fields.
-    - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及提升開發者隱私增強相關領域的研究效率。
-
+  - The User Guide aims to assist developers in rapidly acquiring the necessary skills for utlisiing `PETsARD` in data synthesis, evaluating synthesized data, and enhancing the research efficiency in Privacy Enhancing Technologies-related fields.
+  - 使用者指南旨在幫助開發者迅速獲得必要的技能，以使用 `PETsARD` 進行數據合成、合成數據的評估，以及提升開發者隱私增強相關領域的研究效率。
 
 # Installation 安裝
 
@@ -48,7 +44,7 @@ venv\Scripts\activate     # Windows
 
 2. Upgrade pip:
 
-2. 升級 pip：
+3. 升級 pip：
 
 ```bash
 python -m pip install --upgrade pip
@@ -56,7 +52,7 @@ python -m pip install --upgrade pip
 
 3. Install the required packages using `requirements.txt`:
 
-3. 使用 `requirements.txt` 安裝所需套件：
+4. 使用 `requirements.txt` 安裝所需套件：
 
 ```bash
 pip install -r requirements.txt
@@ -77,14 +73,11 @@ boto3
 git+https://github.com/ryan112358/private-pgm.git
 ```
 
-
 # Getting Started 入門指南
 
 We recommend that users write the experimental planning in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), which details in the [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/), and use [Executor](https://nics-tw.github.io/PETsARD/Executor.html) in `PETsARD` to conduct the experiment.
 
 我們建議使用者將自己的實驗規劃撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)，呼叫 `PETsARD` 的 [Executor](https://nics-tw.github.io/PETsARD/Executor.html) 讀取執行實驗，以上的細節可參見 [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)。
-
-
 
 ## `Executor`
 
@@ -100,14 +93,11 @@ exec = Executor(config=filename)
 exec.run()
 ```
 
-
 ## YAML
-
 
 Here, we use the default methods of each module to construct the simplest 'Exec_Design.yaml'. For specific settings of each module, please refer to the [YAML page](https://nics-tw.github.io/PETsARD/YAML.html).
 
 這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html)。
-
 
 ```YAML
 ---
@@ -151,11 +141,10 @@ Reporter:
 ...
 ```
 
-
 ## Modules 各模組
 
 - `Loader`: The module for data loading, see [Loader page](https://nics-tw.github.io/PETsARD/Loader.html).
-    - Benchmark datasets: The usage of `Loader` to download the benchmark datasets, see [Benchmark datasets page](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
+  - Benchmark datasets: The usage of `Loader` to download the benchmark datasets, see [Benchmark datasets page](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
 - `Splitter`: The module for splitting a dataset into training and validation datasets, see [Splitter page](https://nics-tw.github.io/PETsARD/Splitter.html).
 - `Processor`: The module for data pre/postprocessing, see [Processor page](https://nics-tw.github.io/PETsARD/Processor.html).
 - `Synthesizer`: The module for data synthesising, see [Synthesizer page](https://nics-tw.github.io/PETsARD/Synthesizer.html).
@@ -166,7 +155,7 @@ Reporter:
 <br>
 
 - `Loader`：讀取資料的模組，見 [Loader 頁面](https://nics-tw.github.io/PETsARD/Loader.html)。
-    - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html)。
+  - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html)。
 - `Splitter`：把資料切分成實驗組與控制組的模組，見 [Splitter 頁面](https://nics-tw.github.io/PETsARD/Splitter.html)。
 - `Processor`：對資料進行前處理跟後處理的模組，見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html)。
 - `Synthesizer`：對資料做合成資料等隱私強化處理的模組，見 [Synthesizer 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html)。
@@ -174,13 +163,11 @@ Reporter:
 - `Describer`：對資料本身做描述的模組，見 [Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html)。
 - `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見 [Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
 
-
 # Contributing 貢獻
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. And please make sure to update tests as appropriate.
 
 歡迎提交拉取請求。對於重大變更，請先開啟一個議題來討論您想做的改變。並請確保適當地更新測試。
-
 
 # License 授權
 
@@ -199,15 +186,13 @@ For commercial use involving synthetic data services, please contact DataCebo, I
 
 如需將本軟體用於合成資料的商業服務，請聯絡 DataCebo, Inc.
 
-
 # Citation 引用
 
 - `Synthesizer` module:
   - SDV - [sdv-dev/SDV](https://github.com/sdv-dev/SDV):
-      - Patki, N., Wedge, R., & Veeramachaneni, K. (2016). The Synthetic Data Vault. IEEE International Conference on Data Science and Advanced Analytics (DSAA), 399–410. https://doi.org/10.1109/DSAA.2016.49
+    - Patki, N., Wedge, R., & Veeramachaneni, K. (2016). The Synthetic Data Vault. IEEE International Conference on Data Science and Advanced Analytics (DSAA), 399–410. https://doi.org/10.1109/DSAA.2016.49
   - smartnoise - [opendp/smartnoise-sdk](https://github.com/opendp/smartnoise-sdk):
 - `Evaluator` module:
   - Anonymeter - [statice/anonymeter](https://github.com/statice/anonymeter):
-      - Giomi, M., Boenisch, F., Wehmeyer, C., & Tasnádi, B. (2023). A Unified Framework for Quantifying Privacy Risk in Synthetic Data. Proceedings of Privacy Enhancing Technologies Symposium. https://doi.org/10.56553/popets-2023-0055
+    - Giomi, M., Boenisch, F., Wehmeyer, C., & Tasnádi, B. (2023). A Unified Framework for Quantifying Privacy Risk in Synthetic Data. Proceedings of Privacy Enhancing Technologies Symposium. https://doi.org/10.56553/popets-2023-0055
   - SDMetrics - [sdv-dev/SDMetrics](https://github.com/sdv-dev/SDMetrics)
-
