@@ -24,8 +24,8 @@ jobs:
       - name: Check if there are any changes
         id: verify_diff
         run: |
-          git diff origin/main:docs/content origin/gh-page:content && echo "changed=true" >> $GITHUB_OUTPUT
-          git diff origin/main:docs/static origin/gh-page:static && echo "changed=true" >> $GITHUB_OUTPUT
+          git diff origin/main:docs/content origin/gh-page:content --quiet || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff origin/main:docs/static origin/gh-page:static --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Copy folder to destination branch
         if: steps.verify_diff.outputs.changed == 'true'
