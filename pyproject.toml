@@ -103,15 +103,15 @@ pyyaml = "^6.0.2"
 boto3 = "^1.35.55"
 requests = "^2.32.3"
 # for dependency bot management
-scikit-learn = "^1.5.0" # 582
-certifi = "^2024.7.4" # 581
-urllib3 = "^2.2.2" # 580
-tornado = "^6.4.1" # 579
+scikit-learn = "^1.6.0" #582
+certifi = "^2024.7.4" #581
+urllib3 = "^2.2.2" #580
+tornado = "^6.4.2" #579 #606
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
-pytest = "^8.2.0"
-python-semantic-release = "^9.6.0"
+pytest = "^8.3.4"
+python-semantic-release = "^9.15.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -127,7 +127,7 @@ allow_zero_version = true
 tag_format = "v{version}"
 
 [tool.semantic_release.branches.main]
-match = "main" # "(main|master)"
+match = "main"
 prerelease_token = "rc"
 prerelease = false
 
