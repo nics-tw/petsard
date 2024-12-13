@@ -24,8 +24,8 @@ jobs:
       - name: Check if there are any changes
         id: verify_diff
         run: |
-          git diff origin/main:docs/content origin/gh-page:content || echo "changed=true" >> $GITHUB_OUTPUT
-          git diff origin/main:docs/static origin/gh-page:static || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff origin/main:docs/content origin/gh-page:content && echo "changed=true" >> $GITHUB_OUTPUT
+          git diff origin/main:docs/static origin/gh-page:static && echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Copy folder to destination branch
         if: steps.verify_diff.outputs.changed == 'true'
@@ -38,13 +38,13 @@ jobs:
 
           # copy folder from "main"
           git checkout main docs/content
-          rm -r content/*
-          git mv docs/content/* content
+          git rm -r content
+          git mv docs/content/ .
           git checkout main docs/static
-          rm -r static/*
-          git mv docs/static/* static
+          git rm -r static
+          git mv docs/static/ .
 
-          git add content static
+          git add content/* static/*
           git commit -m "Copying folder from \`main\` branch to \`gh-page\` branch"
 
       - name: Push changes
