@@ -1,0 +1,53 @@
+name: Copy Folder from "main" branch to "gh-page" branch
+
+on:
+  push:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  copy-folder:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check if there are any changes
+        id: verify_diff
+        run: |
+          git diff origin/main:docs/content origin/gh-page:content || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff origin/main:docs/static origin/gh-page:static || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Copy folder to destination branch
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # change branch
+          git checkout gh-page
+
+          # copy folder from "main"
+          git checkout main docs/content
+          rm -r content/*
+          git mv docs/content/* content
+          git checkout main docs/static
+          rm -r static/*
+          git mv docs/static/* static
+
+          git add content static
+          git commit -m "Copying folder from \`main\` branch to \`gh-page\` branch"
+
+      - name: Push changes
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git push origin gh-page
