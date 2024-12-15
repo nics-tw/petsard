@@ -55,9 +55,10 @@ jobs:
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
         run: |
-          hugo \
-            --gc --minify \
-            --baseURL "${{ steps.pages.outputs.base_url }}/"
+          cd doc_site && rm go.mod
+          hugo mod init github.com/nics-tw/PETsARD/doc_site
+          hugo mod get -u github.com/imfing/hextra
+          hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
