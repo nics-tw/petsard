@@ -42,3 +42,8 @@ demo/dev/benchmark/
 **/.vscode
 **/.code-workspace
 *.code-workspace
+
+# Hugo output
+public/
+resources/
+.hugo_build.lock
