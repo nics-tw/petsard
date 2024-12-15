@@ -1,0 +1,80 @@
+# Hugo configuration file
+title: PETsARD
+
+theme: hextra
+
+defaultContentLanguage: en
+languages:
+  en:
+    languageName: English
+    weight: 1
+  zh-tw:
+    languageName: 繁體中文
+    weight: 2
+
+markup:
+  # allow raw html
+  goldmark:
+    renderer:
+      unsafe: true
+
+  # enable hextra syntax highlight
+  highlight:
+    noClasses: false
+
+enableInlineShortcodes: true
+
+menu:
+  main:
+    - name: Docs
+      pageRef: /docs
+      weight: 1
+    - name: About
+      pageRef: /about
+      weight: 2
+    - name: Contact ↗
+      url: "https://github.com/nics-tw"
+      weight: 3
+    - name: Search
+      weight: 4
+      params:
+        type: search
+    - name: GitHub
+      weight: 5
+      url: "https://github.com/nics-tw/PETsARD"
+      params:
+        icon: github
+
+params:
+  page:
+    # full (100%), wide (90rem), normal (1280px)
+    width: normal
+
+  navbar:
+    displayTitle: true
+    displayLogo: true
+    logo:
+      path: images/cape_logo_2_black.svg
+      dark: images/cape_logo_2_white.svg
+      link: /PETsARD
+      width: 40
+      height: 20
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: false
+
+  theme:
+    # light | dark | system
+    default: system
+    displayToggle: true
+
+  highlight:
+    copy:
+      enable: true
+      # hover | always
+      display: hover
+
+  editURL:
+    enable: false
+    # base: "https://github.com/imfing/hextra-starter-template/edit/main/content"
