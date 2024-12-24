@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from PETsARD.util.safe_dtype import safe_dtype
+from petsard.util.safe_dtype import safe_dtype
 
 def test_safe_dtype():
     # Test case for np.dtype
