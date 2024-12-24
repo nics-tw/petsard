@@ -8,13 +8,13 @@ from sdmetrics.reports.single_table import (
 )
 from sdv.metadata import SingleTableMetadata
 
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.error import (
+from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.error import (
     ConfigError,
     UnfittedError,
     UnsupportedMethodError
 )
-from PETsARD.util import safe_round
+from petsard.util import safe_round
 
 
 class SDMetricsMap():

@@ -15,9 +15,9 @@ from pandas.api.types import (
 )
 from numpy.core._dtype import _kind_name
 
-from PETsARD.util.params import ALLOWED_COLUMN_TYPES, OPTIMIZED_DTYPES
-from PETsARD.util.validation import verify_column_types
-from PETsARD.error import ConfigError
+from petsard.util.params import ALLOWED_COLUMN_TYPES, OPTIMIZED_DTYPES
+from petsard.util.validation import verify_column_types
+from petsard.error import ConfigError
 
 
 # 設定 logging

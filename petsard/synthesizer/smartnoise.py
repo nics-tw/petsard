@@ -4,9 +4,9 @@ import pandas as pd
 from snsynth.transform import TableTransformer, MinMaxTransformer
 from snsynth import Synthesizer as SNSyn
 
-from PETsARD import Metadata
-from PETsARD.synthesizer.synthesizer_base import SynthesizerBase
-from PETsARD.error import UnsupportedMethodError
+from petsard import Metadata
+from petsard.synthesizer.synthesizer_base import SynthesizerBase
+from petsard.error import UnsupportedMethodError
 
 
 class SmartNoise(SynthesizerBase):

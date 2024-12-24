@@ -1,5 +1,5 @@
-from PETsARD.evaluator.evaluator import Evaluator
-from PETsARD.evaluator.describer import Describer
+from petsard.evaluator.evaluator import Evaluator
+from petsard.evaluator.describer import Describer
 
 
 __all__ = [

@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.error import ConfigError
-from PETsARD.util import safe_round
+from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.error import ConfigError
+from petsard.util import safe_round
 
 
 class Describer(EvaluatorBase):

@@ -3,9 +3,9 @@ from typing import Union
 
 import pandas as pd
 
-from PETsARD import Metadata
-from PETsARD.error import ConfigError
-from PETsARD.util import safe_astype
+from petsard import Metadata
+from petsard.error import ConfigError
+from petsard.util import safe_astype
 
 
 class EvaluatorBase(ABC):

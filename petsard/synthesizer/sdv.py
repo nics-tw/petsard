@@ -10,9 +10,9 @@ from sdv.single_table import (
 )
 import pandas as pd
 
-from PETsARD import Metadata
-from PETsARD.synthesizer.synthesizer_base import SynthesizerBase
-from PETsARD.error import UnsupportedMethodError, UnableToSynthesizeError
+from petsard import Metadata
+from petsard.synthesizer.synthesizer_base import SynthesizerBase
+from petsard.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
 class SDVMap():

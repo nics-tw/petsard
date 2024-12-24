@@ -11,22 +11,22 @@ from typing import (
 import pandas as pd
 import yaml
 
-from PETsARD.loader.benchmark import (
+from petsard.loader.benchmark import (
     BenchmarkerBoto3,
     BenchmarkerRequests,
 )
-from PETsARD.loader.loader_pandas import (
+from petsard.loader.loader_pandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
 )
-from PETsARD.loader.metadata import Metadata
-from PETsARD.loader.util import casting_dataframe
-from PETsARD.util import (
+from petsard.loader.metadata import Metadata
+from petsard.loader.util import casting_dataframe
+from petsard.util import (
     ALLOWED_COLUMN_TYPES,
     optimize_dtypes,
     verify_column_types,
 )
-from PETsARD.error import (
+from petsard.error import (
     ConfigError,
     NoConfigError,
     UnsupportedMethodError,
@@ -286,7 +286,7 @@ class Loader:
         BENCHMARK_CONFIG = {}
 
         YAML_FILENAME = 'benchmark_datasets.yaml'
-        with resources.open_text('PETsARD.loader', YAML_FILENAME) as file:
+        with resources.open_text('petsard.loader', YAML_FILENAME) as file:
             BENCHMARK_CONFIG = yaml.safe_load(file)
 
         REGION_NAME = BENCHMARK_CONFIG['region_name']

@@ -5,7 +5,7 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 import requests
 
-from PETsARD.loader.util import DigestSha256
+from petsard.loader.util import DigestSha256
 
 
 class BenchmarkerBase(ABC):
@@ -115,7 +115,7 @@ class BenchmarkerRequests(BenchmarkerBase):
                 f"Loader - Benchmarker: file {self.config['filepath']}"
                 f" already exist and match SHA-256.\n"
                 f"                      "
-                f"PETsARD will ignore download and use local data directly."
+                f"petsard will ignore download and use local data directly."
             )
         else:
             url = (
@@ -163,7 +163,7 @@ class BenchmarkerBoto3(BenchmarkerBase):
             print(
                 f"Loader - Benchmarker: file {self.config['filepath']} "
                 f"already exist and match SHA-256. "
-                f"PETsARD will ignore download and use local data directly."
+                f"petsard will ignore download and use local data directly."
             )
         else:
             try:

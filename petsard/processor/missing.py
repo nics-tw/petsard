@@ -4,7 +4,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from PETsARD.error import UnfittedError
+from petsard.error import UnfittedError
 
 
 class MissingHandler:

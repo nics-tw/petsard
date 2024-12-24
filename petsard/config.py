@@ -9,11 +9,11 @@ from typing import (
 import pandas as pd
 import yaml
 
-from PETsARD import (
+from petsard import (
     Metadata,
     Processor,
 )
-from PETsARD.operator import (
+from petsard.operator import (
     Operator,
     LoaderOperator,
     SplitterOperator,
@@ -24,7 +24,7 @@ from PETsARD.operator import (
     DescriberOperator,
     ReporterOperator
 )
-from PETsARD.error import ConfigError, UnexecutedError
+from petsard.error import ConfigError, UnexecutedError
 
 
 class Config:

@@ -4,15 +4,15 @@ import sys
 from types import NoneType
 import warnings
 
-from PETsARD.loader.metadata import Metadata
-from PETsARD.processor.encoder import *
-from PETsARD.processor.missing import *
-from PETsARD.processor.outlier import *
-from PETsARD.processor.scaler import *
-from PETsARD.processor.mediator import *
-from PETsARD.processor.discretizing import *
-from PETsARD.error import *
-from PETsARD.util import (
+from petsard.loader.metadata import Metadata
+from petsard.processor.encoder import *
+from petsard.processor.missing import *
+from petsard.processor.outlier import *
+from petsard.processor.scaler import *
+from petsard.processor.mediator import *
+from petsard.processor.discretizing import *
+from petsard.error import *
+from petsard.util import (
     safe_astype,
     safe_dtype,
     safe_infer_dtype,

@@ -3,9 +3,9 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from PETsARD.loader.loader import Loader
-from PETsARD.loader.metadata import Metadata
-from PETsARD.error import ConfigError
+from petsard.loader.loader import Loader
+from petsard.loader.metadata import Metadata
+from petsard.error import ConfigError
 
 
 class Splitter:

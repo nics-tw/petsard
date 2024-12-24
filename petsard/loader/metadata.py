@@ -1,6 +1,6 @@
 import pandas as pd
 
-from PETsARD.util import safe_round
+from petsard.util import safe_round
 
 
 class Metadata:

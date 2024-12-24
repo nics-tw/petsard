@@ -1,9 +1,9 @@
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from PETsARD.processor.missing import MissingDrop
-from PETsARD.processor.encoder import EncoderOneHot
-from PETsARD.processor.outlier import *
+from petsard.processor.missing import MissingDrop
+from petsard.processor.encoder import EncoderOneHot
+from petsard.processor.outlier import *
 
 
 class Mediator:

@@ -1,9 +1,9 @@
-from PETsARD.processor.base import *
-from PETsARD.processor.mediator import *
-from PETsARD.processor.missing import *
-from PETsARD.processor.outlier import *
-from PETsARD.processor.encoder import *
-from PETsARD.processor.scaler import *
+from petsard.processor.base import *
+from petsard.processor.mediator import *
+from petsard.processor.missing import *
+from petsard.processor.outlier import *
+from petsard.processor.encoder import *
+from petsard.processor.scaler import *
 
 __all__ = [
     'Processor',
