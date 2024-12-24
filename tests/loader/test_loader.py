@@ -1,6 +1,6 @@
 import pytest
 
-from PETsARD import Loader
+from petsard import Loader
 
 
 class Test_Loader:

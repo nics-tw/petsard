@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from pandas.api.types import is_integer_dtype, is_float_dtype
-from PETsARD.util.optimize_dtypes import _optimized_numeric_dtypes
+from petsard.util.optimize_dtypes import _optimized_numeric_dtypes
 
 class TestOptimizedNumericDtypes:
     def test_optimized_numeric_dtypes_integer(self):

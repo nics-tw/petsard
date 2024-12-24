@@ -8,7 +8,7 @@ import pytest
 import pandas as pd
 from scipy import sparse
 
-from PETsARD.util import safe_astype
+from petsard.util import safe_astype
 
 
 @pytest.fixture

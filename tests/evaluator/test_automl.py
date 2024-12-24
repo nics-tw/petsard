@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from PETsARD.evaluator import AutoML
+from petsard.evaluator import AutoML
 
 
 # shared evaluation data
@@ -76,7 +76,7 @@ class Test_automl:
         - AutoML will successfully return a report when:
             - the target of syn have only 1 level.
         """
-        # ...\PETsARD\PETsARD\evaluator\automl.py:364:
+        # ...\petsard\petsard\evaluator\automl.py:364:
         #   UserWarning: Only one class in the target,
         #   the model training is impossible. The score is set to NaN.
         warnings.simplefilter("ignore", UserWarning)
