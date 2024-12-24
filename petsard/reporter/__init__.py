@@ -1,4 +1,4 @@
-from PETsARD.reporter.reporter import Reporter
+from petsard.reporter.reporter import Reporter
 
 
 __all__ = [

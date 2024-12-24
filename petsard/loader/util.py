@@ -3,8 +3,8 @@ from typing import Dict
 
 import pandas as pd
 
-from PETsARD.error import ConfigError
-from PETsARD.util import OPTIMIZED_DTYPES
+from petsard.error import ConfigError
+from petsard.util import OPTIMIZED_DTYPES
 
 def DigestSha256(filepath):
     """

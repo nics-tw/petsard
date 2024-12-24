@@ -1,4 +1,4 @@
-from PETsARD.util.dtype_operations import (
+from petsard.util.dtype_operations import (
     optimize_dtype,
     optimize_dtypes,
     safe_astype,
@@ -6,8 +6,8 @@ from PETsARD.util.dtype_operations import (
     safe_infer_dtype,
     verify_column_types,
 )
-from PETsARD.util.numeric_operations import safe_round
-from PETsARD.util.params import (
+from petsard.util.numeric_operations import safe_round
+from petsard.util.params import (
     ALLOWED_COLUMN_TYPES,
     OPTIMIZED_DTYPES,
 )

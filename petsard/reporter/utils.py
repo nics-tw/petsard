@@ -1,7 +1,7 @@
 from typing import List, Union
 import re
 
-from PETsARD.error import ConfigError
+from petsard.error import ConfigError
 
 
 def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:

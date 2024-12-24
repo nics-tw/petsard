@@ -4,8 +4,8 @@ import warnings
 
 import pandas as pd
 
-from PETsARD import Metadata
-from PETsARD.error import UnfittedError
+from petsard import Metadata
+from petsard.error import UnfittedError
 
 
 class SynthesizerBase(ABC):

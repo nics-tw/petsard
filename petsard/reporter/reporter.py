@@ -8,12 +8,12 @@ import re
 
 import pandas as pd
 
-from PETsARD.reporter.utils import (
+from petsard.reporter.utils import (
     convert_full_expt_tuple_to_name,
     convert_eval_expt_name_to_tuple,
     full_expt_tuple_filter,
 )
-from PETsARD.error import (
+from petsard.error import (
     ConfigError,
     UnexecutedError,
     UnsupportedMethodError
@@ -76,7 +76,7 @@ class Reporter:
                 - All Reporter
                     - output (str, optional):
                         The output filename prefix for the report.
-                        Default is 'PETsARD'.
+                        Default is 'petsard'.
                 - ReporterSaveData
                     - source (Union[str, List[str]]): The source of the data.
                 - ReporterSaveReport
@@ -145,7 +145,7 @@ class ReporterBase(ABC):
                 - method (str): The method used for reporting.
                 - output (str, optional):
                     The output filename prefix for the report.
-                    Default is 'PETsARD'.
+                    Default is 'petsard'.
 
         Attributes:
             config (dict): Configuration settings for the report.
@@ -158,7 +158,7 @@ class ReporterBase(ABC):
             raise ConfigError
         if not isinstance(self.config.get('output'), str) \
                 or not self.config['output']:
-            self.config['output'] = 'PETsARD'
+            self.config['output'] = 'petsard'
 
     @abstractmethod
     def create(self, data: dict) -> None:
@@ -260,7 +260,7 @@ class ReporterSaveData(ReporterBase):
                 - source (str | List[str]): The source of the data.
                 - output (str, optional):
                     The output filename prefix for the report.
-                    Default is 'PETsARD'.
+                    Default is 'petsard'.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
@@ -321,7 +321,7 @@ class ReporterSaveData(ReporterBase):
             if df is None:
                 continue
 
-            # PETsARD_{expt_name}
+            # petsard_{expt_name}
             full_output = f"{self.config['output']}_{expt_name}"
             self._save(data=df, full_output=full_output)
 
@@ -338,7 +338,7 @@ class ReporterSaveReport(ReporterBase):
             config (dict): The configuration dictionary.
                 - method (str): The method used for reporting.
                 - output (str, optional): The output filename prefix for the report.
-                    Default is 'PETsARD'.
+                    Default is 'petsard'.
                 - granularity (str): The granularity of reporting.
                     It should be one of 'global', 'columnwise', or 'pairwise'.
                     Case-insensitive.
@@ -706,7 +706,7 @@ class ReporterSaveReport(ReporterBase):
         if not all(key in reporter for key in ['eval_expt_name', 'report']):
             raise ConfigError
         eval_expt_name: str = reporter['eval_expt_name']
-        # PETsARD[Report]_{eval_expt_name}
+        # petsard[Report]_{eval_expt_name}
         full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
 
         report: pd.DataFrame = reporter['report']

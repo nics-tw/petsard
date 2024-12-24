@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 
-from PETsARD.error import UnfittedError
+from petsard.error import UnfittedError
 
 
 class Scaler:

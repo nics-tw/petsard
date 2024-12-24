@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pandas as pd
 
-from PETsARD import (
+from petsard import (
     Loader,
     Metadata,
     Splitter,
@@ -12,8 +12,8 @@ from PETsARD import (
     Describer,
     Reporter
 )
-from PETsARD.processor.encoder import EncoderUniform
-from PETsARD.error import ConfigError
+from petsard.processor.encoder import EncoderUniform
+from petsard.error import ConfigError
 
 
 class Operator:

@@ -15,9 +15,9 @@ from sklearn.metrics import f1_score, silhouette_score
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.svm import SVC
 
-from PETsARD.error import ConfigError, UnsupportedMethodError
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
-from PETsARD.util import safe_round
+from petsard.error import ConfigError, UnsupportedMethodError
+from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.util import safe_round
 
 
 class MLUtilityMap():

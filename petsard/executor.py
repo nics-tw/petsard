@@ -1,4 +1,4 @@
-from PETsARD.config import Config, Status
+from petsard.config import Config, Status
 
 
 class Executor:

@@ -2,10 +2,10 @@ import re
 
 import pandas as pd
 
-from PETsARD import Loader, Metadata
-from PETsARD.synthesizer.sdv import SDVFactory
-from PETsARD.synthesizer.smartnoise import SmartNoiseFactory
-from PETsARD.error import ConfigError, UnsupportedMethodError
+from petsard import Loader, Metadata
+from petsard.synthesizer.sdv import SDVFactory
+from petsard.synthesizer.smartnoise import SmartNoiseFactory
+from petsard.error import ConfigError, UnsupportedMethodError
 
 
 class SynthesizerMap():

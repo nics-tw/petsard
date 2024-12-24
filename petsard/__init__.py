@@ -1,5 +1,5 @@
 """
-    Top-level package for PETsARD.
+    Top-level package for petsard.
     ...
 
     __init__.py
@@ -18,14 +18,14 @@
     TODO 抗偏態的IQR：statsmodels.medcouple
 """
 
-from PETsARD.loader import Loader, Metadata, Splitter
-from PETsARD.processor import Processor
-from PETsARD.synthesizer import Synthesizer
-from PETsARD.evaluator import Evaluator, Describer
-from PETsARD.reporter import Reporter
-from PETsARD.util import *
-from PETsARD.config import Config, Status
-from PETsARD.executor import Executor
+from petsard.loader import Loader, Metadata, Splitter
+from petsard.processor import Processor
+from petsard.synthesizer import Synthesizer
+from petsard.evaluator import Evaluator, Describer
+from petsard.reporter import Reporter
+from petsard.util import *
+from petsard.config import Config, Status
+from petsard.executor import Executor
 
 
 __all__ = [
