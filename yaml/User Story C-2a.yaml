@@ -2,12 +2,12 @@
 Loader:
   adult_ori:
     # filepath of original data
-    filepath: 'benchmark/adult-income_ori.csv'
+    filepath: '../benchmark/adult-income_ori.csv'
 Synthesizer:
   custom:
     method: 'custom_data'
     # filepath for syntheisized data that has been prepared in advance
-    filepath: 'benchmark/adult-income_syn.csv'
+    filepath: '../benchmark/adult-income_syn.csv'
 Evaluator:
   demo:
     # defalut of Evaluator is SDMetrics QualityReport
