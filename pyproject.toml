@@ -100,18 +100,22 @@ anonymeter = "^1.0.0"
 sdmetrics = "^0.16.0"
 wheel = "^0.43.0"
 pyyaml = "^6.0.2"
-boto3 = "^1.35.55"
 requests = "^2.32.3"
-# for dependency bot management
-scikit-learn = "^1.6.0" #582
-certifi = "^2024.7.4" #581
-urllib3 = "^2.2.2" #580
-tornado = "^6.4.2" #579 #606
+###### ###### ######
+# for dependency bot security alert
+###### ###### ######
+certifi = ">=2024.7.4" #581
+scikit-learn = ">=1.6.0" #582
+urllib3 = ">=2.2.2" #580
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
 pytest = "^8.3.4"
 python-semantic-release = "^9.15.1"
+###### ###### ######
+# for dependency bot security alert
+###### ###### ######
+tornado = ">=6.4.2" #579 #606
 
 [build-system]
 requires = ["poetry-core"]
