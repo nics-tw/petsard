@@ -10,9 +10,9 @@ toc: true
 基準資料集的使用非常簡單，你只要將各資料集對應的 "Benchmark dataset name" 標籤，以 `benchmark://{Benchmark dataset name}` 的形式放到 `Loader` 的 `filepath` 參數中（大小寫不限），`PETsARD` 便會將對應的資料集下載好，並遵照 `Loader` 的功能加載在 `Loader.data`，而你仍可以按照 `Loader` 的其他參數去自定義資料集的 `metadata`。以下是呼叫 "adult" 資料集的例子：
 
 ```Python
-from PETsARD import Loader
+from petsard import Loader
 
-load = PETsARD.Loader(
+load = Loader(
     filepath='benchmark://adult',
     na_values={k: '?' for k in [
         'workclass',
@@ -45,7 +45,7 @@ print(loader.data.head(1))
 `PETsARD` 套件中計算檔案 SHA256 的函式如下：
 
 ```Python
-from PETsARD.loader.util import DigestSha256
+from petsard.loader.util import DigestSha256
 
 
 sha256 = DigestSha256(filepath='benchmark/adult-income.csv')

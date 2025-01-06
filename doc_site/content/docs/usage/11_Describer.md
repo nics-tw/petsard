@@ -8,7 +8,7 @@ toc: true
 The `Describer` module is responsible for producing descriptive statistical analysis. You can specify describing method in `Describer` class and use it to analyse the data.
 
 ```Python
-from PETsARD import Describer
+from petsard import Describer
 
 
 data = {"data": loader.data}

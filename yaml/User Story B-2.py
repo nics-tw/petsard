@@ -3,7 +3,7 @@ from typing import Union
 
 import pandas as pd
 
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import EvaluatorBase
 
 
 class UserStory_B2(EvaluatorBase):

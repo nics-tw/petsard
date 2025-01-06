@@ -7,7 +7,7 @@ toc: true
 
 用戶故事的示範旨在協助使用者設定您自身的設定檔案。祝您使用愉快 : )
 
-建議搭配 GitHub 倉儲中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/用戶故事 A/B/C/D.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現。
+建議搭配 GitHub 倉儲中 [demo/README.md](https://github.com/nics-tw/petsard/tree/main/demo) 的 `demo/用戶故事 A/B/C/D.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/petsard/tree/main/yaml)，幫助釐清您的需求如何實現。
 
 ### 環境
 

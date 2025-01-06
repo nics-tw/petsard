@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from PETsARD.processor import DiscretizingKBins
+from petsard.processor import DiscretizingKBins
 
 
 class Test_Discretizing:
