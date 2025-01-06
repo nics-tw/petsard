@@ -9,7 +9,7 @@ math: true
 `Evaluator` 模組負責評估合成資料的品質。您可以在 `Evaluator` 類別中指定評估方式並檢驗合成資料。
 
 ```Python
-from PETsARD import Evaluator
+from petsard import Evaluator
 
 
 eval = Evaluator(
@@ -47,7 +47,7 @@ eval = Evaluator(
   - 對於自定義函式，我們建議直接繼承 `EvaluatorBase` 類別並對其方法加以實現來滿足要求。您可以從這裡導入：
 
 ```Python
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import EvaluatorBase
 ```
 
 `custom_method` (`dict`, default=`None`, optional): 此字典包含自定義方法的資訊。它應該包括：- `filepath` (`str`): 自定義方法檔案的路徑。- `method` (`str`): 自定義方法檔案中的方法名稱。
@@ -67,7 +67,7 @@ from PETsARD.evaluator.evaluator_base import EvaluatorBase
 - `SDMetrics` 需要兩種類型的資料：
   - 用於合成資料的原始資料（`'ori'`）
   - 利用原始資料合成的合成資料（`'syn'`）
-- 如果您使用此套件提供的 `Executor` （見 [Executor 頁面](PETsARD/zh-tw/docs/usage/01_executor/)），則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
+- 如果您使用此套件提供的 `Executor` （見 [Executor 頁面](petsard/zh-tw/docs/usage/01_executor/)），則已經符合使用條件，可直接進行下一步，因為系統會自動區分這三類資料。
 
 ```Python
 eval.create(
@@ -126,7 +126,7 @@ eval.create(
 
 ### `self.data`
 
-按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](PETsARD/zh-tw/docs/usage/10_evaluator/#create) 說明。
+按照 `.create()` 時所輸入的 `data` 加以保存。見 [`create()`](petsard/zh-tw/docs/usage/10_evaluator/#create) 說明。
 
 ### `self.result`
 
