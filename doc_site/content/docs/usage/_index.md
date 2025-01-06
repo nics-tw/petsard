@@ -35,14 +35,14 @@ pip install -r requirements.txt
 
 ## Getting Started
 
-We recommend that users write the experimental planning in [YAML format](https://nics-tw.github.io/PETsARD/YAML.html), which details in the [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/), and use [Executor](https://nics-tw.github.io/PETsARD/Executor.html) in `PETsARD` to conduct the experiment.
+We recommend that users write the experimental planning in [YAML format](https://nics-tw.github.io/ /YAML.html), which details in the [PETsARD - User Guide](https://nics-tw.github.io/petsard/), and use [Executor](https://nics-tw.github.io/petsard/Executor.html) in `PETsARD` to conduct the experiment.
 
 ### `Executor`
 
 Here is the simplest way to get started with `PETsARD`:
 
 ```Python
-from PETsARD import Executor
+from petsard import Executor
 
 filename = "Exec_Design.yaml"
 exec = Executor(config=filename)
@@ -51,7 +51,7 @@ exec.run()
 
 ### YAML
 
-Here, we use the default methods of each module to construct the simplest 'Exec_Design.yaml'. For specific settings of each module, please refer to the [YAML page](https://nics-tw.github.io/PETsARD/YAML.html).
+Here, we use the default methods of each module to construct the simplest 'Exec_Design.yaml'. For specific settings of each module, please refer to the [YAML page](https://nics-tw.github.io/petsard/YAML.html).
 
 ```YAML
 ---
@@ -97,11 +97,11 @@ Reporter:
 
 ### Modules
 
-- `Loader`: The module for data loading, see [Loader page](https://nics-tw.github.io/PETsARD/Loader.html).
-  - Benchmark datasets: The usage of `Loader` to download the benchmark datasets, see [Benchmark datasets page](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html).
-- `Splitter`: The module for splitting a dataset into training and validation datasets, see [Splitter page](https://nics-tw.github.io/PETsARD/Splitter.html).
-- `Processor`: The module for data pre/postprocessing, see [Processor page](https://nics-tw.github.io/PETsARD/Processor.html).
-- `Synthesizer`: The module for data synthesising, see [Synthesizer page](https://nics-tw.github.io/PETsARD/Synthesizer.html).
-- `Evaluator`: The module for synthetic data evaluation, see [Evaluator page](https://nics-tw.github.io/PETsARD/Evaluator.html).
-- `Describer`: The module for data description, see [Describer page](https://nics-tw.github.io/PETsARD/Describer.html).
-- `Reporter`: The module for data saving and report output, see [Reporter page](https://nics-tw.github.io/PETsARD/Reporter.html).
+- `Loader`: The module for data loading, see [Loader page](https://nics-tw.github.io/petsard/Loader.html).
+  - Benchmark datasets: The usage of `Loader` to download the benchmark datasets, see [Benchmark datasets page](https://nics-tw.github.io/petsard/Benchmark-datasets.html).
+- `Splitter`: The module for splitting a dataset into training and validation datasets, see [Splitter page](https://nics-tw.github.io/petsard/Splitter.html).
+- `Processor`: The module for data pre/postprocessing, see [Processor page](https://nics-tw.github.io/petsard/Processor.html).
+- `Synthesizer`: The module for data synthesising, see [Synthesizer page](https://nics-tw.github.io/petsard/Synthesizer.html).
+- `Evaluator`: The module for synthetic data evaluation, see [Evaluator page](https://nics-tw.github.io/petsard/Evaluator.html).
+- `Describer`: The module for data description, see [Describer page](https://nics-tw.github.io/petsard/Describer.html).
+- `Reporter`: The module for data saving and report output, see [Reporter page](https://nics-tw.github.io/petsard/Reporter.html).
