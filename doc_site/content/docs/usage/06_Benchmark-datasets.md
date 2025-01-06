@@ -60,8 +60,7 @@ print(sha256)
 
 - **Name**: Dataset name.
 - **Filename**: Name used in `PETsARD`.
-- **Access**: Whether the dataset is public or private.
-  - For private datasets, which may have restrictions based on the dataset's authorization or considerations from the data provider, are intended for internal use by the development team and collaborating parties. For any related inquiries, please contact the development team.
+- **Access**: Whether the dataset is public or private. Only public is available.
 - **Columns**: Number of columns.
 - **Rows**: Number of rows.
 - **File Size**: File size.
