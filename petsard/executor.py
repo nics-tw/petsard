@@ -52,7 +52,7 @@ class Executor:
         """
         if module == self.sequence[-1]:
             full_expt = self.status.get_full_expt()
-            full_expt_name = '_'.join(
+            full_expt_name = "_".join(
                 [f"{module}[{expt}]" for module, expt in full_expt.items()]
             )
             self.result[full_expt_name] = self.status.get_result(module=module)

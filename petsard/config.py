@@ -1,30 +1,30 @@
-from copy import deepcopy
 import queue
 import re
+from copy import deepcopy
 from typing import (
     Tuple,
     Union,
 )
 
 import pandas as pd
-import yaml
 
+import yaml
 from petsard import (
     Metadata,
     Processor,
 )
-from petsard.operator import (
-    Operator,
-    LoaderOperator,
-    SplitterOperator,
-    PreprocessorOperator,
-    SynthesizerOperator,
-    PostprocessorOperator,
-    EvaluatorOperator,
-    DescriberOperator,
-    ReporterOperator
-)
 from petsard.error import ConfigError, UnexecutedError
+from petsard.operator import (  # noqa: F401 - Dynamic Imports
+    DescriberOperator,
+    EvaluatorOperator,
+    LoaderOperator,
+    Operator,
+    PostprocessorOperator,
+    PreprocessorOperator,
+    ReporterOperator,
+    SplitterOperator,
+    SynthesizerOperator,
+)
 
 
 class Config:
@@ -46,30 +46,30 @@ class Config:
             filename (str)
                 The filename of config file.
         """
-        self.config:      queue.Queue = queue.Queue()
+        self.config: queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
-        self.expt_flow:   queue.Queue = queue.Queue()
+        self.expt_flow: queue.Queue = queue.Queue()
         self.filename: str = filename
         self.sequence: list = []
         self.yaml: dict = {}
 
-        with open(self.filename, 'r') as yaml_file:
+        with open(self.filename, "r") as yaml_file:
             self.yaml = yaml.safe_load(yaml_file)
 
         self.sequence = list(self.yaml.keys())
 
         # Config check
-        pattern = re.compile(r'_(\[[^\]]*\])$')
+        pattern = re.compile(r"_(\[[^\]]*\])$")
         for module, expt_config in self.yaml.items():
             for expt_name in expt_config:
                 # any expt_name should not be postfix with "_[xxx]"
                 if pattern.search(expt_name):
                     raise ConfigError
 
-        if 'Splitter' in self.yaml:
-            if 'method' not in self.yaml['Splitter']:
-                self.yaml['Splitter'] = self._splitter_handler(
-                    deepcopy(self.yaml['Splitter'])
+        if "Splitter" in self.yaml:
+            if "method" not in self.yaml["Splitter"]:
+                self.yaml["Splitter"] = self._splitter_handler(
+                    deepcopy(self.yaml["Splitter"])
                 )
 
         self.config, self.module_flow, self.expt_flow = self._set_flow()
@@ -86,9 +86,9 @@ class Config:
             expt_flow (queue.Queue):
                 Queue containing the experiment names corresponding to each operator.
         """
-        flow:        queue.Queue = queue.Queue()
+        flow: queue.Queue = queue.Queue()
         module_flow: queue.Queue = queue.Queue()
-        expt_flow:   queue.Queue = queue.Queue()
+        expt_flow: queue.Queue = queue.Queue()
 
         def _set_flow_dfs(modules):
             """
@@ -124,9 +124,9 @@ class Config:
         """
         transformed_config: dict = {}
         for expt_name, expt_config in config.items():
-            num_samples = expt_config.get('num_samples', 1)
+            num_samples = expt_config.get("num_samples", 1)
             iter_expt_config = deepcopy(expt_config)
-            iter_expt_config['num_samples'] = 1
+            iter_expt_config["num_samples"] = 1
 
             num_samples_str = str(num_samples)
             zero_padding = len(num_samples_str)
@@ -165,9 +165,9 @@ class Status:
         self.status: dict = {}
         self.metadata: dict[str, Metadata] = {}
 
-        if 'Splitter' in self.sequence:
+        if "Splitter" in self.sequence:
             self.exist_index: list = []
-        if 'Reporter' in self.sequence:
+        if "Reporter" in self.sequence:
             self.report: dict = {}
 
     def put(self, module: str, expt: str, operator: Operator):
@@ -188,22 +188,20 @@ class Status:
         # renew status when 2nd,... rounds
         if module in self.status:
             module_seq_idx = self.sequence.index(module)
-            module_to_keep = set(self.sequence[:module_seq_idx + 1])
-            keys_to_remove = [
-                key for key in self.status if key not in module_to_keep
-            ]
+            module_to_keep = set(self.sequence[: module_seq_idx + 1])
+            keys_to_remove = [key for key in self.status if key not in module_to_keep]
             for exist_module in keys_to_remove:
                 del self.status[exist_module]
 
-        if module in ['Loader', 'Splitter', 'Preprocessor']:
+        if module in ["Loader", "Splitter", "Preprocessor"]:
             self.set_metadata(module, operator.get_metadata())
 
-        if module == 'Reporter':
+        if module == "Reporter":
             self.set_report(report=operator.get_result())
 
         temp = {}
-        temp['expt'] = expt
-        temp['operator'] = operator
+        temp["expt"] = expt
+        temp["operator"] = operator
         self.status[module] = temp
 
     def set_report(self, report: dict) -> None:
@@ -213,7 +211,7 @@ class Status:
         Args:
             report (dict): The report data.
         """
-        if not hasattr(self, 'report'):
+        if not hasattr(self, "report"):
             raise UnexecutedError
 
         # Report rows already combine in Reporter
@@ -241,7 +239,7 @@ class Status:
         """
         Retrieve the result of a specific module, optionally specifying a tag.
         """
-        return self.status[module]['operator'].get_result()
+        return self.status[module]["operator"].get_result()
 
     def get_full_expt(self, module: str = None) -> dict:
         """
@@ -259,8 +257,9 @@ class Status:
         # Normal case: get all of expt pairs in status
         if module is None:
             return {
-                seq_module: self.status[seq_module]['expt']
-                for seq_module in self.sequence if seq_module in self.status
+                seq_module: self.status[seq_module]["expt"]
+                for seq_module in self.sequence
+                if seq_module in self.status
             }
 
         # Special case: get expt pairs before given module (incl. module itself)
@@ -271,7 +270,7 @@ class Status:
             module_idx = self.sequence.index(module) + 1
             sub_sequence = self.sequence[:module_idx]
             return {
-                seq_module: self.status[seq_module]['expt']
+                seq_module: self.status[seq_module]["expt"]
                 for seq_module in sub_sequence
             }
 
@@ -293,7 +292,7 @@ class Status:
         """
         self.metadata[module] = metadata
 
-    def get_metadata(self, module: str = 'Loader') -> Metadata:
+    def get_metadata(self, module: str = "Loader") -> Metadata:
         """
         Retrieve the metadata of the dataset.
 
@@ -308,8 +307,8 @@ class Status:
         """
         Retrieve the processor of the dataset.
         """
-        if 'Preprocessor' in self.status:
-            return self.status['Preprocessor']['operator'].processor
+        if "Preprocessor" in self.status:
+            return self.status["Preprocessor"]["operator"].processor
         else:
             raise UnexecutedError
 
@@ -317,7 +316,7 @@ class Status:
         """
         Retrieve the report data generated by 'Reporter' modules.
         """
-        if not hasattr(self, 'report'):
+        if not hasattr(self, "report"):
             raise UnexecutedError
 
         return self.report
