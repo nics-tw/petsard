@@ -68,8 +68,6 @@ smartnoise-synth==1.0.3
 anonymeter==1.0.0
 sdmetrics==0.14.0
 pyyaml==6.0.1
-requests
-boto3
 git+https://github.com/ryan112358/private-pgm.git
 ```
 
