@@ -1,7 +1,6 @@
 region_name: ap-southeast-1 # Asia Pacific (Singapore)
 bucket_name:
   public: petsard-benchmark
-  private: petsard-benchmark-private
 
 datasets:
 
