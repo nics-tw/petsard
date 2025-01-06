@@ -3,17 +3,17 @@ from copy import deepcopy
 import pandas as pd
 
 from petsard import (
+    Describer,
+    Evaluator,
     Loader,
     Metadata,
-    Splitter,
     Processor,
+    Reporter,
+    Splitter,
     Synthesizer,
-    Evaluator,
-    Describer,
-    Reporter
 )
-from petsard.processor.encoder import EncoderUniform
 from petsard.error import ConfigError
+from petsard.processor.encoder import EncoderUniform
 
 
 class Operator:
@@ -175,16 +175,16 @@ class SplitterOperator(Operator):
                 data (pd.DataFrame), exclude_index (list), and Metadata (Metadata)
         """
         try:
-            if 'method' in self.config:
+            if "method" in self.config:
                 # Splitter method = 'custom_data'
-                self.input['data'] = None
+                self.input["data"] = None
             else:
                 # Splitter accept following Loader only
-                self.input['data'] = status.get_result('Loader')
-                self.input['metadata'] = status.get_metadata('Loader')
-            self.input['exclude_index'] = status.get_exist_index()
-        except:
-            raise ConfigError
+                self.input["data"] = status.get_result("Loader")
+                self.input["metadata"] = status.get_metadata("Loader")
+            self.input["exclude_index"] = status.get_exist_index()
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
 
         return self.input
 
@@ -224,12 +224,12 @@ class PreprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        method = config['method'].lower() if 'method' in config else 'custom'
+        method = config["method"].lower() if "method" in config else "custom"
         self._sequence = None
-        if 'sequence' in config:
-            self._sequence = config['sequence']
-            del config['sequence']
-        self._config = {} if method == 'default' else config
+        if "sequence" in config:
+            self._sequence = config["sequence"]
+            del config["sequence"]
+        self._config = {} if method == "default" else config
 
     def run(self, input: dict):
         """
@@ -243,14 +243,14 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = Processor(metadata=input['metadata'])
+        self.processor = Processor(metadata=input["metadata"])
         # for keep default but update manual only
         self.processor.update_config(self._config)
         if self._sequence is None:
-            self.processor.fit(data=input['data'])
+            self.processor.fit(data=input["data"])
         else:
-            self.processor.fit(data=input['data'], sequence=self._sequence)
-        self.data_preproc = self.processor.transform(data=input['data'])
+            self.processor.fit(data=input["data"], sequence=self._sequence)
+        self.data_preproc = self.processor.transform(data=input["data"])
 
     def set_input(self, status) -> dict:
         """
@@ -265,14 +265,14 @@ class PreprocessorOperator(Operator):
                     data (pd.DataFrame) and metadata (Metadata).
         """
         try:
-            pre_module = status.get_pre_module('Preprocessor')
-            if pre_module == 'Splitter':
-                self.input['data'] = status.get_result(pre_module)['train']
-            else: # Loader only
-                self.input['data'] = status.get_result(pre_module)
-            self.input['metadata'] = status.get_metadata(pre_module)
-        except:
-            raise ConfigError
+            pre_module = status.get_pre_module("Preprocessor")
+            if pre_module == "Splitter":
+                self.input["data"] = status.get_result(pre_module)["train"]
+            else:  # Loader only
+                self.input["data"] = status.get_result(pre_module)
+            self.input["metadata"] = status.get_metadata(pre_module)
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
 
         return self.input
 
@@ -294,11 +294,11 @@ class PreprocessorOperator(Operator):
         """
         metadata: Metadata = deepcopy(self.processor._metadata)
 
-        if 'encoder' in self.processor._sequence:
-            encoder_cfg: dict = self.processor.get_config()['encoder']
+        if "encoder" in self.processor._sequence:
+            encoder_cfg: dict = self.processor.get_config()["encoder"]
             for col, encoder in encoder_cfg.items():
                 if isinstance(encoder, EncoderUniform):
-                    metadata.set_col_infer_dtype(col, 'numerical') # for SDV
+                    metadata.set_col_infer_dtype(col, "numerical")  # for SDV
         return metadata
 
 
@@ -318,13 +318,17 @@ class SynthesizerOperator(Operator):
         self.synthesizer = Synthesizer(**config)
 
         self.sample_dict: dict = {}
-        self.sample_dict.update({
-            key: config[key]
-            for key in [
-                'sample_num_rows', 'reset_sampling', 'output_file_path',
-            ]
-            if key in config
-        })
+        self.sample_dict.update(
+            {
+                key: config[key]
+                for key in [
+                    "sample_num_rows",
+                    "reset_sampling",
+                    "output_file_path",
+                ]
+                if key in config
+            }
+        )
 
     def run(self, input: dict):
         """
@@ -352,20 +356,20 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame)
                     and SDV format metadata (dict or None).
         """
-        pre_module = status.get_pre_module('Synthesizer')
+        pre_module = status.get_pre_module("Synthesizer")
 
         if status.metadata == {}:  # no metadata
-            self.input['metadata'] = None
+            self.input["metadata"] = None
         else:
-            self.input['metadata'] = status.get_metadata(pre_module)
+            self.input["metadata"] = status.get_metadata(pre_module)
 
         try:
-            if pre_module == 'Splitter':
-                self.input['data'] = status.get_result(pre_module)['train']
-            else: # Loader or Preprocessor
-                self.input['data'] = status.get_result(pre_module)
-        except:
-            raise ConfigError
+            if pre_module == "Splitter":
+                self.input["data"] = status.get_result(pre_module)["train"]
+            else:  # Loader or Preprocessor
+                self.input["data"] = status.get_result(pre_module)
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
         return self.input
 
     def get_result(self):
@@ -393,7 +397,7 @@ class PostprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        self._config = {} if config['method'].lower() == 'default' else config
+        self._config = {} if config["method"].lower() == "default" else config
 
     def run(self, input: dict):
         """
@@ -407,10 +411,8 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = input['preprocessor']
-        self.data_postproc = self.processor.inverse_transform(
-            data=input['data']
-        )
+        self.processor = input["preprocessor"]
+        self.data_postproc = self.processor.inverse_transform(data=input["data"])
 
     def set_input(self, status) -> dict:
         """
@@ -424,12 +426,12 @@ class PostprocessorOperator(Operator):
                 Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
         """
         try:
-            self.input['data'] = status.get_result(
-                status.get_pre_module('Postprocessor')
+            self.input["data"] = status.get_result(
+                status.get_pre_module("Postprocessor")
             )
-            self.input['preprocessor'] = status.get_processor()
-        except:
-            raise ConfigError
+            self.input["preprocessor"] = status.get_processor()
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
 
         return self.input
 
@@ -481,19 +483,19 @@ class EvaluatorOperator(Operator):
                 Evaluator input should contains data (dict).
         """
         try:
-            if 'Splitter' in status.status:
-                self.input['data'] = {
-                    'ori':     status.get_result('Splitter')['train'],
-                    'syn':     status.get_result(status.get_pre_module('Evaluator')),
-                    'control': status.get_result('Splitter')['validation']
+            if "Splitter" in status.status:
+                self.input["data"] = {
+                    "ori": status.get_result("Splitter")["train"],
+                    "syn": status.get_result(status.get_pre_module("Evaluator")),
+                    "control": status.get_result("Splitter")["validation"],
                 }
             else:  # Loader only
-                self.input['data'] = {
-                    'ori': status.get_result('Loader'),
-                    'syn': status.get_result(status.get_pre_module('Evaluator')),
+                self.input["data"] = {
+                    "ori": status.get_result("Loader"),
+                    "syn": status.get_result(status.get_pre_module("Evaluator")),
                 }
-        except:
-            raise ConfigError
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
 
         return self.input
 
@@ -502,9 +504,9 @@ class EvaluatorOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.evaluator.get_global() # pd.DataFrame
-        result['columnwise'] = self.evaluator.get_columnwise() # pd.DataFrame
-        result['pairwise'] = self.evaluator.get_pairwise() # pd.DataFrame
+        result["global"] = self.evaluator.get_global()  # pd.DataFrame
+        result["columnwise"] = self.evaluator.get_columnwise()  # pd.DataFrame
+        result["pairwise"] = self.evaluator.get_pairwise()  # pd.DataFrame
 
         return deepcopy(result)
 
@@ -522,8 +524,8 @@ class DescriberOperator(Operator):
                 An instance of the Describer class initialized with the provided configuration.
         """
         super().__init__(config)
-        if 'method' not in config:
-            config['method'] = 'default'
+        if "method" not in config:
+            config["method"] = "default"
         self.describer = Describer(config=config)
 
     def run(self, input: dict):
@@ -551,11 +553,11 @@ class DescriberOperator(Operator):
                 Describer input should contains data (dict).
         """
         try:
-            self.input['data'] = {
-                'data': status.get_result(status.get_pre_module('Describer'))
+            self.input["data"] = {
+                "data": status.get_result(status.get_pre_module("Describer"))
             }
-        except:
-            raise ConfigError
+        except Exception as e:
+            raise ConfigError(f"Config error: {str(e)}")
 
         return self.input
 
@@ -564,9 +566,9 @@ class DescriberOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.describer.get_global() # pd.DataFrame
-        result['columnwise'] = self.describer.get_columnwise() # pd.DataFrame
-        result['pairwise'] = self.describer.get_pairwise() # pd.DataFrame
+        result["global"] = self.describer.get_global()  # pd.DataFrame
+        result["columnwise"] = self.describer.get_columnwise()  # pd.DataFrame
+        result["pairwise"] = self.describer.get_pairwise()  # pd.DataFrame
 
         return deepcopy(result)
 
@@ -606,19 +608,19 @@ class ReporterOperator(Operator):
         eval_expt_name: str = None
         report: pd.DataFrame = None
 
-        self.reporter.create(data=input['data'])
+        self.reporter.create(data=input["data"])
         self.reporter.report()
-        if 'Reporter' in self.reporter.result:
+        if "Reporter" in self.reporter.result:
             # ReporterSaveReport
-            temp = self.reporter.result['Reporter']
+            temp = self.reporter.result["Reporter"]
             # exception handler so no need to collect exist report in this round
             #   e.g. no matched granularity
-            if 'warnings' in temp:
+            if "warnings" in temp:
                 return
-            if not all(key in temp for key in ['eval_expt_name', 'report']):
+            if not all(key in temp for key in ["eval_expt_name", "report"]):
                 raise ConfigError
-            eval_expt_name = temp['eval_expt_name']
-            report = deepcopy(temp['report'])
+            eval_expt_name = temp["eval_expt_name"]
+            report = deepcopy(temp["report"])
             self.report[eval_expt_name] = report
         else:
             # ReporterSaveData
@@ -656,8 +658,8 @@ class ReporterOperator(Operator):
                     item for pair in index_dict.items() for item in pair
                 )
                 data[index_tuple] = deepcopy(result)
-        self.input['data'] = data
-        self.input['data']['exist_report'] = status.get_report()
+        self.input["data"] = data
+        self.input["data"]["exist_report"] = status.get_report()
 
         return self.input
 
