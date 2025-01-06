@@ -8,7 +8,7 @@ toc: true
 `Metadata` serves as an extension of the `Loader` module within `PETsARD`, capturing dataset properties and facilitating `Processor` initialisation. Below is the usage of `Metadata`.
 
 ```Python
-from PETsARD.loader import Metadata
+from petsard.loader import Metadata
 
 
 metadata = Metadata()

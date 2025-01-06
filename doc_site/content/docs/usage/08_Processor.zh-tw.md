@@ -8,7 +8,7 @@ toc: true
 `Processor` 模組負責在實驗期間管理資料前處理和後處理（還原）的過程。此元件可進行多種數據處理，包括為類別資料進行編碼、處理缺失值、排除異常值以及標準化資料等任務。本指南將引導您建立和操作 `Processor` 類的物件。
 
 ```Python
-from PETsARD import Processor
+from petsard import Processor
 
 
 proc = Processor(metadata=split.metadata)
@@ -35,7 +35,7 @@ proc = Processor(
 
 **參數**
 
-用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
+用於推論前處理及後處理流程的數據架構。如果使用 `Loader`/`Splitter`，建議可以透過最後使用模組的 `Loader.metadata`/`Splitter.metadata` 取得元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](petsard/zh-tw/docs/usage/05_metadata/)
 
 `config` (`dict`, default=`None`): 針對每個欄位的自定義處理流程。
 
@@ -66,23 +66,23 @@ proc.get_config(
 
 ```plain_text
 {'missing': {
-    'gen': <PETsARD.processor.missing.MissingDrop at 0x28afa7d90>,
-    'age': <PETsARD.processor.missing.MissingSimple at 0x28af374f0>
+    'gen': <petsard.processor.missing.MissingDrop at 0x28afa7d90>,
+    'age': <petsard.processor.missing.MissingSimple at 0x28af374f0>
     },
  'outlier': {
     'gen': None,
-    'age': <PETsARD.processor.outlier.OutlierLOF at 0x28afa72b0>
+    'age': <petsard.processor.outlier.OutlierLOF at 0x28afa72b0>
     },
  'encoder': {
-    'gen': <PETsARD.processor.encoder.EncoderOneHot at 0x28afa6f80>,
+    'gen': <petsard.processor.encoder.EncoderOneHot at 0x28afa6f80>,
     'age': None
     },
  'scaler': {
     'gen': None,
-    'age': <PETsARD.processor.scaler.ScalerMinMax at 0x28afa6ec0>},
+    'age': <petsard.processor.scaler.ScalerMinMax at 0x28afa6ec0>},
  'discretizing': {
-    'gen': <PETsARD.processor.encoder.EncoderLabel at 0x28afa4910>,
-    'age': <PETsARD.processor.discretizing.DiscretizingKBins at 0x28afa7310>
+    'gen': <petsard.processor.encoder.EncoderLabel at 0x28afa4910>,
+    'age': <petsard.processor.discretizing.DiscretizingKBins at 0x28afa7310>
     }
 }
 ```
@@ -205,7 +205,7 @@ inverse_transformed = proc.inverse_transform(data=data)
 
 </div>
 
-預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。詳見 [Metadata](https://nics-tw.github.io/PETsARD/Metadata.html) 頁面。
+預設的處理類型如下，會根據 `metadata` 中的 `'inder_dtype'` 不同而有所調整。詳見 [Metadata](https://nics-tw.github.io/petsard/Metadata.html) 頁面。
 
 ```plain_text
 {
