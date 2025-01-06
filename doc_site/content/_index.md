@@ -7,15 +7,15 @@ toc: false
   Privacy Enhancing Technologies Analysis, Research, and Development
 </p>
 
-<p align="center"><img src="/PETsARD/images/PETsARD-logo.png"></p>
+<p align="center"><img src="/petsard/images/PETsARD-logo.png"></p>
 
 `PETsARD` (Privacy Enhancing Technologies Analysis, Research, and Development, /pəˈtɑrd/) is a Python library for facilitating data generation algorithm and their evaluation processes.
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.
 
-- [Release Note](https://github.com/nics-tw/PETsARD/releases)
+- [Release Note](https://github.com/nics-tw/petsard/releases)
   - Release note provides information of each version of `PETsARD`.
-- [CHANGELOG.md](https://github.com/nics-tw/PETsARD/blob/main/CHANGELOG.md)
+- [CHANGELOG.md](https://github.com/nics-tw/petsard/blob/main/CHANGELOG.md)
   - Changelog provides evolution of the `PETsARD` over time.
 
 ## Explore

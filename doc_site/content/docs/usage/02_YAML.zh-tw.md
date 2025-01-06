@@ -5,9 +5,9 @@ weight: 13
 toc: true
 ---
 
-YAML（YAML Ain't Markup Language）是一個可讀性高，用來表達資料序列化的格式，它旨在易於人類閱讀和編輯，同時也能被電腦輕鬆解析。`PETsARD` 的 `Executor` 讓使用者以 YAML 格式配置 `PETsARD` 的程式設定，藉由本文的介紹，期待讓使用者能以最快時間上手，無痛設定並執行自己的實驗，並利用 YAML 方便管理自己的實驗設定（同時參見 [Executor 頁面](PETsARD/zh-tw/docs/usage/01_executor/)）。
+YAML（YAML Ain't Markup Language）是一個可讀性高，用來表達資料序列化的格式，它旨在易於人類閱讀和編輯，同時也能被電腦輕鬆解析。`PETsARD` 的 `Executor` 讓使用者以 YAML 格式配置 `PETsARD` 的程式設定，藉由本文的介紹，期待讓使用者能以最快時間上手，無痛設定並執行自己的實驗，並利用 YAML 方便管理自己的實驗設定（同時參見 [Executor 頁面](petsard/zh-tw/docs/usage/01_executor/)）。
 
-本文僅說明基本的 YAML 設定，建議搭配程式碼庫中 [demo/README.md](https://github.com/nics-tw/PETsARD/tree/main/demo) 的 `demo/User Story*.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml)，幫助釐清您的需求如何實現（亦參考 [User Story 頁面](PETsARD/zh-tw/docs/usage/03_user-story/)）。
+本文僅說明基本的 YAML 設定，建議搭配程式碼庫中 [demo/README.md](https://github.com/nics-tw/petsard/tree/main/demo) 的 `demo/User Story*.ipynb` 用戶故事情境範例、與 [yaml/README.md](https://github.com/nics-tw/petsard/tree/main/yaml)，幫助釐清您的需求如何實現（亦參考 [User Story 頁面](petsard/zh-tw/docs/usage/03_user-story/)）。
 
 ## 教學
 
@@ -92,9 +92,9 @@ Reporter:
 
 ```
 
-<p align="center"><img src="/PETsARD/images/YAML_final.png" height="1080"></p>
+<p align="center"><img src="/petsard/images/YAML_final.png" height="1080"></p>
 
-值得注意的是，每個模組（圓角虛線範圍內）會被執行/創建多次，次數取決於上游任務/物件的數目，詳見 [Config 設定](PETsARD/zh-tw/docs/usage/02_yaml/) 章節。
+值得注意的是，每個模組（圓角虛線範圍內）會被執行/創建多次，次數取決於上游任務/物件的數目，詳見 [Config 設定](petsard/zh-tw/docs/usage/02_yaml/) 章節。
 
 ## YAML
 
@@ -111,17 +111,17 @@ YAML 的基礎格式如下：
 YAML 文件以 `---` 開始、以 `...` 結束。本教學使用這些標記，主要是為了正式展現格式。實際上，這兩項設定都是可選的，且 `pyyaml` 能夠在不設定這兩項的情況下進行編譯。需要特別留意的是，`---` 也常被用於在單一文件中分隔多個 YAML 設定檔，但 `PETsARD` 只支援一個檔案一個設定檔的形式。
 
 - `module name`：執行特定工作的模組。`PETsARD` 的模組包含：
-  - `Loader`: 資料讀取。見 [Loader 頁面](PETsARD/zh-tw/docs/usage/04_loader/).
-  - `Preprocessor`: 資料前處理。見 [Processor 頁面](PETsARD/zh-tw/docs/usage/08_processor/).
-  - `Synthesizer`: 資料合成。見 [Synthesizer 頁面](PETsARD/zh-tw/docs/usage/09_synthesizer/).
-  - `Postprocessor`: 資料後處理。見 [Processor 頁面](PETsARD/zh-tw/docs/usage/08_processor/).
-  - `Evaluator`: 資料評估。見 [Evaluator 頁面](PETsARD/zh-tw/docs/usage/10_evaluator/).
-  - `Describer`: 資料描述。見 [Describer 頁面](PETsARD/zh-tw/docs/usage/11_describer/).
-  - `Reporter`: 資料/報表輸出。見 [Reporter 頁面](PETsARD/zh-tw/docs/usage/12_reporter/).
+  - `Loader`: 資料讀取。見 [Loader 頁面](petsard/zh-tw/docs/usage/04_loader/).
+  - `Preprocessor`: 資料前處理。見 [Processor 頁面](petsard/zh-tw/docs/usage/08_processor/).
+  - `Synthesizer`: 資料合成。見 [Synthesizer 頁面](petsard/zh-tw/docs/usage/09_synthesizer/).
+  - `Postprocessor`: 資料後處理。見 [Processor 頁面](petsard/zh-tw/docs/usage/08_processor/).
+  - `Evaluator`: 資料評估。見 [Evaluator 頁面](petsard/zh-tw/docs/usage/10_evaluator/).
+  - `Describer`: 資料描述。見 [Describer 頁面](petsard/zh-tw/docs/usage/11_describer/).
+  - `Reporter`: 資料/報表輸出。見 [Reporter 頁面](petsard/zh-tw/docs/usage/12_reporter/).
 - `experiment name`：對於該模組，單一個實驗參數的自訂名稱。必填。
 - `config of module`：完整參數請參考各模組於手冊上的說明。
 
-一般來說，使用者可以透過 YAML 格式將模組所需參數傳入，詳見 [Config Setup 頁面](PETsARD/zh-tw/docs/usage/02_yaml/)。然而，`Executor` 可以接受其他在 YAML 檔案上的特殊參數與指令，請參閱後續章節。
+一般來說，使用者可以透過 YAML 格式將模組所需參數傳入，詳見 [Config Setup 頁面](petsard/zh-tw/docs/usage/02_yaml/)。然而，`Executor` 可以接受其他在 YAML 檔案上的特殊參數與指令，請參閱後續章節。
 
 ## `Executor` 的特定參數
 
@@ -139,7 +139,7 @@ YAML 文件以 `---` 開始、以 `...` 結束。本教學使用這些標記，�
 
 ### `Preprocessor`
 
-`Preprocessor` 是一部分的 `Processor` 類別。根據 [Processor 頁面](PETsARD/zh-tw/docs/usage/08_processor/)，`metadata` 是必須參數。然而若您使用 YAML 進行實驗，此參數會被忽略，且 `Executor` 會處理這個部分。另外，若要傳入 `Processor` 中的 `config`，您可以直接提供 `config` 的巢狀結構（以 YAML 的形式）。`Processor.fit()` 中的 `sequence` 也可以在此使用。
+`Preprocessor` 是一部分的 `Processor` 類別。根據 [Processor 頁面](petsard/zh-tw/docs/usage/08_processor/)，`metadata` 是必須參數。然而若您使用 YAML 進行實驗，此參數會被忽略，且 `Executor` 會處理這個部分。另外，若要傳入 `Processor` 中的 `config`，您可以直接提供 `config` 的巢狀結構（以 YAML 的形式）。`Processor.fit()` 中的 `sequence` 也可以在此使用。
 
 ### `Synthesizer`
 
@@ -158,7 +158,7 @@ YAML 文件以 `---` 開始、以 `...` 結束。本教學使用這些標記，�
 `method` 指定所希望使用的評估方法（完整選項見手冊）。必填。`method = 'default'` 將使用預設的方式做評估（目前是 `sdmetrics` 的 QualityReport）。`method = 'custom_method'` 則依照使用者給定的 Python 程式碼路徑 (`filepath`) 與類別 (`method` 指定類別名稱) 做評估。自訂評測需要使用者自訂一個符合格式的 Python 類別。該類別應該在 `__init__` 時接受設定 (`config`)，提供 `.create()` 方法接受名為 `data` 的字典做評測資料的輸入，以及 `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` 方法以分別輸出全資料集、個別欄位、與欄位與欄位間不同報告顆粒度的結果。我們建議直接繼承 `EvaluatorBase` 類別來滿足要求。可利用下方程式碼導入：
 
 ```Python
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import EvaluatorBase
 ```
 
 ### `Describer`
@@ -308,14 +308,14 @@ Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Evaluator -> Reporter
 10.~16. 只是在 Loader: data_b 下重複 2.~8.
 ```
 
-以上我們將得到 16 個實驗結果。值得注意的是，`Reporter` 的 `method: 'save_data'` 跟 `method: 'save_report'` 做的是不同事情。`'save_data'` 會把該實驗組合當中指定的模組結果輸出，而 `'save_report'` 則會把指定的 `Evaluator`/`Describer` 結果按設定輸出。所以實際上我們是得到 8 個資料集結果、加上 8 個評估報告共 16 個實驗結果。詳情請參考[Reporter頁面](PETsARD/zh-tw/docs/usage/12_reporter/)。
+以上我們將得到 16 個實驗結果。值得注意的是，`Reporter` 的 `method: 'save_data'` 跟 `method: 'save_report'` 做的是不同事情。`'save_data'` 會把該實驗組合當中指定的模組結果輸出，而 `'save_report'` 則會把指定的 `Evaluator`/`Describer` 結果按設定輸出。所以實際上我們是得到 8 個資料集結果、加上 8 個評估報告共 16 個實驗結果。詳情請參考[Reporter頁面](petsard/zh-tw/docs/usage/12_reporter/)。
 
 ## Config 設定
 
 對於 YAML 的第三層，每個模組各自的參數，使用者應該將參數視作一個字典來傳入，此時字典的鍵值便是模組的參數。請看下面的例子：
 
 ```Python
-from PETsARD import Loader
+from petsard import Loader
 
 
 ## experiment name: my-adult-income
@@ -369,7 +369,7 @@ Loader:
 ...
 ```
 
-YAML 的第三層有三個鍵 `filepath`、`column_types`、`na_values`，對應 [Loader 模組](PETsARD/zh-tw/docs/usage/04_loader/)的參數。各參數的值均參考模組頁面進行設定。以本例 `Loader` 來說：
+YAML 的第三層有三個鍵 `filepath`、`column_types`、`na_values`，對應 [Loader 模組](petsard/zh-tw/docs/usage/04_loader/)的參數。各參數的值均參考模組頁面進行設定。以本例 `Loader` 來說：
 
 - `filepath` 為字串。當字串內容沒有特殊字元時，不需要使用單雙引號。
 - `na_values` 為鍵值對均為字串的字典。YAML 的字典以 `key: value` 方式表示，半形冒號後面需要有一個半形空格。問號為特殊字元，故使用單引號。
