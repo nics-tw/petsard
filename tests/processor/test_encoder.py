@@ -1,8 +1,8 @@
 import pytest
 import pandas as pd
 import numpy as np
-from PETsARD.processor.encoder import EncoderUniform, EncoderLabel
-from PETsARD.error import UnfittedError
+from petsard.processor.encoder import EncoderUniform, EncoderLabel
+from petsard.error import UnfittedError
 
 class Test_EncoderUniform:
     def test_EncoderUniform(self):
