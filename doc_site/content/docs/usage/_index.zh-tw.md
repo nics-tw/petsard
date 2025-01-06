@@ -35,14 +35,14 @@ pip install -r requirements.txt
 
 ## 入門指南
 
-我們建議使用者將自己的實驗規劃撰寫成 [YAML 格式](https://nics-tw.github.io/PETsARD/YAML.html)，呼叫 `PETsARD` 的 [Executor](https://nics-tw.github.io/PETsARD/Executor.html) 讀取執行實驗，以上的細節可參見 [PETsARD - User Guide](https://nics-tw.github.io/PETsARD/)。
+我們建議使用者將自己的實驗規劃撰寫成 [YAML 格式](https://nics-tw.github.io/petsard/YAML.html)，呼叫 `PETsARD` 的 [Executor](https://nics-tw.github.io/petsard/Executor.html) 讀取執行實驗，以上的細節可參見 [PETsARD - User Guide](https://nics-tw.github.io/petsard/)。
 
 ### `Executor`
 
 以下是最簡單入門的 `PETsARD` 使用方式：
 
 ```Python
-from PETsARD import Executor
+from petsard import Executor
 
 filename = "Exec_Design.yaml"
 exec = Executor(config=filename)
@@ -51,7 +51,7 @@ exec.run()
 
 ### YAML
 
-這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/PETsARD/YAML.html)。
+這裡利用各模組的預設方法 (default) 建構最簡單的 'Exec_Design.yaml'，各模組具體設定，請參考 [YAML 頁面](https://nics-tw.github.io/petsard/YAML.html)。
 
 ```YAML
 ---
@@ -97,11 +97,11 @@ Reporter:
 
 ### 模組
 
-- `Loader`：讀取資料的模組，見 [Loader 頁面](https://nics-tw.github.io/PETsARD/Loader.html)。
-  - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/PETsARD/Benchmark-datasets.html)。
-- `Splitter`：把資料切分成實驗組與控制組的模組，見 [Splitter 頁面](https://nics-tw.github.io/PETsARD/Splitter.html)。
-- `Processor`：對資料進行前處理跟後處理的模組，見 [Processor 頁面](https://nics-tw.github.io/PETsARD/Processor.html)。
-- `Synthesizer`：對資料做合成資料等隱私強化處理的模組，見 [Synthesizer 頁面](https://nics-tw.github.io/PETsARD/Synthesizer.html)。
-- `Evaluator`：對合成資料結果做評估的模組，見 [Evaluator 頁面](https://nics-tw.github.io/PETsARD/Evaluator.html)。
-- `Describer`：對資料本身做描述的模組，見 [Describer 頁面](https://nics-tw.github.io/PETsARD/Describer.html)。
-- `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見 [Reporter 頁面](https://nics-tw.github.io/PETsARD/Reporter.html)。
+- `Loader`：讀取資料的模組，見 [Loader 頁面](https://nics-tw.github.io/petsard/Loader.html)。
+  - Benchmark datasets：如何利用 `Loader` 獲取預先載入的基準資料集，見 [Benchmark datasets 頁面](https://nics-tw.github.io/petsard/Benchmark-datasets.html)。
+- `Splitter`：把資料切分成實驗組與控制組的模組，見 [Splitter 頁面](https://nics-tw.github.io/petsard/Splitter.html)。
+- `Processor`：對資料進行前處理跟後處理的模組，見 [Processor 頁面](https://nics-tw.github.io/petsard/Processor.html)。
+- `Synthesizer`：對資料做合成資料等隱私強化處理的模組，見 [Synthesizer 頁面](https://nics-tw.github.io/petsard/Synthesizer.html)。
+- `Evaluator`：對合成資料結果做評估的模組，見 [Evaluator 頁面](https://nics-tw.github.io/petsard/Evaluator.html)。
+- `Describer`：對資料本身做描述的模組，見 [Describer 頁面](https://nics-tw.github.io/petsard/Describer.html)。
+- `Reporter`：對資料進行存檔、以及資料評估與描述輸出報告的模組，見 [Reporter 頁面](https://nics-tw.github.io/petsard/Reporter.html)。

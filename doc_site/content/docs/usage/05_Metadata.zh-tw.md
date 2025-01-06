@@ -8,7 +8,7 @@ toc: true
 `Metadata` 是 `Loader` 模組的延伸功能，記錄資料集的特性及提供 `Processor` 初始化的必需元素。`Metadata` 的使用範例如下。
 
 ```Python
-from PETsARD.loader import Metadata
+from petsard.loader import Metadata
 
 
 metadata = Metadata()

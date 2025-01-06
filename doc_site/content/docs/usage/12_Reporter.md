@@ -7,12 +7,12 @@ toc: true
 
 The `Reporter` module is responsible for producing the outcomes of `PETsARD`, including both the report outputs and the dataset storage. Since Reporter is primarily designed for users to use directly with `Executor`, we strongly recommend using `Executor` directly.
 
-If you still wish to use `Reporter` independently, please be aware that there are specific requirements for the input format of data. Refer to [`create()` section](PETsARD/docs/usage/12_reporter/#create) of this tutorial for configuration.
+If you still wish to use `Reporter` independently, please be aware that there are specific requirements for the input format of data. Refer to [`create()` section](petsard/docs/usage/12_reporter/#create) of this tutorial for configuration.
 
 **`method = 'save_data'`**
 
 ```Python
-from PETsARD import Reporter
+from petsard import Reporter
 
 
 syn_expt_name: str = 'default'
@@ -43,7 +43,7 @@ output: PETsARD_Synthesizer[default].csv
 **`method = 'save_report'`**
 
 ```Python
-from PETsARD import Reporter
+from petsard import Reporter
 
 
 granularity: str = 'global'
@@ -94,7 +94,7 @@ rpt = Reporter(
 
 The function of `Reporter` is to produce a file output given the matched keywords of the input `data`, or to generate a report given the matched keywords.
 
-Within `Executor`, the `data` is organized into specific [full experiment tuples (full_expt_tuple)](PETsARD/zh-tw/docs/usage/12_reporter/#full_expt_tuple) for `Executor`, according to YAML configurations and the experimental flow.
+Within `Executor`, the `data` is organized into specific [full experiment tuples (full_expt_tuple)](petsard/zh-tw/docs/usage/12_reporter/#full_expt_tuple) for `Executor`, according to YAML configurations and the experimental flow.
 
 It is assumed that they have already used various `PETsARD` modules to generate the desired evaluation when users want to use `Reporter` independently. Therefore, by following the module you used and naming each step (experiment name, `'expt_name'`), you can compose the full experiment tuple required by `Reporter`.
 
@@ -104,7 +104,7 @@ It is also fine if the user has generated synthetic data or evaluation using oth
 
 `method` (`str`): The methods for generating reports. Methods are are limited to `'save_data'` and `'save_report'`.
 
-`output` (`str`, default=`'PETsARD'`, optional): The prefix for the default report output filename is `'PETsARD'`. For the specific output filename, please refer to the [`report()` section](PETsARD/docs/usage/12_reporter/#report).
+`output` (`str`, default=`'PETsARD'`, optional): The prefix for the default report output filename is `'PETsARD'`. For the specific output filename, please refer to the [`report()` section](petsard/docs/usage/12_reporter/#report).
 
 `source` (`str | List[str]`): To specify which module's or experiment name's (`expt_name`) output to use. Required only for `method = 'save_data'`.
 
@@ -127,7 +127,7 @@ When using `Executor` with YAML, you do not need to manually set `exist_report`.
 ```Python
 import pandas as pd
 
-from PETsARD import Loader, ... Reporter
+from petsard import Loader, ... Reporter
 
 
 eval_name: str = 'exist_report-demo'
@@ -188,16 +188,16 @@ result            0.609297  }}
 
 `module_name` (`str`): Module Name must be one of the following module names that can be set in `PETsARD`'s YAML, with the addition of `Processsor` for convenience. Each module name can appear in the tuple only once. And the search by `Reporter` is targeted at the last pair of elements.
 
-- [Loader](PETsARD/docs/usage/04_loader/)
-- [Splitter](PETsARD/docs/usage/07_splitter/)
-- [Processor](PETsARD/docs/usage/08_processor/)
-- [Preprocessor](PETsARD/docs/usage/08_processor/)
-- [Synthesizer](PETsARD/docs/usage/09_synthesizer/)
-- [Postprocessor](PETsARD/docs/usage/08_processor/)
-- [Evaluator](PETsARD/docs/usage/10_evaluator/)
-- [Describer](PETsARD/docs/usage/11_describer/)
+- [Loader](petsard/docs/usage/04_loader/)
+- [Splitter](petsard/docs/usage/07_splitter/)
+- [Processor](petsard/docs/usage/08_processor/)
+- [Preprocessor](petsard/docs/usage/08_processor/)
+- [Synthesizer](petsard/docs/usage/09_synthesizer/)
+- [Postprocessor](petsard/docs/usage/08_processor/)
+- [Evaluator](petsard/docs/usage/10_evaluator/)
+- [Describer](petsard/docs/usage/11_describer/)
 
-`expt_name` (`str`): Experiment Name is the name given to the experiment for this module. Experiment names can be repeated across different modules. For the standards on module and experiment names, please refer to the [Module and Experiment name section in YAML](PETsARD/zh-tw/docs/usage/02_yaml/).
+`expt_name` (`str`): Experiment Name is the name given to the experiment for this module. Experiment names can be repeated across different modules. For the standards on module and experiment names, please refer to the [Module and Experiment name section in YAML](petsard/zh-tw/docs/usage/02_yaml/).
 
 For `source` in `'save_data'`, the last pair's module name or experiment name should matches source.
 

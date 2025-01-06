@@ -8,7 +8,7 @@ toc: true
 `Describer` 模組負責產生敘述性統計分析。您可以在 `Describer` 類別中指定統計方法以分析資料。
 
 ```Python
-from PETsARD import Describer
+from petsard import Describer
 
 
 data = {"data": loader.data}

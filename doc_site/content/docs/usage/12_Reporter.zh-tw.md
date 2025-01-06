@@ -7,12 +7,12 @@ toc: true
 
 `Reporter` 模組負責產製 `PETsARD` 的成果，其中包括報告輸出、以及資料集儲存。由於 `Reporter` 主要是為了使用者藉由 `Executor` 產製報告而設計，我們強烈建議使用者直接使用 `Executor`。
 
-如果您仍希望單獨使用 `Reporter`，請注意資料的輸入格式有特別的要求，請參考本教學的 [`create()` 章節](PETsARD/zh-tw/docs/usage/12_reporter/#create)做設定。
+如果您仍希望單獨使用 `Reporter`，請注意資料的輸入格式有特別的要求，請參考本教學的 [`create()` 章節](petsard/zh-tw/docs/usage/12_reporter/#create)做設定。
 
 **`method = 'save_data'`**
 
 ```Python
-from PETsARD import Reporter
+from petsard import Reporter
 
 
 syn_expt_name: str = 'default'
@@ -43,7 +43,7 @@ output: PETsARD_Synthesizer[default].csv
 **`method = 'save_report'`**
 
 ```Python
-from PETsARD import Reporter
+from petsard import Reporter
 
 
 granularity: str = 'global'
@@ -94,7 +94,7 @@ rpt = Reporter(
 
 `Reporter` 的功能是根據輸入 `data` 中吻合的關鍵字來產生檔案輸出，或是吻合的關鍵字產生報告輸出。
 
-在 `Executor` 中，這個 `data` 會按照 YAML 的設定與實驗流程，整理成特定的[完整實驗元組 (full_expt_tuple)](PETsARD/zh-tw/docs/usage/12_reporter/#full_expt_tuple) 供 `Reporter` 檢索。
+在 `Executor` 中，這個 `data` 會按照 YAML 的設定與實驗流程，整理成特定的[完整實驗元組 (full_expt_tuple)](petsard/zh-tw/docs/usage/12_reporter/#full_expt_tuple) 供 `Reporter` 檢索。
 
 而當使用者想單獨使用 `Reporter` 的時候，相信使用者是已經使用 `PETsARD` 各模組產生出自己想要的評測了，於是照著你所使用的模組、並對每個步驟加以命名（實驗名稱, `'expt_name'`），便可以組合成 `Reporter` 所需要的完整實驗元組。
 
@@ -104,7 +104,7 @@ rpt = Reporter(
 
 `method` (`str`): 產出報告的方法。限於 `'save_data'` 與 `'save_report'` 兩種。
 
-`output` (`str`, default=`'PETsARD'`, optional): 報告輸出檔名的前綴，預設為 `'PETsARD'`。具體輸出的檔名請參考 [`report()` 章節](PETsARD/zh-tw/docs/usage/12_reporter/#report)。
+`output` (`str`, default=`'PETsARD'`, optional): 報告輸出檔名的前綴，預設為 `'PETsARD'`。具體輸出的檔名請參考 [`report()` 章節](petsard/zh-tw/docs/usage/12_reporter/#report)。
 
 `source` (`str | List[str]`): 用以指定輸出目標是哪個模組或是哪個實驗名稱 (`expt_name`) 的結果。僅必要於 `method = 'save_data'`。
 
@@ -127,7 +127,7 @@ rpt = Reporter(
 ```Python
 import pandas as pd
 
-from PETsARD import Loader, ... Reporter
+from petsard import Loader, ... Reporter
 
 
 eval_name: str = 'exist_report-demo'
@@ -188,16 +188,16 @@ result            0.609297  }}
 
 `module_name` (`str`): 模組名稱必須是以下 `PETsARD` 在 YAML 裡可以設定的模組名稱之一，每個模組名稱在同一個元組裡只能出現一次。而 `Reporter` 的搜尋是針對最後一組元素組。
 
-- [Loader](PETsARD/zh-tw/docs/usage/04_loader/)
-- [Splitter](PETsARD/zh-tw/docs/usage/07_splitter/)
-- [Processor](PETsARD/zh-tw/docs/usage/08_processor/)
-- [Preprocessor](PETsARD/zh-tw/docs/usage/08_processor/)
-- [Synthesizer](PETsARD/zh-tw/docs/usage/09_synthesizer/)
-- [Postprocessor](PETsARD/zh-tw/docs/usage/08_processor/)
-- [Evaluator](PETsARD/zh-tw/docs/usage/10_evaluator/)
-- [Describer](PETsARD/zh-tw/docs/usage/11_describer/)
+- [Loader](petsard/zh-tw/docs/usage/04_loader/)
+- [Splitter](petsard/zh-tw/docs/usage/07_splitter/)
+- [Processor](petsard/zh-tw/docs/usage/08_processor/)
+- [Preprocessor](petsard/zh-tw/docs/usage/08_processor/)
+- [Synthesizer](petsard/zh-tw/docs/usage/09_synthesizer/)
+- [Postprocessor](petsard/zh-tw/docs/usage/08_processor/)
+- [Evaluator](petsard/zh-tw/docs/usage/10_evaluator/)
+- [Describer](petsard/zh-tw/docs/usage/11_describer/)
 
-`expt_name` (`str`): 實驗名稱為本模組的實驗所取的名稱。不同模組間的實驗名稱可以重複。模組與實驗名稱的規範一併請參考 [YAML 的 "模組與實驗名稱" 章節](PETsARD/zh-tw/docs/usage/02_yaml/)。
+`expt_name` (`str`): 實驗名稱為本模組的實驗所取的名稱。不同模組間的實驗名稱可以重複。模組與實驗名稱的規範一併請參考 [YAML 的 "模組與實驗名稱" 章節](petsard/zh-tw/docs/usage/02_yaml/)。
 
 對於 `'save_data'` 的 `source`，最後一組的模組名稱或實驗名稱應該與 `source` 匹配。
 

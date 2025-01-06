@@ -8,7 +8,7 @@ toc: true
 `Loader` 模組將資料寫入記憶體，供後續使用。
 
 ```python
-from PETsARD import Loader
+from petsard import Loader
 
 
 load = Loader('data.csv')
@@ -20,7 +20,7 @@ load.load()
 只要提供檔案路徑即可初始化 `Loader`。您也可以加入其他參數以達到客製化的目的。
 
 ```Python
-from PETsARD import Loader
+from petsard import Loader
 
 
 load = Loader(
@@ -75,14 +75,14 @@ print(load.data.head(1))
 `Loader` 模組的參數：
 
 - `filepath` (`str`): 實際本地端資料的檔案路徑。
-  - 使用[基準資料集](PETsARD/zh-tw/docs/usage/06_benchmark-datasets/)時會被實際下載存檔的檔名取代。
+  - 使用[基準資料集](petsard/zh-tw/docs/usage/06_benchmark-datasets/)時會被實際下載存檔的檔名取代。
 - `method` (`str`): 與輸入相同。
 - `file_ext` (`str`): 本地端資料的副檔名。
-- `benchmark` (`bool`): 是否為[基準資料集](PETsARD/zh-tw/docs/usage/06_benchmark-datasets/)。
+- `benchmark` (`bool`): 是否為[基準資料集](petsard/zh-tw/docs/usage/06_benchmark-datasets/)。
 - `dtypes` (`dict`): 各欄位格式的字典。
 - `column_types` (`dict`, optional), `header_name` (`list`, optional), `na_values` (`str | list | dict`, optional): 與輸入相同。
 
-以下的參數為使用基準資料集獨有。見[基準資料集頁面](PETsARD/zh-tw/docs/usage/06_benchmark-datasets/)。
+以下的參數為使用基準資料集獨有。見[基準資料集頁面](petsard/zh-tw/docs/usage/06_benchmark-datasets/)。
 
 - `filepath_raw` (`str`): 保留使用者輸入的原始檔案路徑。
 - `benchmark_name` (`str`): 使用者指定的基準資料集名稱。
@@ -102,4 +102,4 @@ print(load.data.head(1))
 
 ### `self.metadata.metadata`
 
-元資料以巢狀 `dict` 存於 `self.metadata.metadata`。詳見 ["Metadata"](PETsARD/zh-tw/docs/usage/05_metadata/) 頁面。
+元資料以巢狀 `dict` 存於 `self.metadata.metadata`。詳見 ["Metadata"](petsard/zh-tw/docs/usage/05_metadata/) 頁面。

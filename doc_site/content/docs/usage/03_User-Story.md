@@ -7,7 +7,7 @@ toc: true
 
 User Story demo is designed to assist users in setting their own configuration file. Enjoy : )
 
-It is recommended to refer to the `demo/User Story...ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo) and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which helps clarify the implementation of your requirements.
+It is recommended to refer to the `demo/User Story...ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/petsard/tree/main/demo) and [yaml/README.md](https://github.com/nics-tw/petsard/tree/main/yaml), which helps clarify the implementation of your requirements.
 
 ### Environment
 

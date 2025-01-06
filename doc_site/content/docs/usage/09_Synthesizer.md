@@ -8,7 +8,7 @@ toc: true
 The `Synthesizer` module is responsible for synthesizing. You can specify synthetic method in `Synthesizer` class.
 
 ```Python
-from PETsARD import Synthesizer, Loader
+from petsard import Synthesizer, Loader
 
 
 ## load = Loader(...)
@@ -36,7 +36,7 @@ syn = Synthesizer(
 
 `method` (`str`): The synthetic method. The format should be: `{library name}-{function name}`. For example, `'sdv-single_table-gaussiancopula'`.
 
-`epsilon` (`float`, default=`5.0`, optional): The epsilon used in differential privacy (DP) algorithm. If the synthetic method does not include DP, the parameter will be ignored. See "[Available Synthesizer Types](PETsARD/docs/usage/09_synthesizer/#selfdata_syn)".
+`epsilon` (`float`, default=`5.0`, optional): The epsilon used in differential privacy (DP) algorithm. If the synthetic method does not include DP, the parameter will be ignored. See "[Available Synthesizer Types](petsard/docs/usage/09_synthesizer/#selfdata_syn)".
 
 `**kwargs` (`dict`): The parameters defined by each synthetic methods. See the following sections.
 
@@ -48,7 +48,7 @@ Initiate a synthesizer by loading the original data and the corresponding metada
 
 `data` (`pd.DataFrame`): The data to be synthesized.
 
-`metadata` (`Metadata`, default=`None`): The metadata of the data. If `Loader`/`Splitter`/`Processor` is used, it is recommended to generate the metadata via last use module `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
+`metadata` (`Metadata`, default=`None`): The metadata of the data. If `Loader`/`Splitter`/`Processor` is used, it is recommended to generate the metadata via last use module `Loader.metadata`/`Splitter.metadata`/`Processor._metadata` to prevent any unexpected errors caused by `sdv`'s automatic metadata generation process. If `None` is passed, it will be generated automatically. `metadata` is used for `sdv`-related synthesizers and is ignored by other packages. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](petsard/docs/usage/05_metadata/) for more information.
 
 ### `fit()`
 
@@ -56,7 +56,7 @@ Learn the synthetic pattern from the original data.
 
 ### `sample()`
 
-Generate the synthetic dataset. The synthetic data is stored in the object itself (`self.data_syn`). See "[`self.data_syn`](PETsARD/docs/usage/09_synthesizer#selfdata_syn)".
+Generate the synthetic dataset. The synthetic data is stored in the object itself (`self.data_syn`). See "[`self.data_syn`](petsard/docs/usage/09_synthesizer#selfdata_syn)".
 
 **Parameters**
 

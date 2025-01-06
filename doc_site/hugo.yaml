@@ -41,7 +41,7 @@ menu:
         type: search
     - name: GitHub
       weight: 5
-      url: "https://github.com/nics-tw/PETsARD"
+      url: "https://github.com/nics-tw/petsard"
       params:
         icon: github
 
@@ -56,7 +56,7 @@ params:
     logo:
       path: images/cape_logo_2_black.svg
       dark: images/cape_logo_2_white.svg
-      link: /PETsARD
+      link: /petsard
       width: 40
       height: 20
 
