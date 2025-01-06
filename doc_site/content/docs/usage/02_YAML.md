@@ -5,9 +5,9 @@ weight: 13
 toc: true
 ---
 
-YAML (YAML Ain't Markup Language) is a highly readable format used to express data serialization, designed for easily reading and editing, while also being easily parsed by computers. `Executor` in `PETsARD` allows users to configure the settings of PETsARD in YAML format. Through the introduction of this document, we hope that users can quickly get started, effortlessly set up and run their experiments effortlessly, and manage their experimental settings with YAML conveniently (See [Executor page](PETsARD/docs/usage/01_executor/) also).
+YAML (YAML Ain't Markup Language) is a highly readable format used to express data serialization, designed for easily reading and editing, while also being easily parsed by computers. `Executor` in `PETsARD` allows users to configure the settings of PETsARD in YAML format. Through the introduction of this document, we hope that users can quickly get started, effortlessly set up and run their experiments effortlessly, and manage their experimental settings with YAML conveniently (See [Executor page](petsard/docs/usage/01_executor/) also).
 
-This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/PETsARD/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/PETsARD/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](PETsARD/docs/usage/03_user-story/) also).
+This document explains the basic YAML settings only. It is recommended to refer to the `demo/User Story*.ipynb` user story scenarios in the [demo/REAMD.ME](https://github.com/nics-tw/petsard/tree/main/demo), and [yaml/README.md](https://github.com/nics-tw/petsard/tree/main/yaml), which can help clarify how your requirements can be implemented (See [User Story page](petsard/docs/usage/03_user-story/) also).
 
 ## Tutorial
 
@@ -92,9 +92,9 @@ Reporter:
 
 ```
 
-<p align="center"><img src="/PETsARD/images/YAML_final.png" height="1080"></p>
+<p align="center"><img src="/petsard/images/YAML_final.png" height="1080"></p>
 
-Noted that in each module (enclosed by the dash line), it will be executed/created several times, depending on the number of upstream tasks/instances. See [Config Setup](PETsARD/docs/usage/02_yaml/) for details.
+Noted that in each module (enclosed by the dash line), it will be executed/created several times, depending on the number of upstream tasks/instances. See [Config Setup](petsard/docs/usage/02_yaml/) for details.
 
 ## YAML
 
@@ -111,17 +111,17 @@ The basic format of YAML is as follows:
 A YAML document starts and ends with `---` and `...`, respectively. The markers used in this tutorial are primarily to display the format formally. In reality, both of these settings are optional, and `pyyaml` can compile without setting either. It is important to note that `---` is also often used to separate multiple YAML configuration files within a single document, but `PETsARD` only supports the format of one configuration file per document.
 
 - `module name`: A module that performs specific tasks. The modules required for `PETsARD` include:
-  - `Loader`: Data loading. See [Loader page](PETsARD/docs/usage/04_loader/).
-  - `Preprocessor`: Data pre-processing. See [Processor page](PETsARD/docs/usage/08_processor/).
-  - `Synthesizer`: Data synthesizing. See [Synthesizer page](PETsARD/docs/usage/09_synthesizer/).
-  - `Postprocessor`: Data post-processing. See [Processor page](PETsARD/docs/usage/08_processor/).
-  - `Evaluator`: Data Evaluating. See [Evaluator page](PETsARD/docs/usage/10_evaluator/).
-  - `Describer`: Data Describing. See [Describer page](PETsARD/docs/usage/11_describer/).
-  - `Reporter`: Data/Report output. See [Reporter page](PETsARD/docs/usage/12_reporter/).
+  - `Loader`: Data loading. See [Loader page](petsard/docs/usage/04_loader/).
+  - `Preprocessor`: Data pre-processing. See [Processor page](petsard/docs/usage/08_processor/).
+  - `Synthesizer`: Data synthesizing. See [Synthesizer page](petsard/docs/usage/09_synthesizer/).
+  - `Postprocessor`: Data post-processing. See [Processor page](petsard/docs/usage/08_processor/).
+  - `Evaluator`: Data Evaluating. See [Evaluator page](petsard/docs/usage/10_evaluator/).
+  - `Describer`: Data Describing. See [Describer page](petsard/docs/usage/11_describer/).
+  - `Reporter`: Data/Report output. See [Reporter page](petsard/docs/usage/12_reporter/).
 - `experiment name`: A custom name for a single experimental parameter for that module. Mandatory.
 - `config of module`: For detailed configuration, please refer to the descriptions of each module in the manual.
 
-Ideally, you can pass the parameters accepted by the module in YAML format. See [Config Setup page](https://nics-tw.github.io/PETsARD/YAML.html#config-setup) for details. However, there are several parameters and commands in YAML accepted by `Executor`, please refer to the following section.
+Ideally, you can pass the parameters accepted by the module in YAML format. See [Config Setup page](https://nics-tw.github.io/petsard/YAML.html#config-setup) for details. However, there are several parameters and commands in YAML accepted by `Executor`, please refer to the following section.
 
 ## Parameters Specific to `Executor`
 
@@ -139,7 +139,7 @@ The parameter `method` in the `Splitter` section is only used for `method = 'cus
 
 ### `Preprocessor`
 
-`Preprocessor` is part of the `Processor` class. According to [Processor page](PETsARD/docs/usage/08_processor/), `metadata` is required. However, it is ignored, and `Executor` will take care of this, when using YAML. To pass the `config` from `Processor`, you can provide the nested structure `config` (in YAML format) directly. The parameter `sequence` in `Processor.fit()` is acceptable in this section as well.
+`Preprocessor` is part of the `Processor` class. According to [Processor page](petsard/docs/usage/08_processor/), `metadata` is required. However, it is ignored, and `Executor` will take care of this, when using YAML. To pass the `config` from `Processor`, you can provide the nested structure `config` (in YAML format) directly. The parameter `sequence` in `Processor.fit()` is acceptable in this section as well.
 
 ### `Synthesizer`
 
@@ -158,7 +158,7 @@ The parameter `method` in the `Splitter` section is only used for `method = 'cus
 `method` specifies the desired evaluate method (see the manual for detailed options). Mandatory. `method = 'default'` will use the default method for evaluate (currently QualityReport from `sdmetrics`). Besides, `method = 'custom_method'` performed evaluation according to the user-provided Python code path (`filepath`) and class (`method` specifies the class name). The user-defined class should include an `__init__` method that accepts settings (`config`), a `.create()` method that takes a dictionary named `data` for input of evaluation data, and `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` methods to output results at different levels of granularity for the entire dataset, individual fields, and between fields, respectively. We recommend inheriting the `EvaluatorBase` class directly to meet the requirements. You can import the module using the following code.
 
 ```Python
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import EvaluatorBase
 ```
 
 ### `Describer`
@@ -308,14 +308,14 @@ Back to Loader
 10.~16. just repeat 2.~8. under Loader: data_b
 ```
 
-From the above, we will obtain 16 experiment results. It's worth noting that `Reporter`'s `method: 'save_data'` and `method: 'save_report'` perform different tasks. `'save_data'` exports the results of the specified module within the experiment combination, while `'save_report'` exports the results of the specified `Evaluator`/`Describer` according to config. Therefore, in reality, we obtain 8 datasets results, plus 8 evaluation reports, totaling 16 experiment results. For more details, please refer to the [Reporter page](PETsARD/docs/usage/12_reporter/).
+From the above, we will obtain 16 experiment results. It's worth noting that `Reporter`'s `method: 'save_data'` and `method: 'save_report'` perform different tasks. `'save_data'` exports the results of the specified module within the experiment combination, while `'save_report'` exports the results of the specified `Evaluator`/`Describer` according to config. Therefore, in reality, we obtain 8 datasets results, plus 8 evaluation reports, totaling 16 experiment results. For more details, please refer to the [Reporter page](petsard/docs/usage/12_reporter/).
 
 ## Config Setup
 
 For the third layer in YAML, the parameters for each module should be considered as a dictionary to pass in. In this case, the keys of the dictionary are the parameters of the module. Please see the example below:
 
 ```Python
-from PETsARD import Loader
+from petsard import Loader
 
 
 ## experiment name: my-adult-income
@@ -369,7 +369,7 @@ Loader:
 ...
 ```
 
-The third layer of YAML contains three keys: `filepath`, `column_types`, and `na_values`, corresponding to the parameters of [`Loader` module](PETsARD/docs/usage/04_loader/). The values for each parameter are set according to the module page. Taking `Loader` as an example:
+The third layer of YAML contains three keys: `filepath`, `column_types`, and `na_values`, corresponding to the parameters of [`Loader` module](petsard/docs/usage/04_loader/). The values for each parameter are set according to the module page. Taking `Loader` as an example:
 
 - `filepath` is a string. If the string content does not contain any special characters, single or double quotes are not necessary.
 - `na_values` is a dictionary where both keys and values are strings. Dictionaries in YAML are represented as `key: value`, with a space following the colon. The question mark is a special character, hence it is enclosed in single quotes.
