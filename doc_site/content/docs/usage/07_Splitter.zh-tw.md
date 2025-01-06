@@ -8,7 +8,7 @@ toc: true
 `Splitter` 模組可切分資料，用於進行實驗。開發動機是由於 `anonymeter` 類的 `Evaluator` 要求將資料分成兩部分：控制組與實驗組。但亦可用於其他實驗需求。
 
 ```Python
-from PETsARD import Splitter
+from petsard import Splitter
 
 
 split = Splitter(
@@ -59,7 +59,7 @@ split.split(
 
 `exclude_index` (`List[int]`, optional): 在抽樣過程中欲排除的索引值。
 
-`metadata` (`Metadata`, optional): 資料集的元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](PETsARD/zh-tw/docs/usage/05_metadata/)
+`metadata` (`Metadata`, optional): 資料集的元資料。需注意的是這裡所需要的是 `Metadata` 類型本身，而非字典形式的 `Metadata.metadata`。可參閱 [Metadata 頁面](petsard/zh-tw/docs/usage/05_metadata/)
 
 ### `self.config`
 

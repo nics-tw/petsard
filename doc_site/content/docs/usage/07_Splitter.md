@@ -8,7 +8,7 @@ toc: true
 The `Splitter` module is responsible for splitting data for experimental purpose. This module is for `anonymeter` type `Evaluator`, which requires splitting the data into two parts: control and experiment datasets. However, it can be used for other experimental requirements as well.
 
 ```Python
-from PETsARD import Splitter
+from petsard import Splitter
 
 
 split = Splitter(
@@ -59,7 +59,7 @@ When using `split()` without setting `method` to `'custom_data'`, it is required
 
 `exclude_index` (`List[int]`, optional): The exist indeces to be excluded during the sampling process.
 
-`metadata` (`Metadata`, optional): The metadata of data. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
+`metadata` (`Metadata`, optional): The metadata of data. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](petsard/docs/usage/05_metadata/) for more information.
 
 ### `self.config`
 

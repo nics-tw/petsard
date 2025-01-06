@@ -8,7 +8,7 @@ toc: true
 The `Processor` module is responsible for managing preprocessing and postprocessing procedures during experiments. This component facilitates easy data handling, including tasks such as encoding categorical data, handling missing data, excluding outliers, and scaling data. This guide will walk you through the creation and manipulation of a processor instance from the `Processor` class.
 
 ```Python
-from PETsARD import Processor
+from petsard import Processor
 
 
 proc = Processor(metadata=split.metadata)
@@ -35,7 +35,7 @@ proc = Processor(
 
 **Parameters**
 
-`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. If `Loader`/`Splitter` is used, it is recommended to get the metadata via last use module `Loader.metadata`/`Splitter.metadata`. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](PETsARD/docs/usage/05_metadata/) for more information.
+`metadata` (`Metadata`): The data schema used for creating the processor and inferring appropriate data processing procedures. If `Loader`/`Splitter` is used, it is recommended to get the metadata via last use module `Loader.metadata`/`Splitter.metadata`. Note that the requirement is for the `Metadata` type itself, not `Metadata.metadata` as a dictionary. See the [Metadata page](petsard/docs/usage/05_metadata/) for more information.
 
 `config` (`dict`, default=`None`): User-defined procedures containing information about the components to be used in each column.
 
@@ -66,23 +66,23 @@ proc.get_config(
 
 ```plain_text
 {'missing': {
-    'gen': <PETsARD.processor.missing.MissingDrop at 0x28afa7d90>,
-    'age': <PETsARD.processor.missing.MissingSimple at 0x28af374f0>
+    'gen': <petsard.processor.missing.MissingDrop at 0x28afa7d90>,
+    'age': <petsard.processor.missing.MissingSimple at 0x28af374f0>
     },
  'outlier': {
     'gen': None,
-    'age': <PETsARD.processor.outlier.OutlierLOF at 0x28afa72b0>
+    'age': <petsard.processor.outlier.OutlierLOF at 0x28afa72b0>
     },
  'encoder': {
-    'gen': <PETsARD.processor.encoder.EncoderOneHot at 0x28afa6f80>,
+    'gen': <petsard.processor.encoder.EncoderOneHot at 0x28afa6f80>,
     'age': None
     },
  'scaler': {
     'gen': None,
-    'age': <PETsARD.processor.scaler.ScalerMinMax at 0x28afa6ec0>},
+    'age': <petsard.processor.scaler.ScalerMinMax at 0x28afa6ec0>},
  'discretizing': {
-    'gen': <PETsARD.processor.encoder.EncoderLabel at 0x28afa4910>,
-    'age': <PETsARD.processor.discretizing.DiscretizingKBins at 0x28afa7310>
+    'gen': <petsard.processor.encoder.EncoderLabel at 0x28afa4910>,
+    'age': <petsard.processor.discretizing.DiscretizingKBins at 0x28afa7310>
     }
 }
 ```
@@ -204,7 +204,7 @@ In this section, we provide a comprehensive list of supported processor types an
 
 </div>
 
-The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`. See [Metadata](PETsARD/docs/usage/05_metadata/) page for details.
+The following processors represent the default ones assigned based on `'inder_dtype'` in the `metadata`. See [Metadata](petsard/docs/usage/05_metadata/) page for details.
 
 ```plain_text
 {
