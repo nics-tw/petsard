@@ -9,7 +9,7 @@ math: true
 The `Evalutor` module is responsible for evaluting the quality of synthetic data. You can specify evaluation method in `Evaluator` class and use it to examine the synthetic data.
 
 ```Python
-from PETsARD import Evaluator
+from petsard import Evaluator
 
 
 eval = Evaluator(
@@ -47,7 +47,7 @@ eval = Evaluator(
   - For custom Python functions, we recommend directly inheriting from the `EvaluatorBase` class and implementing its methods to meet the requirements. You can import from here:
 
 ```Python
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import EvaluatorBase
 ```
 
 `custom_method` (`dict`, default=`None`, optional): The dictionary contains the custom method information. It should include: - `filepath` (`str`): The path to the custom method file. - `method` (`str`): The method name in the custom method file.
@@ -67,7 +67,7 @@ Create an `Evaluator` object with the given data.
 - `SDMetrics` required two types of data:
   - The original data utilised for synthesis (referred to as `'ori'`)
   - The synthetic data generated from `'ori'` (referred to as `'syn'`)
-- Fortunately, if you are utilizing our `Executor` (see [Executor page](PETsARD/docs/usage/01_executor/)), there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
+- Fortunately, if you are utilizing our `Executor` (see [Executor page](petsard/docs/usage/01_executor/)), there is no need to concern yourself with this requirement; you are ready to proceed without any additional steps.
 
 ```Python
 eval.create(
@@ -126,7 +126,7 @@ The instantiated evaluator itself.
 
 ### `self.data`
 
-Stored the `data` input from `.create()` function. See the [`create()`](PETsARD/docs/usage/10_evaluator/#create) documentation for more information.
+Stored the `data` input from `.create()` function. See the [`create()`](petsard/docs/usage/10_evaluator/#create) documentation for more information.
 
 ### `self.result`
 

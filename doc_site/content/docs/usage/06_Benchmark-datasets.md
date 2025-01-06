@@ -10,9 +10,9 @@ Benchmark datasets is an extended feature of the `loader` module in `PETsARD`, p
 The usage of benchmark datasets is straightforward. All you need to do is to place the corresponding "Benchmark dataset name" in the `filepath` parameter of `Loader`: `benchmark://{Benchmark dataset name}` (case-insensitive). `PETsARD` will download the corresponding dataset and load it into `Loader.data`. You are able to customize the dataset's `metadata` according to other `Loader` parameters. Here is an example of calling the "adult" dataset:
 
 ```Python
-from PETsARD import Loader
+from petsard import Loader
 
-load = PETsARD.Loader(
+load = Loader(
     filepath='benchmark://adult',
     na_values={k: '?' for k in [
         'workclass',
@@ -45,7 +45,7 @@ If the "benchmark" folder already contains a file with the same filename, the pr
 The function for calculating the SHA256 of a file in the `PETsARD` package is as follows:
 
 ```Python
-from PETsARD.loader.util import DigestSha256
+from petsard.loader.util import DigestSha256
 
 
 sha256 = DigestSha256(filepath='benchmark/adult-income.csv')
