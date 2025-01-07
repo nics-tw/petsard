@@ -3,14 +3,38 @@ import warnings
 from copy import deepcopy
 from types import NoneType
 
-from petsard.error import *
+import numpy as np
+import pandas as pd
+
+from petsard.error import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
-from petsard.processor.discretizing import *
-from petsard.processor.encoder import *
-from petsard.processor.mediator import *
-from petsard.processor.missing import *
-from petsard.processor.outlier import *
-from petsard.processor.scaler import *
+from petsard.processor.discretizing import DiscretizingKBins
+from petsard.processor.encoder import EncoderLabel, EncoderOneHot, EncoderUniform
+from petsard.processor.mediator import (
+    Mediator,
+    MediatorEncoder,
+    MediatorMissing,
+    MediatorOutlier,
+)
+from petsard.processor.missing import (
+    MissingDrop,
+    MissingMean,
+    MissingMedian,
+    MissingMode,
+    MissingSimple,
+)
+from petsard.processor.outlier import (
+    OutlierIQR,
+    OutlierIsolationForest,
+    OutlierLOF,
+    OutlierZScore,
+)
+from petsard.processor.scaler import (
+    ScalerLog,
+    ScalerMinMax,
+    ScalerStandard,
+    ScalerZeroCenter,
+)
 from petsard.util import (
     optimize_dtype,
     safe_astype,
@@ -215,7 +239,7 @@ class Processor:
         for processor, val in config.items():
             for col, obj in val.items():
                 # accept string of processor
-                if type(obj) == str:
+                if isinstance(obj, str):
                     obj = self._processor_map.get(obj, None)()
 
                 self._config[processor][col] = obj
@@ -276,7 +300,7 @@ class Processor:
         self.logger.debug("Fitting sequence generation completed.")
 
         for processor in self._fitting_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
                         f"{processor}: {obj} from {col} start processing."
@@ -311,7 +335,7 @@ class Processor:
         Args:
             sequence (list): The processing sequence.
         """
-        if type(sequence) != list:
+        if not isinstance(sequence, list):
             raise TypeError("Sequence should be a list.")
 
         if len(sequence) == 0:
@@ -380,7 +404,7 @@ class Processor:
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._fitting_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
                         f"{processor}: {obj} from {col} start transforming."
@@ -513,7 +537,7 @@ class Processor:
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._inverse_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
                         f"{processor}: {obj} from {col} start"
