@@ -10,7 +10,7 @@ class Encoder:
     Base class for all Encoder classes.
     """
 
-    PROC_TYPE = ('encoder',)
+    PROC_TYPE = ("encoder",)
 
     def __init__(self) -> None:
         # Mapping dict
@@ -39,8 +39,9 @@ class Encoder:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -54,7 +55,7 @@ class Encoder:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         # Check whether the categories of the column are
         # included in the fitted instance
@@ -62,7 +63,8 @@ class Encoder:
             raise ValueError(
                 "The data contains categories that the object hasn't seen",
                 " in the fitting process.",
-                " Please check the data categories again.")
+                " Please check the data categories again.",
+            )
 
         return self._transform(data)
 
@@ -75,8 +77,9 @@ class Encoder:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.Series) -> pd.Series | np.ndarray:
         """
@@ -90,7 +93,7 @@ class Encoder:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         return self._inverse_transform(data)
 
@@ -103,8 +106,9 @@ class Encoder:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +
-                                  "implemented in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be " + "implemented in subclasses."
+        )
 
 
 class EncoderUniform(Encoder):
@@ -130,11 +134,9 @@ class EncoderUniform(Encoder):
             data (pd.Series): The categorical data needed to be transformed.
         """
         # Filter the counts > 0
-        normalize_value_counts = data.value_counts(normalize=True)\
-            .loc[lambda x: x > 0]
+        normalize_value_counts = data.value_counts(normalize=True).loc[lambda x: x > 0]
         # Get keys (original labels)
-        self.labels = normalize_value_counts.index.get_level_values(
-            0).to_list()
+        self.labels = normalize_value_counts.index.get_level_values(0).to_list()
         # Get values (upper and lower bounds)
         self.upper_values = np.cumsum(normalize_value_counts.values)
         self.lower_values = np.roll(self.upper_values, 1)
@@ -143,8 +145,9 @@ class EncoderUniform(Encoder):
         self.upper_values[-1] = 1.0
         self.lower_values[0] = 0.0
 
-        self.cat_to_val = dict(zip(self.labels, list(
-            zip(self.lower_values, self.upper_values))))
+        self.cat_to_val = dict(
+            zip(self.labels, list(zip(self.lower_values, self.upper_values)))
+        )
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -164,9 +167,11 @@ class EncoderUniform(Encoder):
         else:
             data_obj = data.copy()
 
-        return data_obj.map(lambda x: self._rgenerator.
-                            uniform(self.cat_to_val[x][0],
-                                    self.cat_to_val[x][1], size=1)[0]).values
+        return data_obj.map(
+            lambda x: self._rgenerator.uniform(
+                self.cat_to_val[x][0], self.cat_to_val[x][1], size=1
+            )[0]
+        ).values
 
     def _inverse_transform(self, data: pd.Series) -> pd.Series:
         """
@@ -184,12 +189,19 @@ class EncoderUniform(Encoder):
         if data.max() > 1 or data.min() < 0:
             raise ValueError(
                 "The range of the data is out of range.",
-                " Please check the data again.")
+                " Please check the data again.",
+            )
 
         bins_val = np.append(self.lower_values, 1.0)
 
-        return pd.cut(data, right=False, include_lowest=True, bins=bins_val,
-                      labels=self.labels, ordered=False)
+        return pd.cut(
+            data,
+            right=False,
+            include_lowest=True,
+            bins=bins_val,
+            labels=self.labels,
+            ordered=False,
+        )
 
 
 class EncoderLabel(Encoder):
@@ -197,7 +209,7 @@ class EncoderLabel(Encoder):
     Implement a label encoder.
     """
 
-    PROC_TYPE = ('encoder', 'discretizing')
+    PROC_TYPE = ("encoder", "discretizing")
 
     def __init__(self) -> None:
         super().__init__()
@@ -215,8 +227,9 @@ class EncoderLabel(Encoder):
         # Get keys (original labels)
         self.labels = list(self.model.classes_)
 
-        self.cat_to_val = dict(zip(self.labels, list(
-            self.model.transform(self.model.classes_))))
+        self.cat_to_val = dict(
+            zip(self.labels, list(self.model.transform(self.model.classes_)))
+        )
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -253,7 +266,7 @@ class EncoderOneHot(Encoder):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = OneHotEncoder(sparse_output=False, drop='first')
+        self.model = OneHotEncoder(sparse_output=False, drop="first")
 
         # for the use in Mediator
         self._transform_temp: np.ndarray = None

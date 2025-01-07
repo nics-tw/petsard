@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from petsard.error import UnfittedError
 
@@ -11,7 +10,7 @@ class Scaler:
     Base class for all Scaler classes.
     """
 
-    PROC_TYPE = ('scaler',)
+    PROC_TYPE = ("scaler",)
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -37,8 +36,9 @@ class Scaler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -52,7 +52,7 @@ class Scaler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -68,8 +68,9 @@ class Scaler:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -83,7 +84,7 @@ class Scaler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if type(data) == pd.Series:
             data = data.values.reshape(-1, 1)
@@ -99,8 +100,9 @@ class Scaler:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +
-                                  "implemented in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be " + "implemented in subclasses."
+        )
 
 
 class ScalerStandard(Scaler):
@@ -184,8 +186,7 @@ class ScalerLog(Scaler):
             data (np.ndarray): The data needed to be transformed.
         """
         if (data <= 0).any():
-            raise ValueError(
-                'Log transformation does not support non-positive values.')
+            raise ValueError("Log transformation does not support non-positive values.")
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
@@ -198,8 +199,7 @@ class ScalerLog(Scaler):
             (np.ndarray): The transformed data.
         """
         if (data <= 0).any():
-            raise ValueError(
-                'Log transformation does not support non-positive values.')
+            raise ValueError("Log transformation does not support non-positive values.")
         else:
             return np.log(data)
 

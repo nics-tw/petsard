@@ -1,5 +1,5 @@
-from copy import deepcopy
 import random
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ class MissingHandler:
     Base class for all MissingHandler classes.
     """
 
-    PROC_TYPE = ('missing',)
+    PROC_TYPE = ("missing",)
 
     def __init__(self) -> None:
         self._is_fitted: True = False
@@ -29,8 +29,7 @@ class MissingHandler:
             na_percentage (float, default=0.0): NA percentage from the metadata.
         """
         if na_percentage > 1.0 or na_percentage < 0.0:
-            raise ValueError(
-                'Invalid NA percentage. It should be between 0.0 and 1.0.')
+            raise ValueError("Invalid NA percentage. It should be between 0.0 and 1.0.")
 
         self.na_percentage = na_percentage
 
@@ -42,7 +41,7 @@ class MissingHandler:
             index_list (list): The indices can be set to NA.
         """
         if type(index_list) != list:
-            raise ValueError('Invalid index_list. It should be a list.')
+            raise ValueError("Invalid index_list. It should be a list.")
 
         self._imputation_index = index_list
         self._imputation_index_len = len(index_list)
@@ -65,8 +64,9 @@ class MissingHandler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> pd.Series | np.ndarray:
         """
@@ -80,7 +80,7 @@ class MissingHandler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         return self._transform(data)
 
@@ -93,8 +93,9 @@ class MissingHandler:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.Series) -> pd.Series:
         """
@@ -108,15 +109,16 @@ class MissingHandler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if self.na_percentage == 0.0 or self._imputation_index_len == 0:
             return data
         else:
-            _na_mask = self.rng.choice(self._imputation_index,
-                                       size=int(self.na_percentage *
-                                                self._imputation_index_len),
-                                       replace=False)
+            _na_mask = self.rng.choice(
+                self._imputation_index,
+                size=int(self.na_percentage * self._imputation_index_len),
+                replace=False,
+            )
             _col_data = deepcopy(data)
             _col_data.iloc[_na_mask] = np.nan
 
@@ -131,8 +133,9 @@ class MissingHandler:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +
-                                  "implemented in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be " + "implemented in subclasses."
+        )
 
 
 class MissingMean(MissingHandler):
