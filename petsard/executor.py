@@ -11,7 +11,7 @@ class Executor:
     """
 
     LOG_FILE: str = "PETsARD"
-    LOG_LEVEL: str = "DEBUG"  # "INFO" # DEBUG / INFO / WARNING / ERROR / CRITICAL
+    LOG_LEVEL: str = "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
 
     def __init__(self, config: str):
         """
@@ -86,8 +86,18 @@ class Executor:
         """
         Setting the output method of logger.
         """
-        # setup logger
-        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        # Disable the root logger
+        logging.getLogger().handlers = []
+
+        # setup root logger
+        root_logger = logging.getLogger("PETsARD")
+
+        # setup output_type
+        timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        log_file: str = f"{self.LOG_FILE}_{timestamp}.log"
+        file_handler = logging.FileHandler(log_file)
+
+        # setup formatter
         formatter = logging.Formatter(
             "%(asctime)s - "  # timestamp
             "%(name)-21s - "  # logger name (left align w/ 21 digits: 'PETsARD.Postprocessor')
@@ -95,16 +105,13 @@ class Executor:
             "%(levelname)-8s - "  # logger level (left align w/ 8 digits: 'CRITICAL')
             "%(message)s"  # message
         )
-        if self.logger.handlers:
-            self.logger.handlers.clear()
-
-        # setup output_type
-        timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file: str = f"{self.LOG_FILE}_{timestamp}.log"
-
-        file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
-        self.logger.addHandler(file_handler)
+
+        # add file handler to root logger
+        root_logger.addHandler(file_handler)
 
         # setup logging level
-        self.logger.setLevel(getattr(logging, self.LOG_LEVEL.upper()))
+        root_logger.setLevel(getattr(logging, self.LOG_LEVEL.upper()))
+
+        # setup this logger as a child of root logger
+        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
