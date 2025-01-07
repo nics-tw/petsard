@@ -1,4 +1,7 @@
+import logging
+import time
 from copy import deepcopy
+from datetime import timedelta
 
 import pandas as pd
 
@@ -26,13 +29,47 @@ class Operator:
         Args:
             config (dict):
                 A dictionary containing configuration parameters.
+
+        Attr.:
+            module_name (str):
+                The name of the module.
+            logger (logging.Logger):
+                The logger object for the module.
+            config (dict):
+                The configuration parameters for the module.
+            input (dict):
+                The input data for the module.
         """
+        self.module_name: str = self.__class__.__name__.replace("Operator", "")
+        self.logger = logging.getLogger(f"PETsARD.{self.module_name}")
+
         self.config = config
         self.input: dict = {}
         if config is None:
+            self.logger.error("Configuration is None")
             raise ConfigError
 
     def run(self, input: dict):
+        """
+        Execute the module's functionality.
+
+        Args:
+            input (dict): A input dictionary contains module required input from Status.
+                See self.set_input() for more details.
+        """
+        start_time: time = time.time()
+        self.logger.info(f"Starting {self.module_name} execution")
+
+        self._run(input)
+
+        elapsed_time: time = time.time() - start_time
+        formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
+        self.logger.info(
+            f"Completed {self.module_name} execution "
+            f"(elapsed: {formatted_elapsed_time})"
+        )
+
+    def _run(self, input: dict):
         """
         Execute the module's functionality.
 
@@ -85,7 +122,7 @@ class LoaderOperator(Operator):
         super().__init__(config)
         self.loader = Loader(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data loading process using the Loader instance.
 
@@ -146,7 +183,7 @@ class SplitterOperator(Operator):
         super().__init__(config)
         self.splitter = Splitter(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data splitting process using the Splitter instance.
 
@@ -231,7 +268,7 @@ class PreprocessorOperator(Operator):
             del config["sequence"]
         self._config = {} if method == "default" else config
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
 
@@ -330,7 +367,7 @@ class SynthesizerOperator(Operator):
             }
         )
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data synthesizing using the Synthesizer instance.
 
@@ -399,7 +436,7 @@ class PostprocessorOperator(Operator):
         self.processor = None
         self._config = {} if config["method"].lower() == "default" else config
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
 
@@ -458,7 +495,7 @@ class EvaluatorOperator(Operator):
         super().__init__(config)
         self.evaluator = Evaluator(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data evaluating using the Evaluator instance.
 
@@ -528,7 +565,7 @@ class DescriberOperator(Operator):
             config["method"] = "default"
         self.describer = Describer(config=config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data describing using the Describer instance.
 
@@ -585,7 +622,7 @@ class ReporterOperator(Operator):
         report (dict): Dictionary to store the generated reports.
 
     Methods:
-        run(input: dict): Runs the Reporter to create and generate reports.
+        _run(input: dict): Runs the Reporter to create and generate reports.
         set_input(status) -> dict: Sets the input data for the Reporter.
         get_result(): Placeholder method for getting the result.
 
@@ -596,7 +633,7 @@ class ReporterOperator(Operator):
         self.reporter = Reporter(**config)
         self.report: dict = {}
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Runs the Reporter to create and generate reports.
 
