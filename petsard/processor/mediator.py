@@ -1,9 +1,17 @@
+import numpy as np
+import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
+from petsard.error import UnfittedError
 from petsard.processor.encoder import EncoderOneHot
 from petsard.processor.missing import MissingDrop
-from petsard.processor.outlier import *
+from petsard.processor.outlier import (
+    OutlierIQR,
+    OutlierIsolationForest,
+    OutlierLOF,
+    OutlierZScore,
+)
 
 
 class Mediator:
@@ -134,7 +142,7 @@ class MediatorMissing(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == MissingDrop:
+            if isinstance(obj, MissingDrop):
                 self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -203,11 +211,11 @@ class MediatorOutlier(Mediator):
         # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
-            if type(obj) == OutlierIsolationForest:
+            if isinstance(obj, OutlierIsolationForest):
                 self.model = IsolationForest()
                 self._global_model_indicator = True
                 break
-            elif type(obj) == OutlierLOF:
+            elif isinstance(obj, OutlierLOF):
                 self.model = LocalOutlierFactor()
                 self._global_model_indicator = True
                 break
@@ -320,7 +328,7 @@ class MediatorEncoder(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == EncoderOneHot:
+            if isinstance(obj, EncoderOneHot):
                 self._process_col.append(col)
 
         self._colname = data.columns
@@ -345,12 +353,12 @@ class MediatorEncoder(Mediator):
 
             # prevent duplicates
             n = 1
-            new_labels = [str(col) + "_" + str(l) for l in label_list]
+            new_labels = [str(col) + "_" + str(label) for label in label_list]
 
             # check if the new labels and the original columns overlap
             while len(set(new_labels) & set(self._colname)) != 0:
                 n = n + 1
-                new_labels = [str(col) + "_" * n + str(l) for l in label_list]
+                new_labels = [str(col) + "_" * n + str(label) for label in label_list]
 
             ohe_df = pd.DataFrame(self._config[col]._transform_temp, columns=new_labels)
 

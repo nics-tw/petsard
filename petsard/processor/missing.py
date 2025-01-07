@@ -40,7 +40,7 @@ class MissingHandler:
         Args:
             index_list (list): The indices can be set to NA.
         """
-        if type(index_list) != list:
+        if not isinstance(index_list, list):
             raise ValueError("Invalid index_list. It should be a list.")
 
         self._imputation_index = index_list

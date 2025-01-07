@@ -22,7 +22,7 @@ class Scaler:
         Args:
             data (pd.Series): The data needed to be fitted.
         """
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         self._fit(data)
@@ -54,7 +54,7 @@ class Scaler:
         if not self._is_fitted:
             raise UnfittedError("The object is not fitted. Use .fit() first.")
 
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
@@ -86,7 +86,7 @@ class Scaler:
         if not self._is_fitted:
             raise UnfittedError("The object is not fitted. Use .fit() first.")
 
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
