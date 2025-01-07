@@ -133,7 +133,9 @@ class LoaderOperator(Operator):
             loader.data (pd.DataFrame):
                 An loading result data.
         """
+        self.logger.debug("Starting data loading process")
         self.loader.load()
+        self.logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
         """
@@ -198,7 +200,9 @@ class SplitterOperator(Operator):
                     Second layer is the splitting result of specific splitting,
                     key as str: 'train' and 'validation', value as pd.DataFrame.
         """
+        self.logger.debug("Starting data splitting process")
         self.splitter.split(**input)
+        self.logger.debug("Data splitting completed")
 
     def set_input(self, status) -> dict:
         """
@@ -280,13 +284,21 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
+        self.logger.debug("Initializing processor")
         self.processor = Processor(metadata=input["metadata"])
+
         # for keep default but update manual only
+        self.logger.debug("Updating processor configuration")
         self.processor.update_config(self._config)
+
         if self._sequence is None:
+            self.logger.debug("Using default processing sequence")
             self.processor.fit(data=input["data"])
         else:
+            self.logger.debug(f"Using custom sequence: {self._sequence}")
             self.processor.fit(data=input["data"], sequence=self._sequence)
+
+        self.logger.debug("Transforming data")
         self.data_preproc = self.processor.transform(data=input["data"])
 
     def set_input(self, status) -> dict:
@@ -378,8 +390,13 @@ class SynthesizerOperator(Operator):
             synthesizer.data_syn (pd.DataFrame):
                 An synthesizing result data.
         """
+        self.logger.debug("Starting data synthesizing process")
+
         self.synthesizer.create(**input)
+        self.logger.debug("Synthesizing model initialization completed")
+
         self.synthesizer.fit_sample(**self.sample_dict)
+        self.logger.debug("Train and sampling Synthesizing model completed")
 
     def set_input(self, status) -> dict:
         """
@@ -448,8 +465,13 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
+        self.logger.debug("Starting data postprocessing process")
+
         self.processor = input["preprocessor"]
+        self.logger.debug("Processor configuration loading completed")
+
         self.data_postproc = self.processor.inverse_transform(data=input["data"])
+        self.logger.debug("Data postprocessing completed")
 
     def set_input(self, status) -> dict:
         """
@@ -505,8 +527,13 @@ class EvaluatorOperator(Operator):
         Attributes:
             evaluator.result (dict): An evaluating result data.
         """
+        self.logger.debug("Starting data evaluating process")
+
         self.evaluator.create(**input)
+        self.logger.debug("Evaluation model initialization completed")
+
         self.evaluator.eval()
+        self.logger.debug("Data evaluating completed")
 
     def set_input(self, status) -> dict:
         """
@@ -575,8 +602,13 @@ class DescriberOperator(Operator):
         Attributes:
             describer.result (dict): An describing result data.
         """
+        self.logger.debug("Starting data describing process")
+
         self.describer.create(**input)
+        self.logger.debug("Describing model initialization completed")
+
         self.describer.eval()
+        self.logger.debug("Data describing completed")
 
     def set_input(self, status) -> dict:
         """
@@ -641,11 +673,14 @@ class ReporterOperator(Operator):
             input (dict): Input data for the Reporter.
                 - data (dict): The data to be reported.
         """
+        self.logger.debug("Starting data reporting process")
+
         temp: dict = None
         eval_expt_name: str = None
         report: pd.DataFrame = None
-
         self.reporter.create(data=input["data"])
+        self.logger.debug("Reporting configuration initialization completed")
+
         self.reporter.report()
         if "Reporter" in self.reporter.result:
             # ReporterSaveReport
@@ -662,6 +697,7 @@ class ReporterOperator(Operator):
         else:
             # ReporterSaveData
             self.report = self.reporter.result
+        self.logger.debug("Data reporting completed")
 
     def set_input(self, status) -> dict:
         """
