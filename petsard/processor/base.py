@@ -1,5 +1,4 @@
 import logging
-import sys
 import warnings
 from copy import deepcopy
 from types import NoneType
@@ -17,13 +16,6 @@ from petsard.util import (
     safe_astype,
     safe_dtype,
     safe_infer_dtype,
-)
-
-logging.basicConfig(
-    level=logging.INFO,
-    stream=sys.stdout,
-    format="[%(levelname).1s %(asctime)s] %(message)s",
-    datefmt="%Y%m%d %H:%M:%S",
 )
 
 
@@ -59,6 +51,8 @@ class Processor:
                 }
         config (dict): The user-defined config.
         """
+        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+
         # object datatype indicates the unusual data,
         # passive actions will be taken in processing procedure
         self._default_processor: dict = {
@@ -117,7 +111,7 @@ class Processor:
         }
 
         self._metadata: Metadata = metadata
-        logging.debug("Metadata loaded.")
+        self.logger.debug("Metadata loaded.")
 
         # processing sequence
         self._sequence: list = None
@@ -144,7 +138,7 @@ class Processor:
         # the temp config records the config from in-process/expanded column
         self._working_config: dict = {}
 
-        logging.debug("Config loaded.")
+        self.logger.debug("Config loaded.")
 
     def _generate_config(self) -> None:
         """
@@ -255,7 +249,7 @@ class Processor:
             self._fitting_sequence.insert(
                 self._fitting_sequence.index("missing") + 1, self.mediator_missing
             )
-            logging.info("MediatorMissing is created.")
+            self.logger.info("MediatorMissing is created.")
 
         if "outlier" in self._sequence:
             # if outlier is in the procedure,
@@ -265,7 +259,7 @@ class Processor:
             self._fitting_sequence.insert(
                 self._fitting_sequence.index("outlier") + 1, self.mediator_outlier
             )
-            logging.info("MediatorOutlier is created.")
+            self.logger.info("MediatorOutlier is created.")
 
         if "encoder" in self._sequence:
             # if encoder is in the procedure,
@@ -275,16 +269,18 @@ class Processor:
             self._fitting_sequence.insert(
                 self._fitting_sequence.index("encoder") + 1, self.mediator_encoder
             )
-            logging.info("MediatorEncoder is created.")
+            self.logger.info("MediatorEncoder is created.")
 
         self._detect_edit_global_transformation()
 
-        logging.debug("Fitting sequence generation completed.")
+        self.logger.debug("Fitting sequence generation completed.")
 
         for processor in self._fitting_sequence:
             if type(processor) == str:
                 for col, obj in self._config[processor].items():
-                    logging.debug(f"{processor}: {obj} from {col} start processing.")
+                    self.logger.debug(
+                        f"{processor}: {obj} from {col} start processing."
+                    )
 
                     if obj is None:
                         continue
@@ -294,14 +290,14 @@ class Processor:
 
                     obj.fit(data[col])
 
-                logging.info(f"{processor} fitting done.")
+                self.logger.info(f"{processor} fitting done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
 
-                logging.debug(f"mediator: {processor} start processing.")
+                self.logger.debug(f"mediator: {processor} start processing.")
                 processor.fit(data)
-                logging.info(f"{processor} fitting done.")
+                self.logger.info(f"{processor} fitting done.")
 
         # it is a shallow copy
         self._working_config = self._config.copy()
@@ -358,7 +354,7 @@ class Processor:
             if obj.IS_GLOBAL_TRANSFORMATION:
                 is_global_transformation = True
                 replaced_class = obj.__class__
-                logging.info(
+                self.logger.info(
                     "Global transformation detected."
                     + f" All processors will be replaced to {replaced_class}."
                 )
@@ -386,7 +382,9 @@ class Processor:
         for processor in self._fitting_sequence:
             if type(processor) == str:
                 for col, obj in self._config[processor].items():
-                    logging.debug(f"{processor}: {obj} from {col} start transforming.")
+                    self.logger.debug(
+                        f"{processor}: {obj} from {col} start transforming."
+                    )
 
                     if obj is None:
                         continue
@@ -416,13 +414,15 @@ class Processor:
                                 col=col,
                             )
 
-                logging.info(f"{processor} transformation done.")
+                self.logger.info(f"{processor} transformation done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
 
-                logging.debug(f"mediator: {processor} start transforming.")
-                logging.debug(f"before transformation: data shape: {transformed.shape}")
+                self.logger.debug(f"mediator: {processor} start transforming.")
+                self.logger.debug(
+                    f"before transformation: data shape: {transformed.shape}"
+                )
 
                 transformed = processor.transform(transformed)
                 if isinstance(processor, MediatorEncoder):
@@ -432,8 +432,10 @@ class Processor:
                     )
                 self._adjust_working_config(processor, self._fitting_sequence)
 
-                logging.debug(f"after transformation: data shape: {transformed.shape}")
-                logging.info(f"{processor} transformation done.")
+                self.logger.debug(
+                    f"after transformation: data shape: {transformed.shape}"
+                )
+                self.logger.info(f"{processor} transformation done.")
 
         self._metadata.metadata["global"]["row_num_after_preproc"] = transformed.shape[
             0
@@ -498,7 +500,7 @@ class Processor:
             self._inverse_sequence.insert(
                 self._inverse_sequence.index("encoder"), self.mediator_encoder
             )
-            logging.info("MediatorEncoder is created.")
+            self.logger.info("MediatorEncoder is created.")
 
         if "discretizing" in self._inverse_sequence:
             # if discretizing is in the procedure,
@@ -506,14 +508,14 @@ class Processor:
             # See #440
             data = deepcopy(data).dropna()
 
-        logging.debug("Inverse sequence generation completed.")
+        self.logger.debug("Inverse sequence generation completed.")
 
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._inverse_sequence:
             if type(processor) == str:
                 for col, obj in self._config[processor].items():
-                    logging.debug(
+                    self.logger.debug(
                         f"{processor}: {obj} from {col} start"
                         + " inverse transforming."
                     )
@@ -540,15 +542,19 @@ class Processor:
                         transformed[col] = transformed[col].round().astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
-                logging.info(f"{processor} inverse transformation done.")
+                self.logger.info(f"{processor} inverse transformation done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
-                logging.debug(f"mediator: {processor} start inverse transforming.")
-                logging.debug(f"before transformation: data shape: {transformed.shape}")
+                self.logger.debug(f"mediator: {processor} start inverse transforming.")
+                self.logger.debug(
+                    f"before transformation: data shape: {transformed.shape}"
+                )
                 transformed = processor.inverse_transform(transformed)
-                logging.debug(f"after transformation: data shape: {transformed.shape}")
-                logging.info(f"{processor} transformation done.")
+                self.logger.debug(
+                    f"after transformation: data shape: {transformed.shape}"
+                )
+                self.logger.info(f"{processor} transformation done.")
 
         return self._align_dtypes(transformed)
 
