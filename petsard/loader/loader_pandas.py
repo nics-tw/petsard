@@ -30,17 +30,14 @@ class LoaderPandasCsv(LoaderBase):
         pandas_config = {}
 
         # 1. set the filepath
-        pandas_config['filepath_or_buffer'] = self.config['filepath']
+        pandas_config["filepath_or_buffer"] = self.config["filepath"]
 
         # 2. If header_names is not None, setting custom header names
-        if self.config['header_names'] is not None:
-            pandas_config.update({
-                'header': None,
-                'names':  self.config['header_names']
-            })
+        if self.config["header_names"] is not None:
+            pandas_config.update({"header": None, "names": self.config["header_names"]})
 
         # 3. assign dtype and na_values
-        list_setting = ['dtype', 'na_values']
+        list_setting = ["dtype", "na_values"]
         pandas_config.update({k: self.config[k] for k in list_setting})
 
         try:
@@ -76,16 +73,13 @@ class LoaderPandasExcel(LoaderBase):
         pandas_config = {}
 
         # 1. set the filepath
-        pandas_config['io'] = self.config['filepath']
+        pandas_config["io"] = self.config["filepath"]
 
         # 2. If header_names is not None, setting custom header names
-        if self.config['header_names'] is not None:
-            pandas_config.update({
-                'header': None,
-                'names':  self.config['header_names']
-            })
+        if self.config["header_names"] is not None:
+            pandas_config.update({"header": None, "names": self.config["header_names"]})
 
-        list_setting = ['dtype', 'na_values']
+        list_setting = ["dtype", "na_values"]
         pandas_config.update({k: self.config[k] for k in list_setting})
 
         try:
