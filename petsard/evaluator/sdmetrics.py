@@ -2,25 +2,19 @@ import re
 from typing import Union
 
 import pandas as pd
-from sdmetrics.reports.single_table import (
-    DiagnosticReport,
-    QualityReport
-)
+from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
 from sdv.metadata import SingleTableMetadata
 
+from petsard.error import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
-from petsard.error import (
-    ConfigError,
-    UnfittedError,
-    UnsupportedMethodError
-)
 from petsard.util import safe_round
 
 
-class SDMetricsMap():
+class SDMetricsMap:
     """
     Mapping of SDMetrics.
     """
+
     DIAGNOSTICREPORT: int = 1
     QUALITYREPORT: int = 2
 
@@ -38,11 +32,7 @@ class SDMetricsMap():
         try:
             # accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
             return cls.__dict__[
-                re.sub(
-                    r"^(sdmetrics-single_table-|sdmetrics-)",
-                    "",
-                    method
-                ).upper()
+                re.sub(r"^(sdmetrics-single_table-|sdmetrics-)", "", method).upper()
             ]
         except KeyError:
             raise UnsupportedMethodError
@@ -66,11 +56,11 @@ class SDMetrics(EvaluatorBase):
         """
         super().__init__(config=config)
 
-        self.config['method_code'] = SDMetricsMap.map(self.config['method'])
+        self.config["method_code"] = SDMetricsMap.map(self.config["method"])
 
-        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
+        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
             self.evaluator = DiagnosticReport()
-        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
+        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
             self.evaluator = QualityReport()
         else:
             raise UnsupportedMethodError
@@ -94,15 +84,13 @@ class SDMetrics(EvaluatorBase):
 
         TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
-        if not set(['ori', 'syn']).issubset(set(data.keys())):
+        if not set(["ori", "syn"]).issubset(set(data.keys())):
             raise ConfigError
-        data = {key: value for key, value in data.items()
-                if key in ['ori', 'syn']
-        }
+        data = {key: value for key, value in data.items() if key in ["ori", "syn"]}
         self.data = data
 
         data_ori_metadata = SingleTableMetadata()
-        data_ori_metadata.detect_from_dataframe(self.data['ori'])
+        data_ori_metadata.detect_from_dataframe(self.data["ori"])
         self.metadata = data_ori_metadata.to_dict()
 
     def _extract_result(self) -> dict:
@@ -120,22 +108,24 @@ class SDMetrics(EvaluatorBase):
 
         result = {}
 
-        result['score'] = safe_round(self.evaluator.get_score())
+        result["score"] = safe_round(self.evaluator.get_score())
 
         # Tranfer pandas to desired dict format:
         #     {'properties name': {'Score': ...},
         #      'properties name': {'Score': ...}
         #     }
         properties = self.evaluator.get_properties()
-        properties['Score'] = safe_round(properties['Score'])
+        properties["Score"] = safe_round(properties["Score"])
 
-        result['properties'] = \
-            properties.set_index('Property').rename_axis(None).to_dict('index')
+        result["properties"] = (
+            properties.set_index("Property").rename_axis(None).to_dict("index")
+        )
 
-        result['details'] = {}
-        for property in result['properties'].keys():
-            result['details'][property] =\
-                self.evaluator.get_details(property_name=property)
+        result["details"] = {}
+        for property in result["properties"].keys():
+            result["details"][property] = self.evaluator.get_details(
+                property_name=property
+            )
 
         return result
 
@@ -150,9 +140,9 @@ class SDMetrics(EvaluatorBase):
             raise UnfittedError
 
         self.evaluator.generate(
-            real_data=self.data['ori'],
-            synthetic_data=self.data['syn'],
-            metadata=self.metadata
+            real_data=self.data["ori"],
+            synthetic_data=self.data["syn"],
+            metadata=self.metadata,
         )
         self.result = self._extract_result()
 
@@ -166,24 +156,24 @@ class SDMetrics(EvaluatorBase):
         Returns:
             (pd.DataFrame) The transformed details dataframe.
         """
-        data: pd.DataFrame = self.result['details'][property].copy()
+        data: pd.DataFrame = self.result["details"][property].copy()
 
         # set column as index, and remove index name
-        if 'Column' in data.columns:
-            data.set_index('Column', inplace=True)
+        if "Column" in data.columns:
+            data.set_index("Column", inplace=True)
             data.index.name = None
         else:
             # set pairwise columns as one column
-            data.set_index(['Column 1', 'Column 2'], inplace=True)
+            data.set_index(["Column 1", "Column 2"], inplace=True)
             data.index.names = [None, None]
 
         # set Property
-        data['Property'] = property
+        data["Property"] = property
 
         # sort columns
         return data[
-            ['Property', 'Metric']+
-            [col for col in data.columns if col not in ['Property', 'Metric']]
+            ["Property", "Metric"]
+            + [col for col in data.columns if col not in ["Property", "Metric"]]
         ]
 
     def get_global(self) -> Union[pd.DataFrame, None]:
@@ -195,16 +185,12 @@ class SDMetrics(EvaluatorBase):
                 One row only for representing the whole data result.
         """
         # get_score
-        data = {'Score': self.result['score']}
+        data = {"Score": self.result["score"]}
         # get_properties
         data.update(
-            {key: value['Score']
-             for key, value in self.result['properties'].items()}
+            {key: value["Score"] for key, value in self.result["properties"].items()}
         )
-        return pd.DataFrame.from_dict(
-            data={'result': data},
-            orient='columns'
-        ).T
+        return pd.DataFrame.from_dict(data={"result": data}, orient="columns").T
 
     def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
@@ -214,10 +200,10 @@ class SDMetrics(EvaluatorBase):
             pd.DataFrame: A DataFrame with the column-wise evaluation result.
                 One row represent one column data result.
         """
-        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
-            property = 'Data Validity'
-        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
-            property = 'Column Shapes'
+        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
+            property = "Data Validity"
+        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
+            property = "Column Shapes"
         else:
             raise UnsupportedMethodError
 
@@ -231,10 +217,10 @@ class SDMetrics(EvaluatorBase):
             pd.DataFrame: A DataFrame with the column-wise evaluation result.
                 One row represent one "column x column" data result.
         """
-        if self.config['method_code'] == SDMetricsMap.DIAGNOSTICREPORT:
+        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
             return None
-        elif self.config['method_code'] == SDMetricsMap.QUALITYREPORT:
-            property = 'Column Pair Trends'
+        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
+            property = "Column Pair Trends"
             return self._transform_details(property=property)
         else:
             raise UnsupportedMethodError
