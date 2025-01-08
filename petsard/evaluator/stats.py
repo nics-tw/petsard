@@ -8,9 +8,9 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from scipy.spatial.distance import jensenshannon
 
-from petsard import Metadata
 from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.loader import Metadata
 from petsard.util import safe_round
 
 

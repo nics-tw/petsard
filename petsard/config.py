@@ -9,11 +9,8 @@ from typing import (
 import pandas as pd
 
 import yaml
-from petsard import (
-    Metadata,
-    Processor,
-)
 from petsard.error import ConfigError, UnexecutedError
+from petsard.loader import Metadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
     DescriberOperator,
     EvaluatorOperator,
@@ -25,6 +22,7 @@ from petsard.operator import (  # noqa: F401 - Dynamic Imports
     SplitterOperator,
     SynthesizerOperator,
 )
+from petsard.processor import Processor
 
 
 class Config:

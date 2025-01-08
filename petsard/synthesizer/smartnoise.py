@@ -2,8 +2,8 @@ import pandas as pd
 from snsynth import Synthesizer as SNSyn
 from snsynth.transform import MinMaxTransformer, TableTransformer
 
-from petsard import Metadata
 from petsard.error import UnsupportedMethodError
+from petsard.loader import Metadata
 from petsard.synthesizer.synthesizer_base import SynthesizerBase
 
 
