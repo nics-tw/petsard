@@ -20,27 +20,26 @@ class Metadata:
         """
         self._check_dataframe_valid(data)
 
-        metadata = {'col': None, 'global': {}}
+        metadata = {"col": None, "global": {}}
 
-        metadata['global']['row_num'] = data.shape[0]
-        metadata['global']['col_num'] = data.shape[1]
-        metadata['global']['na_percentage'] = safe_round(
-            data.isna().any(axis=1).mean())
+        metadata["global"]["row_num"] = data.shape[0]
+        metadata["global"]["col_num"] = data.shape[1]
+        metadata["global"]["na_percentage"] = safe_round(data.isna().any(axis=1).mean())
 
         # create type and na_percentage keys and values automatically
-        metadata_df = data.dtypes.reset_index(name='dtype')\
+        metadata_df = (
+            data.dtypes.reset_index(name="dtype")
             .merge(
-                safe_round(
-                    data.isna().mean(axis=0).reset_index(name='na_percentage')
-                ),
-                on='index'
-            ).set_index('index')
+                safe_round(data.isna().mean(axis=0).reset_index(name="na_percentage")),
+                on="index",
+            )
+            .set_index("index")
+        )
 
         # infer dtypes
-        metadata_df['infer_dtype'] = metadata_df['dtype']\
-            .apply(self._convert_dtypes)
+        metadata_df["infer_dtype"] = metadata_df["dtype"].apply(self._convert_dtypes)
 
-        metadata['col'] = metadata_df.to_dict('index')
+        metadata["col"] = metadata_df.to_dict("index")
 
         self.metadata = metadata
 
@@ -54,15 +53,16 @@ class Metadata:
         """
         if self.metadata is None:
             raise ValueError(
-                'Please use `build_metadata()` to construct the metadata first.')
+                "Please use `build_metadata()` to construct the metadata first."
+            )
 
-        if col not in self.metadata['col']:
-            raise ValueError(f'{col} is not in the metadata.')
+        if col not in self.metadata["col"]:
+            raise ValueError(f"{col} is not in the metadata.")
 
-        if dtype not in ['numerical', 'categorical', 'datetime', 'object']:
-            raise ValueError(f'{dtype} is invalid.')
+        if dtype not in ["numerical", "categorical", "datetime", "object"]:
+            raise ValueError(f"{dtype} is invalid.")
 
-        self.metadata['col'][col]['infer_dtype'] = dtype
+        self.metadata["col"][col]["infer_dtype"] = dtype
 
     def _check_dataframe_valid(self, data: pd.DataFrame) -> None:
         """
@@ -71,16 +71,14 @@ class Metadata:
         Args:
             data (pd.DataFrame): The dataframe to be checked.
         """
-        if type(data) != pd.DataFrame:
-            raise TypeError('Data should be a pd.DataFrame.')
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("Data should be a pd.DataFrame.")
 
         if data.shape[0] <= 0:
-            raise ValueError(
-                'There should be at least one row in the dataframe.')
+            raise ValueError("There should be at least one row in the dataframe.")
 
         if data.shape[1] <= 0:
-            raise ValueError(
-                'There should be at least one column in the dataframe.')
+            raise ValueError("There should be at least one column in the dataframe.")
 
     @classmethod
     def _convert_dtypes(cls, dtype: type) -> str:
@@ -94,20 +92,20 @@ class Metadata:
             (str): The inferred data type.
         """
         if dtype is None:
-            raise ValueError(f'{dtype} is invalid.')
+            raise ValueError(f"{dtype} is invalid.")
 
         if pd.api.types.is_bool_dtype(dtype):
-            return 'categorical'
+            return "categorical"
         elif pd.api.types.is_numeric_dtype(dtype):
-            return 'numerical'
+            return "numerical"
         elif isinstance(dtype, pd.CategoricalDtype):
-            return 'categorical'
+            return "categorical"
         elif pd.api.types.is_datetime64_any_dtype(dtype):
-            return 'datetime'
+            return "datetime"
         elif pd.api.types.is_object_dtype(dtype):
-            return 'object'
+            return "object"
         else:
-            raise ValueError(f'{dtype} is invalid.')
+            raise ValueError(f"{dtype} is invalid.")
 
     def to_sdv(self) -> dict:
         """
@@ -118,23 +116,23 @@ class Metadata:
         """
         if self.metadata is None:
             raise ValueError(
-                'Please use `build_metadata()` to construct the metadata first.')
+                "Please use `build_metadata()` to construct the metadata first."
+            )
 
-        sdv_metadata = {'columns': {}}
+        sdv_metadata = {"columns": {}}
 
         col_name: str = (
-            'col_after_preproc' if 'col_after_preproc' in self.metadata
-            else 'col'
+            "col_after_preproc" if "col_after_preproc" in self.metadata else "col"
         )
 
         for col, val in self.metadata[col_name].items():
-            sdtype = val.get('infer_dtype')
-            if 'infer_dtype_after_preproc' in val:
-                sdtype = val.get('infer_dtype_after_preproc')
+            sdtype = val.get("infer_dtype")
+            if "infer_dtype_after_preproc" in val:
+                sdtype = val.get("infer_dtype_after_preproc")
 
-            if sdtype is None or sdtype == 'object':
-                raise ValueError(f'{col} is in invalid type {sdtype}.')
+            if sdtype is None or sdtype == "object":
+                raise ValueError(f"{col} is in invalid type {sdtype}.")
 
-            sdv_metadata['columns'][col] = {'sdtype': sdtype}
+            sdv_metadata["columns"][col] = {"sdtype": sdtype}
 
         return sdv_metadata
