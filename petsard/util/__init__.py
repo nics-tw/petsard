@@ -13,11 +13,13 @@ from petsard.util.params import (
 )
 
 __all__ = [
-    'optimize_dtype',
-    'optimize_dtypes',
-    'safe_astype',
-    'safe_dtype',
-    'safe_infer_dtype',
-    'safe_round',
-    'verify_column_types',
+    "optimize_dtype",
+    "optimize_dtypes",
+    "safe_astype",
+    "safe_dtype",
+    "safe_infer_dtype",
+    "safe_round",
+    "verify_column_types",
+    "ALLOWED_COLUMN_TYPES",
+    "OPTIMIZED_DTYPES",
 ]
