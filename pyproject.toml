@@ -101,8 +101,7 @@ sdmetrics = "^0.16.0"
 wheel = "^0.43.0"
 pyyaml = "^6.0.2"
 requests = "^2.32.3"
-###### ###### ######
-# for dependency bot security alert
+###### for dependency bot security alert
 ###### ###### ######
 certifi = ">=2024.7.4" #581
 scikit-learn = ">=1.6.0" #582
@@ -112,10 +111,11 @@ urllib3 = ">=2.2.2" #580
 ipykernel = "^6.29.4"
 pytest = "^8.3.4"
 python-semantic-release = "^9.15.1"
-###### ###### ######
-# for dependency bot security alert
+ruff = "^0.8.6"
+###### for dependency bot security alert
 ###### ###### ######
 tornado = ">=6.4.2" #579 #606
+
 
 [build-system]
 requires = ["poetry-core"]

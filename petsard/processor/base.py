@@ -1,28 +1,46 @@
-from copy import deepcopy
 import logging
-import sys
-from types import NoneType
 import warnings
+from copy import deepcopy
+from types import NoneType
 
+import numpy as np
+import pandas as pd
+
+from petsard.error import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
-from petsard.processor.encoder import *
-from petsard.processor.missing import *
-from petsard.processor.outlier import *
-from petsard.processor.scaler import *
-from petsard.processor.mediator import *
-from petsard.processor.discretizing import *
-from petsard.error import *
+from petsard.processor.discretizing import DiscretizingKBins
+from petsard.processor.encoder import EncoderLabel, EncoderOneHot, EncoderUniform
+from petsard.processor.mediator import (
+    Mediator,
+    MediatorEncoder,
+    MediatorMissing,
+    MediatorOutlier,
+)
+from petsard.processor.missing import (
+    MissingDrop,
+    MissingMean,
+    MissingMedian,
+    MissingMode,
+    MissingSimple,
+)
+from petsard.processor.outlier import (
+    OutlierIQR,
+    OutlierIsolationForest,
+    OutlierLOF,
+    OutlierZScore,
+)
+from petsard.processor.scaler import (
+    ScalerLog,
+    ScalerMinMax,
+    ScalerStandard,
+    ScalerZeroCenter,
+)
 from petsard.util import (
+    optimize_dtype,
     safe_astype,
     safe_dtype,
     safe_infer_dtype,
-    optimize_dtype,
 )
-
-
-logging.basicConfig(level=logging.INFO, stream=sys.stdout,
-                    format='[%(levelname).1s %(asctime)s] %(message)s',
-                    datefmt='%Y%m%d %H:%M:%S')
 
 
 class Processor:
@@ -57,70 +75,67 @@ class Processor:
                 }
         config (dict): The user-defined config.
         """
+        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+
         # object datatype indicates the unusual data,
         # passive actions will be taken in processing procedure
         self._default_processor: dict = {
-            'missing': {
-                'numerical': MissingMean,
-                'categorical': MissingDrop,
-                'datetime': MissingDrop,
-                'object': MissingDrop
+            "missing": {
+                "numerical": MissingMean,
+                "categorical": MissingDrop,
+                "datetime": MissingDrop,
+                "object": MissingDrop,
             },
-            'outlier': {
-                'numerical': OutlierIQR,
-                'categorical': lambda: None,
-                'datetime': OutlierIQR,
-                'object': lambda: None
+            "outlier": {
+                "numerical": OutlierIQR,
+                "categorical": lambda: None,
+                "datetime": OutlierIQR,
+                "object": lambda: None,
             },
-            'encoder': {
-                'numerical': lambda: None,
-                'categorical': EncoderUniform,
-                'datetime': lambda: None,
-                'object': EncoderUniform
+            "encoder": {
+                "numerical": lambda: None,
+                "categorical": EncoderUniform,
+                "datetime": lambda: None,
+                "object": EncoderUniform,
             },
-            'scaler': {
-                'numerical': ScalerStandard,
-                'categorical': lambda: None,
-                'datetime': ScalerStandard,
-                'object': lambda: None
+            "scaler": {
+                "numerical": ScalerStandard,
+                "categorical": lambda: None,
+                "datetime": ScalerStandard,
+                "object": lambda: None,
             },
-            'discretizing': {
-                'numerical': DiscretizingKBins,
-                'categorical': EncoderLabel,
-                'datetime': DiscretizingKBins,
-                'object': EncoderLabel
-            }
+            "discretizing": {
+                "numerical": DiscretizingKBins,
+                "categorical": EncoderLabel,
+                "datetime": DiscretizingKBins,
+                "object": EncoderLabel,
+            },
         }
 
-        self._default_sequence: list = [
-            'missing',
-            'outlier',
-            'encoder',
-            'scaler'
-        ]
+        self._default_sequence: list = ["missing", "outlier", "encoder", "scaler"]
 
         self._processor_map: dict = {
-            'encoder_uniform': EncoderUniform,
-            'encoder_label': EncoderLabel,
-            'encoder_onehot': EncoderOneHot,
-            'missing_mean': MissingMean,
-            'missing_median': MissingMedian,
-            'missing_simple': MissingSimple,
-            'missing_drop': MissingDrop,
-            'missing_mode': MissingMode,
-            'outlier_zscore': OutlierZScore,
-            'outlier_iqr': OutlierIQR,
-            'outlier_isolationforest': OutlierIsolationForest,
-            'outlier_lof': OutlierLOF,
-            'scaler_standard': ScalerStandard,
-            'scaler_zerocenter': ScalerZeroCenter,
-            'scaler_minmax': ScalerMinMax,
-            'scaler_log': ScalerLog,
-            'discretizing_kbins': DiscretizingKBins,
+            "encoder_uniform": EncoderUniform,
+            "encoder_label": EncoderLabel,
+            "encoder_onehot": EncoderOneHot,
+            "missing_mean": MissingMean,
+            "missing_median": MissingMedian,
+            "missing_simple": MissingSimple,
+            "missing_drop": MissingDrop,
+            "missing_mode": MissingMode,
+            "outlier_zscore": OutlierZScore,
+            "outlier_iqr": OutlierIQR,
+            "outlier_isolationforest": OutlierIsolationForest,
+            "outlier_lof": OutlierLOF,
+            "scaler_standard": ScalerStandard,
+            "scaler_zerocenter": ScalerZeroCenter,
+            "scaler_minmax": ScalerMinMax,
+            "scaler_log": ScalerLog,
+            "discretizing_kbins": DiscretizingKBins,
         }
 
         self._metadata: Metadata = metadata
-        logging.debug(f'Metadata loaded.')
+        self.logger.debug("Metadata loaded.")
 
         # processing sequence
         self._sequence: list = None
@@ -134,8 +149,9 @@ class Processor:
         self.mediator_encoder: MediatorEncoder | None = None
 
         # global NA values imputation
-        self._na_percentage_global: float = \
-            self._metadata.metadata['global'].get('na_percentage', 0.0)
+        self._na_percentage_global: float = self._metadata.metadata["global"].get(
+            "na_percentage", 0.0
+        )
         self.rng = np.random.default_rng()
 
         self._generate_config()
@@ -146,7 +162,7 @@ class Processor:
         # the temp config records the config from in-process/expanded column
         self._working_config: dict = {}
 
-        logging.debug(f'Config loaded.')
+        self.logger.debug("Config loaded.")
 
     def _generate_config(self) -> None:
         """
@@ -164,13 +180,13 @@ class Processor:
         """
 
         self._config: dict = {
-            processor: dict.fromkeys(self._metadata.metadata['col'].keys())
+            processor: dict.fromkeys(self._metadata.metadata["col"].keys())
             for processor in self._default_processor.keys()
         }
 
-        for col, val in self._metadata.metadata['col'].items():
+        for col, val in self._metadata.metadata["col"].items():
             for processor, obj in self._default_processor.items():
-                self._config[processor][col] = obj[val['infer_dtype']]()
+                self._config[processor][col] = obj[val["infer_dtype"]]()
 
     def get_config(self, col: list = None, print_config: bool = False) -> dict:
         """
@@ -194,22 +210,21 @@ class Processor:
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._metadata.metadata['col'].keys())
+            get_col_list = list(self._metadata.metadata["col"].keys())
 
         if print_config:
             for processor in self._config.keys():
                 print(processor)
                 for colname in get_col_list:
                     print(
-                        f'    {colname}:',
-                        f' {type(self._config[processor][colname]).__name__}')
-                    result_dict[processor][colname] = \
-                        self._config[processor][colname]
+                        f"    {colname}:",
+                        f" {type(self._config[processor][colname]).__name__}",
+                    )
+                    result_dict[processor][colname] = self._config[processor][colname]
         else:
             for processor in self._config.keys():
                 for colname in get_col_list:
-                    result_dict[processor][colname] = \
-                        self._config[processor][colname]
+                    result_dict[processor][colname] = self._config[processor][colname]
 
         return result_dict
 
@@ -224,7 +239,7 @@ class Processor:
         for processor, val in config.items():
             for col, obj in val.items():
                 # accept string of processor
-                if type(obj) == str:
+                if isinstance(obj, str):
                     obj = self._processor_map.get(obj, None)()
 
                 self._config[processor][col] = obj
@@ -250,64 +265,63 @@ class Processor:
 
         self._fitting_sequence = self._sequence.copy()
 
-        if 'missing' in self._sequence:
+        if "missing" in self._sequence:
             # if missing is in the procedure,
             # MediatorMissing should be in the queue
             # right after the missing
             self.mediator_missing = MediatorMissing(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('missing') + 1,
-                self.mediator_missing)
-            logging.info('MediatorMissing is created.')
+                self._fitting_sequence.index("missing") + 1, self.mediator_missing
+            )
+            self.logger.info("MediatorMissing is created.")
 
-        if 'outlier' in self._sequence:
+        if "outlier" in self._sequence:
             # if outlier is in the procedure,
             # MediatorOutlier should be in the queue
             # right after the outlier
             self.mediator_outlier = MediatorOutlier(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('outlier') + 1,
-                self.mediator_outlier)
-            logging.info('MediatorOutlier is created.')
+                self._fitting_sequence.index("outlier") + 1, self.mediator_outlier
+            )
+            self.logger.info("MediatorOutlier is created.")
 
-        if 'encoder' in self._sequence:
+        if "encoder" in self._sequence:
             # if encoder is in the procedure,
             # MediatorEncoder should be in the queue
             # right after the encoder
             self.mediator_encoder = MediatorEncoder(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index('encoder') + 1,
-                self.mediator_encoder)
-            logging.info('MediatorEncoder is created.')
+                self._fitting_sequence.index("encoder") + 1, self.mediator_encoder
+            )
+            self.logger.info("MediatorEncoder is created.")
 
         self._detect_edit_global_transformation()
 
-        logging.debug(f'Fitting sequence generation completed.')
+        self.logger.debug("Fitting sequence generation completed.")
 
         for processor in self._fitting_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
-
-                    logging.debug(
-                        f'{processor}: {obj} from {col} start processing.')
+                    self.logger.debug(
+                        f"{processor}: {obj} from {col} start processing."
+                    )
 
                     if obj is None:
                         continue
 
                     if processor not in obj.PROC_TYPE:
-                        raise ValueError(
-                            f'Invalid processor from {col} in {processor}')
+                        raise ValueError(f"Invalid processor from {col} in {processor}")
 
                     obj.fit(data[col])
 
-                logging.info(f'{processor} fitting done.')
+                self.logger.info(f"{processor} fitting done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
 
-                logging.debug(f'mediator: {processor} start processing.')
+                self.logger.debug(f"mediator: {processor} start processing.")
                 processor.fit(data)
-                logging.info(f'{processor} fitting done.')
+                self.logger.info(f"{processor} fitting done.")
 
         # it is a shallow copy
         self._working_config = self._config.copy()
@@ -321,33 +335,32 @@ class Processor:
         Args:
             sequence (list): The processing sequence.
         """
-        if type(sequence) != list:
-            raise TypeError('Sequence should be a list.')
+        if not isinstance(sequence, list):
+            raise TypeError("Sequence should be a list.")
 
         if len(sequence) == 0:
-            raise ValueError(
-                'There should be at least one procedure in the sequence.')
+            raise ValueError("There should be at least one procedure in the sequence.")
 
         if len(sequence) > 4:
-            raise ValueError('Too many procedures!')
+            raise ValueError("Too many procedures!")
 
         if len(list(set(sequence))) != len(sequence):
             raise ValueError(
-                'There are duplicated procedures in the sequence,',
-                ' please remove them.')
+                "There are duplicated procedures in the sequence,",
+                " please remove them.",
+            )
 
         for processor in sequence:
             if processor not in self._default_processor.keys():
-                raise ValueError(
-                    f'{processor} is invalid, please check it again.')
+                raise ValueError(f"{processor} is invalid, please check it again.")
 
-        if 'discretizing' in sequence:
-            if 'encoder' in sequence:
-                raise ValueError("'discretizing' and 'encoder' processor" +
-                                 " cannot coexist.")
-            if sequence[-1] != 'discretizing':
+        if "discretizing" in sequence:
+            if "encoder" in sequence:
                 raise ValueError(
-                    "'discretizing' processor must be the last processor.")
+                    "'discretizing' and 'encoder' processor" + " cannot coexist."
+                )
+            if sequence[-1] != "discretizing":
+                raise ValueError("'discretizing' processor must be the last processor.")
 
     def _detect_edit_global_transformation(self) -> None:
         """
@@ -359,20 +372,21 @@ class Processor:
         is_global_transformation: bool = False
         replaced_class: object = None
 
-        for obj in self._config['outlier'].values():
+        for obj in self._config["outlier"].values():
             if obj is None:
                 continue
             if obj.IS_GLOBAL_TRANSFORMATION:
                 is_global_transformation = True
                 replaced_class = obj.__class__
-                logging.info(
-                    'Global transformation detected.' +
-                    f' All processors will be replaced to {replaced_class}.')
+                self.logger.info(
+                    "Global transformation detected."
+                    + f" All processors will be replaced to {replaced_class}."
+                )
                 break
 
         if is_global_transformation:
-            for col, obj in self._config['outlier'].items():
-                self._config['outlier'][col] = replaced_class()
+            for col, obj in self._config["outlier"].items():
+                self._config["outlier"][col] = replaced_class()
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -385,65 +399,71 @@ class Processor:
             transformed (pd.DataFrame): The transformed data.
         """
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._fitting_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
-
-                    logging.debug(
-                        f'{processor}: {obj} from {col} start transforming.')
+                    self.logger.debug(
+                        f"{processor}: {obj} from {col} start transforming."
+                    )
 
                     if obj is None:
                         continue
 
                     transformed[col] = obj.transform(transformed[col])
 
-                    col_metadata: dict = self._metadata.metadata['col'][col]
-                    if col_metadata['infer_dtype'] == 'datetime':
+                    col_metadata: dict = self._metadata.metadata["col"][col]
+                    if col_metadata["infer_dtype"] == "datetime":
                         # it is fine to re-adjust mulitple times
                         #   for get the final dtype,
                         # and it is impossible for re-adjust under current logic
-                        if isinstance(obj, (
-                            EncoderUniform,
-                            EncoderLabel,
-                            EncoderOneHot,
-                            ScalerStandard,
-                            ScalerZeroCenter,
-                            ScalerMinMax,
-                            ScalerLog,
-                        )):
+                        if isinstance(
+                            obj,
+                            (
+                                EncoderUniform,
+                                EncoderLabel,
+                                EncoderOneHot,
+                                ScalerStandard,
+                                ScalerZeroCenter,
+                                ScalerMinMax,
+                                ScalerLog,
+                            ),
+                        ):
                             self._adjust_metadata(
-                                mode='columnwise',
+                                mode="columnwise",
                                 data=transformed[col],
                                 col=col,
                             )
 
-                logging.info(f'{processor} transformation done.')
+                self.logger.info(f"{processor} transformation done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
 
-                logging.debug(f'mediator: {processor} start transforming.')
-                logging.debug(
-                    f'before transformation: data shape: {transformed.shape}')
+                self.logger.debug(f"mediator: {processor} start transforming.")
+                self.logger.debug(
+                    f"before transformation: data shape: {transformed.shape}"
+                )
 
                 transformed = processor.transform(transformed)
                 if isinstance(processor, MediatorEncoder):
                     self._adjust_metadata(
-                        mode='global',
+                        mode="global",
                         data=transformed,
                     )
                 self._adjust_working_config(processor, self._fitting_sequence)
 
-                logging.debug(
-                    f'after transformation: data shape: {transformed.shape}')
-                logging.info(f'{processor} transformation done.')
+                self.logger.debug(
+                    f"after transformation: data shape: {transformed.shape}"
+                )
+                self.logger.info(f"{processor} transformation done.")
 
-        self._metadata.metadata['global']['row_num_after_preproc'] = \
-            transformed.shape[0]
+        self._metadata.metadata["global"]["row_num_after_preproc"] = transformed.shape[
+            0
+        ]
 
         return transformed
 
@@ -458,18 +478,18 @@ class Processor:
             transformed (pd.DataFrame): The inverse transformed data.
         """
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         # set NA percentage in Missingist
         index_list: list = list(
             self.rng.choice(
                 data.index,
                 size=int(data.shape[0] * self._na_percentage_global),
-                replace=False
+                replace=False,
             ).ravel()
         )
 
-        for col, obj in self._config['missing'].items():
+        for col, obj in self._config["missing"].items():
             if obj is None:
                 continue
             obj.set_imputation_index(index_list)
@@ -478,13 +498,13 @@ class Processor:
                 with warnings.catch_warnings():
                     # ignore the known warning about RuntimeWarning:
                     # invalid value encountered in scalar divide
-                    warnings.simplefilter('ignore')
+                    warnings.simplefilter("ignore")
                     # the NA percentage taking global NA percentage
                     # into consideration
-                    adjusted_na_percentage: float = \
-                        self._metadata.metadata['col'][col].\
-                        get('na_percentage', 0.0)\
+                    adjusted_na_percentage: float = (
+                        self._metadata.metadata["col"][col].get("na_percentage", 0.0)
                         / self._na_percentage_global
+                    )
             # if there is no NA in the original data
             except ZeroDivisionError:
                 adjusted_na_percentage: float = 0.0
@@ -494,35 +514,35 @@ class Processor:
         # there is no method for restoring outliers
         self._inverse_sequence = self._sequence.copy()
         self._inverse_sequence.reverse()
-        if 'outlier' in self._inverse_sequence:
-            self._inverse_sequence.remove('outlier')
+        if "outlier" in self._inverse_sequence:
+            self._inverse_sequence.remove("outlier")
 
-        if 'encoder' in self._inverse_sequence:
+        if "encoder" in self._inverse_sequence:
             # if encoder is in the procedure,
             # MediatorEncoder should be in the queue
             # right after the encoder
             self._inverse_sequence.insert(
-                self._inverse_sequence.index('encoder'),
-                self.mediator_encoder)
-            logging.info('MediatorEncoder is created.')
+                self._inverse_sequence.index("encoder"), self.mediator_encoder
+            )
+            self.logger.info("MediatorEncoder is created.")
 
-        if 'discretizing' in self._inverse_sequence:
+        if "discretizing" in self._inverse_sequence:
             # if discretizing is in the procedure,
             # remove all of NA values in the data
             # See #440
             data = deepcopy(data).dropna()
 
-        logging.debug(f'Inverse sequence generation completed.')
+        self.logger.debug("Inverse sequence generation completed.")
 
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._inverse_sequence:
-            if type(processor) == str:
+            if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
-
-                    logging.debug(
-                        f'{processor}: {obj} from {col} start' +
-                        ' inverse transforming.')
+                    self.logger.debug(
+                        f"{processor}: {obj} from {col} start"
+                        + " inverse transforming."
+                    )
 
                     if obj is None:
                         continue
@@ -535,29 +555,30 @@ class Processor:
                     #   and object PROC_TYPE is ('encoder', 'discretizing'),
                     #   then we will force convert the data type to int.
                     # (See #440, also #550 for Encoder sequence error.)
-                    if (processor == 'discretizing'
-                            and obj.PROC_TYPE == ('encoder', 'discretizing')
-                        ) or (
-                            processor == 'encoder'
-                            and isinstance(obj, EncoderLabel)
-                            and safe_dtype(transformed[col].dtype).startswith('float')
+                    if (
+                        processor == "discretizing"
+                        and obj.PROC_TYPE == ("encoder", "discretizing")
+                    ) or (
+                        processor == "encoder"
+                        and isinstance(obj, EncoderLabel)
+                        and safe_dtype(transformed[col].dtype).startswith("float")
                     ):
                         transformed[col] = transformed[col].round().astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
-                logging.info(f'{processor} inverse transformation done.')
+                self.logger.info(f"{processor} inverse transformation done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
-                logging.debug(
-                    f'mediator: {processor} start inverse transforming.'
+                self.logger.debug(f"mediator: {processor} start inverse transforming.")
+                self.logger.debug(
+                    f"before transformation: data shape: {transformed.shape}"
                 )
-                logging.debug(
-                    f'before transformation: data shape: {transformed.shape}')
                 transformed = processor.inverse_transform(transformed)
-                logging.debug(
-                    f'after transformation: data shape: {transformed.shape}')
-                logging.info(f'{processor} transformation done.')
+                self.logger.debug(
+                    f"after transformation: data shape: {transformed.shape}"
+                )
+                self.logger.info(f"{processor} transformation done.")
 
         return self._align_dtypes(transformed)
 
@@ -571,32 +592,27 @@ class Processor:
             (pd.DataFrame): A dataframe recording the differences
                 bewteen the current config and the default config.
         """
-        changes_dict: dict = {
-            'processor': [],
-            'col': [],
-            'current': [],
-            'default': []
-        }
+        changes_dict: dict = {"processor": [], "col": [], "current": [], "default": []}
 
         for processor, default_class in self._default_processor.items():
-            for col in self._metadata.metadata['col'].keys():
+            for col in self._metadata.metadata["col"].keys():
                 obj = self._config[processor][col]
-                default_obj = default_class[self._metadata.metadata['col']
-                                            [col]['infer_dtype']]
+                default_obj = default_class[
+                    self._metadata.metadata["col"][col]["infer_dtype"]
+                ]
 
                 if default_obj() is None:
                     default_obj = NoneType
 
                 if not isinstance(obj, default_obj):
-                    changes_dict['processor'].append(processor)
-                    changes_dict['col'].append(col)
-                    changes_dict['current'].append(type(obj).__name__)
-                    changes_dict['default'].append(default_obj.__name__)
+                    changes_dict["processor"].append(processor)
+                    changes_dict["col"].append(col)
+                    changes_dict["current"].append(type(obj).__name__)
+                    changes_dict["default"].append(default_obj.__name__)
 
         return pd.DataFrame(changes_dict)
 
-    def _adjust_working_config(self, mediator: Mediator,
-                               sequence: list) -> None:
+    def _adjust_working_config(self, mediator: Mediator, sequence: list) -> None:
         """
         Adjust the working config for the downstream tasks.
 
@@ -633,8 +649,9 @@ class Processor:
 
                     for ori_col, new_col in mediator.map.items():
                         for col in new_col:
-                            self._working_config[processor][col] = \
-                                deepcopy(self._config[processor][ori_col])
+                            self._working_config[processor][col] = deepcopy(
+                                self._config[processor][ori_col]
+                            )
 
     def _align_dtypes(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -647,8 +664,8 @@ class Processor:
         Return:
             (pd.DataFrame): The aligned data.
         """
-        for col, val in self._metadata.metadata['col'].items():
-            data[col] = safe_astype(data[col], val['dtype'])
+        for col, val in self._metadata.metadata["col"].items():
+            data[col] = safe_astype(data[col], val["dtype"])
 
         return data
 
@@ -675,36 +692,40 @@ class Processor:
         Returns:
             None
         """
-        if mode == 'columnwise':
+        if mode == "columnwise":
             if not isinstance(data, pd.Series):
-                raise ConfigError(
-                    'data should be pd.Series in columnwise mode.')
+                raise ConfigError("data should be pd.Series in columnwise mode.")
             if col is None:
-                raise ConfigError('col is not specified.')
-            if col not in self._metadata.metadata['col']:
-                raise ConfigError(f'{col} is not in the metadata.')
+                raise ConfigError("col is not specified.")
+            if col not in self._metadata.metadata["col"]:
+                raise ConfigError(f"{col} is not in the metadata.")
 
             dtype_after_preproc: str = optimize_dtype(data)
-            infer_dtype_after_preproc: str = \
-                safe_infer_dtype(safe_dtype(dtype_after_preproc))
-            self._metadata.metadata['col'][col]['dtype_after_preproc'] = \
+            infer_dtype_after_preproc: str = safe_infer_dtype(
+                safe_dtype(dtype_after_preproc)
+            )
+            self._metadata.metadata["col"][col]["dtype_after_preproc"] = (
                 dtype_after_preproc
-            self._metadata.metadata['col'][col]['infer_dtype_after_preproc'] = \
+            )
+            self._metadata.metadata["col"][col]["infer_dtype_after_preproc"] = (
                 infer_dtype_after_preproc
+            )
 
-            if 'col_after_preproc' in self._metadata.metadata:
-                self._metadata.metadata['col_after_preproc'][col]['dtype_after_preproc'] = \
-                    dtype_after_preproc
-                self._metadata.metadata['col_after_preproc'][col]['infer_dtype_after_preproc'] = \
-                    infer_dtype_after_preproc
-        elif mode == 'global':
+            if "col_after_preproc" in self._metadata.metadata:
+                self._metadata.metadata["col_after_preproc"][col][
+                    "dtype_after_preproc"
+                ] = dtype_after_preproc
+                self._metadata.metadata["col_after_preproc"][col][
+                    "infer_dtype_after_preproc"
+                ] = infer_dtype_after_preproc
+        elif mode == "global":
             if not isinstance(data, pd.DataFrame):
-                raise ConfigError(
-                    'data should be pd.DataFrame in global mode.')
+                raise ConfigError("data should be pd.DataFrame in global mode.")
 
             new_metadata = Metadata()
             new_metadata.build_metadata(data=data)
-            self._metadata.metadata['col_after_preproc'] = \
-                deepcopy(new_metadata.metadata['col'])
+            self._metadata.metadata["col_after_preproc"] = deepcopy(
+                new_metadata.metadata["col"]
+            )
         else:
-            raise ConfigError('Invalid mode.')
+            raise ConfigError("Invalid mode.")

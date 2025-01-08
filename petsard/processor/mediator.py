@@ -1,9 +1,17 @@
+import numpy as np
+import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from petsard.processor.missing import MissingDrop
+from petsard.error import UnfittedError
 from petsard.processor.encoder import EncoderOneHot
-from petsard.processor.outlier import *
+from petsard.processor.missing import MissingDrop
+from petsard.processor.outlier import (
+    OutlierIQR,
+    OutlierIsolationForest,
+    OutlierLOF,
+    OutlierZScore,
+)
 
 
 class Mediator:
@@ -43,8 +51,9 @@ class Mediator:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -57,7 +66,7 @@ class Mediator:
             (pd.DataFrame): The finished data.
         """
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if len(self._process_col) == 0:
             return data
@@ -73,8 +82,9 @@ class Mediator:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -88,7 +98,7 @@ class Mediator:
             (pd.DataFrame): The finished data.
         """
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if len(self._process_col) == 0:
             return data
@@ -104,8 +114,9 @@ class Mediator:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be implemented " + "in subclasses."
+        )
 
 
 class MediatorMissing(Mediator):
@@ -120,7 +131,7 @@ class MediatorMissing(Mediator):
             to cope with global behaviours.
         """
         super().__init__()
-        self._config: dict = config['missing']
+        self._config: dict = config["missing"]
 
     def _fit(self, data: None) -> None:
         """
@@ -131,7 +142,7 @@ class MediatorMissing(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == MissingDrop:
+            if isinstance(obj, MissingDrop):
                 self._process_col.append(col)
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -148,32 +159,33 @@ class MediatorMissing(Mediator):
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].\
-                reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True
+            )
 
             # restore the original data from the boolean data
-            transformed[col_name] = self._config.get(col_name, None).\
-                data_backup[~process_filter].values
+            transformed[col_name] = (
+                self._config.get(col_name, None).data_backup[~process_filter].values
+            )
 
             return transformed
         else:
-            process_filter: np.ndarray = data[self._process_col].any(
-                axis=1).values
+            process_filter: np.ndarray = data[self._process_col].any(axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].\
-                reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True
+            )
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed[col] = self._config.get(col, None).\
-                    data_backup[~process_filter].values
+                transformed[col] = (
+                    self._config.get(col, None).data_backup[~process_filter].values
+                )
 
             return transformed
 
     def _inverse_transform(self, data: pd.DataFrame):
-        raise NotImplementedError(
-            '_inverse_transform is not supported in this class'
-        )
+        raise NotImplementedError("_inverse_transform is not supported in this class")
 
 
 class MediatorOutlier(Mediator):
@@ -188,7 +200,7 @@ class MediatorOutlier(Mediator):
             to cope with global behaviours.
         """
         super().__init__()
-        self._config: dict = config['outlier']
+        self._config: dict = config["outlier"]
         self.model = None
 
         # indicator for using global outlier methods,
@@ -199,11 +211,11 @@ class MediatorOutlier(Mediator):
         # as isolation forest or local outlier factor
         # it sets the overall transformation as that one
         for col, obj in self._config.items():
-            if type(obj) == OutlierIsolationForest:
+            if isinstance(obj, OutlierIsolationForest):
                 self.model = IsolationForest()
                 self._global_model_indicator = True
                 break
-            elif type(obj) == OutlierLOF:
+            elif isinstance(obj, OutlierLOF):
                 self.model = LocalOutlierFactor()
                 self._global_model_indicator = True
                 break
@@ -221,12 +233,14 @@ class MediatorOutlier(Mediator):
         if self._global_model_indicator:
             # global transformation from sklearn only accepts numeric type data
             self._process_col = list(
-                data.columns[data.apply(pd.api.types.is_numeric_dtype, axis=0)])
+                data.columns[data.apply(pd.api.types.is_numeric_dtype, axis=0)]
+            )
 
             if len(self._process_col) < 1:
                 raise ValueError(
-                    'There should be at least one numerical column \
-                        to fit the model.')
+                    "There should be at least one numerical column \
+                        to fit the model."
+                )
         else:
             for col, obj in self._config.items():
                 if type(obj) in [OutlierIQR, OutlierZScore]:
@@ -246,45 +260,46 @@ class MediatorOutlier(Mediator):
             # the model may classify most data as outliers
             # after transformation by other processors
             # so fit_predict will be used in _transform
-            predict_result: np.ndarray = self.model.fit_predict(
-                data[self._process_col])
+            predict_result: np.ndarray = self.model.fit_predict(data[self._process_col])
             self.result: np.ndarray = predict_result
             process_filter: np.ndarray = predict_result == -1.0
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].\
-                reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True
+            )
 
             return transformed
         elif len(self._process_col) == 1:
             col_name: str = self._process_col[0]
             process_filter: np.ndarray = data[col_name].values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].\
-                reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True
+            )
 
             # restore the original data from the boolean data
-            transformed[col_name] = self._config.get(col_name, None).\
-                data_backup[~process_filter]
+            transformed[col_name] = self._config.get(col_name, None).data_backup[
+                ~process_filter
+            ]
 
             return transformed
         else:
-            process_filter: np.ndarray = data[self._process_col].any(
-                axis=1).values
+            process_filter: np.ndarray = data[self._process_col].any(axis=1).values
 
-            transformed: pd.DataFrame = data.loc[~process_filter, :].\
-                reset_index(drop=True)
+            transformed: pd.DataFrame = data.loc[~process_filter, :].reset_index(
+                drop=True
+            )
 
             for col in self._process_col:
                 # restore the original data from the boolean data
-                transformed[col] = self._config.get(col, None).\
-                    data_backup[~process_filter]
+                transformed[col] = self._config.get(col, None).data_backup[
+                    ~process_filter
+                ]
 
             return transformed
 
     def _inverse_transform(self, data: pd.DataFrame):
-        raise NotImplementedError(
-            '_inverse_transform is not supported in this class'
-        )
+        raise NotImplementedError("_inverse_transform is not supported in this class")
 
 
 class MediatorEncoder(Mediator):
@@ -299,7 +314,7 @@ class MediatorEncoder(Mediator):
             to cope with global behaviours.
         """
         super().__init__()
-        self._config: dict = config['encoder']
+        self._config: dict = config["encoder"]
 
         # store the original column order
         self._colname: list = []
@@ -313,7 +328,7 @@ class MediatorEncoder(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if type(obj) == EncoderOneHot:
+            if isinstance(obj, EncoderOneHot):
                 self._process_col.append(col)
 
         self._colname = data.columns
@@ -338,15 +353,14 @@ class MediatorEncoder(Mediator):
 
             # prevent duplicates
             n = 1
-            new_labels = [str(col) + '_' + str(l) for l in label_list]
+            new_labels = [str(col) + "_" + str(label) for label in label_list]
 
             # check if the new labels and the original columns overlap
             while len(set(new_labels) & set(self._colname)) != 0:
                 n = n + 1
-                new_labels = [str(col) + '_' * n + str(l) for l in label_list]
+                new_labels = [str(col) + "_" * n + str(label) for label in label_list]
 
-            ohe_df = pd.DataFrame(self._config[col]._transform_temp,
-                                  columns=new_labels)
+            ohe_df = pd.DataFrame(self._config[col]._transform_temp, columns=new_labels)
 
             self.map[col] = new_labels
 
@@ -375,7 +389,8 @@ class MediatorEncoder(Mediator):
 
         for ori_col, new_col in self.map.items():
             transformed.drop(new_col, axis=1, inplace=True)
-            transformed[ori_col] = self._config[ori_col].model.\
-                inverse_transform(data[new_col]).ravel()
+            transformed[ori_col] = (
+                self._config[ori_col].model.inverse_transform(data[new_col]).ravel()
+            )
 
         return transformed.reindex(columns=self._colname)

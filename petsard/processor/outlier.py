@@ -10,7 +10,7 @@ class OutlierHandler:
     Base class for all OutlierHandler classes.
     """
 
-    PROC_TYPE = ('outlier',)
+    PROC_TYPE = ("outlier",)
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -23,7 +23,7 @@ class OutlierHandler:
         Args:
             data (pd.Series): The data needed to be fitted.
         """
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         self._fit(data)
@@ -37,8 +37,9 @@ class OutlierHandler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -52,9 +53,9 @@ class OutlierHandler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
@@ -68,8 +69,9 @@ class OutlierHandler:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
 
 class OutlierZScore(OutlierHandler):
@@ -156,6 +158,7 @@ class OutlierIsolationForest(OutlierHandler):
     Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
     """
+
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = True
 
@@ -174,6 +177,7 @@ class OutlierLOF(OutlierHandler):
     Dummy class, doing nothing related to the method.
     It's implemented in the mediator because it's global transformation.
     """
+
     # indicator of whether the fit and transform process involved other columns
     IS_GLOBAL_TRANSFORMATION = True
 
