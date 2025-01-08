@@ -1,8 +1,8 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
 from petsard.error import ConfigError
+from petsard.evaluator.evaluator_base import EvaluatorBase
 from petsard.util import safe_round
 
 
@@ -21,7 +21,7 @@ class Describer(EvaluatorBase):
     """
 
     def __init__(self, config: dict):
-        if 'method' not in config:
+        if "method" not in config:
             raise ConfigError
 
         self.config: dict = config
@@ -37,12 +37,12 @@ class Describer(EvaluatorBase):
             data (dict): The data to be described. The key should be 'data',
             and the value should be a pandas DataFrame.
         """
-        if not set(['data']).issubset(set(data.keys())):
+        if not set(["data"]).issubset(set(data.keys())):
             raise ConfigError
-        data = {key: value for key, value in data.items() if key == 'data'}
+        data = {key: value for key, value in data.items() if key == "data"}
         self.data = data
         self.agg = DescriberAggregator(self.config)
-        self.agg.create(self.data['data'])
+        self.agg.create(self.data["data"])
 
     def eval(self):
         """
@@ -76,7 +76,7 @@ class DescriberBase:
 
     def __init__(self):
         self.data = None
-        self.result = {'global': {}, 'columnwise': {}, 'pairwise': {}}
+        self.result = {"global": {}, "columnwise": {}, "pairwise": {}}
 
     def create(self, data):
         """
@@ -88,17 +88,16 @@ class DescriberBase:
         self.data = data
 
     def eval(self):
-        raise NotImplementedError(
-            'eval method not implemented in DescriberBase')
+        raise NotImplementedError("eval method not implemented in DescriberBase")
 
     def get_global(self):
-        return pd.DataFrame(self.result.get('global', {}), index=[0])
+        return pd.DataFrame(self.result.get("global", {}), index=[0])
 
     def get_columnwise(self):
-        return pd.DataFrame(self.result.get('columnwise', {}))
+        return pd.DataFrame(self.result.get("columnwise", {}))
 
     def get_pairwise(self):
-        return pd.DataFrame(self.result.get('pairwise', {}))
+        return pd.DataFrame(self.result.get("pairwise", {}))
 
 
 class DescriberRowCount(DescriberBase):
@@ -110,7 +109,7 @@ class DescriberRowCount(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['global'] = {'row_count': int(self.data.shape[0])}
+        self.result["global"] = {"row_count": int(self.data.shape[0])}
 
 
 class DescriberColumnCount(DescriberBase):
@@ -122,7 +121,7 @@ class DescriberColumnCount(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['global'] = {'col_count': int(self.data.shape[1])}
+        self.result["global"] = {"col_count": int(self.data.shape[1])}
 
 
 class DescriberGlobalNA(DescriberBase):
@@ -134,8 +133,7 @@ class DescriberGlobalNA(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['global'] = {
-            'na_count': int(self.data.isna().any(axis=1).sum())}
+        self.result["global"] = {"na_count": int(self.data.isna().any(axis=1).sum())}
 
 
 class DescriberMean(DescriberBase):
@@ -147,8 +145,8 @@ class DescriberMean(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'mean': self.data.mean(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "mean": self.data.mean(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -161,8 +159,8 @@ class DescriberMedian(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'median': self.data.median(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "median": self.data.median(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -175,8 +173,8 @@ class DescriberStd(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'std': self.data.std(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "std": self.data.std(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -189,8 +187,8 @@ class DescriberVar(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'var': self.data.var(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "var": self.data.var(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -203,8 +201,8 @@ class DescriberMin(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'min': self.data.min(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "min": self.data.min(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -217,8 +215,8 @@ class DescriberMax(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'max': self.data.max(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "max": self.data.max(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -231,8 +229,8 @@ class DescriberKurtosis(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'kurtosis': self.data.kurt(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "kurtosis": self.data.kurt(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -245,8 +243,8 @@ class DescriberSkew(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'skew': self.data.skew(axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "skew": self.data.skew(axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -259,8 +257,8 @@ class DescriberQ1(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'q1': self.data.quantile(0.25, axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "q1": self.data.quantile(0.25, axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -273,8 +271,8 @@ class DescriberQ3(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'q3': self.data.quantile(0.75, axis=0, numeric_only=True).to_dict()
+        self.result["columnwise"] = {
+            "q3": self.data.quantile(0.75, axis=0, numeric_only=True).to_dict()
         }
 
 
@@ -287,10 +285,11 @@ class DescriberIQR(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'iqr': (self.data.quantile(0.75, axis=0, numeric_only=True) -
-                    self.data.quantile(0.25, axis=0, numeric_only=True))
-            .to_dict()
+        self.result["columnwise"] = {
+            "iqr": (
+                self.data.quantile(0.75, axis=0, numeric_only=True)
+                - self.data.quantile(0.25, axis=0, numeric_only=True)
+            ).to_dict()
         }
 
 
@@ -303,9 +302,11 @@ class DescriberRange(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'range': (self.data.max(axis=0, numeric_only=True) -
-                      self.data.min(axis=0, numeric_only=True)).to_dict()
+        self.result["columnwise"] = {
+            "range": (
+                self.data.max(axis=0, numeric_only=True)
+                - self.data.min(axis=0, numeric_only=True)
+            ).to_dict()
         }
 
 
@@ -319,10 +320,10 @@ class DescriberPercentile(DescriberBase):
         self.percentile = k
 
     def eval(self):
-        self.result['columnwise'] = {
-            f'{self.percentile * 100} th '+'percentile':
-            self.data.quantile(self.percentile, axis=0, numeric_only=True)
-                .to_dict()
+        self.result["columnwise"] = {
+            f"{self.percentile * 100} th " + "percentile": self.data.quantile(
+                self.percentile, axis=0, numeric_only=True
+            ).to_dict()
         }
 
 
@@ -335,9 +336,7 @@ class DescriberColNA(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'na_count': self.data.isna().sum(axis=0).to_dict()
-        }
+        self.result["columnwise"] = {"na_count": self.data.isna().sum(axis=0).to_dict()}
 
 
 class DescriberNUnique(DescriberBase):
@@ -349,10 +348,12 @@ class DescriberNUnique(DescriberBase):
         super().__init__()
 
     def eval(self):
-        self.result['columnwise'] = {
-            'nunique': self.data.filter(self.data.columns[
-                self.data.dtypes == 'category'
-            ]).nunique(axis=0).to_dict()
+        self.result["columnwise"] = {
+            "nunique": self.data.filter(
+                self.data.columns[self.data.dtypes == "category"]
+            )
+            .nunique(axis=0)
+            .to_dict()
         }
 
 
@@ -369,12 +370,19 @@ class DescriberCov(DescriberBase):
         upper_indices = np.triu_indices_from(temp, k=1)
         temp.values[upper_indices] = np.nan
 
-        temp = temp.reset_index(names='col1')\
-            .melt(id_vars='col1', value_vars=temp.columns,
-                  var_name='col2', value_name='cov')\
-            .dropna().reset_index(drop=True)
+        temp = (
+            temp.reset_index(names="col1")
+            .melt(
+                id_vars="col1",
+                value_vars=temp.columns,
+                var_name="col2",
+                value_name="cov",
+            )
+            .dropna()
+            .reset_index(drop=True)
+        )
 
-        self.result['pairwise'] = temp.set_index(['col1', 'col2']).to_dict()
+        self.result["pairwise"] = temp.set_index(["col1", "col2"]).to_dict()
 
 
 class DescriberCorr(DescriberBase):
@@ -386,16 +394,23 @@ class DescriberCorr(DescriberBase):
         super().__init__()
 
     def eval(self):
-        temp = self.data.corr(method='pearson', numeric_only=True)
+        temp = self.data.corr(method="pearson", numeric_only=True)
         upper_indices = np.triu_indices_from(temp, k=1)
         temp.values[upper_indices] = np.nan
 
-        temp = temp.reset_index(names='col1')\
-            .melt(id_vars='col1', value_vars=temp.columns,
-                  var_name='col2', value_name='corr')\
-            .dropna().reset_index(drop=True)
+        temp = (
+            temp.reset_index(names="col1")
+            .melt(
+                id_vars="col1",
+                value_vars=temp.columns,
+                var_name="col2",
+                value_name="corr",
+            )
+            .dropna()
+            .reset_index(drop=True)
+        )
 
-        self.result['pairwise'] = temp.set_index(['col1', 'col2']).to_dict()
+        self.result["pairwise"] = temp.set_index(["col1", "col2"]).to_dict()
 
 
 class DescriberAggregator(Describer):
@@ -411,29 +426,29 @@ class DescriberAggregator(Describer):
     """
 
     _DESCRIBER_MAP = {
-        'row_count': ('global', DescriberRowCount),
-        'col_count': ('global', DescriberColumnCount),
-        'global_na_count': ('global', DescriberGlobalNA),
-        'mean': ('columnwise', DescriberMean),
-        'median': ('columnwise', DescriberMedian),
-        'std': ('columnwise', DescriberStd),
-        'var': ('columnwise', DescriberVar),
-        'min': ('columnwise', DescriberMin),
-        'max': ('columnwise', DescriberMax),
-        'kurtosis': ('columnwise', DescriberKurtosis),
-        'skew': ('columnwise', DescriberSkew),
-        'q1': ('columnwise', DescriberQ1),
-        'q3': ('columnwise', DescriberQ3),
-        'iqr': ('columnwise', DescriberIQR),
-        'range': ('columnwise', DescriberRange),
-        'percentile': ('columnwise', DescriberPercentile),
-        'col_na_count': ('columnwise', DescriberColNA),
-        'nunique': ('columnwise', DescriberNUnique),
-        'cov': ('pairwise', DescriberCov),
-        'corr': ('pairwise', DescriberCorr)
+        "row_count": ("global", DescriberRowCount),
+        "col_count": ("global", DescriberColumnCount),
+        "global_na_count": ("global", DescriberGlobalNA),
+        "mean": ("columnwise", DescriberMean),
+        "median": ("columnwise", DescriberMedian),
+        "std": ("columnwise", DescriberStd),
+        "var": ("columnwise", DescriberVar),
+        "min": ("columnwise", DescriberMin),
+        "max": ("columnwise", DescriberMax),
+        "kurtosis": ("columnwise", DescriberKurtosis),
+        "skew": ("columnwise", DescriberSkew),
+        "q1": ("columnwise", DescriberQ1),
+        "q3": ("columnwise", DescriberQ3),
+        "iqr": ("columnwise", DescriberIQR),
+        "range": ("columnwise", DescriberRange),
+        "percentile": ("columnwise", DescriberPercentile),
+        "col_na_count": ("columnwise", DescriberColNA),
+        "nunique": ("columnwise", DescriberNUnique),
+        "cov": ("pairwise", DescriberCov),
+        "corr": ("pairwise", DescriberCorr),
     }
 
-    _INT_DESCRIBER = ['col_na_count', 'nunique']
+    _INT_DESCRIBER = ["col_na_count", "nunique"]
 
     def __init__(self, config: dict):
         super().__init__(config=config)
@@ -461,14 +476,26 @@ class DescriberAggregator(Describer):
         stores the result in self.result.
         """
         # if self.config['method'] is 'default', generate selected describers
-        if self.config['method'] == 'default':
-            self.config['describe'] = ['row_count', 'col_count',
-                                       'global_na_count', 'mean', 'median',
-                                       'std', 'min', 'max', 'kurtosis',
-                                       'skew', 'q1', 'q3', 'col_na_count',
-                                       'nunique', 'corr']
+        if self.config["method"] == "default":
+            self.config["describe"] = [
+                "row_count",
+                "col_count",
+                "global_na_count",
+                "mean",
+                "median",
+                "std",
+                "min",
+                "max",
+                "kurtosis",
+                "skew",
+                "q1",
+                "q3",
+                "col_na_count",
+                "nunique",
+                "corr",
+            ]
 
-        for met in self.config['describe']:
+        for met in self.config["describe"]:
             if type(met) is not str:
                 # it should be a dict: key is the method,
                 # and value is a single parameter
@@ -482,11 +509,11 @@ class DescriberAggregator(Describer):
             describer.create(self.data_content)
             describer.eval()
 
-            if self._DESCRIBER_MAP[met][0] == 'global':
+            if self._DESCRIBER_MAP[met][0] == "global":
                 self.global_description.append(describer)
-            elif self._DESCRIBER_MAP[met][0] == 'columnwise':
+            elif self._DESCRIBER_MAP[met][0] == "columnwise":
                 self.column_description.append(describer)
-            elif self._DESCRIBER_MAP[met][0] == 'pairwise':
+            elif self._DESCRIBER_MAP[met][0] == "pairwise":
                 self.pairwise_description.append(describer)
 
     def get_global(self) -> pd.DataFrame:
@@ -507,13 +534,13 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The column-wise result of the description/evaluation.
         """
-        c_table = pd.concat([d.get_columnwise()
-                             for d in self.column_description], axis=1)
+        c_table = pd.concat(
+            [d.get_columnwise() for d in self.column_description], axis=1
+        )
 
         for col in c_table.columns:
             if col in self._INT_DESCRIBER:
-                c_table[col] = c_table[col].fillna(-1).astype(int)\
-                    .replace(-1, pd.NA)
+                c_table[col] = c_table[col].fillna(-1).astype(int).replace(-1, pd.NA)
             else:
                 c_table[col] = safe_round(c_table[col]).fillna(pd.NA)
 
@@ -527,8 +554,9 @@ class DescriberAggregator(Describer):
         Returns:
             (pd.DataFrame): The pairwise result of the description/evaluation.
         """
-        p_table = pd.concat([d.get_pairwise()
-                             for d in self.pairwise_description], axis=1)
+        p_table = pd.concat(
+            [d.get_pairwise() for d in self.pairwise_description], axis=1
+        )
 
         for col in p_table.columns:
             p_table[col] = safe_round(p_table[col]).fillna(pd.NA)

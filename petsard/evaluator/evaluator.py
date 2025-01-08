@@ -3,27 +3,28 @@ import re
 
 import pandas as pd
 
+from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.evaluator.anonymeter import Anonymeter
 from petsard.evaluator.evaluator_base import EvaluatorBase
 from petsard.evaluator.mlutlity import MLUtility
 from petsard.evaluator.sdmetrics import SDMetrics
 from petsard.evaluator.stats import Stats
-from petsard.error import ConfigError, UnsupportedMethodError
 
 
-class EvaluatorMap():
+class EvaluatorMap:
     """
     Mapping of Evaluator.
     """
-    DEFAULT:       int = 0
+
+    DEFAULT: int = 0
     CUSTOM_METHOD: int = 1
     # Protection
-    ANONYMETER:    int = 10
+    ANONYMETER: int = 10
     # Fidelity
-    SDMETRICS:     int = 20
-    STATS:         int = 21
+    SDMETRICS: int = 20
+    STATS: int = 21
     # Utility
-    MLUTILITY:     int = 30
+    MLUTILITY: int = 30
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -35,8 +36,8 @@ class EvaluatorMap():
         """
         try:
             # Get the string before 1st dash, if not exist, get emply ('').
-            libname_match = re.match(r'^[^-]*', method)
-            libname = libname_match.group() if libname_match else ''
+            libname_match = re.match(r"^[^-]*", method)
+            libname = libname_match.group() if libname_match else ""
             return cls.__dict__[libname.upper()]
         except KeyError:
             raise UnsupportedMethodError
@@ -75,33 +76,33 @@ class Evaluator:
                 The dictionary contains the evaluation result.
         """
         self.config = kwargs
-        self.config['method'] = method.lower()
+        self.config["method"] = method.lower()
         self.evaluator: EvaluatorBase = None
         self.result = None
 
-        method_code: int = EvaluatorMap.map(self.config['method'])
-        self.config['method_code'] = method_code
+        method_code: int = EvaluatorMap.map(self.config["method"])
+        self.config["method_code"] = method_code
         if method_code == EvaluatorMap.DEFAULT:
             # default will use SDMetrics - QualityReport
-            self.config['method'] = 'sdmetrics-single_table-qualityreport'
+            self.config["method"] = "sdmetrics-single_table-qualityreport"
             self.evaluator = SDMetrics(config=self.config)
         elif method_code == EvaluatorMap.CUSTOM_METHOD:
             # custom method
-            self.config['custom_method'] = custom_method
-            if 'filepath' not in self.config['custom_method']\
-                    or 'method' not in self.config['custom_method']:
+            self.config["custom_method"] = custom_method
+            if (
+                "filepath" not in self.config["custom_method"]
+                or "method" not in self.config["custom_method"]
+            ):
                 raise ConfigError
 
             try:
                 spec = importlib.util.spec_from_file_location(
-                    "module.name", self.config['custom_method']['filepath'])
+                    "module.name", self.config["custom_method"]["filepath"]
+                )
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                evaluator = getattr(
-                    module,
-                    self.config['custom_method']['method']
-                )
-            except:
+                evaluator = getattr(module, self.config["custom_method"]["method"])
+            except Exception:
                 raise ConfigError
             self.evaluator = evaluator(config=self.config)
         elif method_code == EvaluatorMap.ANONYMETER:

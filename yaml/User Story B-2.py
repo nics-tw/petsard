@@ -1,4 +1,3 @@
-import itertools
 from typing import Union
 
 import pandas as pd
@@ -32,19 +31,19 @@ class UserStory_B2(EvaluatorBase):
         Args:
             data (dict): The data required for description/evaluation.
         """
-        self.columns = data['ori'].columns
+        self.columns = data["ori"].columns
 
     def eval(self) -> None:
         """
         Evaluates the object.
         """
-        self.result = {'score': 100}
+        self.result = {"score": 100}
 
     def get_global(self) -> Union[pd.DataFrame, None]:
         """
         Returns the global evaluation result.
         """
-        return pd.DataFrame(self.result, index=['result'])
+        return pd.DataFrame(self.result, index=["result"])
 
     def get_columnwise(self) -> Union[pd.DataFrame, None]:
         """
@@ -62,7 +61,4 @@ class UserStory_B2(EvaluatorBase):
             for j, col2 in enumerate(self.columns)
             if j <= i
         ]
-        return pd.DataFrame(
-            self.result,
-            index=pd.MultiIndex.from_tuples(index)
-        )
+        return pd.DataFrame(self.result, index=pd.MultiIndex.from_tuples(index))
