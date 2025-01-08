@@ -1,61 +1,61 @@
 ## Changelog 歷史
 
 - **Formal Release 正式版**
-    - **1.0.0** (2024-11-25): **Release to moda** **交付給數發部**
-        - Fix critical and urgent issues.
-        - Close all issues and pull requests.
-        - Clean up temporary files from development.
-        - 解決必要且急迫的問題。
-        - 關閉 issue 與 PR。
-        - 清理開發過程中暫存臨時檔。
+  - **1.0.0** (2024-11-25): **Release to moda** **交付給數發部**
+    - Fix critical and urgent issues.
+    - Close all issues and pull requests.
+    - Clean up temporary files from development.
+    - 解決必要且急迫的問題。
+    - 關閉 issue 與 PR。
+    - 清理開發過程中暫存臨時檔。
 
 - **Beta testing 外部測試階段**
-    - **0.12.0** (2024-05-16): **Feasibility study-4** **適用性研究之四**
-        - Introduced Stats for new evaluating framework.
-        - Introduced MissingMode for new MissingHandler.
-        - Continue refining and debugging.
-        - 引入新評測架構 Stats。
-        - 引入新遺失值處理模組 MissingMode。
-        - 持續優化與除錯。
-    - **0.11.0** (2024-05-02): **Feasibility study-3** **適用性研究之三**
-        - Introduced MLUtility for new ML evaluating framework.
-        - Continue refining and debugging.
-        - 引入新機器學習評測架構 MLUtility。
-        - 持續優化與除錯。
-    - **0.10.0** (2024-04-12): **Feasibility study-2** **適用性研究之二**
-        - Refine the functions and fix the bugs in PETsARD.
-        - Enhance the readability of YAML page in the user guide.
-        - 改善 PETsARD 中的模組功能與除錯，以解決實驗過程中遇到的問題。
-        - 改善使用手冊的易讀性。
-    - **0.9.0** (2024-04-01): **Feasibility study-1** **適用性研究之一**
-        - Enhancing the downstream tasks of autoML as evaluation metrics and improving report generation functionality, addressing issues encountered during experiments.
-        - Completed the development of the user guide and started seeking external testing.
-        - 強化了autoML的下游任務作為評測標準，並改善報表生成功能，解決實驗過程中遇到的問題。
-        - 完成了使用手冊的開發，開始尋求外部測試。
-    - **0.8.0** (2024-03-14): **Start Beta testing** **外部測試開始**
-        - Provide a deeper description of YAML configurations and user stories in the [new manual website](https://nics-tw.github.io/PETsARD/). Also, address the issues encountered in functional testing across multiple modules.
-        - DPCTGAN, PATEGAN in smartnoise can be accessed in `Synthesizer` now. Besides, the execution error from aim, mst, and pacsynth are fixed.
-        - 在[新手冊網站](https://nics-tw.github.io/PETsARD/)上對 YAML 設定、以及用戶故事有更深入的描述。並解決多個模組在功能測試上遇到的問題。
-        - smartnoise 的 DPCTGAN, PATEGAN 可以於 `Synthesizer` 中使用，並修正 aim、mst、pacsynth 執行過程中的錯誤。
-    - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
-        - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
-        - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
+  - **0.12.0** (2024-05-16): **Feasibility study-4** **適用性研究之四**
+    - Introduced Stats for new evaluating framework.
+    - Introduced MissingMode for new MissingHandler.
+    - Continue refining and debugging.
+    - 引入新評測架構 Stats。
+    - 引入新遺失值處理模組 MissingMode。
+    - 持續優化與除錯。
+  - **0.11.0** (2024-05-02): **Feasibility study-3** **適用性研究之三**
+    - Introduced MLUtility for new ML evaluating framework.
+    - Continue refining and debugging.
+    - 引入新機器學習評測架構 MLUtility。
+    - 持續優化與除錯。
+  - **0.10.0** (2024-04-12): **Feasibility study-2** **適用性研究之二**
+    - Refine the functions and fix the bugs in PETsARD.
+    - Enhance the readability of YAML page in the user guide.
+    - 改善 PETsARD 中的模組功能與除錯，以解決實驗過程中遇到的問題。
+    - 改善使用手冊的易讀性。
+  - **0.9.0** (2024-04-01): **Feasibility study-1** **適用性研究之一**
+    - Enhancing the downstream tasks of autoML as evaluation metrics and improving report generation functionality, addressing issues encountered during experiments.
+    - Completed the development of the user guide and started seeking external testing.
+    - 強化了autoML的下游任務作為評測標準，並改善報表生成功能，解決實驗過程中遇到的問題。
+    - 完成了使用手冊的開發，開始尋求外部測試。
+  - **0.8.0** (2024-03-14): **Start Beta testing** **外部測試開始**
+    - Provide a deeper description of YAML configurations and user stories in the [new manual website](https://nics-tw.github.io/PETsARD/). Also, address the issues encountered in functional testing across multiple modules.
+    - DPCTGAN, PATEGAN in smartnoise can be accessed in `Synthesizer` now. Besides, the execution error from aim, mst, and pacsynth are fixed.
+    - 在[新手冊網站](https://nics-tw.github.io/PETsARD/)上對 YAML 設定、以及用戶故事有更深入的描述。並解決多個模組在功能測試上遇到的問題。
+    - smartnoise 的 DPCTGAN, PATEGAN 可以於 `Synthesizer` 中使用，並修正 aim、mst、pacsynth 執行過程中的錯誤。
+  - **0.7.0** (2024-03-01): **User Story completed** **用戶故事完成**
+    - Two new modules have been added: `Describer` and `Reporter`. Also `Executor`, which can fully execute procedures according to YAML, is included, ensuring that all user stories in the spec are executed correctly.
+    - 新增三個模組：`Describer`、`Reporter`、以及能按照 YAML 完整執行流程的 `Executor`，以此確保規格說明書中所有的用戶故事都能正確執行。
 - **In Developing 開發階段**
-    - **0.6.0-alpha** (2024-02-07): **Transition to new modules** **新模組轉換**
-        - Introduced two new module `Config` and `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
-        - 新增兩個模組：`Config` 與 `Operator`，以及進行變數及檔案名稱統一，並進行 SDV 及 Anonymeter 檔案的整併。
-    - **0.5.0-alpha** (2024-01-30): **Transition to new modules** **新模組轉換**
-        - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://nics-tw.github.io/PETsARD//Evaluator-Anonymeter.html).
-        - 導入 Metadata 與 Processor 兩個新模組，同時下架 Pre/Postprocessor，同時新增 [Anonymeter 手冊](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html)。
-    - **0.4.0-alpha** (2024-01-12): **Enriching README** **充實讀我檔案**
-        - Develop coding standards, improve existing code, create a [demo website](https://matheme-justyn.github.io/PETsARD-Gitbook/) to store and showcase team's markdown format guidelines, and expand support for SDMetrics evaluation.
-        - 建立程式開發規則，並對現有代碼進行提升。並建構[示範網站](https://matheme-justyn.github.io/PETsARD-Gitbook/)以存放並展示團隊的 markdown 格式指引。擴充支援 SDMetrics 評測。
-    - **0.3.0-alpha** (2023-12-29): **PETsARD functional pipeline release.** **PETsARD 功能流程釋出**
-        - Following the ver. 1.2 specification which reconstructed on 2023-12-11, the new library is named PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development). The library currently supports three privacy-enhancing technology steps: file reading, data preprocessing, and data synthesizing, coupled with two privacy-enhancing evaluation steps: cross-validation and data evaluation. These are integrated into a unified execution module, providing functionalities for metadata preservation and report output.
-        - 依照 2023-12-11 的 ver. 1.2 版規格書進行重構，新程式庫被稱為 PETsARD (隱私強化技術分析、研究與開發) 。程式庫目前可執行讀檔、資料前處理、資料合成三個隱私強化技術步驟，並搭配交叉驗證、資料評測兩個隱私強化評估步驟，並整合在統一的執行模組裡，提供中繼資料保存與報告輸出兩個功能。
-    - **0.2.0-alpha** (2023-11-16): **PETs_Tool release.** **PETs_Tool 釋出**。
-        - Included PETs_Loader/Describer/Desc_Reporter/SD_SDV/util, executable Synthetic data pipeline is ready for programming.
-        - 已包含 PETs_Loader、Describer、Desc_Reporter、SD_SDV 及 util，可執行的合成資料流程已準備好進行程式設計。
-    - **0.1.0-alpha** (2023-11-03): **PET_raw_data release.** **PET_raw_data 釋出**。
-        - Defined benchmark datasets and applied SDV as example.
-        - 決定經典資料集與 SDV 合成範例。
+  - **0.6.0-alpha** (2024-02-07): **Transition to new modules** **新模組轉換**
+    - Introduced two new module `Config` and `Operator`, unified the variable and file names, and simplified SDV and Anonymeter modules, summarising all related classes and functions into a single file, respectively.
+    - 新增兩個模組：`Config` 與 `Operator`，以及進行變數及檔案名稱統一，並進行 SDV 及 Anonymeter 檔案的整併。
+  - **0.5.0-alpha** (2024-01-30): **Transition to new modules** **新模組轉換**
+    - Introduced two new modules, Metadata and Processor, while retiring Pre/Postprocessor. Additionally, added the [Anonymeter manual](https://nics-tw.github.io/PETsARD//Evaluator-Anonymeter.html).
+    - 導入 Metadata 與 Processor 兩個新模組，同時下架 Pre/Postprocessor，同時新增 [Anonymeter 手冊](https://matheme-justyn.github.io/PETsARD-Gitbook/Evaluator-Anonymeter.html)。
+  - **0.4.0-alpha** (2024-01-12): **Enriching README** **充實讀我檔案**
+    - Develop coding standards, improve existing code, create a [demo website](https://matheme-justyn.github.io/PETsARD-Gitbook/) to store and showcase team's markdown format guidelines, and expand support for SDMetrics evaluation.
+    - 建立程式開發規則，並對現有代碼進行提升。並建構[示範網站](https://matheme-justyn.github.io/PETsARD-Gitbook/)以存放並展示團隊的 markdown 格式指引。擴充支援 SDMetrics 評測。
+  - **0.3.0-alpha** (2023-12-29): **PETsARD functional pipeline release.** **PETsARD 功能流程釋出**
+    - Following the ver. 1.2 specification which reconstructed on 2023-12-11, the new library is named PETsARD (Privacy Enhancing Technologies Analysis, Research, and Development). The library currently supports three privacy-enhancing technology steps: file reading, data preprocessing, and data synthesizing, coupled with two privacy-enhancing evaluation steps: cross-validation and data evaluation. These are integrated into a unified execution module, providing functionalities for metadata preservation and report output.
+    - 依照 2023-12-11 的 ver. 1.2 版規格書進行重構，新程式庫被稱為 PETsARD (隱私強化技術分析、研究與開發) 。程式庫目前可執行讀檔、資料前處理、資料合成三個隱私強化技術步驟，並搭配交叉驗證、資料評測兩個隱私強化評估步驟，並整合在統一的執行模組裡，提供中繼資料保存與報告輸出兩個功能。
+  - **0.2.0-alpha** (2023-11-16): **PETs_Tool release.** **PETs_Tool 釋出**。
+    - Included PETs_Loader/Describer/Desc_Reporter/SD_SDV/util, executable Synthetic data pipeline is ready for programming.
+    - 已包含 PETs_Loader、Describer、Desc_Reporter、SD_SDV 及 util，可執行的合成資料流程已準備好進行程式設計。
+  - **0.1.0-alpha** (2023-11-03): **PET_raw_data release.** **PET_raw_data 釋出**。
+    - Defined benchmark datasets and applied SDV as example.
+    - 決定經典資料集與 SDV 合成範例。

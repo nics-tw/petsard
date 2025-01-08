@@ -11,24 +11,24 @@ YAML 的基礎格式如下：
 ```
 
 - module name：A module that performs specific tasks. The modules required for this user story include:
-    - `Loader`: Data loading
-    - `Preprocessor`: Data pre-processing
-    - `Synthesizer`: Data synthesizing
-    - `Postprocessor`: Data post-processing
-    - `Evaluator`: Data Evaluating
-    - `Describer`: Data Describing
-    - `Reporter`: Data/Report output
+  - `Loader`: Data loading
+  - `Preprocessor`: Data pre-processing
+  - `Synthesizer`: Data synthesizing
+  - `Postprocessor`: Data post-processing
+  - `Evaluator`: Data Evaluating
+  - `Describer`: Data Describing
+  - `Reporter`: Data/Report output
 - experiment name: A custom name for a single experimental parameter for that module. Mandatory.
 - config of module：For complete parameters, please refer to the descriptions of each module in the manual.
 
 - 模組名稱：執行特定工作的模組。本用戶故事所需的模組包含：
-    - `Loader`: 資料讀取
-    - `Preprocessor`: 資料前處理
-    - `Synthesizer`: 資料合成
-    - `Postprocessor`: 資料後處理
-    - `Evaluator`: 資料評估
-    - `Describer`: 資料描述
-    - `Reporter`: 資料/報表輸出
+  - `Loader`: 資料讀取
+  - `Preprocessor`: 資料前處理
+  - `Synthesizer`: 資料合成
+  - `Postprocessor`: 資料後處理
+  - `Evaluator`: 資料評估
+  - `Describer`: 資料描述
+  - `Reporter`: 資料/報表輸出
 - 實驗名稱：對於該模組，單一個實驗參數的自訂名稱。必填。
 - 模組的設定：完整參數請參考各模組於手冊上的說明。
 

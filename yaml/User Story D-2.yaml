@@ -4,8 +4,8 @@ Loader:
     # default of Loader is Adult Income dataset
     method: 'default'
   adult:
-    # compare to the Adult (UCI) dataset
-    filepath: 'benchmark://adult'
+    # compare to the Adult Income dataset
+    filepath: 'benchmark://adult-income'
     na_values:
       workclass: '?'
       occupation: '?'

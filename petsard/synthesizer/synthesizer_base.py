@@ -1,21 +1,15 @@
-from abc import ABC, abstractmethod
 import time
 import warnings
+from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from petsard import Metadata
 from petsard.error import UnfittedError
+from petsard.loader import Metadata
 
 
 class SynthesizerBase(ABC):
-
-    def __init__(
-        self,
-        data: pd.DataFrame,
-        metadata: Metadata = None,
-        **kwargs
-    ) -> None:
+    def __init__(self, data: pd.DataFrame, metadata: Metadata = None, **kwargs) -> None:
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
@@ -34,8 +28,8 @@ class SynthesizerBase(ABC):
             _synthesizer (SyntheszierBase): The synthesizer object.
         """
         self.data: pd.DataFrame = data
-        self.syn_module: str = 'Unknown'
-        self.syn_method: str = 'Unknown'
+        self.syn_module: str = "Unknown"
+        self.syn_method: str = "Unknown"
         self.constant_data: dict = {}
         self.sample_num_rows_as: str = None
         self.sample_num_rows: int = None
@@ -43,24 +37,27 @@ class SynthesizerBase(ABC):
         self.output_file_path: str = None
 
         if metadata is not None:
-            if hasattr(metadata, 'metadata') and 'global' in metadata.metadata:
+            if hasattr(metadata, "metadata") and "global" in metadata.metadata:
                 # 1. if Splitter information exist, use rnum after split
-                if 'row_num_after_split' in metadata.metadata['global'] and \
-                        'train' in metadata.metadata['global']['row_num_after_split']:
-                    self.sample_num_rows_as = 'Splitter data'
-                    self.sample_num_rows = \
-                        metadata.metadata['global']['row_num_after_split']['train']
+                if (
+                    "row_num_after_split" in metadata.metadata["global"]
+                    and "train" in metadata.metadata["global"]["row_num_after_split"]
+                ):
+                    self.sample_num_rows_as = "Splitter data"
+                    self.sample_num_rows = metadata.metadata["global"][
+                        "row_num_after_split"
+                    ]["train"]
                 # 2. if Loader only, assume data didn't been split
-                elif 'row_num' in metadata.metadata['global']:
-                    self.sample_num_rows_as = 'Loader data'
-                    self.sample_num_rows = metadata.metadata['global']['row_num']
+                elif "row_num" in metadata.metadata["global"]:
+                    self.sample_num_rows_as = "Loader data"
+                    self.sample_num_rows = metadata.metadata["global"]["row_num"]
             else:
                 warnings.warn(
-                    "There's no global information in the metadata." +
-                    "No rows number information will be used."
+                    "There's no global information in the metadata."
+                    + "No rows number information will be used."
                 )
         if self.sample_num_rows is None:
-            self.sample_num_rows_as = 'input data'
+            self.sample_num_rows_as = "input data"
             self.sample_num_rows = self.data.shape[0]
 
         self._synthesizer: SynthesizerBase = None
@@ -75,10 +72,7 @@ class SynthesizerBase(ABC):
     def fit(self) -> None:
         time_start = time.time()
 
-        print(
-            f"Synthesizer ({self.syn_module}): "
-            f"Fitting {self.syn_method}."
-        )
+        print(f"Synthesizer ({self.syn_module}): " f"Fitting {self.syn_method}.")
         self._fit()
         print(
             f"Synthesizer ({self.syn_module}): "
@@ -98,9 +92,9 @@ class SynthesizerBase(ABC):
 
     def sample(
         self,
-        sample_num_rows:  int = None,
-        reset_sampling:   bool = False,
-        output_file_path: str = None
+        sample_num_rows: int = None,
+        reset_sampling: bool = False,
+        output_file_path: str = None,
     ) -> pd.DataFrame:
         """
         Sample from the fitted synthesizer.
@@ -124,7 +118,7 @@ class SynthesizerBase(ABC):
             data_syn (pd.DataFrame): The synthesized data.
         """
         if sample_num_rows is not None:
-            self.sample_num_rows_as = 'manual input'
+            self.sample_num_rows_as = "manual input"
             self.sample_num_rows = sample_num_rows
         self.reset_sampling = reset_sampling
         self.output_file_path = output_file_path
@@ -143,9 +137,9 @@ class SynthesizerBase(ABC):
                 data_syn.to_csv(output_file_path, index=False)
 
             str_sample_num_rows_as = (
-                f' (same as {self.sample_num_rows_as})'
+                f" (same as {self.sample_num_rows_as})"
                 if self.sample_num_rows_as
-                else ''
+                else ""
             )
             print(
                 f"Synthesizer ({self.syn_module}): "
@@ -160,9 +154,9 @@ class SynthesizerBase(ABC):
 
     def fit_sample(
         self,
-        sample_num_rows:  int = None,
-        reset_sampling:   bool = False,
-        output_file_path: str = None
+        sample_num_rows: int = None,
+        reset_sampling: bool = False,
+        output_file_path: str = None,
     ) -> pd.DataFrame:
         """
         Fit and sample from the synthesizer

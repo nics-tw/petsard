@@ -1,10 +1,10 @@
 import hashlib
-from typing import Dict
 
 import pandas as pd
 
 from petsard.error import ConfigError
 from petsard.util import OPTIMIZED_DTYPES
+
 
 def DigestSha256(filepath):
     """
@@ -39,8 +39,8 @@ def casting_dataframe(data: pd.DataFrame, optimized_dtypes: dict) -> pd.DataFram
 
         if optimized_dtype is None:
             raise ConfigError
-        elif optimized_dtype == 'datetime':
-            optimized_dtype = OPTIMIZED_DTYPES['datetime']
+        elif optimized_dtype == "datetime":
+            optimized_dtype = OPTIMIZED_DTYPES["datetime"]
 
         data[col_name] = data[col_name].astype(optimized_dtype)
 

@@ -3,8 +3,8 @@ from typing import Union
 
 import pandas as pd
 
-from petsard import Metadata
 from petsard.error import ConfigError
+from petsard.loader import Metadata
 from petsard.util import safe_astype
 
 
@@ -28,7 +28,7 @@ class EvaluatorBase(ABC):
             result (dict):
                 A dictionary to store the result of the description/evaluation. Default is an empty.
         """
-        if 'method' not in config:
+        if "method" not in config:
             raise ConfigError
 
         self.config: dict = config
@@ -42,13 +42,13 @@ class EvaluatorBase(ABC):
         Args:
             data (dict): The data required for description/evaluation.
         """
-        if not all(key == 'data' for key in data):
-            if 'ori' not in data:
+        if not all(key == "data" for key in data):
+            if "ori" not in data:
                 raise ConfigError
 
             metadata: Metadata = Metadata()
-            metadata.build_metadata(data=data['ori'])
-            other_keys: list[str] = [key for key in data.keys() if key != 'ori']
+            metadata.build_metadata(data=data["ori"])
+            other_keys: list[str] = [key for key in data.keys() if key != "ori"]
             for other_key in other_keys:
                 data[other_key] = self._align_dtypes(
                     data[other_key],
@@ -72,8 +72,8 @@ class EvaluatorBase(ABC):
         Return:
             (pd.DataFrame): The aligned data.
         """
-        for col, val in metadata.metadata['col'].items():
-            data[col] = safe_astype(data[col], val['dtype'])
+        for col, val in metadata.metadata["col"].items():
+            data[col] = safe_astype(data[col], val["dtype"])
 
         return data
 

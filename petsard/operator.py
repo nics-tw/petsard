@@ -6,18 +6,20 @@ from datetime import timedelta
 
 import pandas as pd
 
-from petsard import (
+from petsard.error import ConfigError
+from petsard.evaluator import (
     Describer,
     Evaluator,
+)
+from petsard.loader import (
     Loader,
     Metadata,
-    Processor,
-    Reporter,
     Splitter,
-    Synthesizer,
 )
-from petsard.error import ConfigError
+from petsard.processor import Processor
 from petsard.processor.encoder import EncoderUniform
+from petsard.reporter import Reporter
+from petsard.synthesizer import Synthesizer
 
 
 class Operator:
