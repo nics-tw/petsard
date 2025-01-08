@@ -1,8 +1,7 @@
-from petsard.evaluator.evaluator import Evaluator
 from petsard.evaluator.describer import Describer
-
+from petsard.evaluator.evaluator import Evaluator
 
 __all__ = [
-    'Evaluator',
-    'Describer',
+    "Evaluator",
+    "Describer",
 ]

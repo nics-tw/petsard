@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.ensemble import (
-    RandomForestRegressor,
+    GradientBoostingClassifier,
     GradientBoostingRegressor,
     RandomForestClassifier,
-    GradientBoostingClassifier
+    RandomForestRegressor,
 )
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import f1_score, silhouette_score
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
 
 from petsard.error import ConfigError, UnsupportedMethodError
@@ -20,11 +20,12 @@ from petsard.evaluator.evaluator_base import EvaluatorBase
 from petsard.util import safe_round
 
 
-class MLUtilityMap():
+class MLUtilityMap:
     """
     map of MLUtility
     """
-    REGRESSION:   int = 1
+
+    REGRESSION: int = 1
     CLASSIFICATION: int = 2
     CLUSTER: int = 3
 
@@ -40,9 +41,7 @@ class MLUtilityMap():
             (int): The method code.
         """
         try:
-            return cls.__dict__[
-                re.sub(r"^mlutility-", "", method).upper()
-            ]
+            return cls.__dict__[re.sub(r"^mlutility-", "", method).upper()]
         except KeyError:
             raise UnsupportedMethodError
 
@@ -66,7 +65,7 @@ class MLUtility(EvaluatorBase):
     """
 
     def __init__(self, config: dict):
-        if 'method' not in config:
+        if "method" not in config:
             raise ConfigError
 
         super().__init__(config=config)
@@ -82,11 +81,13 @@ class MLUtility(EvaluatorBase):
             data (dict): The data to be described. The keys should be 'ori'
             'syn, and 'control', and the value should be a pandas DataFrame.
         """
-        if not set(['ori', 'syn', 'control']).issubset(set(data.keys())):
+        if not set(["ori", "syn", "control"]).issubset(set(data.keys())):
             raise ConfigError
-        data = {key: value for key, value in data.items()
-                if key in ['ori', 'syn', 'control']
-                }
+        data = {
+            key: value
+            for key, value in data.items()
+            if key in ["ori", "syn", "control"]
+        }
         self.data = data
 
         self.ml.create(self.data)
@@ -137,7 +138,7 @@ class MLWorker:
 
     def __init__(self, config: dict):
         self.config: dict = config
-        self.config['method_code'] = MLUtilityMap.map(config['method'])
+        self.config["method_code"] = MLUtilityMap.map(config["method"])
 
         self.result_ori: dict = {}
         self.result_syn: dict = {}
@@ -145,7 +146,7 @@ class MLWorker:
         # store the aggregated result
         self.result: dict = {}
 
-        self.n_clusters = self.config.get('n_clusters', [4, 5, 6])
+        self.n_clusters = self.config.get("n_clusters", [4, 5, 6])
         if not isinstance(self.n_clusters, list):
             raise ConfigError
         if not all(isinstance(x, int) for x in self.n_clusters):
@@ -172,9 +173,9 @@ class MLWorker:
         categorical variables, and normalisation.
         """
 
-        data_ori = self.data_content['ori']
-        data_syn = self.data_content['syn']
-        data_test = self.data_content['control']
+        data_ori = self.data_content["ori"]
+        data_syn = self.data_content["syn"]
+        data_test = self.data_content["control"]
 
         # Data preprocessing
         data_ori = data_ori.dropna()
@@ -182,20 +183,20 @@ class MLWorker:
         data_test = data_test.dropna()
 
         # Check if there is dataframe is not empty
-        if data_ori.shape[0] == 0 or data_syn.shape[0] == 0 or \
-                data_test.shape[0] == 0:
-            warnings.warn('The data is empty after removing missing values.')
-            self.result = {'ori': {'error': np.nan}, 'syn': {'error': np.nan}}
+        if data_ori.shape[0] == 0 or data_syn.shape[0] == 0 or data_test.shape[0] == 0:
+            warnings.warn("The data is empty after removing missing values.")
+            self.result = {"ori": {"error": np.nan}, "syn": {"error": np.nan}}
             return
 
-        if self.config['method_code'] == MLUtilityMap.CLUSTER:
+        if self.config["method_code"] == MLUtilityMap.CLUSTER:
             pass
-        elif self.config['method_code'] in [
-            MLUtilityMap.CLASSIFICATION, MLUtilityMap.REGRESSION
+        elif self.config["method_code"] in [
+            MLUtilityMap.CLASSIFICATION,
+            MLUtilityMap.REGRESSION,
         ]:
-            if 'target' not in self.config:
+            if "target" not in self.config:
                 raise ConfigError
-            target = self.config['target']
+            target = self.config["target"]
             target_ori = data_ori[target].values
             data_ori = data_ori.drop(columns=[target])
             target_syn = data_syn[target].values
@@ -205,29 +206,32 @@ class MLWorker:
         else:
             raise ConfigError
 
-        self.n_rows['ori'] = data_ori.shape[0]
-        self.n_rows['syn'] = data_syn.shape[0]
-        self.n_rows['test'] = data_test.shape[0]
+        self.n_rows["ori"] = data_ori.shape[0]
+        self.n_rows["syn"] = data_syn.shape[0]
+        self.n_rows["test"] = data_test.shape[0]
 
-        cat_col = (data_ori.dtypes == 'category')\
-            .reset_index(name='is_cat').query('is_cat == True')['index'].values
+        cat_col = (
+            (data_ori.dtypes == "category")
+            .reset_index(name="is_cat")
+            .query("is_cat == True")["index"]
+            .values
+        )
         if len(cat_col) != 0:
             # Check and remove if too much cardinality in col
             for col in cat_col:
                 self.col_cardinality[col] = {
-                    'ori': data_ori[col].nunique(),
-                    'syn': data_syn[col].nunique(),
-                    'test': data_test[col].nunique(),
+                    "ori": data_ori[col].nunique(),
+                    "syn": data_syn[col].nunique(),
+                    "test": data_test[col].nunique(),
                 }
-                if self.col_cardinality[col]['ori'] >= \
-                        round(self.n_rows['ori']/10) \
-                    or self.col_cardinality[col]['syn'] >= \
-                        round(self.n_rows['syn']/10):
+                if self.col_cardinality[col]["ori"] >= round(
+                    self.n_rows["ori"] / 10
+                ) or self.col_cardinality[col]["syn"] >= round(self.n_rows["syn"] / 10):
                     warnings.warn(
-                        f'The cardinality of the column {col} is too high ' +
-                        f'(ori: {self.col_cardinality[col]["ori"]},' +
-                        f' syn: {self.col_cardinality[col]["syn"]}). ' +
-                        f'The column is removed.'
+                        f"The cardinality of the column {col} is too high "
+                        + f'(ori: {self.col_cardinality[col]["ori"]},'
+                        + f' syn: {self.col_cardinality[col]["syn"]}). '
+                        + "The column is removed."
                     )
                     data_ori = data_ori.drop(columns=col)
                     data_syn = data_syn.drop(columns=col)
@@ -237,14 +241,18 @@ class MLWorker:
 
             # One-hot encoding
             ohe = OneHotEncoder(
-                drop='first',
+                drop="first",
                 sparse_output=False,
-                handle_unknown='infrequent_if_exist',
+                handle_unknown="infrequent_if_exist",
             )
-            ohe.fit(np.concatenate([
-                data_ori[cat_col],
-                data_syn[cat_col],
-            ]))
+            ohe.fit(
+                np.concatenate(
+                    [
+                        data_ori[cat_col],
+                        data_syn[cat_col],
+                    ]
+                )
+            )
 
             data_ori_cat = ohe.transform(data_ori[cat_col])
             data_syn_cat = ohe.transform(data_syn[cat_col])
@@ -258,23 +266,25 @@ class MLWorker:
             data_syn = np.concatenate([data_syn, data_syn_cat], axis=1)
             data_test = np.concatenate([data_test, data_test_cat], axis=1)
 
-        if self.config['method_code'] == MLUtilityMap.REGRESSION:
-            self.result_ori = self._regression(data_ori, target_ori,
-                                               data_test, target_test)
-            self.result_syn = self._regression(data_syn, target_syn,
-                                               data_test, target_test)
-        elif self.config['method_code'] == MLUtilityMap.CLASSIFICATION:
-            self.result_ori = self._classification(data_ori, target_ori,
-                                                   data_test, target_test)
-            self.result_syn = self._classification(data_syn, target_syn,
-                                                   data_test, target_test)
-        elif self.config['method_code'] == MLUtilityMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, data_test,
-                                            self.n_clusters)
-            self.result_syn = self._cluster(data_syn, data_test,
-                                            self.n_clusters)
+        if self.config["method_code"] == MLUtilityMap.REGRESSION:
+            self.result_ori = self._regression(
+                data_ori, target_ori, data_test, target_test
+            )
+            self.result_syn = self._regression(
+                data_syn, target_syn, data_test, target_test
+            )
+        elif self.config["method_code"] == MLUtilityMap.CLASSIFICATION:
+            self.result_ori = self._classification(
+                data_ori, target_ori, data_test, target_test
+            )
+            self.result_syn = self._classification(
+                data_syn, target_syn, data_test, target_test
+            )
+        elif self.config["method_code"] == MLUtilityMap.CLUSTER:
+            self.result_ori = self._cluster(data_ori, data_test, self.n_clusters)
+            self.result_syn = self._cluster(data_syn, data_test, self.n_clusters)
 
-        self.result = {'ori': self.result_ori, 'syn': self.result_syn}
+        self.result = {"ori": self.result_ori, "syn": self.result_syn}
 
     def _regression(self, X_train, y_train, X_test, y_test):
         """
@@ -313,14 +323,14 @@ class MLWorker:
         rf.fit(X_train, y_train)
         gb.fit(X_train, y_train)
 
-        result['linear_regression'] = self._lower_bound_check(
-            lr.score(X_test, y_test), 'regression'
+        result["linear_regression"] = self._lower_bound_check(
+            lr.score(X_test, y_test), "regression"
         )
-        result['random_forest'] = self._lower_bound_check(
-            rf.score(X_test, y_test), 'regression'
+        result["random_forest"] = self._lower_bound_check(
+            rf.score(X_test, y_test), "regression"
         )
-        result['gradient_boosting'] = self._lower_bound_check(
-            gb.score(X_test, y_test), 'regression'
+        result["gradient_boosting"] = self._lower_bound_check(
+            gb.score(X_test, y_test), "regression"
         )
 
         return result
@@ -348,9 +358,11 @@ class MLWorker:
 
         # check if the target is constant
         if len(np.unique(y_train)) == 1:
-            warnings.warn('The target column is constant, ' +
-                          'indicating the performance is not reliable.')
-            return {'error': np.nan}
+            warnings.warn(
+                "The target column is constant, "
+                + "indicating the performance is not reliable."
+            )
+            return {"error": np.nan}
 
         ss = StandardScaler()
         X_train = ss.fit_transform(X_train)
@@ -366,25 +378,17 @@ class MLWorker:
         rf.fit(X_train, y_train)
         gb.fit(X_train, y_train)
 
-        result['logistic_regression'] = self._lower_bound_check(
-            f1_score(y_test, lr.predict(X_test),
-                     average='micro'),
-            'classification'
+        result["logistic_regression"] = self._lower_bound_check(
+            f1_score(y_test, lr.predict(X_test), average="micro"), "classification"
         )
-        result['svc'] = self._lower_bound_check(
-            f1_score(y_test, svc.predict(X_test),
-                     average='micro'),
-            'classification'
+        result["svc"] = self._lower_bound_check(
+            f1_score(y_test, svc.predict(X_test), average="micro"), "classification"
         )
-        result['random_forest'] = self._lower_bound_check(
-            f1_score(y_test, rf.predict(X_test),
-                     average='micro'),
-            'classification'
+        result["random_forest"] = self._lower_bound_check(
+            f1_score(y_test, rf.predict(X_test), average="micro"), "classification"
         )
-        result['gradient_boosting'] = self._lower_bound_check(
-            f1_score(y_test, gb.predict(X_test),
-                     average='micro'),
-            'classification'
+        result["gradient_boosting"] = self._lower_bound_check(
+            f1_score(y_test, gb.predict(X_test), average="micro"), "classification"
         )
 
         return result
@@ -417,29 +421,32 @@ class MLWorker:
         X_test = ss.transform(X_test)
 
         for k in n_clusters:
-            k_model = KMeans(random_state=42, n_clusters=k, n_init='auto')
+            k_model = KMeans(random_state=42, n_clusters=k, n_init="auto")
 
             k_model.fit(X_train)
 
             try:
-                silhouette_score_value: float = \
-                    silhouette_score(X_test, k_model.predict(X_test))
+                silhouette_score_value: float = silhouette_score(
+                    X_test, k_model.predict(X_test)
+                )
             except ValueError as e:
-                warnings.warn('There is only one cluster in the prediction, ' +
-                              'or the valid data samples are too few, ' +
-                              'indicating the performance is arbitrarily poor.' +
-                              ' The score is set to the lower bound.' +
-                              ' Error message: ' + str(e))
+                warnings.warn(
+                    "There is only one cluster in the prediction, "
+                    + "or the valid data samples are too few, "
+                    + "indicating the performance is arbitrarily poor."
+                    + " The score is set to the lower bound."
+                    + " Error message: "
+                    + str(e)
+                )
                 silhouette_score_value = -1
 
-            result[f'KMeans_cluster{k}'] = self._lower_bound_check(
-                silhouette_score_value,
-                'cluster'
+            result[f"KMeans_cluster{k}"] = self._lower_bound_check(
+                silhouette_score_value, "cluster"
             )
 
         return result
 
-    def _lower_bound_check(self, value: float, type: 'str') -> float:
+    def _lower_bound_check(self, value: float, type: "str") -> float:
         """
         Check if the score is beyond the lower bound.
         For regression and classification, the lower bound is 0.
@@ -456,15 +463,17 @@ class MLWorker:
         Returns:
             (float): The value in the range.
         """
-        if type == 'cluster':
+        if type == "cluster":
             lower_bound = -1
         else:
             lower_bound = 0
 
         if value < lower_bound:
-            warnings.warn('The score is less than the lower bound,' +
-                          ' indicating the performance is arbitrarily poor.' +
-                          ' The score is set to the lower bound.')
+            warnings.warn(
+                "The score is less than the lower bound,"
+                + " indicating the performance is arbitrarily poor."
+                + " The score is set to the lower bound."
+            )
             return lower_bound
         else:
             return value
@@ -480,17 +489,17 @@ class MLWorker:
 
         ori_value = list(self.result_ori.values())
 
-        normalise_range = 2 if self.config['method_code'] == \
-            MLUtilityMap.CLUSTER else 1
+        compare_df = pd.DataFrame(
+            {
+                "ori_mean": safe_round(np.mean(ori_value)),
+                "ori_std": safe_round(np.std(ori_value)),
+                "syn_mean": safe_round(np.mean(syn_value)),
+                "syn_std": safe_round(np.std(syn_value)),
+            },
+            index=[0],
+        )
 
-        compare_df = pd.DataFrame({'ori_mean': safe_round(np.mean(ori_value)),
-                                   'ori_std': safe_round(np.std(ori_value)),
-                                   'syn_mean': safe_round(np.mean(syn_value)),
-                                   'syn_std': safe_round(np.std(syn_value))},
-                                  index=[0])
-
-        compare_df['diff'] = safe_round(
-            compare_df['syn_mean'] - compare_df['ori_mean'])
+        compare_df["diff"] = safe_round(compare_df["syn_mean"] - compare_df["ori_mean"])
 
         return compare_df
 

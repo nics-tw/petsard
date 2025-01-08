@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
 import itertools
-from typing import Union
 import warnings
+from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -87,14 +87,14 @@ class StatsMean(StatsBase):
         Returns:
             (bool): True if the column's data type is numeric, False otherwise.
         """
-        return is_numeric_dtype(self.data['col'])
+        return is_numeric_dtype(self.data["col"])
 
     def _eval(self) -> float:
         """
         Returns:
             (float): The mean value of the column.
         """
-        return self.data['col'].mean()
+        return self.data["col"].mean()
 
 
 class StatsStd(StatsBase):
@@ -108,14 +108,14 @@ class StatsStd(StatsBase):
         Returns:
             (bool): True if the column's data type is numeric, False otherwise.
         """
-        return is_numeric_dtype(self.data['col'])
+        return is_numeric_dtype(self.data["col"])
 
     def _eval(self) -> float:
         """
         Returns:
             (float): The standard deviation of the column.
         """
-        return self.data['col'].std()
+        return self.data["col"].std()
 
 
 class StatsMedian(StatsBase):
@@ -129,14 +129,14 @@ class StatsMedian(StatsBase):
         Returns:
             (bool): True if the column's data type is numeric, False otherwise.
         """
-        return is_numeric_dtype(self.data['col'])
+        return is_numeric_dtype(self.data["col"])
 
     def _eval(self) -> int | float:
         """
         Returns:
             (int | float): The median of the column.
         """
-        return self.data['col'].median()
+        return self.data["col"].median()
 
 
 class StatsMin(StatsBase):
@@ -150,14 +150,14 @@ class StatsMin(StatsBase):
         Returns:
             (bool): True if the column's data type is numeric, False otherwise.
         """
-        return is_numeric_dtype(self.data['col'])
+        return is_numeric_dtype(self.data["col"])
 
     def _eval(self) -> int | float:
         """
         Returns:
             (int | float): The min of the column.
         """
-        return self.data['col'].min()
+        return self.data["col"].min()
 
 
 class StatsMax(StatsBase):
@@ -171,14 +171,14 @@ class StatsMax(StatsBase):
         Returns:
             (bool): True if the column's data type is numeric, False otherwise.
         """
-        return is_numeric_dtype(self.data['col'])
+        return is_numeric_dtype(self.data["col"])
 
     def _eval(self) -> int | float:
         """
         Returns:
             (int | float): The max of the column.
         """
-        return self.data['col'].max()
+        return self.data["col"].max()
 
 
 class StatsNUnique(StatsBase):
@@ -192,15 +192,16 @@ class StatsNUnique(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return isinstance(self.data['col'].dtype, pd.CategoricalDtype) \
-            or self.data['col'].dtype == np.dtype('bool')
+        return isinstance(self.data["col"].dtype, pd.CategoricalDtype) or self.data[
+            "col"
+        ].dtype == np.dtype("bool")
 
     def _eval(self) -> int:
         """
         Returns:
             (int): The number of unique values in the column.
         """
-        return self.data['col'].nunique(dropna=True)
+        return self.data["col"].nunique(dropna=True)
 
 
 class StatsJSDivergence(StatsBase):
@@ -214,19 +215,21 @@ class StatsJSDivergence(StatsBase):
         Returns:
             (bool): True if the data type is 'category', False otherwise.
         """
-        return (isinstance(self.data['col_ori'].dtype, pd.CategoricalDtype)
-                and isinstance(self.data['col_syn'].dtype, pd.CategoricalDtype)
-                ) or ((self.data['col_ori'].dtype == np.dtype('bool'))
-                and (self.data['col_syn'].dtype == np.dtype('bool'))
-                )
+        return (
+            isinstance(self.data["col_ori"].dtype, pd.CategoricalDtype)
+            and isinstance(self.data["col_syn"].dtype, pd.CategoricalDtype)
+        ) or (
+            (self.data["col_ori"].dtype == np.dtype("bool"))
+            and (self.data["col_syn"].dtype == np.dtype("bool"))
+        )
 
     def _eval(self) -> int:
         """
         Returns:
             (float): The Jensen-Shannon divergence of column pair.
         """
-        value_cnts_ori = self.data['col_ori'].value_counts(normalize=True)
-        value_cnts_syn = self.data['col_syn'].value_counts(normalize=True)
+        value_cnts_ori = self.data["col_ori"].value_counts(normalize=True)
+        value_cnts_syn = self.data["col_syn"].value_counts(normalize=True)
 
         # Get the set of unique categories from both columns
         all_categories = set(value_cnts_ori.index) | set(value_cnts_syn.index)
@@ -254,54 +257,60 @@ class Stats(EvaluatorBase):
         DEFAULT_METHODS (dict):
             A dictionary containing the default statistics methods.
     """
+
     STATS_METHODS: dict[str, dict[str, Union[str, StatsBase]]] = {
-        'mean': {
-            'infer_dtype': ['numerical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsMean,
+        "mean": {
+            "infer_dtype": ["numerical"],
+            "exec_granularity": "columnwise",
+            "module": StatsMean,
         },
-        'std': {
-            'infer_dtype': ['numerical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsStd,
+        "std": {
+            "infer_dtype": ["numerical"],
+            "exec_granularity": "columnwise",
+            "module": StatsStd,
         },
-        'median': {
-            'infer_dtype': ['numerical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsMedian,
+        "median": {
+            "infer_dtype": ["numerical"],
+            "exec_granularity": "columnwise",
+            "module": StatsMedian,
         },
-        'min': {
-            'infer_dtype': ['numerical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsMin,
+        "min": {
+            "infer_dtype": ["numerical"],
+            "exec_granularity": "columnwise",
+            "module": StatsMin,
         },
-        'max': {
-            'infer_dtype': ['numerical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsMax,
+        "max": {
+            "infer_dtype": ["numerical"],
+            "exec_granularity": "columnwise",
+            "module": StatsMax,
         },
-        'nunique': {
-            'infer_dtype': ['categorical'],
-            'exec_granularity': 'columnwise',
-            'module': StatsNUnique,
+        "nunique": {
+            "infer_dtype": ["categorical"],
+            "exec_granularity": "columnwise",
+            "module": StatsNUnique,
         },
-        'jsdivergence': {
-            'infer_dtype': ['categorical'],
-            'exec_granularity': 'percolumn',
-            'module': StatsJSDivergence,
+        "jsdivergence": {
+            "infer_dtype": ["categorical"],
+            "exec_granularity": "percolumn",
+            "module": StatsJSDivergence,
         },
     }
-    COMPARE_METHODS: list[str] = ['diff', 'pct_change']
-    AGGREGATED_METHODS: list[str] = ['mean']
-    SUMMARY_METHODS: list[str] = ['mean']
+    COMPARE_METHODS: list[str] = ["diff", "pct_change"]
+    AGGREGATED_METHODS: list[str] = ["mean"]
+    SUMMARY_METHODS: list[str] = ["mean"]
     DEFAULT_METHODS: dict[str, str] = {
-        'stats_method': [
-            'mean', 'std', 'median', 'min', 'max',
-            'nunique', 'jsdivergence',
+        "stats_method": [
+            "mean",
+            "std",
+            "median",
+            "min",
+            "max",
+            "nunique",
+            "jsdivergence",
         ],
-        'compare_method': 'pct_change',
-        'aggregated_method': 'mean',
-        'summary_method': 'mean'
+        "compare_method": "pct_change",
+        "aggregated_method": "mean",
+        "summary_method": "mean",
     }
 
     def __init__(self, config: dict):
@@ -339,19 +348,20 @@ class Stats(EvaluatorBase):
         """
         super().__init__(config=config)
 
-        self._init_config_method('stats_method', self.STATS_METHODS)
-        self._init_config_method('compare_method', self.COMPARE_METHODS)
-        self._init_config_method('aggregated_method', self.AGGREGATED_METHODS)
-        self._init_config_method('summary_method', self.SUMMARY_METHODS)
+        self._init_config_method("stats_method", self.STATS_METHODS)
+        self._init_config_method("compare_method", self.COMPARE_METHODS)
+        self._init_config_method("aggregated_method", self.AGGREGATED_METHODS)
+        self._init_config_method("summary_method", self.SUMMARY_METHODS)
 
         self.columns_info: dict = {}
         self.aggregated_percolumn_method: list = [
-            stats_method for stats_method in self.config['stats_method']
-            if self.STATS_METHODS[stats_method]['exec_granularity'] == 'percolumn'
+            stats_method
+            for stats_method in self.config["stats_method"]
+            if self.STATS_METHODS[stats_method]["exec_granularity"] == "percolumn"
         ]
-        self.result['global'] = None
-        self.result['columnwise'] = None
-        self.result['pairwise'] = None
+        self.result["global"] = None
+        self.result["columnwise"] = None
+        self.result["pairwise"] = None
 
     def _init_config_method(self, method_name, valid_methods):
         """
@@ -381,14 +391,15 @@ class Stats(EvaluatorBase):
 
                     new_method_name.append(name)
 
-                if method_name == 'stats_method':
+                if method_name == "stats_method":
                     self.config[method_name] = new_method_name
                 else:
                     if len(new_method_name) >= 2:
                         warnings.warn(
-                            f'{method_name} only accept one method,' +
-                            'methods after the first one will be ignored',
-                            Warning)
+                            f"{method_name} only accept one method,"
+                            + "methods after the first one will be ignored",
+                            Warning,
+                        )
                     self.config[method_name] = new_method_name[0]
             else:
                 raise ConfigError
@@ -406,11 +417,9 @@ class Stats(EvaluatorBase):
             UnsupportedMethodError:
                 If an unsupported statistics method is encountered.
         """
-        if not set(['ori', 'syn']).issubset(set(data.keys())):
+        if not set(["ori", "syn"]).issubset(set(data.keys())):
             raise ConfigError
-        data = {key: value for key, value in data.items()
-                if key in ['ori', 'syn']
-        }
+        data = {key: value for key, value in data.items() if key in ["ori", "syn"]}
         self.data = data
         self.columns_info = self._create_columns_info()
 
@@ -421,57 +430,69 @@ class Stats(EvaluatorBase):
         col_result: dict = {}
         pair_result: dict = {}
 
-        for method in self.config['stats_method']:
+        for method in self.config["stats_method"]:
             config_method = self.STATS_METHODS[method]
             infer_dtype, exec_granularity, module = (
-                config_method['infer_dtype'],
-                config_method['exec_granularity'],
-                config_method['module'],
+                config_method["infer_dtype"],
+                config_method["exec_granularity"],
+                config_method["module"],
             )
 
             # Check if the column's data type matches the inferred data type
             # and the inferred data type is in the list of supported data types
-            if exec_granularity == 'columnwise':
+            if exec_granularity == "columnwise":
                 for col, value in self.columns_info.items():
                     if col not in col_result:
                         col_result[col] = {}
-                    if value['infer_dtype_match'] \
-                            and value['ori_infer_dtype'] in infer_dtype:
+                    if (
+                        value["infer_dtype_match"]
+                        and value["ori_infer_dtype"] in infer_dtype
+                    ):
                         col_result = self._create_columnwise_method(
-                            col_result, col, method, "ori", module)
+                            col_result, col, method, "ori", module
+                        )
                         col_result = self._create_columnwise_method(
-                            col_result, col, method, "syn", module)
+                            col_result, col, method, "syn", module
+                        )
                     # avoid no infer_dtype match in whole dataset
                     #   e.g. no category column in data
                     else:
-                        col_result[col][f'{method}_ori'] = np.nan
-                        col_result[col][f'{method}_syn'] = np.nan
-            elif exec_granularity == 'percolumn':
+                        col_result[col][f"{method}_ori"] = np.nan
+                        col_result[col][f"{method}_syn"] = np.nan
+            elif exec_granularity == "percolumn":
                 for col, value in self.columns_info.items():
                     if col not in col_result:
                         col_result[col] = {}
-                    if value['infer_dtype_match'] \
-                            and value['ori_infer_dtype'] in infer_dtype:
+                    if (
+                        value["infer_dtype_match"]
+                        and value["ori_infer_dtype"] in infer_dtype
+                    ):
                         col_result = self._create_percolumn_method(
-                            col_result, col, method, module)
+                            col_result, col, method, module
+                        )
                     else:
                         col_result[col][method] = np.nan
-            elif exec_granularity == 'pairwise':
-                for (col1, value1), (col2, value2) in \
-                        itertools.combinations(self.columns_info.items(), 2):
+            elif exec_granularity == "pairwise":
+                for (col1, value1), (col2, value2) in itertools.combinations(
+                    self.columns_info.items(), 2
+                ):
                     if (col1, col2) not in pair_result:
                         pair_result[(col1, col2)] = {
                             f"{method}_ori": np.nan,
                             f"{method}_syn": np.nan,
                         }
-                    if value1['ori_infer_dtype'] in infer_dtype \
-                            and value2['ori_infer_dtype'] in infer_dtype:
+                    if (
+                        value1["ori_infer_dtype"] in infer_dtype
+                        and value2["ori_infer_dtype"] in infer_dtype
+                    ):
                         pair_result = self._create_pairwise_method(
                             pair_result, col1, col2, method, "ori", module
                         )
 
-                    if value1['syn_infer_dtype'] in infer_dtype \
-                            and value2['syn_infer_dtype'] in infer_dtype:
+                    if (
+                        value1["syn_infer_dtype"] in infer_dtype
+                        and value2["syn_infer_dtype"] in infer_dtype
+                    ):
                         pair_result = self._create_pairwise_method(
                             pair_result, col1, col2, method, "syn", module
                         )
@@ -479,11 +500,13 @@ class Stats(EvaluatorBase):
                 raise UnsupportedMethodError
 
         if col_result != {}:
-            self.result['columnwise'] = pd.DataFrame.from_dict(
-                col_result, orient='index')
+            self.result["columnwise"] = pd.DataFrame.from_dict(
+                col_result, orient="index"
+            )
         if pair_result != {}:
-            self.result['pairwise'] = pd.DataFrame.from_dict(
-                pair_result, orient='index')
+            self.result["pairwise"] = pd.DataFrame.from_dict(
+                pair_result, orient="index"
+            )
 
     def _create_columns_info(self) -> dict:
         """
@@ -494,21 +517,20 @@ class Stats(EvaluatorBase):
                 about the columns in the input data.
         """
         columns_info: dict = {}
-        ori_colnames: list = self.data['ori'].columns
-        syn_colnames: list = self.data['syn'].columns
+        ori_colnames: list = self.data["ori"].columns
+        syn_colnames: list = self.data["syn"].columns
         colnames = list(set(ori_colnames) & set(syn_colnames))
 
         temp: dict = {}
         for col in colnames:
             if col in ori_colnames:
-                temp.update(
-                    self._extract_columns_info('ori', self.data['ori'][col]))
+                temp.update(self._extract_columns_info("ori", self.data["ori"][col]))
             if col in syn_colnames:
-                temp.update(
-                    self._extract_columns_info('syn', self.data['syn'][col]))
-            temp['dtype_match'] = temp['ori_dtype'] == temp['syn_dtype']
-            temp['infer_dtype_match'] = (
-                temp['ori_infer_dtype'] == temp['syn_infer_dtype'])
+                temp.update(self._extract_columns_info("syn", self.data["syn"][col]))
+            temp["dtype_match"] = temp["ori_dtype"] == temp["syn_dtype"]
+            temp["infer_dtype_match"] = (
+                temp["ori_infer_dtype"] == temp["syn_infer_dtype"]
+            )
 
             columns_info[col] = temp
             temp = {}
@@ -528,8 +550,8 @@ class Stats(EvaluatorBase):
         """
         temp: dict = {}
         dtype: type = col.dtype
-        temp['dtype'] = dtype
-        temp['infer_dtype'] = Metadata._convert_dtypes(dtype)
+        temp["dtype"] = dtype
+        temp["infer_dtype"] = Metadata._convert_dtypes(dtype)
 
         temp = {f"{data_source}_{key}": value for key, value in temp.items()}
         return temp
@@ -540,7 +562,7 @@ class Stats(EvaluatorBase):
         col: str,
         method: str,
         data_source: str,
-        module: StatsBase
+        module: StatsBase,
     ) -> dict:
         """
         Creates the column-wise method for a specific column.
@@ -558,7 +580,7 @@ class Stats(EvaluatorBase):
         method_data_source: str = f"{method}_{data_source}"
 
         temp_module: StatsBase = module()
-        temp_module.create({'col': self.data[data_source][col]})
+        temp_module.create({"col": self.data[data_source][col]})
 
         col_result[col][method_data_source] = temp_module.eval()
         return col_result
@@ -583,10 +605,12 @@ class Stats(EvaluatorBase):
             col_result (dict): The dictionary containing the computed statistics.
         """
         temp_module: StatsBase = module()
-        temp_module.create({
-            'col_ori': self.data['ori'][col],
-            'col_syn': self.data['syn'][col],
-        })
+        temp_module.create(
+            {
+                "col_ori": self.data["ori"][col],
+                "col_syn": self.data["syn"][col],
+            }
+        )
 
         col_result[col][method] = temp_module.eval()
         return col_result
@@ -617,10 +641,12 @@ class Stats(EvaluatorBase):
         method_data_source: str = f"{method}_{data_source}"
 
         temp_module: StatsBase = module()
-        temp_module.create({
-            'col1': self.data[data_source][col1],
-            'col2': self.data[data_source][col2],
-        })
+        temp_module.create(
+            {
+                "col1": self.data[data_source][col1],
+                "col2": self.data[data_source][col2],
+            }
+        )
 
         pair_result[(col1, col2)][method_data_source] = temp_module.eval()
         return pair_result
@@ -629,41 +655,41 @@ class Stats(EvaluatorBase):
         """
         Evaluates the computed statistics.
         """
-        compare_method: str = self.config['compare_method']
-        aggregated_method: str = self.config['aggregated_method']
-        summary_method: str = self.config['summary_method']
+        compare_method: str = self.config["compare_method"]
+        aggregated_method: str = self.config["aggregated_method"]
+        summary_method: str = self.config["summary_method"]
 
         compare_col: list[str] = None
         global_result: dict = {}
-        for granularity in ['columnwise', 'pairwise']:
-            if granularity in self.result \
-                    and self.result[granularity] is not None:
-                if compare_method == 'diff':
+        for granularity in ["columnwise", "pairwise"]:
+            if granularity in self.result and self.result[granularity] is not None:
+                if compare_method == "diff":
                     self.result[granularity] = self._compare_diff(
-                        self.result[granularity])
-                elif compare_method == 'pct_change':
+                        self.result[granularity]
+                    )
+                elif compare_method == "pct_change":
                     self.result[granularity] = self._compare_pct_change(
-                        self.result[granularity])
-
-                compare_col = [
-                    col for col in self.result[granularity]
-                    if col.endswith(f'_{compare_method}')]
-                compare_col += self.aggregated_percolumn_method
-                if aggregated_method == 'mean':
-                    global_result.update(
-                        self._aggregated_mean(
-                            self.result[granularity][compare_col]
-                        )
+                        self.result[granularity]
                     )
 
-        if summary_method == 'mean':
+                compare_col = [
+                    col
+                    for col in self.result[granularity]
+                    if col.endswith(f"_{compare_method}")
+                ]
+                compare_col += self.aggregated_percolumn_method
+                if aggregated_method == "mean":
+                    global_result.update(
+                        self._aggregated_mean(self.result[granularity][compare_col])
+                    )
+
+        if summary_method == "mean":
             global_result = {
-                'Score': self._summary_mean(global_result),
-                **global_result
+                "Score": self._summary_mean(global_result),
+                **global_result,
             }
 
-        self.result['global'] = pd.DataFrame.from_dict(
-            global_result, orient='index').T
+        self.result["global"] = pd.DataFrame.from_dict(global_result, orient="index").T
 
     @staticmethod
     def _compare_diff(df: pd.DataFrame) -> pd.DataFrame:
@@ -681,13 +707,12 @@ class Stats(EvaluatorBase):
         Raises:
             ValueError: If any of the synthetic columns are missing in the DataFrame.
         """
-        ori_cols: list[str] = [
-            col for col in df.columns if col.endswith('_ori')]
-        syn_cols: list[str] = [col.replace('_ori', '_syn') for col in ori_cols]
+        ori_cols: list[str] = [col for col in df.columns if col.endswith("_ori")]
+        syn_cols: list[str] = [col.replace("_ori", "_syn") for col in ori_cols]
         if not all(col in df.columns for col in syn_cols):
             raise ValueError
 
-        eval_col: str = ''
+        eval_col: str = ""
         for ori_col, syn_col in zip(ori_cols, syn_cols):
             eval_col = f'{ori_col.replace("_ori", "_diff")}'
             if eval_col in df.columns:
@@ -716,13 +741,12 @@ class Stats(EvaluatorBase):
         Raises:
             ValueError: If any of the synthetic columns are missing in the DataFrame.
         """
-        ori_cols: list[str] = [
-            col for col in df.columns if col.endswith('_ori')]
-        syn_cols: list[str] = [col.replace('_ori', '_syn') for col in ori_cols]
+        ori_cols: list[str] = [col for col in df.columns if col.endswith("_ori")]
+        syn_cols: list[str] = [col.replace("_ori", "_syn") for col in ori_cols]
         if not all(col in df.columns for col in syn_cols):
             raise ValueError
 
-        eval_col: str = ''
+        eval_col: str = ""
         for ori_col, syn_col in zip(ori_cols, syn_cols):
             eval_col = f'{ori_col.replace("_ori", "_pct_change")}'
             if eval_col in df.columns:
@@ -732,7 +756,7 @@ class Stats(EvaluatorBase):
             df[eval_col] = np.where(
                 df[ori_col].astype(float) == 0.0,
                 np.nan,
-                safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col]))
+                safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col])),
             )
         return df
 
@@ -749,9 +773,7 @@ class Stats(EvaluatorBase):
                 the column names as keys
                 and the aggregated mean values as values.
         """
-        return {k: safe_round(v) for k, v
-                in df.mean().to_dict().items()
-                }
+        return {k: safe_round(v) for k, v in df.mean().to_dict().items()}
 
     @staticmethod
     def _summary_mean(global_result: dict) -> float:
@@ -774,7 +796,7 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The global statistics dataframe or None if not available.
         """
-        return self.result['global']
+        return self.result["global"]
 
     def get_columnwise(self) -> pd.DataFrame | None:
         """
@@ -784,7 +806,7 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The column-wise statistics dataframe or None if not available.
         """
-        return self.result['columnwise']
+        return self.result["columnwise"]
 
     def get_pairwise(self) -> pd.DataFrame | None:
         """
@@ -794,4 +816,4 @@ class Stats(EvaluatorBase):
             (pd.DataFrame | None):
                 The pairwise statistics dataframe or None if not available.
         """
-        return self.result['pairwise']
+        return self.result["pairwise"]
