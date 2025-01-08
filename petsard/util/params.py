@@ -1,8 +1,8 @@
-ALLOWED_COLUMN_TYPES: list = ['category', 'datetime']
+ALLOWED_COLUMN_TYPES: list = ["category", "datetime"]
 
 OPTIMIZED_DTYPES: dict = {
-    'category': 'category',
-    'datetime': 'datetime64[s]',
-    'int': 'int64',
-    'float': 'float64',
+    "category": "category",
+    "datetime": "datetime64[s]",
+    "int": "int64",
+    "float": "float64",
 }
