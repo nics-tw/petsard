@@ -1,28 +1,29 @@
 import re
 
+import pandas as pd
 from scipy.stats._warnings_errors import FitError
 from sdv.metadata import SingleTableMetadata
 from sdv.single_table import (
     CopulaGANSynthesizer,
     CTGANSynthesizer,
     GaussianCopulaSynthesizer,
-    TVAESynthesizer
+    TVAESynthesizer,
 )
-import pandas as pd
 
 from petsard import Metadata
+from petsard.error import UnableToSynthesizeError, UnsupportedMethodError
 from petsard.synthesizer.synthesizer_base import SynthesizerBase
-from petsard.error import UnsupportedMethodError, UnableToSynthesizeError
 
 
-class SDVMap():
+class SDVMap:
     """
     Mapping of SDV.
     """
-    COPULAGAN:      int = 1
-    CTGAN:          int = 2
+
+    COPULAGAN: int = 1
+    CTGAN: int = 2
     GAUSSIANCOPULA: int = 3
-    TVAE:           int = 4
+    TVAE: int = 4
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -38,11 +39,7 @@ class SDVMap():
         try:
             # accept both of "sdv-" or "sdv-single_table-" prefix
             return cls.__dict__[
-                re.sub(
-                    r"^(sdv-single_table-|sdv-)",
-                    "",
-                    method
-                ).upper()
+                re.sub(r"^(sdv-single_table-|sdv-)", "", method).upper()
             ]
         except KeyError:
             raise UnsupportedMethodError
@@ -60,22 +57,20 @@ class SDVFactory:
     """
 
     def __init__(self, data: pd.DataFrame, **kwargs) -> None:
-        method: str = kwargs.get('method', None)
+        method: str = kwargs.get("method", None)
         method_code = SDVMap.map(method)  # self.config['method']
-        metadata = kwargs.get('metadata', None)
+        metadata = kwargs.get("metadata", None)
 
         if method_code == SDVMap.COPULAGAN:
-            self.synthesizer = SDVSingleTableCopulaGAN(
-                data=data, metadata=metadata)
+            self.synthesizer = SDVSingleTableCopulaGAN(data=data, metadata=metadata)
         elif method_code == SDVMap.CTGAN:
-            self.synthesizer = SDVSingleTableCTGAN(
-                data=data, metadata=metadata)
+            self.synthesizer = SDVSingleTableCTGAN(data=data, metadata=metadata)
         elif method_code == SDVMap.GAUSSIANCOPULA:
             self.synthesizer = SDVSingleTableGaussianCopula(
-                data=data, metadata=metadata)
+                data=data, metadata=metadata
+            )
         elif method_code == SDVMap.TVAE:
-            self.synthesizer = SDVSingleTableTVAE(
-                data=data, metadata=metadata)
+            self.synthesizer = SDVSingleTableTVAE(data=data, metadata=metadata)
         else:
             raise UnsupportedMethodError
 
@@ -94,12 +89,7 @@ class SDVSingleTable(SynthesizerBase):
     Base class for all SDV SingleTable classes.
     """
 
-    def __init__(
-        self,
-        data: pd.DataFrame,
-        metadata: Metadata = None,
-        **kwargs
-    ) -> None:
+    def __init__(self, data: pd.DataFrame, metadata: Metadata = None, **kwargs) -> None:
         """
         Args:
             data (pd.DataFrame): The data to be synthesized.
@@ -111,7 +101,7 @@ class SDVSingleTable(SynthesizerBase):
             metadata (SingleTableMetadata): The metadata of the data.
         """
         super().__init__(data, metadata, **kwargs)
-        self.syn_module: str = 'SDV'
+        self.syn_module: str = "SDV"
         self.metadata: SingleTableMetadata = SingleTableMetadata()
 
         self._SingleTableMetadata(metadata)
@@ -136,7 +126,7 @@ class SDVSingleTable(SynthesizerBase):
         """
         try:
             self._synthesizer.fit(self.data)
-        except FitError as ex: # See Issue 454
+        except FitError as ex:  # See Issue 454
             raise UnableToSynthesizeError(
                 f"Synthesizer ({self.syn_module} - {self.syn_method}): "
                 f"This datasets couldn't fit in this method. "
@@ -165,8 +155,7 @@ class SDVSingleTable(SynthesizerBase):
         #             batch 100K at once,
         #             otherwise same as sample_num_rows
         sample_batch_size: int = (
-            100000 if self.sample_num_rows >= 100000
-            else self.sample_num_rows
+            100000 if self.sample_num_rows >= 100000 else self.sample_num_rows
         )
 
         if self.reset_sampling:
@@ -175,7 +164,7 @@ class SDVSingleTable(SynthesizerBase):
         data_syn: pd.DataFrame = self._synthesizer.sample(
             num_rows=self.sample_num_rows,
             batch_size=sample_batch_size,
-            output_file_path=None
+            output_file_path=None,
         )
 
         return data_syn
@@ -193,7 +182,7 @@ class SDVSingleTableCopulaGAN(SDVSingleTable):
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs) -> None:
         super().__init__(data, metadata, **kwargs)
-        self.syn_method: str = 'CopulaGAN'
+        self.syn_method: str = "CopulaGAN"
 
         self._synthesizer = CopulaGANSynthesizer(self.metadata)
 
@@ -210,7 +199,7 @@ class SDVSingleTableCTGAN(SDVSingleTable):
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
         super().__init__(data, metadata, **kwargs)
-        self.syn_method: str = 'CTGAN'
+        self.syn_method: str = "CTGAN"
 
         self._synthesizer = CTGANSynthesizer(self.metadata)
 
@@ -227,7 +216,7 @@ class SDVSingleTableGaussianCopula(SDVSingleTable):
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
         super().__init__(data, metadata, **kwargs)
-        self.syn_method: str = 'GaussianCopula'
+        self.syn_method: str = "GaussianCopula"
 
         self._synthesizer = GaussianCopulaSynthesizer(self.metadata)
 
@@ -244,6 +233,6 @@ class SDVSingleTableTVAE(SDVSingleTable):
 
     def __init__(self, data: pd.DataFrame, metadata=None, **kwargs):
         super().__init__(data, metadata, **kwargs)
-        self.syn_method: str = 'TVAE'
+        self.syn_method: str = "TVAE"
 
         self._synthesizer = TVAESynthesizer(self.metadata)
