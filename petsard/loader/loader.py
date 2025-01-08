@@ -1,20 +1,17 @@
-from importlib import resources
 import pathlib
 import re
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Union
-)
+from importlib import resources
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
-import yaml
 
-from petsard.loader.benchmark import (
-    BenchmarkerBoto3,
-    BenchmarkerRequests,
+import yaml
+from petsard.error import (
+    ConfigError,
+    NoConfigError,
+    UnsupportedMethodError,
 )
+from petsard.loader.benchmark import BenchmarkerRequests
 from petsard.loader.loader_pandas import (
     LoaderPandasCsv,
     LoaderPandasExcel,
@@ -26,27 +23,23 @@ from petsard.util import (
     optimize_dtypes,
     verify_column_types,
 )
-from petsard.error import (
-    ConfigError,
-    NoConfigError,
-    UnsupportedMethodError,
-)
 
 
-class LoaderFileExt():
+class LoaderFileExt:
     """
     Mapping of File extension.
     """
+
     CSVTYPE: int = 1
     EXCELTYPE: int = 2
-    CSV:  int = 10
-    XLS:  int = 20
+    CSV: int = 10
+    XLS: int = 20
     XLSX: int = 21
     XLSM: int = 22
     XLSB: int = 23
-    ODF:  int = 24
-    ODS:  int = 25
-    ODT:  int = 26
+    ODF: int = 24
+    ODS: int = 25
+    ODT: int = 26
 
     @classmethod
     def getext(cls, file_ext: str) -> int:
@@ -136,17 +129,17 @@ class Loader:
 
         # 2. Define the category (discrete), and datetime columns
         #    set dtype for these columns as str at first.
-        self.config['column_types'] = None
-        self.config['dtype'] = None
+        self.config["column_types"] = None
+        self.config["dtype"] = None
         if column_types is not None:
             if not verify_column_types(column_types):
                 raise ConfigError
-            self.config['column_types'] = column_types
-            self.config['dtype'] = self._assign_str_dtype(column_types)
+            self.config["column_types"] = column_types
+            self.config["dtype"] = self._assign_str_dtype(column_types)
 
         # 3. Collect remain configuration (for loader_pandas)
-        self.config['header_names'] = header_names
-        self.config['na_values'] = na_values
+        self.config["header_names"] = header_names
+        self.config["na_values"] = na_values
 
     def load(self):
         """
@@ -155,17 +148,15 @@ class Loader:
 
         # 1. If set as load benchmark
         #       downloading benchmark dataset, and executing on local file.
-        if self.config['benchmark']:
-            benchmark_access = self.config['benchmark_access']
-            if benchmark_access == 'public':
+        if self.config["benchmark"]:
+            benchmark_access = self.config["benchmark_access"]
+            if benchmark_access == "public":
                 BenchmarkerRequests(self.config).download()
-            elif benchmark_access == 'private':
-                BenchmarkerBoto3(self.config).download()
             else:
                 raise UnsupportedMethodError
 
         # 2. Setting self.loader as specified Loader class by file extension
-        file_ext = self.config['file_ext'].lower()
+        file_ext = self.config["file_ext"].lower()
         if LoaderFileExt.getext(file_ext) == LoaderFileExt.CSVTYPE:
             self.loader = LoaderPandasCsv(config=self.config)
         elif LoaderFileExt.getext(file_ext) == LoaderFileExt.EXCELTYPE:
@@ -177,13 +168,13 @@ class Loader:
         data: pd.DataFrame = self.loader.load()
 
         # 4. Optimizing dtype
-        self.config['dtype'] = optimize_dtypes(
+        self.config["dtype"] = optimize_dtypes(
             data=data,
-            column_types=self.config['column_types'],
+            column_types=self.config["column_types"],
         )
 
         # 5. Casting data for more efficient storage space
-        self.data = casting_dataframe(data, self.config['dtype'])
+        self.data = casting_dataframe(data, self.config["dtype"])
 
         # 6. Setting metadata
         metadata = Metadata()
@@ -220,52 +211,52 @@ class Loader:
                 benchmark_sha256 (str): The SHA-256 value of benchmark dataset
         """
         config: dict = {
-            'filepath': filepath,
-            'method': method,
-            'file_ext': None,
-            'benchmark': False,
+            "filepath": filepath,
+            "method": method,
+            "file_ext": None,
+            "benchmark": False,
         }
 
         # 1. set default method if method = 'default'
         if filepath is None and method is None:
             raise NoConfigError
         elif method:
-            if method.lower() == 'default':
+            if method.lower() == "default":
                 # default will use adult-income
-                config['filepath'] = 'benchmark://adult-income'
+                config["filepath"] = "benchmark://adult-income"
             else:
                 raise UnsupportedMethodError
 
         # 2. check if filepath is specified as a benchmark
-        if config['filepath'].lower().startswith("benchmark://"):
-            config['benchmark'] = True
-            config['benchmark_name'] = re.sub(
-                r'^benchmark://', '',
-                config['filepath'],
-                flags=re.IGNORECASE
+        if config["filepath"].lower().startswith("benchmark://"):
+            config["benchmark"] = True
+            config["benchmark_name"] = re.sub(
+                r"^benchmark://", "", config["filepath"], flags=re.IGNORECASE
             ).lower()
 
-        if config['benchmark']:
+        if config["benchmark"]:
             # 3. if benchmark, load and organized yaml: BENCHMARK_CONFIG
             BENCHMARK_CONFIG = cls._load_benchmark_config()
 
             # 4. if benchmark name exist in BENCHMARK_CONFIG, update config
-            if config['benchmark_name'] not in BENCHMARK_CONFIG:
+            if config["benchmark_name"] not in BENCHMARK_CONFIG:
                 raise FileNotFoundError
-            benchmark_value = BENCHMARK_CONFIG[config['benchmark_name']]
-            benchmark_filename = benchmark_value['filename']
-            config.update({
-                'filepath_raw': filepath,
-                'filepath': pathlib.Path('benchmark').joinpath(benchmark_filename),
-                'benchmark_filename':    benchmark_filename,
-                'benchmark_access':      benchmark_value['access'],
-                'benchmark_region_name': benchmark_value['region_name'],
-                'benchmark_bucket_name': benchmark_value['bucket_name'],
-                'benchmark_sha256':      benchmark_value['sha256'],
-            })
+            benchmark_value = BENCHMARK_CONFIG[config["benchmark_name"]]
+            benchmark_filename = benchmark_value["filename"]
+            config.update(
+                {
+                    "filepath_raw": filepath,
+                    "filepath": pathlib.Path("benchmark").joinpath(benchmark_filename),
+                    "benchmark_filename": benchmark_filename,
+                    "benchmark_access": benchmark_value["access"],
+                    "benchmark_region_name": benchmark_value["region_name"],
+                    "benchmark_bucket_name": benchmark_value["bucket_name"],
+                    "benchmark_sha256": benchmark_value["sha256"],
+                }
+            )
 
         # 5. extract file extension
-        config['file_ext'] = pathlib.Path(config['filepath']).suffix.lower()
+        config["file_ext"] = pathlib.Path(config["filepath"]).suffix.lower()
 
         return config
 
@@ -285,30 +276,29 @@ class Loader:
         """
         BENCHMARK_CONFIG = {}
 
-        YAML_FILENAME = 'benchmark_datasets.yaml'
-        with resources.open_text('petsard.loader', YAML_FILENAME) as file:
+        YAML_FILENAME = "benchmark_datasets.yaml"
+        with resources.open_text("petsard.loader", YAML_FILENAME) as file:
             BENCHMARK_CONFIG = yaml.safe_load(file)
 
-        REGION_NAME = BENCHMARK_CONFIG['region_name']
-        BUCKET_NAME = BENCHMARK_CONFIG['bucket_name']
+        REGION_NAME = BENCHMARK_CONFIG["region_name"]
+        BUCKET_NAME = BENCHMARK_CONFIG["bucket_name"]
 
-        BENCHMARK_CONFIG['datasets'] = {
+        BENCHMARK_CONFIG["datasets"] = {
             key: {
-                'filename':    value['filename'],
-                'access':      value['access'],
-                'region_name': REGION_NAME,
-                'bucket_name': BUCKET_NAME[value['access']],
-                'sha256':      value['sha256']
+                "filename": value["filename"],
+                "access": value["access"],
+                "region_name": REGION_NAME,
+                "bucket_name": BUCKET_NAME[value["access"]],
+                "sha256": value["sha256"],
             }
-            for key, value in BENCHMARK_CONFIG['datasets'].items()
+            for key, value in BENCHMARK_CONFIG["datasets"].items()
         }
 
-        return BENCHMARK_CONFIG['datasets']
+        return BENCHMARK_CONFIG["datasets"]
 
     @classmethod
     def _assign_str_dtype(
-        cls,
-        column_types: Optional[Dict[str, List[str]]]
+        cls, column_types: Optional[Dict[str, List[str]]]
     ) -> Dict[str, str]:
         """
         Force setting discrete and datetime columns been load as str at first.
@@ -325,4 +315,4 @@ class Loader:
         for coltype in ALLOWED_COLUMN_TYPES:
             str_colname.extend(column_types.get(coltype, []))
 
-        return {colname: 'str' for colname in str_colname}
+        return {colname: "str" for colname in str_colname}
