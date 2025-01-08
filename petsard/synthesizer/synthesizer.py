@@ -2,8 +2,8 @@ import re
 
 import pandas as pd
 
-from petsard import Loader, Metadata
 from petsard.error import ConfigError, UnsupportedMethodError
+from petsard.loader import Loader, Metadata
 from petsard.synthesizer.sdv import SDVFactory
 from petsard.synthesizer.smartnoise import SmartNoiseFactory
 

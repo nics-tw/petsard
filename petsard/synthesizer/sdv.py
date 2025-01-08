@@ -10,8 +10,8 @@ from sdv.single_table import (
     TVAESynthesizer,
 )
 
-from petsard import Metadata
 from petsard.error import UnableToSynthesizeError, UnsupportedMethodError
+from petsard.loader import Metadata
 from petsard.synthesizer.synthesizer_base import SynthesizerBase
 
 
