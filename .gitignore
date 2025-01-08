@@ -1,48 +1,37 @@
-###### ###### ###### ###### ###### ######
-# PETsARD
+###### PETsARD
 ###### ###### ###### ###### ###### ######
 
-# benchmark datasets
-demo/benchmark/
-demo/dev/benchmark/
+# Benchmark datasets
+demo/**/benchmark/
 
-# temporary
+# Execution results
 **/*.csv
-**/log.txt
-**/PETsARD_log.txt
+**/*.log
 
-
-###### ###### ###### ###### ###### ######
-# 3rd-party temporary
-###### ###### ###### ###### ###### ######
-
-# SDV
+# 3rd-party Execution results: SDV
 **/.sample.csv.temp*
 
-
-###### ###### ###### ###### ###### ######
-# Enviroment related
+###### Enviroment related
 ###### ###### ###### ###### ###### ######
 
-# Byte-compiled
+# Python
+## Byte-compiled
 **/__pycache__
-
-# Jupyter Notebook
-**/.ipynb_checkpoints
-# Jupyter autopep8
-**/*.ipynb*.tmp
-
-# Distribution
+## Distribution
 **/*{env,venv}
 **/.python-version
-
-# Poetry
+## Poetry
 **/poetry.lock
 
-# Mac
+**/__pycache__
+
+# Jupyter
+**/.ipynb_checkpoints
+**/*.ipynb*.tmp
+
+# OS: MacOS
 **/.DS_Store
 
-# VSCode
+# IDE: VSCode
 **/.vscode
-**/.code-workspace
-*.code-workspace
+**/*.code-workspace
