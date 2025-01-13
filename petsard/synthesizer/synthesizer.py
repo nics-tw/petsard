@@ -5,7 +5,6 @@ import pandas as pd
 from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.loader import Loader, Metadata
 from petsard.synthesizer.sdv import SDVFactory
-from petsard.synthesizer.smartnoise import SmartNoiseFactory
 
 
 class SynthesizerMap:
@@ -16,7 +15,6 @@ class SynthesizerMap:
     DEFAULT: int = 0
     CUSTOM_DATA: int = 1
     SDV: int = 10
-    SMARTNOISE: int = 11
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -41,11 +39,10 @@ class Synthesizer:
     as well as generating synthetic data based on the fitted model.
     """
 
-    def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
+    def __init__(self, method: str, **kwargs) -> None:
         """
         Args:
             method (str): The method to be used for synthesizing the data.
-            epsilon (float, default=5.0): The privacy parameter for the synthesizer.
 
         Attributes:
             config (dict):
@@ -53,7 +50,6 @@ class Synthesizer:
         """
         self.config: dict = kwargs
         self.config["method"] = method.lower()
-        self.config["epsilon"] = epsilon
         self.config["method_code"] = SynthesizerMap.map(self.config["method"])
 
         # result in self.data_syn
@@ -93,8 +89,6 @@ class Synthesizer:
             )
         elif self.config["method_code"] == SynthesizerMap.SDV:
             self.synthesizer = SDVFactory(**self.config).create()
-        elif self.config["method_code"] == SynthesizerMap.SMARTNOISE:
-            self.synthesizer = SmartNoiseFactory(**self.config).create()
         else:
             raise UnsupportedMethodError
 
