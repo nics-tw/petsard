@@ -32,10 +32,6 @@ This software includes components from SDV which is licensed under Business Sour
 - Licensed under MIT License
 - Copyright (c) 2020, MIT Data To AI Lab
 
-### Smartnoise
-- Licensed under MIT License
-- Copyright (c) 2020-2021 President and Fellows of Harvard College
-
 ## Terms and Conditions
 1. Any redistribution must include this license notice
 2. Commercial use as a synthetic data service is prohibited (per SDV license)
@@ -46,7 +42,6 @@ For full license texts of dependencies, please see their respective repositories
 - SDV: https://github.com/sdv-dev/SDV
 - Anonymeter: https://github.com/statice/anonymeter
 - SDMetrics: https://github.com/sdv-dev/SDMetrics
-- Smartnoise: https://github.com/opendp/smartnoise-sdk
 
 ## Commercial Usage
 For commercial applications involving synthetic data services, please contact DataCebo, Inc. for licensing options.
