@@ -28,15 +28,12 @@ To initialise an `Synthesizer`, you need to provide the synthetic method and ass
 ```Python
 syn = Synthesizer(
     method,
-    epsilon=5.0,
 )
 ```
 
 **Parameters**
 
 `method` (`str`): The synthetic method. The format should be: `{library name}-{function name}`. For example, `'sdv-single_table-gaussiancopula'`.
-
-`epsilon` (`float`, default=`5.0`, optional): The epsilon used in differential privacy (DP) algorithm. If the synthetic method does not include DP, the parameter will be ignored. See "[Available Synthesizer Types](petsard/docs/usage/09_synthesizer/#selfdata_syn)".
 
 `**kwargs` (`dict`): The parameters defined by each synthetic methods. See the following sections.
 
@@ -98,11 +95,6 @@ In this section, we provide a comprehensive list of supported synthesizer types 
 | `sdv`        |        `CTGANSynthesizer`        |     'sdv-single_table-ctgan'      |                    |                                  |
 | `sdv`        |   `GaussianCopulaSynthesizer`    | 'sdv-single_table-gaussiancopula' |                    |                                  |
 | `sdv`        |        `TVAESynthesizer`         |      'sdv-single_table-tvae'      |                    |                                  |
-| `smartnoise` |    `SmartNoiseCreator` (AIM)     |         'smartnoise-aim'          |         ✅         |                ✅                |
-| `smartnoise` |    `SmartNoiseCreator` (MST)     |         'smartnoise-mst'          |         ✅         |                ✅                |
-| `smartnoise` | `SmartNoiseCreator` (PAC-Synth)  |       'smartnoise-pacsynth'       |         ✅         |                ✅                |
-| `smartnoise` |  `SmartNoiseCreator` (DP-CTGAN)  |       'smartnoise-dpctgan'        |         ✅         |                ❌                |
-| `smartnoise` | `SmartNoiseCreator` (PATE-CTGAN) |      'smartnoise-patectgan'       |         ✅         |                ❌                |
 
 </div>
 
@@ -145,47 +137,3 @@ Use the class `TVAESynthesizer` provided in `sdv`. See [document](https://docs.s
 **Parameters**
 
 See [document](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/tvaesynthesizer) for further details.
-
-### SmartNoise
-
-`smartnoise` is a synthetic data generation package that emphasizes differential privacy (DP), thereby enhancing privacy protection. For more details, please refer to its official [document](https://docs.smartnoise.org/synth/index.html#synthesizers-reference) and [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth). Within our package, we intentionally disable the default preprocessing procedure in `smartnoise` to enhance customization flexibility. It's worth noting that for the methods which `discretizing` is needed, please ensure that your input data is exclusively in categorical format before initiating training. Specifically, in the `Processor` within `PETsARD`, ensure that the last element in the `sequence` is set to `'discretizing'`, and `'encoder'` must not be in the `'sequence'`. Also noted that if you use the method which `discretizing` is not needed, the instance will perform min-max scaling implicitly to make the programme functional.
-
-#### `'smartnoise-aim'`
-
-Use the Adaptive Iterative Mechanism (AIM) algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/aim.html) for further details.
-
-**Parameters**
-
-See [document](https://docs.smartnoise.org/synth/synthesizers/aim.html) for further details.
-
-#### `'smartnoise-mst'`
-
-Use the Maximum Spanning Tree (MST) algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/mst.html) for further details.
-
-**Parameters**
-
-See [document](https://docs.smartnoise.org/synth/synthesizers/mst.html) for further details.
-
-#### `'smartnoise-pacsynth'`
-
-Use the PAC-Synth algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html) for further details.
-
-**Parameters**
-
-See [document](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html) for further details.
-
-#### `'smartnoise-dpctgan'`
-
-Use the DP-CTGAN algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html) for further details.
-
-**Parameters**
-
-See [document](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html) for further details.
-
-#### `'smartnoise-patectgan'`
-
-Use the PATE-CTGAN algorithm provided in `smartnoise`. See [document](https://docs.smartnoise.org/synth/synthesizers/patectgan.html) for further details.
-
-**Parameters**
-
-See [document](https://docs.smartnoise.org/synth/synthesizers/patectgan.html) for further details.
