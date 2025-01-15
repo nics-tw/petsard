@@ -28,15 +28,12 @@ syn.fit_sample()
 ```Python
 syn = Synthesizer(
     method,
-    epsilon=5.0,
 )
 ```
 
 **參數**
 
 `method` (`str`): 合成方法。格式須為 `{套件名}-{函式名}`，例如：`'sdv-single_table-gaussiancopula'`
-
-`epsilon` (`float`, default=`5.0`, optional): 用於差分隱私 (DP) 演算法的 epsilon。如果合成方法不包含 DP，此參數會被忽略。詳見 "[Available Synthesizer Types](petsard/zh-tw/docs/usage/09_synthesizer#selfdata_syn)"。
 
 `**kwargs` (`dict`): 合成方法的自定義參數。詳見後續章節。
 
@@ -98,11 +95,6 @@ syn = Synthesizer(
 | `sdv`        |        `CTGANSynthesizer`        |     'sdv-single_table-ctgan'      |                |                              |
 | `sdv`        |   `GaussianCopulaSynthesizer`    | 'sdv-single_table-gaussiancopula' |                |                              |
 | `sdv`        |        `TVAESynthesizer`         |      'sdv-single_table-tvae'      |                |                              |
-| `smartnoise` |    `SmartNoiseCreator` (AIM)     |         'smartnoise-aim'          |       ✅       |              ✅              |
-| `smartnoise` |    `SmartNoiseCreator` (MST)     |         'smartnoise-mst'          |       ✅       |              ✅              |
-| `smartnoise` | `SmartNoiseCreator` (PAC-Synth)  |       'smartnoise-pacsynth'       |       ✅       |              ✅              |
-| `smartnoise` |  `SmartNoiseCreator` (DP-CTGAN)  |       'smartnoise-dpctgan'        |       ✅       |              ❌              |
-| `smartnoise` | `SmartNoiseCreator` (PATE-CTGAN) |      'smartnoise-patectgan'       |       ✅       |              ❌              |
 
 </div>
 
@@ -145,47 +137,3 @@ syn = Synthesizer(
 **參數**
 
 詳見[說明文件](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers/tvaesynthesizer)。
-
-### SmartNoise
-
-`smartnoise` 是一個著重在差分隱私 (DP) 的合成資料套件，以提升隱私保護力。詳見其官方[說明文件](https://docs.smartnoise.org/synth/index.html#synthesizers-reference)及 [GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/synth)。在本套件中，我們抑制了 `smartnoise` 原生的資料前處理流程以提升客製化的彈性。請注意，若您使用需要 `discretizing` 的演算法，在訓練前請確保您的資料皆是類別格式。亦即，若您使用 `PETsARD` 的 `Processor`，請確認在 `sequence` 中的最後一個元素為 `'discretizing'`，且`'encoder'` 不能在 `sequence` 中。另外提醒，若使用不需要 `discretizing` 的演算法，該物件會內隱執行 min-max 轉換，以確保程式能正常執行。
-
-#### `'smartnoise-aim'`
-
-使用 `smartnoise` 提供的 Adaptive Iterative Mechanism (AIM) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
-
-**參數**
-
-詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/aim.html)。
-
-#### `'smartnoise-mst'`
-
-使用 `smartnoise` 提供的 Maximum Spanning Tree (MST) 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mst.html)。
-
-**參數**
-
-詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/mst.html)。
-
-#### `'smartnoise-pacsynth'`
-
-使用 `smartnoise` 提供的 PAC-Synth 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html)。
-
-**參數**
-
-詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/pac_synth.html)。
-
-#### `'smartnoise-dpctgan'`
-
-使用 `smartnoise` 提供的 DP-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
-
-**參數**
-
-詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/dpctgan.html)。
-
-#### `'smartnoise-patectgan'`
-
-使用 `smartnoise` 提供的 PATE-CTGAN 演算法。詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
-
-**參數**
-
-詳見[說明文件](https://docs.smartnoise.org/synth/synthesizers/patectgan.html)。
