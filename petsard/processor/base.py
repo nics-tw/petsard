@@ -349,33 +349,77 @@ class Processor:
         Check whether the sequence is valid.
 
         Args:
-            sequence (list): The processing sequence.
+            sequence (list[str]): The processing sequence.
+
+
+        Raises:
+            TypeError: If sequence is not a list.
+            ValueError: If sequence is empty, contains duplicates,
+                    exceeds max length, or contains invalid processors.
         """
+        self.logger.debug(f"Validating sequence: {sequence}")
+        error_msg: str = None
+
+        # Check type
         if not isinstance(sequence, list):
-            raise TypeError("Sequence should be a list.")
-
-        if len(sequence) == 0:
-            raise ValueError("There should be at least one procedure in the sequence.")
-
-        if len(sequence) > self.MAX_SEQUENCE_LENGTH:
-            raise ValueError("Too many procedures!")
-
-        if len(set(sequence)) != len(sequence):
-            raise ValueError(
-                "There are duplicated procedures in the sequence, please remove them."
+            error_msg = (
+                "Sequence must be a list of processing steps, "
+                f"got {type(sequence).__name__} instead"
             )
+            self.logger.error(error_msg)
+            raise TypeError(error_msg)
+
+        # Check empty
+        if len(sequence) == 0:
+            error_msg = (
+                "Sequence cannot be empty. Must contain at least one processing step"
+            )
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # Check length
+        if len(sequence) > self.MAX_SEQUENCE_LENGTH:
+            error_msg = (
+                f"Sequence length {len(sequence)} exceeds maximum allowed length "
+                f"({self.MAX_SEQUENCE_LENGTH})"
+            )
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # Check duplicates
+        if len(set(sequence)) != len(sequence):
+            # Find the duplicated items for better error message
+            duplicates = [item for item in sequence if sequence.count(item) > 1]
+            error_msg = (
+                "Duplicate processors found in sequence. "
+                f"Duplicated items: {', '.join(duplicates)}"
+            )
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
 
         invalid_processors: set = set(sequence) - self._valid_processor_types
         if invalid_processors:
-            raise ValueError(f"Invalid processors found: {invalid_processors}")
+            error_msg = f"Invalid processors found: {', '.join(invalid_processors)}."
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
 
         if "discretizing" in sequence:
             if "encoder" in sequence:
-                raise ValueError(
-                    "'discretizing' and 'encoder' processor" + " cannot coexist."
+                error_msg = (
+                    "'discretizing' and 'encoder' processors cannot be used together. "
+                    "Please choose only one of them"
                 )
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
             if sequence[-1] != "discretizing":
-                raise ValueError("'discretizing' processor must be the last processor.")
+                error_msg = (
+                    "'discretizing' processor must be the last step in the sequence. "
+                    f"Current sequence: {' -> '.join(sequence)}"
+                )
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
+
+        self.logger.debug("Sequence validation completed successfully")
 
     def _detect_edit_global_transformation(self) -> None:
         """
