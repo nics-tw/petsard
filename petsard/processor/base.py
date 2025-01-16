@@ -50,6 +50,8 @@ class Processor:
     to the right processors based on the metadata and the parameters.
     """
 
+    MAX_SEQUENCE_LENGTH = 4  # Maximum number of procedures allowed in sequence
+
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
         Args:
@@ -356,7 +358,7 @@ class Processor:
         if len(sequence) == 0:
             raise ValueError("There should be at least one procedure in the sequence.")
 
-        if len(sequence) > 4:
+        if len(sequence) > self.MAX_SEQUENCE_LENGTH:
             raise ValueError("Too many procedures!")
 
         if len(list(set(sequence))) != len(sequence):
