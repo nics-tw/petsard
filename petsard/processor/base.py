@@ -118,6 +118,7 @@ class Processor:
                 "object": EncoderLabel,
             },
         }
+        self._valid_processor_types = set(self._default_processor.keys())
 
         self._default_sequence: list = ["missing", "outlier", "encoder", "scaler"]
 
@@ -189,7 +190,7 @@ class Processor:
 
         self._config: dict = {
             processor: dict.fromkeys(self._metadata.metadata["col"].keys())
-            for processor in self._default_processor.keys()
+            for processor in self._valid_processor_types
         }
 
         for col, val in self._metadata.metadata["col"].items():
@@ -220,9 +221,7 @@ class Processor:
             (dict): The config with selected columns.
         """
         get_col_list: list = []
-        result_dict: dict = {
-            processor: {} for processor in self._default_processor.keys()
-        }
+        result_dict: dict = {processor: {} for processor in self._valid_processor_types}
 
         if col:
             get_col_list = col
@@ -361,15 +360,14 @@ class Processor:
         if len(sequence) > self.MAX_SEQUENCE_LENGTH:
             raise ValueError("Too many procedures!")
 
-        if len(list(set(sequence))) != len(sequence):
+        if len(set(sequence)) != len(sequence):
             raise ValueError(
-                "There are duplicated procedures in the sequence,",
-                " please remove them.",
+                "There are duplicated procedures in the sequence, please remove them."
             )
 
-        for processor in sequence:
-            if processor not in self._default_processor.keys():
-                raise ValueError(f"{processor} is invalid, please check it again.")
+        invalid_processors: set = set(sequence) - self._valid_processor_types
+        if invalid_processors:
+            raise ValueError(f"Invalid processors found: {invalid_processors}")
 
         if "discretizing" in sequence:
             if "encoder" in sequence:
@@ -420,7 +418,7 @@ class Processor:
 
         self.logger.debug(f"Starting data transformation, input shape: {data.shape}")
 
-        transformed: pd.DataFrame = deepcopy(data)
+        transformed: pd.DataFrame = data.copy()
 
         for processor in self._fitting_sequence:
             if isinstance(processor, str):
@@ -574,11 +572,11 @@ class Processor:
             # if discretizing is in the procedure,
             # remove all of NA values in the data
             # See #440
-            data = deepcopy(data).dropna()
+            data = data.dropna()
 
         self.logger.debug("Inverse sequence generation completed.")
 
-        transformed: pd.DataFrame = deepcopy(data)
+        transformed: pd.DataFrame = data.copy()
 
         for processor in self._inverse_sequence:
             if isinstance(processor, str):
