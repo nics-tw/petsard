@@ -43,6 +43,89 @@ from petsard.util import (
 )
 
 
+class DefaultProcessorMap:
+    """
+    Mapping of default processors for different data types.
+
+    object datatype indicates the unusual data,
+        passive actions will be taken in processing procedure
+    """
+
+    PROCESSOR_MAP: dict[str, dict[str, str]] = {
+        "missing": {
+            "numerical": MissingMean,
+            "categorical": MissingDrop,
+            "datetime": MissingDrop,
+            "object": MissingDrop,
+        },
+        "outlier": {
+            "numerical": OutlierIQR,
+            "categorical": lambda: None,
+            "datetime": OutlierIQR,
+            "object": lambda: None,
+        },
+        "encoder": {
+            "numerical": lambda: None,
+            "categorical": EncoderUniform,
+            "datetime": lambda: None,
+            "object": EncoderUniform,
+        },
+        "scaler": {
+            "numerical": ScalerStandard,
+            "categorical": lambda: None,
+            "datetime": ScalerStandard,
+            "object": lambda: None,
+        },
+        "discretizing": {
+            "numerical": DiscretizingKBins,
+            "categorical": EncoderLabel,
+            "datetime": DiscretizingKBins,
+            "object": EncoderLabel,
+        },
+    }
+
+    VALID_TYPES: frozenset = frozenset(PROCESSOR_MAP.keys())
+
+    @classmethod
+    def get_processor(cls, processor_type: str, data_type: str):
+        return cls.PROCESSOR_MAP.get(processor_type, {}).get(data_type)
+
+
+class ProcessorClassMap:
+    """Mapping of processor names to their corresponding classes."""
+
+    CLASS_MAP: dict[str, str] = {
+        # encoder
+        "encoder_uniform": EncoderUniform,
+        "encoder_label": EncoderLabel,
+        "encoder_onehot": EncoderOneHot,
+        # missing
+        "missing_mean": MissingMean,
+        "missing_median": MissingMedian,
+        "missing_simple": MissingSimple,
+        "missing_drop": MissingDrop,
+        "missing_mode": MissingMode,
+        # outlier
+        "outlier_zscore": OutlierZScore,
+        "outlier_iqr": OutlierIQR,
+        "outlier_isolationforest": OutlierIsolationForest,
+        "outlier_lof": OutlierLOF,
+        # scaler
+        "scaler_standard": ScalerStandard,
+        "scaler_zerocenter": ScalerZeroCenter,
+        "scaler_minmax": ScalerMinMax,
+        "scaler_log": ScalerLog,
+        # discretizing
+        "discretizing_kbins": DiscretizingKBins,
+    }
+
+    VALID_NAMES: frozenset = frozenset(CLASS_MAP.keys())
+
+    @classmethod
+    def get_class(cls, processor_name: str):
+        return cls.CLASS_MAP.get(processor_name, lambda: None)
+
+
 class Processor:
     """
     Manage the processors.
@@ -50,7 +133,8 @@ class Processor:
     to the right processors based on the metadata and the parameters.
     """
 
-    MAX_SEQUENCE_LENGTH = 4  # Maximum number of procedures allowed in sequence
+    MAX_SEQUENCE_LENGTH: int = 4  # Maximum number of procedures allowed in sequence
+    DEFAULT_SEQUENCE: list[str] = ["missing", "outlier", "encoder", "scaler"]
 
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
@@ -83,64 +167,6 @@ class Processor:
             f"Loaded metadata contains {len(metadata.metadata['col'])} columns, "
             f"with {metadata.metadata['global']['row_num']} rows"
         )
-
-        # object datatype indicates the unusual data,
-        # passive actions will be taken in processing procedure
-        self._default_processor: dict = {
-            "missing": {
-                "numerical": MissingMean,
-                "categorical": MissingDrop,
-                "datetime": MissingDrop,
-                "object": MissingDrop,
-            },
-            "outlier": {
-                "numerical": OutlierIQR,
-                "categorical": lambda: None,
-                "datetime": OutlierIQR,
-                "object": lambda: None,
-            },
-            "encoder": {
-                "numerical": lambda: None,
-                "categorical": EncoderUniform,
-                "datetime": lambda: None,
-                "object": EncoderUniform,
-            },
-            "scaler": {
-                "numerical": ScalerStandard,
-                "categorical": lambda: None,
-                "datetime": ScalerStandard,
-                "object": lambda: None,
-            },
-            "discretizing": {
-                "numerical": DiscretizingKBins,
-                "categorical": EncoderLabel,
-                "datetime": DiscretizingKBins,
-                "object": EncoderLabel,
-            },
-        }
-        self._valid_processor_types = set(self._default_processor.keys())
-
-        self._default_sequence: list = ["missing", "outlier", "encoder", "scaler"]
-
-        self._processor_map: dict = {
-            "encoder_uniform": EncoderUniform,
-            "encoder_label": EncoderLabel,
-            "encoder_onehot": EncoderOneHot,
-            "missing_mean": MissingMean,
-            "missing_median": MissingMedian,
-            "missing_simple": MissingSimple,
-            "missing_drop": MissingDrop,
-            "missing_mode": MissingMode,
-            "outlier_zscore": OutlierZScore,
-            "outlier_iqr": OutlierIQR,
-            "outlier_isolationforest": OutlierIsolationForest,
-            "outlier_lof": OutlierLOF,
-            "scaler_standard": ScalerStandard,
-            "scaler_zerocenter": ScalerZeroCenter,
-            "scaler_minmax": ScalerMinMax,
-            "scaler_log": ScalerLog,
-            "discretizing_kbins": DiscretizingKBins,
-        }
 
         self._metadata: Metadata = metadata
         self.logger.debug("Metadata loaded.")
@@ -190,14 +216,14 @@ class Processor:
 
         self._config: dict = {
             processor: dict.fromkeys(self._metadata.metadata["col"].keys())
-            for processor in self._valid_processor_types
+            for processor in DefaultProcessorMap.VALID_TYPES
         }
 
         for col, val in self._metadata.metadata["col"].items():
             self.logger.debug(
                 f"Processing column '{col}': inferred type {val['infer_dtype']}"
             )
-            for processor, obj in self._default_processor.items():
+            for processor, obj in DefaultProcessorMap.PROCESSOR_MAP.items():
                 processor_class = obj[val["infer_dtype"]]
                 self.logger.debug(
                     f"  > Setting {processor} processor: {processor_class.__name__}"
@@ -221,7 +247,9 @@ class Processor:
             (dict): The config with selected columns.
         """
         get_col_list: list = []
-        result_dict: dict = {processor: {} for processor in self._valid_processor_types}
+        result_dict: dict = {
+            processor: {} for processor in DefaultProcessorMap.VALID_TYPES
+        }
 
         if col:
             get_col_list = col
@@ -253,10 +281,13 @@ class Processor:
         """
 
         for processor, val in config.items():
-            for col, obj in val.items():
+            for col, processor_spec in val.items():
                 # accept string of processor
-                if isinstance(obj, str):
-                    obj = self._processor_map.get(obj, None)()
+                obj = (
+                    ProcessorClassMap.get_class(processor_spec)()
+                    if isinstance(processor_spec, str)
+                    else processor_spec
+                )
 
                 self._config[processor][col] = obj
 
@@ -274,7 +305,7 @@ class Processor:
         """
 
         if sequence is None:
-            self._sequence = self._default_sequence
+            self._sequence = self.DEFAULT_SEQUENCE
         else:
             self._check_sequence_valid(sequence)
             self._sequence = sequence
@@ -397,7 +428,7 @@ class Processor:
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 
-        invalid_processors: set = set(sequence) - self._valid_processor_types
+        invalid_processors: set = set(sequence) - DefaultProcessorMap.VALID_TYPES
         if invalid_processors:
             error_msg = f"Invalid processors found: {', '.join(invalid_processors)}."
             self.logger.error(error_msg)
@@ -684,7 +715,7 @@ class Processor:
         """
         changes_dict: dict = {"processor": [], "col": [], "current": [], "default": []}
 
-        for processor, default_class in self._default_processor.items():
+        for processor, default_class in DefaultProcessorMap.PROCESSOR_MAP.items():
             for col in self._metadata.metadata["col"].keys():
                 obj = self._config[processor][col]
                 default_obj = default_class[
