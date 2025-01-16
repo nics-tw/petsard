@@ -139,28 +139,45 @@ class Processor:
     def __init__(self, metadata: Metadata, config: dict = None) -> None:
         """
         Args:
-        metadata (Metadata): The metadata class to
-            provide the metadata of the data, which contains the properties
-            of the data, including column names, column types, inferred
-            column types, NA percentage per column, total number of rows and
-            columns, NA percentage in the data.
-            The structure of metadata is:
-                {
-                    'col': {
-                    col_name: {'type': pd.dtype,
-                                'infer_dtype':
-                                'categorical'|'numerical'|'datetime'|'object',
-                            'na_percentage': float}, ...
+            metadata (Metadata):
+                The metadata class to provide the metadata of the data,
+                which contains the properties of the data,
+                including column names, column types, inferred column types,
+                NA percentage per column, total number of rows and columns, NA percentage in the data.
+
+                The structure of metadata is:
+                    {
+                        'col': {
+                        col_name: {'type': pd.dtype,
+                                    'infer_dtype':
+                                    'categorical'|'numerical'|'datetime'|'object',
+                                'na_percentage': float}, ...
+                        }
+                    },
+                    'global':{
+                        'row_num': int,
+                        'col_num': int,
+                        'na_percentage': float
+                        }
                     }
-                },
-                'global':{
-                    'row_num': int,
-                    'col_num': int,
-                    'na_percentage': float
-                    }
-                }
-        config (dict): The user-defined config.
+            config (dict): The user-defined config.
+
+        Attr.
+            logger (logging.Logger): The logger for the processor.
+            _metadata (Metadata): The metadata of the data.
+            _is_fitted (bool): Whether the processor is fitted.
+            _config (dict): The config of the processor.
+            _working_config (dict): The temporary config for in-process columns.
+            _sequence (list): The user-defined sequence.
+            _fitting_sequence (list): The actual fitting sequence with mediators.
+            _inverse_sequence (list): The sequence for inverse transformation.
+            _mediator_missing (MediatorMissing): The mediator for missing handling.
+            _mediator_outlier (MediatorOutlier): The mediator for outlier handling.
+            _mediator_encoder (MediatorEncoder): The mediator for encoder handling.
+            _na_percentage_global (float): The global NA percentage.
+            _rng (np.random.Generator): The random number generator for NA imputation.
         """
+        # Setup logging
         self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
         self.logger.debug("Initializing Processor")
         self.logger.debug(
@@ -168,33 +185,35 @@ class Processor:
             f"with {metadata.metadata['global']['row_num']} rows"
         )
 
+        # Initialize metadata
         self._metadata: Metadata = metadata
         self.logger.debug("Metadata loaded.")
 
-        # processing sequence
-        self._sequence: list = None
-        self._fitting_sequence: list = None
-        self._inverse_sequence: list = None
+        # Initialize processing state
         self._is_fitted: bool = False
+        self._config: dict = {}  # Will be set in _generate_config()
+        self._working_config: dict = {}  # Temporary config for in-process columns
+
+        # Initialize sequence tracking
+        self._sequence: list = None  # User-defined sequence
+        self._fitting_sequence: list = None  # Actual fitting sequence with mediators
+        self._inverse_sequence: list = None  # Sequence for inverse transformation
 
         # deal with global transformation of missinghandler and outlierhandler
-        self.mediator_missing: MediatorMissing | None = None
-        self.mediator_outlier: MediatorOutlier | None = None
-        self.mediator_encoder: MediatorEncoder | None = None
+        self._mediator_missing: MediatorMissing | None = None
+        self._mediator_outlier: MediatorOutlier | None = None
+        self._mediator_encoder: MediatorEncoder | None = None
 
-        # global NA values imputation
+        # Setup NA handling
         self._na_percentage_global: float = self._metadata.metadata["global"].get(
             "na_percentage", 0.0
         )
-        self.rng = np.random.default_rng()
+        self._rng = np.random.default_rng()  # Random number generator for NA imputation
 
         self._generate_config()
 
         if config is not None:
             self.update_config(config=config)
-
-        # the temp config records the config from in-process/expanded column
-        self._working_config: dict = {}
 
         self.logger.debug("Config loaded.")
 
@@ -204,10 +223,11 @@ class Processor:
         Metadata is used for inferring the default processor based on
             the column type.
 
-        Config structure: {processor_type: {col_name: processor_obj}}
-
-        Args:
-            None: The metadata is stored in the instance itself.
+        Config structure: {
+            processor_type: {
+                col_name: processor_obj
+            }
+        }
 
         Return:
             None: The config will be stored in the instance itself.
@@ -316,9 +336,9 @@ class Processor:
             # if missing is in the procedure,
             # MediatorMissing should be in the queue
             # right after the missing
-            self.mediator_missing = MediatorMissing(self._config)
+            self._mediator_missing = MediatorMissing(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index("missing") + 1, self.mediator_missing
+                self._fitting_sequence.index("missing") + 1, self._mediator_missing
             )
             self.logger.info("MediatorMissing is created.")
 
@@ -326,9 +346,9 @@ class Processor:
             # if outlier is in the procedure,
             # MediatorOutlier should be in the queue
             # right after the outlier
-            self.mediator_outlier = MediatorOutlier(self._config)
+            self._mediator_outlier = MediatorOutlier(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index("outlier") + 1, self.mediator_outlier
+                self._fitting_sequence.index("outlier") + 1, self._mediator_outlier
             )
             self.logger.info("MediatorOutlier is created.")
 
@@ -336,9 +356,9 @@ class Processor:
             # if encoder is in the procedure,
             # MediatorEncoder should be in the queue
             # right after the encoder
-            self.mediator_encoder = MediatorEncoder(self._config)
+            self._mediator_encoder = MediatorEncoder(self._config)
             self._fitting_sequence.insert(
-                self._fitting_sequence.index("encoder") + 1, self.mediator_encoder
+                self._fitting_sequence.index("encoder") + 1, self._mediator_encoder
             )
             self.logger.info("MediatorEncoder is created.")
 
@@ -599,7 +619,7 @@ class Processor:
 
         # set NA percentage in Missingist
         index_list: list = list(
-            self.rng.choice(
+            self._rng.choice(
                 data.index,
                 size=int(data.shape[0] * self._na_percentage_global),
                 replace=False,
@@ -639,7 +659,7 @@ class Processor:
             # MediatorEncoder should be in the queue
             # right after the encoder
             self._inverse_sequence.insert(
-                self._inverse_sequence.index("encoder"), self.mediator_encoder
+                self._inverse_sequence.index("encoder"), self._mediator_encoder
             )
             self.logger.info("MediatorEncoder is created.")
 
