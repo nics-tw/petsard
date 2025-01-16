@@ -11,7 +11,7 @@ class Executor:
     """
 
     LOG_FILE: str = "PETsARD"
-    LOG_LEVEL: str = "DEBUG"  # "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
+    LOG_LEVEL: str = "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
 
     def __init__(self, config: str):
         """
