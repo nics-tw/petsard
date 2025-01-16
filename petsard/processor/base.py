@@ -76,6 +76,11 @@ class Processor:
         config (dict): The user-defined config.
         """
         self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        self.logger.debug("Initializing Processor")
+        self.logger.debug(
+            f"Loaded metadata contains {len(metadata.metadata['col'])} columns, "
+            f"with {metadata.metadata['global']['row_num']} rows"
+        )
 
         # object datatype indicates the unusual data,
         # passive actions will be taken in processing procedure
@@ -178,6 +183,7 @@ class Processor:
         Return:
             None: The config will be stored in the instance itself.
         """
+        self.logger.debug("Starting config generation")
 
         self._config: dict = {
             processor: dict.fromkeys(self._metadata.metadata["col"].keys())
@@ -185,8 +191,17 @@ class Processor:
         }
 
         for col, val in self._metadata.metadata["col"].items():
+            self.logger.debug(
+                f"Processing column '{col}': inferred type {val['infer_dtype']}"
+            )
             for processor, obj in self._default_processor.items():
-                self._config[processor][col] = obj[val["infer_dtype"]]()
+                processor_class = obj[val["infer_dtype"]]
+                self.logger.debug(
+                    f"  > Setting {processor} processor: {processor_class.__name__}"
+                )
+                self._config[processor][col] = processor_class()
+
+        self.logger.debug("Config generation completed")
 
     def get_config(self, col: list = None, print_config: bool = False) -> dict:
         """
@@ -303,7 +318,7 @@ class Processor:
             if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
-                        f"{processor}: {obj} from {col} start processing."
+                        f"{processor}: {type(obj).__name__} from {col} start processing."
                     )
 
                     if obj is None:
@@ -319,9 +334,9 @@ class Processor:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
 
-                self.logger.debug(f"mediator: {processor} start processing.")
+                self.logger.debug(f"mediator: {type(obj).__name__} start processing.")
                 processor.fit(data)
-                self.logger.info(f"{processor} fitting done.")
+                self.logger.info(f"{type(obj).__name__} fitting done.")
 
         # it is a shallow copy
         self._working_config = self._config.copy()
@@ -401,17 +416,33 @@ class Processor:
         if not self._is_fitted:
             raise UnfittedError("The object is not fitted. Use .fit() first.")
 
+        self.logger.debug(f"Starting data transformation, input shape: {data.shape}")
+
         transformed: pd.DataFrame = deepcopy(data)
 
         for processor in self._fitting_sequence:
             if isinstance(processor, str):
+                self.logger.debug(f"Executing {processor} processing")
+
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
-                        f"{processor}: {obj} from {col} start transforming."
+                        f"{processor}: {type(obj).__name__} from {col} start transforming."
                     )
 
                     if obj is None:
+                        self.logger.debug(
+                            f"  > Skipping column '{col}': no processing needed"
+                        )
                         continue
+
+                    # Log pre-transformation statistics
+                    if transformed[col].dtype.kind in "biufc":  # numeric columns
+                        self.logger.debug(
+                            f"  > Pre-transform stats: "
+                            f"mean={transformed[col].mean():.4f}, "
+                            f"std={transformed[col].std():.4f}, "
+                            f"na_cnt={transformed[col].isna().sum()}"
+                        )
 
                     transformed[col] = obj.transform(transformed[col])
 
@@ -438,12 +469,23 @@ class Processor:
                                 col=col,
                             )
 
+                    # Log post-transformation statistics
+                    if transformed[col].dtype.kind in "biufc":
+                        self.logger.debug(
+                            f"  > Post-transform stats: "
+                            f"mean={transformed[col].mean():.4f}, "
+                            f"std={transformed[col].std():.4f}, "
+                            f"na_cnt={transformed[col].isna().sum()}"
+                        )
+
                 self.logger.info(f"{processor} transformation done.")
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
 
-                self.logger.debug(f"mediator: {processor} start transforming.")
+                self.logger.debug(
+                    f"mediator: {type(processor).__name__} start transforming."
+                )
                 self.logger.debug(
                     f"before transformation: data shape: {transformed.shape}"
                 )
@@ -459,7 +501,7 @@ class Processor:
                 self.logger.debug(
                     f"after transformation: data shape: {transformed.shape}"
                 )
-                self.logger.info(f"{processor} transformation done.")
+                self.logger.info(f"{type(processor).__name__} transformation done.")
 
         self._metadata.metadata["global"]["row_num_after_preproc"] = transformed.shape[
             0
@@ -540,7 +582,7 @@ class Processor:
             if isinstance(processor, str):
                 for col, obj in self._config[processor].items():
                     self.logger.debug(
-                        f"{processor}: {obj} from {col} start"
+                        f"{processor}: {type(obj).__name__} from {col} start"
                         + " inverse transforming."
                     )
 
@@ -566,11 +608,15 @@ class Processor:
                         transformed[col] = transformed[col].round().astype(int)
                     transformed[col] = obj.inverse_transform(transformed[col])
 
-                self.logger.info(f"{processor} inverse transformation done.")
+                self.logger.info(
+                    f"{type(processor).__name__} inverse transformation done."
+                )
             else:
                 # if the processor is not a string,
                 # it should be a mediator, which transforms the data directly.
-                self.logger.debug(f"mediator: {processor} start inverse transforming.")
+                self.logger.debug(
+                    f"mediator: {type(processor).__name__} start inverse transforming."
+                )
                 self.logger.debug(
                     f"before transformation: data shape: {transformed.shape}"
                 )
@@ -578,7 +624,7 @@ class Processor:
                 self.logger.debug(
                     f"after transformation: data shape: {transformed.shape}"
                 )
-                self.logger.info(f"{processor} transformation done.")
+                self.logger.info(f"{type(processor).__name__} transformation done.")
 
         return self._align_dtypes(transformed)
 
@@ -692,40 +738,55 @@ class Processor:
         Returns:
             None
         """
-        if mode == "columnwise":
-            if not isinstance(data, pd.Series):
-                raise ConfigError("data should be pd.Series in columnwise mode.")
-            if col is None:
-                raise ConfigError("col is not specified.")
-            if col not in self._metadata.metadata["col"]:
-                raise ConfigError(f"{col} is not in the metadata.")
+        self.logger.debug(f"Starting metadata adjustment, mode: {mode}")
 
-            dtype_after_preproc: str = optimize_dtype(data)
-            infer_dtype_after_preproc: str = safe_infer_dtype(
-                safe_dtype(dtype_after_preproc)
-            )
-            self._metadata.metadata["col"][col]["dtype_after_preproc"] = (
-                dtype_after_preproc
-            )
-            self._metadata.metadata["col"][col]["infer_dtype_after_preproc"] = (
-                infer_dtype_after_preproc
-            )
+        try:
+            if mode == "columnwise":
+                if not isinstance(data, pd.Series):
+                    self.logger.warning(
+                        "Input data must be pd.Series for columnwise mode"
+                    )
+                    raise ConfigError("data should be pd.Series in columnwise mode.")
+                if col is None:
+                    self.logger.warning("Column name not specified")
+                    raise ConfigError("col is not specified.")
+                if col not in self._metadata.metadata["col"]:
+                    raise ConfigError(f"{col} is not in the metadata.")
 
-            if "col_after_preproc" in self._metadata.metadata:
-                self._metadata.metadata["col_after_preproc"][col][
-                    "dtype_after_preproc"
-                ] = dtype_after_preproc
-                self._metadata.metadata["col_after_preproc"][col][
-                    "infer_dtype_after_preproc"
-                ] = infer_dtype_after_preproc
-        elif mode == "global":
-            if not isinstance(data, pd.DataFrame):
-                raise ConfigError("data should be pd.DataFrame in global mode.")
+                self.logger.debug(f"Adjusting metadata for column '{col}'")
 
-            new_metadata = Metadata()
-            new_metadata.build_metadata(data=data)
-            self._metadata.metadata["col_after_preproc"] = deepcopy(
-                new_metadata.metadata["col"]
-            )
-        else:
-            raise ConfigError("Invalid mode.")
+                dtype_after_preproc: str = optimize_dtype(data)
+                infer_dtype_after_preproc: str = safe_infer_dtype(
+                    safe_dtype(dtype_after_preproc)
+                )
+                self._metadata.metadata["col"][col]["dtype_after_preproc"] = (
+                    dtype_after_preproc
+                )
+                self._metadata.metadata["col"][col]["infer_dtype_after_preproc"] = (
+                    infer_dtype_after_preproc
+                )
+
+                if "col_after_preproc" in self._metadata.metadata:
+                    self._metadata.metadata["col_after_preproc"][col][
+                        "dtype_after_preproc"
+                    ] = dtype_after_preproc
+                    self._metadata.metadata["col_after_preproc"][col][
+                        "infer_dtype_after_preproc"
+                    ] = infer_dtype_after_preproc
+            elif mode == "global":
+                if not isinstance(data, pd.DataFrame):
+                    raise ConfigError("data should be pd.DataFrame in global mode.")
+
+                self.logger.debug("Performing global metadata adjustment")
+
+                new_metadata = Metadata()
+                new_metadata.build_metadata(data=data)
+                self._metadata.metadata["col_after_preproc"] = deepcopy(
+                    new_metadata.metadata["col"]
+                )
+            else:
+                raise ConfigError("Invalid mode.")
+
+        except Exception as e:
+            self.logger.error(f"Metadata adjustment failed: {str(e)}")
+            raise

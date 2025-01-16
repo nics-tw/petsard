@@ -11,7 +11,7 @@ class Executor:
     """
 
     LOG_FILE: str = "PETsARD"
-    LOG_LEVEL: str = "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
+    LOG_LEVEL: str = "DEBUG"  # "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
 
     def __init__(self, config: str):
         """
@@ -101,7 +101,7 @@ class Executor:
         formatter = logging.Formatter(
             "%(asctime)s - "  # timestamp
             "%(name)-21s - "  # logger name (left align w/ 21 digits: 'PETsARD.Postprocessor')
-            "%(funcName)-11s - "  # function name (left align w/ 11 digits: '_set_result')
+            "%(funcName)-17s - "  # function name (left align w/ 17 digits: 'inverse_transform')
             "%(levelname)-8s - "  # logger level (left align w/ 8 digits: 'CRITICAL')
             "%(message)s"  # message
         )
