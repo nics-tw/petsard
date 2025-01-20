@@ -38,7 +38,6 @@ Key Dependencies' Licenses:
 - SDV: Business Source License 1.1
 - Anonymeter: The Clear BSD License
 - SDMetrics: MIT License
-- Smartnoise: MIT License
 
 For commercial use involving synthetic data services, please contact DataCebo, Inc.
 
