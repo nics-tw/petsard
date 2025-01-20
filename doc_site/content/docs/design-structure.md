@@ -1,7 +1,6 @@
 ---
 title: Design Structure
-weight: 1
-next: docs/usage/
+weight: 99
 ---
 
 The following outlines the design of the experiment workflow and the package structure of `PETsARD`:
