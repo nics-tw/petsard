@@ -215,3 +215,60 @@ class ScalerLog(Scaler):
         """
 
         return np.exp(data)
+
+
+class ScalerTimeAnchor(Scaler):
+    """
+    Transform datetime columns into relative time differences.
+    By default, it will automatically choose a reference time:
+    1. If there's another datetime column not using ScalerTimeAnchor, use the first one as reference
+    2. Otherwise, use the earliest timestamp from all datetime columns as reference
+    """
+
+    def __init__(self, unit: str = "D") -> None:
+        """
+        Args:
+            unit: Unit for conversion, 'D' for days or 'S' for seconds
+        """
+        super().__init__()
+        if unit not in ["D", "S"]:
+            raise ValueError("unit must be either 'D'(days) or 'S'(seconds)")
+        self.unit = unit
+        self.reference_time = None
+
+    def set_reference_time(self, reference_time: pd.Timestamp) -> None:
+        """Set reference timestamp"""
+        self.reference_time = reference_time
+
+    def _fit(self, data: np.ndarray) -> None:
+        """Validate data type and set reference time if not set"""
+        if not pd.api.types.is_datetime64_any_dtype(data):
+            raise ValueError("Data must be in datetime format")
+
+        # If reference time is not set, use the earliest timestamp in this column
+        if self.reference_time is None:
+            self.reference_time = pd.Series(data.ravel()).min()
+
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        """Transform to time differences"""
+        if self.reference_time is None:
+            raise ValueError("Reference time not set")
+
+        delta = pd.Series(data.ravel()) - self.reference_time
+
+        if self.unit == "D":
+            return (delta.dt.total_seconds() / (24 * 3600)).values.reshape(-1, 1)
+        else:
+            return delta.dt.total_seconds().values.reshape(-1, 1)
+
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """Restore to original datetime"""
+        if self.reference_time is None:
+            raise ValueError("Reference time not set")
+
+        if self.unit == "D":
+            delta = pd.Series(data.ravel()) * pd.Timedelta(days=1)
+        else:
+            delta = pd.Series(data.ravel()) * pd.Timedelta(seconds=1)
+
+        return (self.reference_time + delta).values.reshape(-1, 1)

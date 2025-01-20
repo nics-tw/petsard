@@ -15,6 +15,7 @@ from petsard.processor.mediator import (
     MediatorEncoder,
     MediatorMissing,
     MediatorOutlier,
+    MediatorScaler,
 )
 from petsard.processor.missing import (
     MissingDrop,
@@ -33,6 +34,7 @@ from petsard.processor.scaler import (
     ScalerLog,
     ScalerMinMax,
     ScalerStandard,
+    ScalerTimeAnchor,
     ScalerZeroCenter,
 )
 from petsard.util import (
@@ -115,6 +117,7 @@ class ProcessorClassMap:
         "scaler_zerocenter": ScalerZeroCenter,
         "scaler_minmax": ScalerMinMax,
         "scaler_log": ScalerLog,
+        "scaler_timeanchor": ScalerTimeAnchor,
         # discretizing
         "discretizing_kbins": DiscretizingKBins,
     }
@@ -203,6 +206,7 @@ class Processor:
         self._mediator_missing: MediatorMissing | None = None
         self._mediator_outlier: MediatorOutlier | None = None
         self._mediator_encoder: MediatorEncoder | None = None
+        self.mediator_scaler: MediatorScaler | None = None
 
         # Setup NA handling
         self._na_percentage_global: float = self._metadata.metadata["global"].get(
@@ -361,6 +365,16 @@ class Processor:
                 self._fitting_sequence.index("encoder") + 1, self._mediator_encoder
             )
             self.logger.info("MediatorEncoder is created.")
+
+        if "scaler" in self._sequence:
+            # if scaler is in the procedure,
+            # MediatorScaler should be in the queue
+            # right after the scaler
+            self.mediator_scaler = MediatorScaler(self._config)
+            self._fitting_sequence.insert(
+                self._fitting_sequence.index("scaler") + 1, self.mediator_scaler
+            )
+            self.logger.info("MediatorScaler is created.")
 
         self._detect_edit_global_transformation()
 
@@ -668,6 +682,15 @@ class Processor:
             # remove all of NA values in the data
             # See #440
             data = data.dropna()
+
+        if "scaler" in self._inverse_sequence:
+            # if scaler is in the procedure,
+            # MediatorScaler should be in the queue
+            # right after the scaler
+            self._inverse_sequence.insert(
+                self._inverse_sequence.index("scaler"), self.mediator_scaler
+            )
+            self.logger.info("MediatorScaler is created.")
 
         self.logger.debug("Inverse sequence generation completed.")
 
