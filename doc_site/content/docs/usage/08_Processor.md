@@ -200,6 +200,7 @@ In this section, we provide a comprehensive list of supported processor types an
 |    `scaler`    |     Scaler     |    `ScalerZeroCenter`    |    'scaler_zerocenter'    |
 |    `scaler`    |     Scaler     |      `ScalerMinMax`      |      'scaler_minmax'      |
 |    `scaler`    |     Scaler     |       `ScalerLog`        |       'scaler_log'        |
+|    `scaler`    |     Scaler     |    `ScalerTimeAnchor`    |   'scaler_timeanchor'     |
 | `discretizing` |  Discretizing  |   `DiscretizingKBins`    |   'discretizing_kbins'    |
 
 </div>
@@ -344,6 +345,28 @@ By applying `MinMaxScaler` from `sklearn`, this method scales the data to fit wi
 #### `ScalerLog`
 
 This method requires the input data to be positive. It applies log transformation to mitigate the impact of extreme values.
+
+#### `ScalerTimeAnchor`
+
+This method scales datetime data by calculating time differences from a reference time series. It provides two modes of scaling:
+
+**Parameters**
+
+`reference` (`str`): The name of the reference column used for time difference calculation. Must be a datetime column.
+
+`unit` (`str`, default=`'D'`): The unit of time difference calculation.
+- `'D'`: Days (default)
+- `'S'`: Seconds
+
+**Configuration Example**
+
+```yaml
+scaler:
+    create_time:
+      method: 'scaler_timeanchor'
+      reference: 'event_time'
+      unit: 'D'
+```
 
 ### Discretizing
 
