@@ -21,7 +21,7 @@ The main functionalities include dataset description, various dataset generation
 ## Explore
 
 {{< cards >}}
-{{< card link="docs/design-structure/" title="Docs" icon="book-open" >}}
+{{< card link="docs" title="Docs" icon="book-open" >}}
 {{< card link="about" title="About" icon="user" >}}
 {{< /cards >}}
 
@@ -38,7 +38,6 @@ Key Dependencies' Licenses:
 - SDV: Business Source License 1.1
 - Anonymeter: The Clear BSD License
 - SDMetrics: MIT License
-- Smartnoise: MIT License
 
 For commercial use involving synthetic data services, please contact DataCebo, Inc.
 
