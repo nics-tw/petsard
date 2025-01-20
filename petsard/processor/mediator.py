@@ -12,6 +12,7 @@ from petsard.processor.outlier import (
     OutlierLOF,
     OutlierZScore,
 )
+from petsard.processor.scaler import ScalerTimeAnchor
 
 
 class Mediator:
@@ -394,3 +395,58 @@ class MediatorEncoder(Mediator):
             )
 
         return transformed.reindex(columns=self._colname)
+
+
+class MediatorScaler(Mediator):
+    """
+    Mediator for scaling operations that require global coordination.
+    """
+
+    def __init__(self, config: dict) -> None:
+        """
+        Initialize MediatorScaler.
+
+        Args:
+            config (dict): Configuration dictionary containing scaler settings
+        """
+        super().__init__()
+        # Store scaler-specific configuration
+        self._config = config  # Save the entire config for later use
+
+    def _fit(self, data: pd.DataFrame) -> None:
+        """
+        Find and setup time anchor scalers with reference time.
+
+        Args:
+            data (pd.DataFrame): Input data containing datetime columns
+        """
+        # Find all columns using TimeAnchor
+        time_anchor_cols = []
+        reference_col = None
+
+        for col, processor in self._config["scaler"].items():
+            if isinstance(processor, ScalerTimeAnchor):
+                time_anchor_cols.append(col)
+            elif pd.api.types.is_datetime64_any_dtype(data[col]):
+                # Use the first datetime column that's not using TimeAnchor as reference
+                reference_col = col
+                break
+
+        if time_anchor_cols:
+            if reference_col is None:
+                # If no reference column found, use the earliest timestamp across all columns
+                reference_time = data[time_anchor_cols].min().min()
+            else:
+                reference_time = data[reference_col].min()
+
+            # Set reference time for all TimeAnchor processors
+            for col in time_anchor_cols:
+                self._config["scaler"][col].set_reference_time(reference_time)
+
+    def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Pass through as individual scalers handle the transformation"""
+        return data
+
+    def _inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Pass through as individual scalers handle the inverse transformation"""
+        return data
