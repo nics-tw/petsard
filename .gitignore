@@ -4,15 +4,19 @@
 # Benchmark datasets
 **/benchmark/
 
-# development
-**/dev/
-
 # Execution results
 **/*.csv
 **/*.log
 
 # 3rd-party Execution results: SDV
 **/.sample.csv.temp*
+
+# development
+**/dev/
+
+# development: hugo local test
+/doc_site/public/*
+/doc_site/.hugo_build.lock
 
 ###### Enviroment related
 ###### ###### ###### ###### ###### ######

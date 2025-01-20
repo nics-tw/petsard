@@ -1,7 +1,6 @@
 ---
 title: 設計架構
-weight: 1
-next: docs/usage/
+weight: 99
 ---
 
 下圖為 `PETsARD` 的實驗流程與套件結構設計。
