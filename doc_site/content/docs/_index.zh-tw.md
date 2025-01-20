@@ -3,7 +3,6 @@ title: 入門指南
 type: docs
 weight: 1
 prev: index
-next: tutorial
 sidebar:
   open: true
 ---

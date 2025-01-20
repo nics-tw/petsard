@@ -27,7 +27,7 @@ enableInlineShortcodes: true
 menu:
   main:
     - name: Docs
-      pageRef: /docs/get-started
+      pageRef: /docs
       weight: 1
     - name: About
       pageRef: /about
