@@ -3,7 +3,6 @@ title: Get Started
 type: docs
 weight: 1
 prev: index
-next: tutorial
 sidebar:
   open: true
 ---

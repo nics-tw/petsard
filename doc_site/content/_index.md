@@ -21,7 +21,7 @@ The main functionalities include dataset description, various dataset generation
 ## Explore
 
 {{< cards >}}
-{{< card link="docs/get-started" title="Docs" icon="book-open" >}}
+{{< card link="docs" title="Docs" icon="book-open" >}}
 {{< card link="about" title="About" icon="user" >}}
 {{< /cards >}}
 
