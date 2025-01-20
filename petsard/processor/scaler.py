@@ -215,3 +215,49 @@ class ScalerLog(Scaler):
         """
 
         return np.exp(data)
+
+
+class ScalerTimeAnchor(Scaler):
+    """
+    Scale the data by time difference from a reference time series.
+    """
+
+    def __init__(self, unit: str = "D") -> None:
+        super().__init__()
+        if unit not in ["D", "S"]:
+            raise ValueError("unit must be either 'D'(days) or 'S'(seconds)")
+        self.unit = unit
+        self.reference_series = None
+
+    def set_reference_time(self, reference_series: pd.Series) -> None:
+        """Set reference series for row-wise time difference calculation"""
+        if not pd.api.types.is_datetime64_any_dtype(reference_series):
+            raise ValueError("Reference data must be datetime type")
+        self.reference_series = reference_series
+
+    def _fit(self, data: np.ndarray) -> None:
+        """Validate data type and reference"""
+        if not pd.api.types.is_datetime64_any_dtype(data):
+            raise ValueError("Data must be in datetime format")
+        if self.reference_series is None:
+            raise ValueError("Reference series not set")
+        if len(data) != len(self.reference_series):
+            raise ValueError("Target and reference must have same length")
+
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        """Transform to time differences"""
+        delta = pd.Series(data.ravel()) - self.reference_series
+
+        if self.unit == "D":
+            return (delta.dt.total_seconds() / (24 * 3600)).values.reshape(-1, 1)
+        else:
+            return delta.dt.total_seconds().values.reshape(-1, 1)
+
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """Restore to original datetime"""
+        if self.unit == "D":
+            delta = pd.Series(data.ravel()) * pd.Timedelta(days=1)
+        else:
+            delta = pd.Series(data.ravel()) * pd.Timedelta(seconds=1)
+
+        return (self.reference_series + delta).values.reshape(-1, 1)

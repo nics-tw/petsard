@@ -12,6 +12,7 @@ from petsard.processor.outlier import (
     OutlierLOF,
     OutlierZScore,
 )
+from petsard.processor.scaler import ScalerTimeAnchor
 
 
 class Mediator:
@@ -394,3 +395,119 @@ class MediatorEncoder(Mediator):
             )
 
         return transformed.reindex(columns=self._colname)
+
+
+class MediatorScaler(Mediator):
+    """
+    Mediator for scaling operations that require global coordination.
+    Ensures TimeAnchor transformations are performed before other scaling operations.
+    """
+
+    def __init__(self, config: dict) -> None:
+        """
+        Initialize MediatorScaler.
+
+        Args:
+            config (dict): Configuration dictionary containing scaler settings
+        """
+        super().__init__()
+        self._config = config
+
+    def _fit(self, data: pd.DataFrame) -> None:
+        """
+        Find and process TimeAnchor scalers with comprehensive error checking.
+
+        This method validates TimeAnchor scaler configurations by checking:
+        - Reference column specification
+        - Correct unit setting
+        - Reference column existence
+        - Reference column datetime type
+        """
+        time_anchor_cols = []
+        reference_cols = {}
+
+        for col, processor in self._config["scaler"].items():
+            # Skip non-dictionary processors
+            if not isinstance(processor, dict):
+                continue
+
+            # Check if it's a TimeAnchor scaler
+            if processor.get("method") == "scaler_timeanchor":
+                # Check if reference column is specified
+                if "reference" not in processor:
+                    self.logger.error(
+                        f"TimeAnchor scaler {col} has no reference column specified"
+                    )
+                    raise ValueError(
+                        f"TimeAnchor scaler {col} has no reference column specified"
+                    )
+
+                # Validate unit, default to 'D'
+                unit = processor.get("unit", "D")
+                if unit not in ["D", "S"]:
+                    self.logger.error(
+                        f"TimeAnchor scaler {col} has incorrect unit, must be 'D'(days) or 'S'(seconds)"
+                    )
+                    raise ValueError(
+                        f"TimeAnchor scaler {col} has incorrect unit, must be 'D'(days) or 'S'(seconds)"
+                    )
+
+                ref_col = processor["reference"]
+
+                # Check if reference column exists in dataset
+                if ref_col not in data.columns:
+                    self.logger.error(
+                        f"Reference column {ref_col} does not exist in dataset"
+                    )
+                    raise ValueError(
+                        f"Reference column {ref_col} does not exist in dataset"
+                    )
+
+                # Check if reference column is datetime type
+                if not pd.api.types.is_datetime64_any_dtype(data[ref_col]):
+                    self.logger.error(
+                        f"Reference column {ref_col} must be datetime type"
+                    )
+                    raise ValueError(
+                        f"Reference column {ref_col} must be datetime type"
+                    )
+
+                time_anchor_cols.append(col)
+                reference_cols[col] = ref_col
+
+        # Set reference time series for each TimeAnchor scaler
+        for col in time_anchor_cols:
+            ref_col = reference_cols[col]
+            self._config["scaler"][col].set_reference_time(data[ref_col])
+
+    def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Transform data, ensuring TimeAnchor operations are done first"""
+        result = data.copy()
+
+        # First transform TimeAnchor columns
+        for col, processor in self._config["scaler"].items():
+            if isinstance(processor, ScalerTimeAnchor):
+                result[col] = processor.transform(data[col])
+
+        # Then transform other columns
+        for col, processor in self._config["scaler"].items():
+            if processor is not None and not isinstance(processor, ScalerTimeAnchor):
+                result[col] = processor.transform(data[col])
+
+        return result
+
+    def _inverse_transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Inverse transform data in the correct order"""
+        result = data.copy()
+
+        # First inverse transform non-TimeAnchor columns
+        for col, processor in self._config["scaler"].items():
+            if processor is not None and not isinstance(processor, ScalerTimeAnchor):
+                result[col] = processor.inverse_transform(data[col])
+
+        # Then inverse transform TimeAnchor columns
+        for col, processor in self._config["scaler"].items():
+            if isinstance(processor, ScalerTimeAnchor):
+                result[col] = processor.inverse_transform(data[col])
+
+        return result
