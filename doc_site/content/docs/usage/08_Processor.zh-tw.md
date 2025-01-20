@@ -201,6 +201,7 @@ inverse_transformed = proc.inverse_transform(data=data)
 |    `scaler`    |     Scaler     |    `ScalerZeroCenter`    |    'scaler_zerocenter'    |
 |    `scaler`    |     Scaler     |      `ScalerMinMax`      |      'scaler_minmax'      |
 |    `scaler`    |     Scaler     |       `ScalerLog`        |       'scaler_log'        |
+|    `scaler`    |     Scaler     |    `ScalerTimeAnchor`    |   'scaler_timeanchor'     |
 | `discretizing` |  Discretizing  |   `DiscretizingKBins`    |   'discretizing_kbins'    |
 
 </div>
@@ -345,6 +346,28 @@ inverse_transformed = proc.inverse_transform(data=data)
 #### `ScalerLog`
 
 此方法僅能在資料為正的情形可用，可用於減緩極端值對整體資料的影響。
+
+#### `ScalerTimeAnchor`
+
+此方法透過計算與參考時間序列的時間差來縮放日期時間資料。提供兩種縮放模式：
+
+**參數**
+
+`reference` (`str`): 用於計算時間差的參考欄位名稱。必須是日期時間型態的欄位。
+
+`unit` (`str`, default=`'D'`): 時間差計算的單位。
+- `'D'`: 天（預設）
+- `'S'`: 秒
+
+**配置範例**
+
+```yaml
+scaler:
+    create_time:
+      method: 'scaler_timeanchor'
+      reference: 'event_time'
+      unit: 'D'
+```
 
 ### Discretizing
 
