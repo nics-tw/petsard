@@ -9,19 +9,16 @@ Preprocessor:
         event_time: 'scaler_standard'
         create_time:
           method: 'scaler_timeanchor'
-          params:
-            reference: 'event_time'
-            unit: 'D'
+          reference: 'event_time'
+          unit: 'D'
         process_time:
           method: 'scaler_timeanchor'
-          params:
-            reference: 'event_time'
-            unit: 'D'
+          reference: 'event_time'
+          unit: 'D'
         complete_time:
           method: 'scaler_timeanchor'
-          params:
-            reference: 'event_time'
-            unit: 'D'
+          reference: 'event_time'
+          unit: 'D'
 Postprocessor:
   demo:
     method: 'default'
