@@ -65,10 +65,7 @@
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
-# 4. smartnoise-synth: 1.0.3 above
-#    - https://github.com/opendp/smartnoise-sdk
-#    - Latest 1.0.4 update: 2024/07.31
-# 5. private-pgm
+# 4. private-pgm
 #    - see opendp/smartnoise-sdk/pull/602
 #
 # ......
@@ -92,7 +89,7 @@ authors = [
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "~3.10"
+python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.13"
 sdv = "^1.17.1"
 anonymeter = "^1.0.0"
 sdmetrics = "^0.16.0"
@@ -114,6 +111,8 @@ ruff = "^0.8.6"
 ###### ###### ######
 tornado = ">=6.4.2" #579 #606
 
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
 
 [build-system]
 requires = ["poetry-core"]
