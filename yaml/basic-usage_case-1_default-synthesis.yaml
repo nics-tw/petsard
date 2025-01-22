@@ -1,0 +1,13 @@
+---
+Loader:
+    data:
+        filepath: 'benchmark/adult-income.csv'
+Synthesizer:
+    demo:
+        method: 'default'
+Reporter:
+    output:
+        method: 'save_data'
+        output: 'result'
+        source: 'Synthesizer'
+...
