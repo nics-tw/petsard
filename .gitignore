@@ -29,6 +29,8 @@
 **/.python-version
 ## Poetry
 **/poetry.lock
+## uv
+**/uv.lock
 
 **/__pycache__
 
