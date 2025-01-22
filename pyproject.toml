@@ -1,27 +1,18 @@
 # ......
-# The dependency management for this package is maintained using Poetry.
+# The dependency management for this package is maintained using uv.
 # Below are the related commands documented:
-# 本套件之相依性維護使用 Poetry，以下紀錄相關指令：
+# 本套件之相依性維護使用 uv，以下紀錄相關指令：
 #
 # ......
 # Setting up a new virtual environment
 # 新設定虛擬環境
 #
-# 1. poetry config virtualenvs.in-project true
-#    - Limit virtual environment to not add random strings.
-#    - 限制虛擬環境不添加隨機字符串。
-# 2. poetry env use python
-#    - Ensure that your Python is linked to a valid Python version.
-#    - 確保您的 Python 鏈接到有效的 Python 版本。
-# 3. poetry shell
-#    - Activate virtual environment.
-#    - 啟動虛擬環境。
-# 4. poetry lock
+# 1. uv venv --python 3.10
+#    - Ensure that your Python is linked to a valid Python version, and activate virtual environment.
+#    - 確保您的 Python 鏈接到有效的 Python 版本，並啟動虛擬環境
+# 2. uv sync
 #    - update poetry.lock based on the current pyproject.toml.
-#    - 根據當前的 pyproject.toml 更新 poetry.lock。
-# 5. poetry install
-#    - Install the required packages based on poetry.lock.
-#    - 依據 poetry.lock 安裝所需的套件。
+#    - 根據當前的 pyproject.toml 更新 uv.lock。
 #
 # ......
 # Set dependencies and their versions.
@@ -38,17 +29,17 @@
 #    Development environment
 #    開發環境
 #
-#    1. poetry add --group dev ipykernel pytest python-semantic-release
-#
+#    1. uv --project petsard add "urllib3>=2.2.2"
+#    2. uv --project petsard add --group dev "tornado>=6.4.2"
 #
 # ......
 # Output requirement.txt
 # 輸出 requirement.txt
 #
-# 1. poetry export -f requirements.txt -o requirements.txt
+# 1. uv export --format requirements-txt --no-group dev  --no-editable > requirements.txt
 #    - Export development environment to requirements-dev.txt.
 #    - 輸出一般環境的 requirements.txt。
-# 2. poetry export -f requirements.txt -o requirements-dev.txt --with dev
+# 2. uv export --format requirements-txt --all-groups --no-editable > requirements-dev.txt
 #    - Export development environment to requirements-dev.txt.
 #    - 輸出開發環境的 requirements.txt。
 #
@@ -65,11 +56,6 @@
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
-# 4. smartnoise-synth: 1.0.3 above
-#    - https://github.com/opendp/smartnoise-sdk
-#    - Latest 1.0.4 update: 2024/07.31
-# 5. private-pgm
-#    - see opendp/smartnoise-sdk/pull/602
 #
 # ......
 # Python 語義版本控制 python-semantic-release
@@ -81,43 +67,45 @@
 #
 # ......
 
-[tool.poetry]
+[project]
 name = "petsard"
 version = "1.0.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
-    "alexchen830 <alexchen830@gmail.com>",
-    "matheme-justyn <matheme.justyn@gmail.com>"
+    { name = "alexchen830", email = "alexchen830@gmail.com" },
+    { name = "matheme-justyn", email = "matheme.justyn@gmail.com" },
 ]
 readme = "README.md"
+requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
+dependencies = [
+    "anonymeter>=1.0.0,<2",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "sdmetrics>=0.16.0,<1",
+    "sdv>=1.17.1,<2",
+    "wheel>=0.43.0",
+    ###### for dependency bot security alert:
+    ###### ###### ######
+    "certifi>=2024.7.4", #581
+    "scikit-learn>=1.6.0", #582
+    "urllib3>=2.2.2", #580
+]
 
-[tool.poetry.dependencies]
-python = "~3.10"
-sdv = "^1.17.1"
-anonymeter = "^1.0.0"
-sdmetrics = "^0.16.0"
-wheel = "^0.43.0"
-pyyaml = "^6.0.2"
-requests = "^2.32.3"
-###### for dependency bot security alert
-###### ###### ######
-certifi = ">=2024.7.4" #581
-scikit-learn = ">=1.6.0" #582
-urllib3 = ">=2.2.2" #580
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.4"
-pytest = "^8.3.4"
-python-semantic-release = "^9.15.1"
-ruff = "^0.8.6"
-###### for dependency bot security alert
-###### ###### ######
-tornado = ">=6.4.2" #579 #606
-
+[dependency-groups]
+dev = [
+    "hatchling>=1.27.0",
+    "ipykernel>=6.29.4",
+    "pytest>=8.3.4",
+    "python-semantic-release>=9.15.1",
+    "ruff>=0.8.6",
+    ###### for dependency bot security alert:
+    ###### ###### ######
+    "tornado>=6.4.2", #579 #606
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.semantic_release]
 assets = []
@@ -171,4 +159,3 @@ insecure = false
 [tool.semantic_release.publish]
 dist_glob_patterns = ["dist/*"]
 upload_to_vcs_release = true
-
