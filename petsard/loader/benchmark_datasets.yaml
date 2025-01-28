@@ -10,3 +10,16 @@ datasets:
     filename: adult-income.csv
     access: public
     sha256: 1f13ee2bf9d7c66098429281ab91fa1b51cbabd3b805cc365b3c6b44491ea2c0
+  # Adult income dataset split and syn (sdv-gaussian-copula) result for demo
+  adult-income_ori:
+    filename: adult-income_ori.csv
+    access: public
+    sha256: 8083c670ea64393aba26610896e694604be2bd6e0e506d908831d697ebf26d3f
+  adult-income_control:
+    filename: adult-income_control.csv
+    access: public
+    sha256: a45a52364309467e95a2b64fa8c1f6f3c05edc36a084833b587da256c07c7f4c
+  adult-income_syn:
+    filename: adult-income_syn.csv
+    access: public
+    sha256: 87df8e267710d83874d5ea07fc8d9fb7873ae461b00d04be0308536c04c806c3
