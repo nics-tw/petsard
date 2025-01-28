@@ -11,6 +11,13 @@ sidebar:
 
 請點擊右方按鈕在 Colab 中執行範例 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/628-guide---tutorial/demo/basic-usage.ipynb)
 
+您可以透過以下程式碼執行這些範例，只需要準備您的 YAML 設定檔：
+
+```python
+exec = Executor(config=yaml_path)
+exec.run()
+```
+
 
 ### 情境一：預設合成
 
@@ -76,6 +83,28 @@ Reporter:
 ```
 
 
-### 情境三：外部合成預設評測
+### 情境三：外部合成與預設評測
 
-使用預設方式評測外部合成資料
+使用預設方式評測外部合成資料。
+讓使用者評估外部解決方案獲得的合成資料。
+
+```yaml
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'evaluation'
+    eval: 'demo'
+    granularity: 'global'
+...
+```
