@@ -1,0 +1,18 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'evaluation'
+    eval: 'demo'
+    granularity: 'global'
+...

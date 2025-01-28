@@ -11,6 +11,13 @@ sidebar:
 
 Click the right button to run this example in Colab [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/628-guide---tutorial/demo/basic-usage.ipynb)
 
+You can run these examples by executing the following code with your YAML config file:
+
+```python
+exec = Executor(config=yaml_path)
+exec.run()
+```
+
 
 ### Case 1: Default Synthesis
 
@@ -79,3 +86,25 @@ Reporter:
 ### Case 3: External Synthesis with Default Evaluation
 
 External synthesis with default evaluation.
+Enabling users to evaluate synthetic data from external solutions.
+
+```yaml
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+Evaluator:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    output: 'evaluation'
+    eval: 'demo'
+    granularity: 'global'
+...
+```
