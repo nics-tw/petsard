@@ -109,7 +109,7 @@ def get_yaml_path(
             mode="w", suffix=".yaml", delete=False
         ) as tmp_file:
             tmp_file.write(response.text)
-            print("Configuration content:")
+            print("Configuration content:\n\n")
             print(response.text)
             return Path(tmp_file.name)
     else:

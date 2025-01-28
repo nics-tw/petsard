@@ -1,0 +1,27 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo:
+    method: 'default' # 'sdmetrics-qualityreport'
+Reporter:
+  output:
+    method: 'save_data'
+    output: 'result'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    output: 'evaluation'
+    eval: 'demo'
+    granularity: 'global'
+...
