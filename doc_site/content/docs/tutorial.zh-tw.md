@@ -1,8 +1,8 @@
 ---
 title: 教學
 type: docs
-weight: 1
-prev: docs
+weight: 11
+prev: docs/get-started
 sidebar:
   open: true
 ---
