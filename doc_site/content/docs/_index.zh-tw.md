@@ -12,6 +12,14 @@ sidebar:
 
 其主要功能包括描述資料集、執行各種資料集生成算法，以及對隱私保護和效用進行測量。
 
+## 設計架構
+
+下圖為 `PETsARD` 的實驗流程與套件結構設計。
+
+<p align="center"><img src="/petsard/images/PETsARD_design_zhtw.png"></p>
+
+## 版本紀錄
+
 - [Release Note](https://github.com/nics-tw/petsard/releases)
   - 發佈通知提供 `PETsARD` 每個版本的變更內容。
 - [CHANGELOG.md](https://github.com/nics-tw/petsard/blob/main/CHANGELOG.md)
