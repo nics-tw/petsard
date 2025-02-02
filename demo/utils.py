@@ -2,9 +2,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+import requests
+
 
 def setup_environment(
-    is_colab: bool, branch: str = "main", benchmark_data: list[str] = None
+    is_colab: bool,
+    branch: str = "main",
+    benchmark_data: list[str] = None,
+    example_files: list[str] = None,
 ) -> None:
     """
     Setup the environment for both Colab and local development
@@ -14,6 +19,8 @@ def setup_environment(
         branch (str, optional): The GitHub branch to use, defaults to "main"
         benchmark_data (list[str], optional):
             The dataset list of benchmark data to load by PETsARD Loader
+        example_files (list[str], optional):
+            List of example files to download from GitHub
     """
     # Check Python version
     if sys.version_info < (3, 10):
@@ -65,6 +72,26 @@ def setup_environment(
                 print(f"Successful loading benchmark data: {benchmark}")
             except Exception as e:
                 print(f"Failed to loading {benchmark}: {e}")
+
+    # Download example files if specified
+    if example_files and is_colab:
+        for repo_path in example_files:
+            # Get just the filename for local path
+            local_file = Path(repo_path).name
+
+            # Construct GitHub raw content URL
+            file_url = f"https://raw.githubusercontent.com/nics-tw/petsard/{branch}/{repo_path}"
+
+            try:
+                response = requests.get(file_url)
+                response.raise_for_status()
+
+                # Write to current directory
+                with open(local_file, "w") as f:
+                    f.write(response.text)
+                print(f"Successfully downloaded: {repo_path} -> {local_file}")
+            except Exception as e:
+                print(f"Failed to download {repo_path}: {e}")
 
 
 def get_yaml_path(
