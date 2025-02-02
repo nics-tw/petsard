@@ -1,0 +1,41 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  drop:
+    method: 'default'
+    config:
+      missing:
+        age: 'missing_drop'      # Drop rows with missing values
+        income: 'missing_drop'
+  fill:
+    method: 'default'
+    config:
+      missing:
+        age: 'missing_mean'      # Fill with mean value
+        workclass: 'missing_mode'  # Fill with mode
+  simple:
+    method: 'default'
+    config:
+      missing:
+        age:
+          method: 'missing_simple'  # Fill with specified value
+          value: 0
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...
