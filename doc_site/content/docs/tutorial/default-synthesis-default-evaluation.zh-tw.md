@@ -63,12 +63,9 @@ Evaluator:
 Reporter:
   output:
     method: 'save_data'
-    output: 'result'
     source: 'Synthesizer'
   save_report_global:
     method: 'save_report'
-    output: 'evaluation'
-    eval: 'demo'
     granularity: 'global'
 ...
 ```
