@@ -3,6 +3,7 @@ title: 比較合成演算法
 type: docs
 weight: 17
 prev: docs/tutorial/special-cases/data-description
+next: docs/tutorial/special-cases/handling-missing-values
 sidebar:
   open: true
 ---
