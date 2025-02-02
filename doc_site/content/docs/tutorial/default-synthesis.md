@@ -33,7 +33,6 @@ Postprocessor:
 Reporter:
   output:
     method: 'save_data'
-    output: 'result'
     source: 'Synthesizer'
 ...
 ```
