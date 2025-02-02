@@ -22,7 +22,6 @@ Evaluator:
     method: 'sdmetrics-qualityreport'
   demo-singlingout:
     method: 'anonymeter-singlingout'
-    max_attempts: 10
   demo-linkability:
     method: 'anonymeter-linkability'
     aux_cols:
