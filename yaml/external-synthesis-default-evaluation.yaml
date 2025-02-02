@@ -7,8 +7,10 @@ Synthesizer:
     method: 'custom_data'
     filepath: 'benchmark/adult-income_syn.csv'
 Evaluator:
-  demo:
-    method: 'default'
+  demo-diagnostic:
+    method: 'sdmetrics-diagnosticreport'
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
 Reporter:
   save_report_global:
     method: 'save_report'
