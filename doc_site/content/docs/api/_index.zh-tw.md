@@ -24,7 +24,8 @@ sidebar:
 - [Synthesizer](./synthesizer)
   - 合成資料生成
 - [Evaluator](./evaluator)
-  - 隱私與效用評估
+  - 隱私、保真與效用評估
+  - 附錄：支援評測方式
 - [Reporter](./reporter)
   - 結果匯出與報告
 
