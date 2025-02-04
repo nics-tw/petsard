@@ -1,7 +1,7 @@
 ---
 title: Tutorial
 type: docs
-weight: 11
+weight: 10
 prev: docs/get-started
 next: docs/api
 sidebar:
@@ -18,22 +18,28 @@ exec.run()
 
 The following scenarios guide you in choosing the right YAML configuration:
 
-1. **Basic Usage**: [Default Synthesis](docs/tutorial/default-synthesis)
+1. **YAML Configuration**: [YAML Setup](docs/tutorial/yaml-config)
+
+  - When you need to understand how to configure experiment parameters
+  - For managing and organizing complex experiment workflows
+  - Control all experiment settings through YAML files
+
+2. **Basic Usage**: [Default Synthesis](docs/tutorial/default-synthesis)
 
   - When you only need basic data synthesis
   - For simple privacy-enhanced synthetic data generation
 
-2. **Basic Usage with Evaluation**: [Default Synthesis and Evaluation](docs/tutorial/default-synthesis-default-evaluation)
+3. **Basic Usage with Evaluation**: [Default Synthesis and Evaluation](docs/tutorial/default-synthesis-default-evaluation)
 
   - When you need both synthesis and comprehensive evaluation
   - Includes protection, fidelity, and utility assessments
 
-3. **Evaluation of External Solutions**: [External Synthesis with Default Evaluation](docs/tutorial/external-synthesis-default-evaluation)
+4. **Evaluation of External Solutions**: [External Synthesis with Default Evaluation](docs/tutorial/external-synthesis-default-evaluation)
 
   - When you have pre-synthesized data
   - For evaluating existing privacy-enhanced solutions
 
-4. **Special Scenarios**: [Special Cases](docs/tutorial/special-cases)
+5. **Special Scenarios**: [Special Cases](docs/tutorial/special-cases)
 
   - For specific requirements or exceptions
   - Contains solutions for unique data situations
