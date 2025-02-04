@@ -3,7 +3,6 @@ title: Special cases
 type: docs
 weight: 15
 prev: docs/tutorial/external-synthesis-default-evaluation
-next: docs/tutorial/special-cases/data-description
 sidebar:
   open: true
 ---

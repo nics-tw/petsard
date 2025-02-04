@@ -3,6 +3,7 @@ title: Custom Evaluation
 type: docs
 weight: 20
 prev: docs/tutorial/special-cases/benchmark-datasets
+next: docs/tutorial/special-cases
 sidebar:
   open: true
 ---
