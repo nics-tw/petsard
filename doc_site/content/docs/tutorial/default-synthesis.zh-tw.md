@@ -2,7 +2,7 @@
 title: 預設合成
 type: docs
 weight: 12
-prev: docs/tutorial
+prev: docs/tutorial/yaml-config
 next: docs/tutorial/default-synthesis-default-evaluation
 sidebar:
   open: true

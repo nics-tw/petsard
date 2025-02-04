@@ -1,7 +1,7 @@
 ---
 title: 教學
 type: docs
-weight: 11
+weight: 10
 prev: docs/get-started
 next: docs/api
 sidebar:
@@ -16,24 +16,30 @@ exec = Executor(config=yaml_path)
 exec.run()
 ```
 
-The following scenarios guide you in choosing the right YAML configuration:
+以下情境可以幫助您選擇合適的 YAML 設定方式：
 
-1. **基本使用**: [預設合成](docs/tutorial/default-synthesis)
+1. **YAML 設定**：[YAML 設定](docs/tutorial/yaml-config)
+
+   - 當您需要了解如何設定實驗參數時
+   - 用於管理和組織複雜的實驗流程
+   - 透過 YAML 檔案控制所有實驗設定
+
+2. **基本使用**：[預設合成](docs/tutorial/default-synthesis)
 
   - 當您只需要基本的資料合成時
   - 用於簡單的隱私強化合成資料生成
 
-2. **基本使用與評測**: [預設合成與預設評測](docs/tutorial/default-synthesis-default-evaluation)
+3. **基本使用與評測**：[預設合成與預設評測](docs/tutorial/default-synthesis-default-evaluation)
 
   - 當您需要合成與完整評測時
   - 包含保護力、保真度與實用性評估
 
-3. **評測外部合成資料**: [外部合成與預設評測](docs/tutorial/external-synthesis-default-evaluation)
+4. **評測外部合成資料**：[外部合成與預設評測](docs/tutorial/external-synthesis-default-evaluation)
 
   - 當您想評估其他解決方案的合成資料時
   - 使用我們的評測指標來評估外部合成的資料
 
-4. **特殊情境**: [特殊案例](docs/tutorial/special-cases)
+5. **特殊情境**：[特殊案例](docs/tutorial/special-cases)
 
   - 針對特定需求或例外情況
   - 包含獨特資料情況的解決方案
