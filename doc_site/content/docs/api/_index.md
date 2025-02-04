@@ -24,7 +24,8 @@ sidebar:
 - [Synthesizer](./synthesizer)
   - Synthetic data generation
 - [Evaluator](./evaluator)
-  - Privacy and utility assessment
+  - Privacy, fidelity, and utility assessment
+  - Appx.: Available Evaluation Methods.
 - [Reporter](./reporter)
   - Results export and reporting
 
