@@ -3,6 +3,7 @@ title: 教學
 type: docs
 weight: 11
 prev: docs/get-started
+next: docs/api
 sidebar:
   open: true
 ---

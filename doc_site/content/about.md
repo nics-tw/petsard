@@ -2,6 +2,8 @@
 title: About
 type: about
 weight: 99
+prev: docs
+next: index
 ---
 
 `PETsARD` project commenced in 2023 as a privacy-enhancing initiative led and guided by the Ministry of Digital Affairs, and executed by the National Institute of Cyber Security in Taiwan.

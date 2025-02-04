@@ -2,6 +2,8 @@
 title: 關於
 type: about
 weight: 99
+prev: docs
+next: index
 ---
 
 `PETsARD` 的開發專案始於 2023 年，由臺灣數位發展部指導，為隱私強化技術推動計畫的一環，並由國家資通安全研究院執行。

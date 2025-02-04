@@ -2,8 +2,6 @@
 title: Docs
 type: docs
 weight: 6
-prev: index
-next: docs/get-started
 sidebar:
   open: true
 ---
