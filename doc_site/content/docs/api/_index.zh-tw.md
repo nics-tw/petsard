@@ -1,0 +1,36 @@
+---
+title: API 文件
+type: docs
+weight: 31
+prev: docs/tutorial/special-cases
+next: docs/developer-guide
+sidebar:
+  open: true
+---
+
+
+## 設定與執行
+- [Executor](./executor)
+  - 實驗管線的主要介面
+
+## 管線組件
+- [Loader](./loader)
+  - 資料載入與處理
+- [Splitter](./splitter)
+  - 實驗用資料分割
+- [Processor](./processor)
+  - 資料前處理與後處理
+  - 附錄：支援處理方式
+- [Synthesizer](./synthesizer)
+  - 合成資料生成
+- [Evaluator](./evaluator)
+  - 隱私與效用評估
+- [Reporter](./reporter)
+  - 結果匯出與報告
+
+## 資料管理
+- [Metadata](./metadata)
+  - 資料集綱要與特性
+- [Describer](./describer)
+  - 資料描述摘要
+  - 附錄：支援敘述方法
