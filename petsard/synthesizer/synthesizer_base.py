@@ -8,7 +8,7 @@ from petsard.error import UnfittedError
 from petsard.loader import Metadata
 
 
-class SynthesizerBase(ABC):
+class BaseSynthesizer(ABC):
     def __init__(self, data: pd.DataFrame, metadata: Metadata = None, **kwargs) -> None:
         """
         Args:
@@ -60,7 +60,7 @@ class SynthesizerBase(ABC):
             self.sample_num_rows_as = "input data"
             self.sample_num_rows = self.data.shape[0]
 
-        self._synthesizer: SynthesizerBase = None
+        self._synthesizer: BaseSynthesizer = None
 
     @abstractmethod
     def _fit(self) -> None:
@@ -72,12 +72,12 @@ class SynthesizerBase(ABC):
     def fit(self) -> None:
         time_start = time.time()
 
-        print(f"Synthesizer ({self.syn_module}): " f"Fitting {self.syn_method}.")
+        print(f"Synthesizer ({self.syn_module}): Fitting {self.syn_method}.")
         self._fit()
         print(
             f"Synthesizer ({self.syn_module}): "
             f"Fitting {self.syn_method} spent "
-            f"{round(time.time()-time_start ,4)} sec."
+            f"{round(time.time() - time_start, 4)} sec."
         )
 
     @abstractmethod
@@ -146,7 +146,7 @@ class SynthesizerBase(ABC):
                 f"Sampling {self.syn_method} "
                 f"# {self.sample_num_rows} rows"
                 f"{str_sample_num_rows_as} "
-                f"in {round(time.time()-time_start ,4)} sec."
+                f"in {round(time.time() - time_start, 4)} sec."
             )
             return data_syn
         except Exception:

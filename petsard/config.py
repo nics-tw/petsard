@@ -12,10 +12,10 @@ import yaml
 from petsard.error import ConfigError, UnexecutedError
 from petsard.loader import Metadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
+    BaseOperator,
     DescriberOperator,
     EvaluatorOperator,
     LoaderOperator,
-    Operator,
     PostprocessorOperator,
     PreprocessorOperator,
     ReporterOperator,
@@ -130,7 +130,7 @@ class Config:
             zero_padding = len(num_samples_str)
             for n in range(num_samples):
                 # fill zero on n
-                formatted_n = f"{n+1:0{zero_padding}}"
+                formatted_n = f"{n + 1:0{zero_padding}}"
                 iter_expt_name = f"{expt_name}_[{num_samples}-{formatted_n}]"
                 transformed_config[iter_expt_name] = iter_expt_config
         return transformed_config
@@ -168,7 +168,7 @@ class Status:
         if "Reporter" in self.sequence:
             self.report: dict = {}
 
-    def put(self, module: str, expt: str, operator: Operator):
+    def put(self, module: str, expt: str, operator: BaseOperator):
         """
         Add module status and operator to the status dictionary.
             Update exist_index when put Splitter.
@@ -178,7 +178,7 @@ class Status:
                 Current module name.
             expt (str):
                 Current experiment name.
-            operator (Operator):
+            operator (BaseOperator):
                 Current Operator.
 
         TODO self.exist_index
