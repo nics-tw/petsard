@@ -6,9 +6,9 @@ import requests
 from petsard.loader.util import DigestSha256
 
 
-class BenchmarkerBase(ABC):
+class BaseBenchmarker(ABC):
     """
-    BenchmarkerBase
+    BaseBenchmarker
         Base class for all "Benchmarker".
         The "Benchmarker" class defines the common API
         that all the "Loader" need to implement, as well as common functionality.
@@ -88,7 +88,7 @@ class BenchmarkerBase(ABC):
                     )
 
 
-class BenchmarkerRequests(BenchmarkerBase):
+class BenchmarkerRequests(BaseBenchmarker):
     """
     BenchmarkerRequests
         Download benchmark dataset via requests.

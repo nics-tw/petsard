@@ -1,9 +1,9 @@
 import pandas as pd
 
-from petsard.loader.loader_base import LoaderBase
+from petsard.loader.loader_base import BaseLoader
 
 
-class LoaderPandasCsv(LoaderBase):
+class LoaderPandasCsv(BaseLoader):
     """
     LoaderPandasCsv
         pandas.read_csv implementing of Loader
@@ -46,7 +46,7 @@ class LoaderPandasCsv(LoaderBase):
             raise FileNotFoundError
 
 
-class LoaderPandasExcel(LoaderBase):
+class LoaderPandasExcel(BaseLoader):
     """
     LoaderPandasExcel
         pandas.read_csv implementing of Loader

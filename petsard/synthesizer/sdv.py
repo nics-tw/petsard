@@ -12,7 +12,7 @@ from sdv.single_table import (
 
 from petsard.error import UnableToSynthesizeError, UnsupportedMethodError
 from petsard.loader import Metadata
-from petsard.synthesizer.synthesizer_base import SynthesizerBase
+from petsard.synthesizer.synthesizer_base import BaseSynthesizer
 
 
 class SDVMap:
@@ -84,7 +84,7 @@ class SDVFactory:
         return self.synthesizer
 
 
-class SDVSingleTable(SynthesizerBase):
+class SDVSingleTable(BaseSynthesizer):
     """
     Base class for all SDV SingleTable classes.
     """
