@@ -37,8 +37,7 @@ class BaseBenchmarker(ABC):
         else:
             # if same name data didn't exist,
             #     confirm "./benchmark/" folder is exist (create it if not)
-            if not os.path.exists("benchmark"):
-                os.makedirs("benchmark")
+            os.makedirs("benchmark", exist_ok=True)
 
     @abstractmethod
     def download(self):
