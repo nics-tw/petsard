@@ -25,3 +25,6 @@ sidebar:
 - [Reporter 中的實驗名稱](./experiment-naming-in-reporter)
   - 實驗命名規範
   - 實驗設定管理
+- [測試覆蓋範圍](./test-coverage)
+  - 測試組織與架構
+  - 詳細測試案例文件

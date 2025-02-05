@@ -25,3 +25,6 @@ sidebar:
 - [Experiment Names in Reporter](./experiment-naming-in-reporter)
   - Experiment naming conventions
   - Managing experiment configurations
+- [Test Coverage](./test-coverage)
+  - Test organization and structure
+  - Detailed test case documentation
