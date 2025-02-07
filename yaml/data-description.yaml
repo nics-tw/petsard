@@ -1,0 +1,18 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Describer:
+  summary:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+  save_report_columnwise:
+    method: 'save_report'
+    granularity: 'columnwise'
+  save_report_pairwise:
+    method: 'save_report'
+    granularity: 'pairwise'
+...

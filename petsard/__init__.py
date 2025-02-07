@@ -19,6 +19,7 @@ TODO 抗偏態的IQR：statsmodels.medcouple
 """
 
 from petsard.config import Config, Status
+from petsard.constrainer import Constrainer
 from petsard.evaluator import Describer, Evaluator
 from petsard.executor import Executor
 from petsard.loader import Loader, Metadata, Splitter
@@ -32,6 +33,7 @@ __all__ = [
     "Splitter",
     "Processor",
     "Synthesizer",
+    "Constrainer",
     "Evaluator",
     "Describer",
     "Reporter",
