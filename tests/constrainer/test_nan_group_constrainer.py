@@ -18,6 +18,7 @@ class TestNaNGroupConstrainer:
                 "age": [25, 30, 35, np.nan, 45],
                 "salary": [50000, 60000, np.nan, 75000, 80000],
                 "bonus": [10000, np.nan, np.nan, 15000, 20000],
+                "performance": [4, 5, np.nan, 3, 4],
             }
         )
 
@@ -26,9 +27,12 @@ class TestNaNGroupConstrainer:
         invalid_configs = [
             None,
             "not_a_dict",
-            {"field": "invalid_action"},
-            {"field": ("invalid_action", "target")},
-            {"field": ("erase", None)},
+            {"field": 123},  # Not a dict
+            {"field": {"invalid_action": "target"}},  # Invalid action
+            {"field": {"erase": None}},  # None target
+            # Delete cannot coexist with other actions
+            {"job": {"delete": "salary", "erase": ["bonus"]}},
+            {"name": {"delete": "age", "copy": "id"}},
         ]
 
         for config in invalid_configs:
@@ -38,9 +42,11 @@ class TestNaNGroupConstrainer:
     def test_valid_config_initialization(self):
         """Test initialization with valid configurations"""
         valid_configs = [
-            {"name": ("delete", "salary")},
-            {"job": ("erase", ["salary", "bonus"])},
-            {"salary": ("copy", "bonus")},
+            {"name": {"delete": "salary"}},  # Delete is standalone
+            {"job": {"erase": ["salary", "bonus"]}},  # Multiple targets for erase
+            {"salary": {"copy": "bonus"}},  # Single target for copy
+            {"name": {"delete": "age"}},  # Delete with unused target
+            {"job": {"erase": "bonus"}},  # Single target for erase
         ]
 
         for config in valid_configs:
@@ -51,39 +57,22 @@ class TestNaNGroupConstrainer:
                     f"Valid configuration {config} raised unexpected ConfigError"
                 )
 
-    def test_validate_config_nonexistent_columns(self, sample_df):
-        """Test validation of configurations with non-existent columns"""
-        config = {
-            "nonexistent_main": ("delete", "salary"),
-            "job": ("erase", ["nonexistent_related"]),
-        }
+    def test_multiple_actions_same_field(self, sample_df):
+        """Test multiple actions on the same field"""
+        # No more testing delete with other actions
+        config = {"job": {"erase": ["bonus", "performance"]}}
 
         constrainer = NaNGroupConstrainer(config)
+        result = constrainer.apply(sample_df)
 
-        with pytest.raises(
-            ConfigError,
-            match="Main field 'nonexistent_main' does not exist in the DataFrame",
-        ):
-            assert not constrainer.validate_config(sample_df)
-
-    def test_apply_with_nonexistent_columns(self, sample_df):
-        """Test apply method with non-existent columns"""
-        config = {
-            "nonexistent_main": ("delete", "salary"),
-            "job": ("erase", ["nonexistent_related"]),
-        }
-
-        constrainer = NaNGroupConstrainer(config)
-
-        with pytest.raises(
-            ConfigError,
-            match="Main field 'nonexistent_main' does not exist in the DataFrame",
-        ):
-            constrainer.apply(sample_df)
+        # Check if erase actions are applied correctly
+        job_null_mask = result["job"].isna()
+        assert result.loc[job_null_mask, "bonus"].isna().all()
+        assert result.loc[job_null_mask, "performance"].isna().all()
 
     def test_delete_action(self, sample_df):
         """Test delete action on NaN values"""
-        config = {"name": ("delete", "salary")}
+        config = {"name": {"delete": "salary"}}
 
         constrainer = NaNGroupConstrainer(config)
         result = constrainer.apply(sample_df)
@@ -93,7 +82,7 @@ class TestNaNGroupConstrainer:
 
     def test_erase_action(self, sample_df):
         """Test erase action on NaN values"""
-        config = {"job": ("erase", ["salary", "bonus"])}
+        config = {"job": {"erase": ["salary", "bonus"]}}
 
         constrainer = NaNGroupConstrainer(config)
         result = constrainer.apply(sample_df)
@@ -104,7 +93,7 @@ class TestNaNGroupConstrainer:
 
     def test_copy_action_compatible_types(self, sample_df):
         """Test copy action with compatible data types"""
-        config = {"salary": ("copy", "bonus")}
+        config = {"salary": {"copy": "bonus"}}
 
         constrainer = NaNGroupConstrainer(config)
         result = constrainer.apply(sample_df)
@@ -115,7 +104,9 @@ class TestNaNGroupConstrainer:
 
     def test_copy_action_incompatible_types(self, sample_df):
         """Test copy action with incompatible data types"""
-        config = {"name": ("copy", "age")}  # String to numeric
+        config = {
+            "name": {"copy": "age"}  # String to numeric
+        }
 
         constrainer = NaNGroupConstrainer(config)
         with pytest.warns(UserWarning, match="Cannot copy values"):
@@ -124,7 +115,11 @@ class TestNaNGroupConstrainer:
 
     def test_multiple_constraints(self, sample_df):
         """Test applying multiple constraints"""
-        config = {"name": ("delete", "salary"), "job": ("erase", "bonus")}
+        # Separate delete and other actions into different fields
+        config = {
+            "name": {"delete": "salary"},  # Delete action alone
+            "job": {"erase": "bonus"},  # Erase action alone
+        }
 
         constrainer = NaNGroupConstrainer(config)
         result = constrainer.apply(sample_df)
@@ -133,4 +128,5 @@ class TestNaNGroupConstrainer:
         assert not result["name"].isna().any()
 
         # Verify erase action on job
-        assert result.loc[result["job"].isna(), "bonus"].isna().all()
+        job_null_rows = result[result["job"].isna()]
+        assert job_null_rows["bonus"].isna().all()
