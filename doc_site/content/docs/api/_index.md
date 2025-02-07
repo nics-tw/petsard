@@ -23,6 +23,8 @@ sidebar:
   - Appx.: Available Process type
 - [Synthesizer](./synthesizer)
   - Synthetic data generation
+- [Constrainer](./constrainer)
+  - Data constraint handler for synthetic data
 - [Evaluator](./evaluator)
   - Privacy, fidelity, and utility assessment
   - Appx.: Available Evaluation Methods.
