@@ -23,6 +23,8 @@ sidebar:
   - 附錄：支援處理方式
 - [Synthesizer](./synthesizer)
   - 合成資料生成
+- [Constrainer](./constrainer)
+  - 合成資料的約束條件處理器
 - [Evaluator](./evaluator)
   - 隱私、保真與效用評估
   - 附錄：支援評測方式
