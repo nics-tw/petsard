@@ -1,0 +1,30 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  custom:
+    method: 'custom_method'
+    custom_method:
+      filepath: 'custom-evaluation.py'  # Path to your custom evaluator
+      method: 'MyEvaluator'        # Evaluator class name
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+  save_report_columnwise:
+    method: 'save_report'
+    granularity: 'columnwise'
+  save_report_pairwise:
+    method: 'save_report'
+    granularity: 'pairwise'
+...

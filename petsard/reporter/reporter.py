@@ -118,7 +118,7 @@ class Reporter:
         self.result = self.reporter.result
 
 
-class ReporterBase(ABC):
+class BaseReporter(ABC):
     """
     Base class for reporting data.
     """
@@ -130,6 +130,7 @@ class ReporterBase(ABC):
         "Preprocessor",
         "Synthesizer",
         "Postprocessor",
+        "Constrainer",
         "Evaluator",
         "Describer",
         "Reporter",
@@ -164,7 +165,7 @@ class ReporterBase(ABC):
 
         Args:
             data (dict): The data used for creating the report.
-                See ReporterBase._verify_create_input() for format requirement.
+                See BaseReporter._verify_create_input() for format requirement.
         """
         raise NotImplementedError
 
@@ -241,7 +242,7 @@ class ReporterBase(ABC):
         data.to_csv(path_or_buf=f"{full_output}.csv", index=False, encoding="utf-8")
 
 
-class ReporterSaveData(ReporterBase):
+class ReporterSaveData(BaseReporter):
     """
     Save raw/processed data to file.
     """
@@ -282,7 +283,7 @@ class ReporterSaveData(ReporterBase):
         Args:
             data (dict): The data dictionary.
                 Gerenrating by ReporterOperator.set_input()
-                See ReporterBase._verify_create_input() for format requirement.
+                See BaseReporter._verify_create_input() for format requirement.
 
         Raises:
             ConfigError: If the index tuple is not an even number.
@@ -321,7 +322,7 @@ class ReporterSaveData(ReporterBase):
             self._save(data=df, full_output=full_output)
 
 
-class ReporterSaveReport(ReporterBase):
+class ReporterSaveReport(BaseReporter):
     """
     Save evaluating/describing data to file.
     """
@@ -378,7 +379,7 @@ class ReporterSaveReport(ReporterBase):
 
         Args:
             data (dict): The data used for creating the report.
-                See ReporterBase._verify_create_input() for format requirement.
+                See BaseReporter._verify_create_input() for format requirement.
                 - exist_report (dict, optional): The existing report data.
                     - The key is the full evaluation experiment name:
                         "{eval}_[{granularity}]"
@@ -472,8 +473,7 @@ class ReporterSaveReport(ReporterBase):
                 "granularity": granularity,
                 "report": None,
                 "warnings": (
-                    f"There is no report data to save "
-                    f"under {granularity} granularity."
+                    f"There is no report data to save under {granularity} granularity."
                 ),
             }
 

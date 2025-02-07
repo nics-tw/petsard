@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import pandas as pd
 
+from petsard.constrainer import Constrainer
 from petsard.error import ConfigError
 from petsard.evaluator import (
     Describer,
@@ -22,7 +23,7 @@ from petsard.reporter import Reporter
 from petsard.synthesizer import Synthesizer
 
 
-class Operator:
+class BaseOperator:
     """
     The interface of the objects used by Executor.run()
     """
@@ -144,7 +145,7 @@ class Operator:
         raise NotImplementedError
 
 
-class LoaderOperator(Operator):
+class LoaderOperator(BaseOperator):
     """
     LoaderOperator is responsible for loading data using the configured Loader instance as a decorator.
     """
@@ -206,7 +207,7 @@ class LoaderOperator(Operator):
         return metadata
 
 
-class SplitterOperator(Operator):
+class SplitterOperator(BaseOperator):
     """
     SplitterOperator is responsible for splitting data
         using the configured Loader instance as a decorator.
@@ -243,7 +244,7 @@ class SplitterOperator(Operator):
         self.splitter.split(**input)
         self.logger.debug("Data splitting completed")
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the SplitterOperator.
@@ -284,7 +285,7 @@ class SplitterOperator(Operator):
         return deepcopy(self.splitter.metadata)
 
 
-class PreprocessorOperator(Operator):
+class PreprocessorOperator(BaseOperator):
     """
     PreprocessorOperator is responsible for pre-processing data
         using the configured Processor instance as a decorator.
@@ -338,7 +339,7 @@ class PreprocessorOperator(Operator):
         self.logger.debug("Transforming data")
         self.data_preproc = self.processor.transform(data=input["data"])
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the PreprocessorOperator.
@@ -386,7 +387,7 @@ class PreprocessorOperator(Operator):
         return metadata
 
 
-class SynthesizerOperator(Operator):
+class SynthesizerOperator(BaseOperator):
     """
     SynthesizerOperator is responsible for synthesizing data
         using the configured Synthesizer instance as a decorator.
@@ -433,7 +434,7 @@ class SynthesizerOperator(Operator):
         self.synthesizer.fit_sample(**self.sample_dict)
         self.logger.debug("Train and sampling Synthesizing model completed")
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the SynthesizerOperator.
@@ -468,7 +469,7 @@ class SynthesizerOperator(Operator):
         return result
 
 
-class PostprocessorOperator(Operator):
+class PostprocessorOperator(BaseOperator):
     """
     PostprocessorOperator is responsible for post-processing data
         using the configured Processor instance as a decorator.
@@ -507,7 +508,7 @@ class PostprocessorOperator(Operator):
         self.data_postproc = self.processor.inverse_transform(data=input["data"])
         self.logger.debug("Data postprocessing completed")
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the PostprocessorOperator.
@@ -532,7 +533,135 @@ class PostprocessorOperator(Operator):
         return result
 
 
-class EvaluatorOperator(Operator):
+class ConstrainerOperator(BaseOperator):
+    """
+    ConstrainerOperator is responsible for applying constraints to data
+    using the configured Constrainer instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Initialize ConstrainerOperator with given configuration.
+
+        Args:
+            config (dict): Configuration parameters for the Constrainer.
+
+        Attributes:
+            constrainer (Constrainer): An instance of the Constrainer class
+                initialized with the provided configuration.
+        """
+        # Transform field combinations before initializing
+        config = self._transform_field_combinations(config)
+        super().__init__(config)
+        self.constrainer = Constrainer(config)
+
+        # Store sampling configuration if provided
+        self.sample_dict = {}
+        self.sample_dict.update(
+            {
+                key: config[key]
+                for key in [
+                    "target_rows",
+                    "sampling_ratio",
+                    "max_trials",
+                    "verbose_step",
+                ]
+                if key in config
+            }
+        )
+
+    def _run(self, input: dict):
+        """
+        Execute data constraining process using the Constrainer instance.
+
+        Args:
+            input (dict): Constrainer input should contain:
+                - data (pd.DataFrame): Data to be constrained
+                - synthesizer (optional): Synthesizer instance if resampling is needed
+                - postprocessor (optional): Postprocessor instance if needed
+
+        Attributes:
+            constrained_data (pd.DataFrame): The constrained result data.
+        """
+        self.logger.debug("Starting data constraining process")
+
+        if self.sample_dict and "synthesizer" in input:
+            # Use resample_until_satisfy if sampling parameters and synthesizer are provided
+            self.logger.debug("Using resample_until_satisfy method")
+            self.constrained_data = self.constrainer.resample_until_satisfy(
+                data=input["data"],
+                synthesizer=input["synthesizer"],
+                postprocessor=input.get("postprocessor"),
+                **self.sample_dict,
+            )
+        else:
+            # Use simple apply method
+            self.logger.debug("Using apply method")
+            self.constrained_data = self.constrainer.apply(input["data"])
+
+        self.logger.debug("Data constraining completed")
+
+    @BaseOperator.log_and_raise_config_error
+    def set_input(self, status) -> dict:
+        """
+        Set the input for the ConstrainerOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict: Constrainer input should contain:
+                - data (pd.DataFrame)
+                - synthesizer (optional)
+                - postprocessor (optional)
+        """
+        pre_module = status.get_pre_module("Constrainer")
+
+        # Get data from previous module
+        if pre_module == "Splitter":
+            self.input["data"] = status.get_result(pre_module)["train"]
+        else:  # Loader, Preprocessor, Synthesizer, or Postprocessor
+            self.input["data"] = status.get_result(pre_module)
+
+        # Get synthesizer if available
+        if "Synthesizer" in status.status:
+            self.input["synthesizer"] = status.get_synthesizer()
+
+        # Get postprocessor if available
+        if "Postprocessor" in status.status:
+            self.input["postprocessor"] = status.get_processor()
+
+        return self.input
+
+    def get_result(self):
+        """
+        Retrieve the constraining result.
+
+        Returns:
+            pd.DataFrame: The constrained data.
+        """
+        return deepcopy(self.constrained_data)
+
+    def _transform_field_combinations(self, config: dict) -> dict:
+        """Transform field combinations from YAML list format to tuple format
+
+        Args:
+            config: Original config dictionary
+
+        Returns:
+            Updated config with transformed field_combinations
+        """
+        if "field_combinations" in config:
+            # Deep copy to avoid modifying original config
+            config = deepcopy(config)
+            # Transform each combination from [dict, dict] to tuple(dict, dict)
+            config["field_combinations"] = [
+                tuple(combination) for combination in config["field_combinations"]
+            ]
+        return config
+
+
+class EvaluatorOperator(BaseOperator):
     """
     EvaluatorOperator is responsible for evaluating data
         using the configured Evaluator instance as a decorator.
@@ -565,7 +694,7 @@ class EvaluatorOperator(Operator):
         self.evaluator.eval()
         self.logger.debug("Data evaluating completed")
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the EvaluatorOperator.
@@ -603,7 +732,7 @@ class EvaluatorOperator(Operator):
         return deepcopy(result)
 
 
-class DescriberOperator(Operator):
+class DescriberOperator(BaseOperator):
     """
     DescriberOperator is responsible for describing data
         using the configured Describer instance as a decorator.
@@ -638,7 +767,7 @@ class DescriberOperator(Operator):
         self.describer.eval()
         self.logger.debug("Data describing completed")
 
-    @Operator.log_and_raise_config_error
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the DescriberOperator.
@@ -668,7 +797,7 @@ class DescriberOperator(Operator):
         return deepcopy(result)
 
 
-class ReporterOperator(Operator):
+class ReporterOperator(BaseOperator):
     """
     Operator class for generating reports using the Reporter class.
 

@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 
-class LoaderBase(ABC):
+class BaseLoader(ABC):
     """
-    LoaderBase
+    BaseLoader
         Base class for all "Loader".
 
         The "Loader" class defines the common API

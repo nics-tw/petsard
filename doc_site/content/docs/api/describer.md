@@ -1,0 +1,147 @@
+---
+title: Describer
+type: docs
+weight: 41
+prev: docs/api/metadata
+next: docs/api
+sidebar:
+ open: true
+---
+
+```python
+Describer(config)
+```
+
+Generate descriptive statistics for datasets.
+
+## Parameters
+
+- `config` (dict): Descriptive statistics configuration
+ - `method` (str): Operation name
+   - 'default': Use default set of statistics methods
+ - `describe` (list): List of statistics methods to apply
+   - See supported methods table below
+   - For percentile, use dictionary format: `{'percentile': k}`
+
+## Examples
+
+```python
+from petsard import Describer
+
+
+# Using default descriptive methods
+des = Describer({'method': 'default'})
+
+# Using custom descriptive methods
+des = Describer({
+   'method': 'summary',
+   'describe': ['mean', 'median', 'std',
+               {'percentile': 0.95}]
+})
+
+# Analysis
+des.create({'data': df})
+des.eval()
+
+# Get results
+global_stats = des.get_global()      # Global statistics
+column_stats = des.get_columnwise()  # Column-wise statistics
+pairwise_stats = des.get_pairwise()  # Pairwise statistics
+```
+
+## Methods
+
+### `create()`
+
+Initialize descriptor.
+
+**Parameters**
+
+- `data` (dict): Data to analyze
+  - Format: `{'data': pd.DataFrame}`
+
+**Returns**
+
+None
+
+### `eval()`
+
+Perform descriptive statistical analysis.
+
+**Parameters**
+
+None
+
+**Returns**
+
+None. Results are stored in `aggregator`
+
+### get_global()
+
+Get global descriptive statistics.
+
+**Parameters**
+
+None
+
+**Returns**
+
+- pd.DataFrame: Single row containing global descriptive statistics
+
+### get_columnwise()
+
+Get column-wise descriptive statistics.
+
+**Parameters**
+
+None
+
+**Returns**
+
+- pd.DataFrame: Each row represents statistics for one column
+
+### get_pairwise()
+
+Get pairwise descriptive statistics.
+
+**Parameters**
+
+None
+
+**Returns**
+
+- pd.DataFrame: Each row represents statistics for a pair of columns
+
+## Appendix: Supported Methods
+
+### Overview
+
+Descriptive statistics are divided into three levels:
+- Global analysis: Calculate overall dataset properties (e.g., row count)
+- Column analysis: Calculate statistics for each column (e.g., mean, standard deviation)
+- Pairwise analysis: Calculate relationships between columns (e.g., correlation)
+
+### Supported Methods
+
+| Level | Method | Parameter | Description |
+| :---: | :---: | :---: | :--- |
+| Global | `DescriberRowCount` | 'row_count' | Calculate number of rows |
+| Global | `DescriberColumnCount` | 'col_count' | Calculate number of columns |
+| Global | `DeescriberGlobalNA` | 'global_na_count' | Calculate rows containing NA |
+| Column | `DescriberMean` | 'mean' | Calculate mean |
+| Column | `DescriberMedian` | 'median' | Calculate median |
+| Column | `DescriberStd` | 'std' | Calculate standard deviation |
+| Column | `DescriberVar` | 'var' | Calculate variance |
+| Column | `DescriberMin` | 'min' | Calculate minimum |
+| Column | `DescriberMax` | 'max' | Calculate maximum |
+| Column | `DescriberKurtosis` | 'kurtosis' | Calculate kurtosis |
+| Column | `DescriberSkew` | 'skew' | Calculate skewness |
+| Column | `DescriberQ1` | 'q1' | Calculate first quartile |
+| Column | `DescriberQ3` | 'q3' | Calculate third quartile |
+| Column | `DescriberIQR` | 'iqr' | Calculate interquartile range |
+| Column | `DescriberRange` | 'range' | Calculate range |
+| Column | `DescriberPercentile` | 'percentile' | Calculate custom percentile |
+| Column | `DescriberColNA` | 'col_na_count' | Calculate NA count per column |
+| Column | `DescriberNUnique` | 'nunique' | Calculate number of unique values |
+| Pairwise | `DescriberCov` | 'cov' | Calculate covariance |
+| Pairwise | `DescriberCorr` | 'corr' | Calculate correlation |

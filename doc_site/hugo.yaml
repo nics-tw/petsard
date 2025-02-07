@@ -8,9 +8,49 @@ languages:
   en:
     languageName: English
     weight: 1
+    menu:
+      main:
+        - name: Docs
+          pageRef: /docs
+          weight: 1
+        - name: About
+          pageRef: /about
+          weight: 2
+        - name: Contact ↗
+          url: "https://github.com/nics-tw"
+          weight: 3
+        - name: Search
+          weight: 4
+          params:
+            type: search
+        - name: GitHub
+          weight: 5
+          url: "https://github.com/nics-tw/petsard"
+          params:
+            icon: github
   zh-tw:
     languageName: 繁體中文
     weight: 2
+    menu:
+      main:
+        - name: 文件
+          pageRef: /docs
+          weight: 1
+        - name: 關於
+          pageRef: /about
+          weight: 2
+        - name: 聯絡 ↗
+          url: "https://github.com/nics-tw"
+          weight: 3
+        - name: 搜尋
+          weight: 4
+          params:
+            type: search
+        - name: GitHub
+          weight: 5
+          url: "https://github.com/nics-tw/petsard"
+          params:
+            icon: github
 
 markup:
   # allow raw html
@@ -23,27 +63,6 @@ markup:
     noClasses: false
 
 enableInlineShortcodes: true
-
-menu:
-  main:
-    - name: Docs
-      pageRef: /docs
-      weight: 1
-    - name: About
-      pageRef: /about
-      weight: 2
-    - name: Contact ↗
-      url: "https://github.com/nics-tw"
-      weight: 3
-    - name: Search
-      weight: 4
-      params:
-        type: search
-    - name: GitHub
-      weight: 5
-      url: "https://github.com/nics-tw/petsard"
-      params:
-        icon: github
 
 params:
   page:
@@ -59,6 +78,9 @@ params:
       link: /petsard
       width: 40
       height: 20
+
+  sidebar:
+    displayIndex: true
 
   footer:
     displayCopyright: true

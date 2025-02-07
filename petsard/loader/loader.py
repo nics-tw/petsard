@@ -48,8 +48,14 @@ class LoaderFileExt:
 
         Args:
             file_ext (str): File extension
+
+        Raises:
+            UnsupportedMethodError: If file extension is not supported
         """
-        return cls.__dict__[file_ext[1:].upper()] // 10
+        try:
+            return cls.__dict__[file_ext[1:].upper()] // 10
+        except KeyError:
+            raise UnsupportedMethodError(f"File extension {file_ext} is not supported")
 
 
 class Loader:
@@ -257,6 +263,12 @@ class Loader:
 
         # 5. extract file extension
         config["file_ext"] = pathlib.Path(config["filepath"]).suffix.lower()
+        try:
+            LoaderFileExt.getext(config["file_ext"])
+        except KeyError:
+            raise UnsupportedMethodError(
+                f"File extension {config['file_ext']} is not supported"
+            )
 
         return config
 
