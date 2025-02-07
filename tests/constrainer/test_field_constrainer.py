@@ -56,6 +56,18 @@ class TestFieldConstrainerValidation:
         with pytest.raises(ConfigError, match="Column 'nonexistent' .* does not exist"):
             constrainer.validate_config(sample_df)
 
+    def test_apply_with_nonexistent_columns(self, sample_df):
+        """
+        Test apply method with non-existent columns
+        Verifies that applying constraints with non-existent columns raises ConfigError
+        """
+        constrainer = FieldConstrainer(["nonexistent > 30"])
+
+        with pytest.raises(
+            ConfigError, match="Column 'nonexistent' .* does not exist in DataFrame"
+        ):
+            constrainer.apply(sample_df)
+
     def test_valid_config(self, sample_df):
         """
         Test valid configuration scenarios.

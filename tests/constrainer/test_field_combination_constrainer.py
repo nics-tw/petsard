@@ -30,7 +30,10 @@ class TestFieldCombinationConstrainer:
         ]
 
         constrainer = FieldCombinationConstrainer(constraints)
-        assert constrainer.validate_config(sample_df) is True
+        try:
+            constrainer.validate_config(sample_df)
+        except ConfigError:
+            pytest.fail("Valid columns raised unexpected ConfigError")
 
     def test_validate_config_nonexistent_columns(self, sample_df):
         """Test validate_config method with non-existent columns"""
@@ -41,10 +44,10 @@ class TestFieldCombinationConstrainer:
 
         constrainer = FieldCombinationConstrainer(constraints)
 
-        with pytest.warns(
-            UserWarning, match="Columns .* do not exist in the DataFrame"
+        with pytest.raises(
+            ConfigError, match="Columns .* do not exist in the DataFrame"
         ):
-            assert constrainer.validate_config(sample_df) is False
+            constrainer.validate_config(sample_df)
 
     def test_apply_with_nonexistent_columns(self, sample_df):
         """Test apply method with non-existent columns"""
@@ -52,11 +55,10 @@ class TestFieldCombinationConstrainer:
 
         constrainer = FieldCombinationConstrainer(constraints)
 
-        with pytest.warns(
-            UserWarning, match="Columns .* do not exist in the DataFrame"
+        with pytest.raises(
+            ConfigError, match="Columns .* do not exist in the DataFrame"
         ):
-            result = constrainer.apply(sample_df)
-            pd.testing.assert_frame_equal(result, sample_df)
+            constrainer.apply(sample_df)
 
     def test_single_field_constraint_with_specific_value(self, sample_df):
         """Test single field constraint with specific value"""
