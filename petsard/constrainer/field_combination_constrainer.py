@@ -201,9 +201,13 @@ class FieldCombinationConstrainer:
                 for field, value in zip(source_fields, source_values):
                     # Handle NA values and specific values
                     if self._is_na_value(value):
+                        # if condition is NA, check if the field is NA
                         source_mask &= result[field].isna()
                     else:
-                        source_mask &= result[field] == value
+                        # if condition is specific value, check if matches the value AND is not NA
+                        source_mask &= (result[field] == value) & (
+                            ~result[field].isna()
+                        )
 
                 # Normalize allowed values to a list
                 if not isinstance(allowed_values, (list, tuple)):
