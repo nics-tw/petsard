@@ -13,6 +13,7 @@ from petsard.error import ConfigError, UnexecutedError
 from petsard.loader import Metadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
     BaseOperator,
+    ConstrainerOperator,
     DescriberOperator,
     EvaluatorOperator,
     LoaderOperator,
@@ -23,6 +24,7 @@ from petsard.operator import (  # noqa: F401 - Dynamic Imports
     SynthesizerOperator,
 )
 from petsard.processor import Processor
+from petsard.synthesizer import Synthesizer
 
 
 class Config:
@@ -300,6 +302,15 @@ class Status:
         if module not in self.metadata:
             raise UnexecutedError
         return self.metadata[module]
+
+    def get_synthesizer(self) -> Synthesizer:
+        """
+        Retrieve the synthesizer instance.
+        """
+        if "Synthesizer" in self.status:
+            return self.status["Synthesizer"]["operator"].synthesizer
+        else:
+            raise UnexecutedError
 
     def get_processor(self) -> Processor:
         """
