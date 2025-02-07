@@ -10,7 +10,7 @@ sidebar:
 
 ## Data Loading
 
-### Loader
+### `Loader`
 
 > tests/loader/test_loader.py
 
@@ -29,7 +29,7 @@ Tests for the main Loader functionality:
 - `test_invalid_file_extension`: Verifies invalid file extensions raise UnsupportedMethodError
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
 
-### Benchmark
+### `Benchmarker`
 
 > tests/loader/test_benchmark.py
 
@@ -43,7 +43,7 @@ Tests for benchmark dataset handling:
   - SHA256 verification checks
 - `test_verify_file_mismatch`: Tests SHA256 verification failure handling using mocked file content
 
-### Metadata
+### `Metadata`
 
 > tests/loader/test_metadata.py
 
@@ -71,9 +71,102 @@ Tests for metadata handling and type inference:
   - Boolean types
   - Invalid types
 
+## Data Generating
+
+### `Constrainer`
+
+> tests/constrainer/test_constrainer.py
+
+Tests for the main Constrainer class:
+
+- `test_basic_initialization`: Tests basic constrainer initialization and config storage
+- `test_nan_groups_constraints`: Tests NaN group constraints:
+  - Delete action implementation
+  - Erase action with multiple targets
+  - Copy action with type checking
+- `test_field_constraints`: Tests field-level constraints:
+  - Numeric range conditions
+  - Multiple conditions combined
+- `test_field_combinations`: Tests field combination rules:
+  - Education-performance mapping
+  - Multiple value combinations
+- `test_all_constraints_together`: Tests all constraints working together:
+  - Constraint interaction
+  - Complex filtering scenarios
+- `test_resample_functionality`: Tests resample until satisfy:
+  - Target row achievement
+  - Synthetic data generation
+  - Constraint satisfaction
+- `test_error_handling`: Tests error cases:
+  - Invalid config format
+  - Missing columns
+- `test_edge_cases`: Tests boundary conditions:
+  - Empty DataFrame
+  - All NaN values
+
+#### `NaNGroupConstrainer`
+
+> tests/constrainer/test_nan_group_constrainer.py
+
+Tests for NaN value handling constraints:
+
+- `test_invalid_config_initialization`: Tests invalid configuration handling:
+  - Non-dictionary inputs
+  - Invalid action types
+  - Invalid target specifications
+  - Delete action combined with other actions
+- `test_valid_config_initialization`: Tests valid configurations:
+  - Delete action standalone
+  - Multiple targets for erase action
+  - Single target for copy action
+  - Different target formats
+- `test_erase_action`: Tests erase action functionality:
+  - Sets target fields to NaN when source field is NaN
+  - Handles multiple target fields
+- `test_copy_action_compatible_types`: Tests value copying between compatible types
+- `test_copy_action_incompatible_types`: Tests handling of incompatible type copying
+- `test_multiple_constraints`: Tests multiple constraints working together
+
+#### `FieldConstrainer`
+
+> tests/constrainer/test_field_constrainer.py
+
+Tests for field-level constraints:
+
+- `test_invalid_config_structure`: Tests configuration validation:
+  - Non-list inputs
+  - Invalid constraint formats
+  - Empty constraints
+- `test_invalid_constraint_syntax`: Tests syntax validation:
+  - Unmatched parentheses
+  - Invalid operators
+  - Missing operators
+- `test_field_extraction`: Tests field name extraction from:
+  - Addition operations
+  - Parenthesized expressions
+  - NULL checks
+  - Date operations
+- `test_complex_expression_validation`: Tests complex constraint combinations
+
+#### `FieldCombinationConstrainer`
+
+> tests/constrainer/test_field_combination_constrainer.py
+
+Tests for field combination constraints:
+
+- `test_validate_config_existing_columns`: Tests column existence validation
+- `test_invalid_constraints_not_list`: Tests non-list constraint handling
+- `test_invalid_constraint_structure`: Tests invalid tuple structures
+- `test_invalid_field_map`: Tests field mapping validation
+- `test_invalid_source_fields`: Tests source field type validation
+- `test_invalid_target_field`: Tests target field type validation
+- `test_multi_field_source_value_length_mismatch`: Tests multi-field value matching
+
 ## Data Evaluating
 
-### MLUtility
+### `Evaluator`
+
+#### `MLUtility`
 
 > tests/evaluator/test_mlutility.py
 
