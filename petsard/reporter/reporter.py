@@ -130,6 +130,7 @@ class BaseReporter(ABC):
         "Preprocessor",
         "Synthesizer",
         "Postprocessor",
+        "Constrainer",
         "Evaluator",
         "Describer",
         "Reporter",
