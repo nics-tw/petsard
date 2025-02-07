@@ -108,6 +108,10 @@ class TestFieldCombinationConstrainer:
         constraints = [
             ({("job", "level"): "salary"}, {("Engineer", "Junior"): 70000}),
             ({("job", "level"): "grade"}, {("Engineer", "Senior"): "A"}),
+            (
+                {("grade", "job", "level"): "salary"},
+                {("A", "Engineer", "Senior"): [70000]},
+            ),
         ]
 
         try:
@@ -126,6 +130,13 @@ class TestFieldCombinationConstrainer:
             ConfigError, match="Each constraint must be a tuple with two elements"
         ):
             FieldCombinationConstrainer([("invalid",)])
+        with pytest.raises(ConfigError):
+            FieldCombinationConstrainer(
+                [
+                    {("grade", "job", "level"): "salary"},
+                    {("A", "Engineer", "Senior"): [70000]},
+                ]
+            )
 
     def test_invalid_field_map(self):
         """Test invalid field map"""
@@ -165,14 +176,4 @@ class TestFieldCombinationConstrainer:
         with pytest.raises(ConfigError, match="Source value must be a tuple of length"):
             FieldCombinationConstrainer(
                 [({("job", "level"): "salary"}, {("Engineer",): 75000})]
-            )
-
-    def test_unsupported_multi_field_constraint(self):
-        """Test that constraints cannot have more than two fields"""
-        with pytest.raises(ConfigError):
-            FieldCombinationConstrainer(
-                [
-                    {("grade", "job", "level"): "salary"},
-                    {("A", "Engineer", "Senior"): [70000]},
-                ]
             )
