@@ -48,9 +48,9 @@ def sample_df():
 def config():
     return {
         "nan_groups": {
-            "name": ("delete", "salary"),
-            "job": ("erase", ["salary", "bonus"]),
-            "salary": ("copy", "bonus"),
+            "name": {"delete": "salary"},
+            "job": {"erase": ["salary", "bonus"]},
+            "salary": {"copy": "bonus"},
         },
         "field_constraints": ["age >= 20 & age <= 60", "performance >= 4"],
         "field_combinations": [
