@@ -22,7 +22,42 @@ class TestFieldCombinationConstrainer:
             }
         )
 
-    # 功能性測試保持不變
+    def test_validate_config_existing_columns(self, sample_df):
+        """Test validate_config method with existing columns"""
+        constraints = [
+            ({"department": "salary"}, {"HR": 75000}),
+            ({("job", "level"): "grade"}, {("Engineer", "Senior"): "A"}),
+        ]
+
+        constrainer = FieldCombinationConstrainer(constraints)
+        assert constrainer.validate_config(sample_df) is True
+
+    def test_validate_config_nonexistent_columns(self, sample_df):
+        """Test validate_config method with non-existent columns"""
+        constraints = [
+            ({"nonexistent_field": "salary"}, {"HR": 75000}),
+            ({("job", "nonexistent_level"): "grade"}, {("Engineer", "Senior"): "A"}),
+        ]
+
+        constrainer = FieldCombinationConstrainer(constraints)
+
+        with pytest.warns(
+            UserWarning, match="Columns .* do not exist in the DataFrame"
+        ):
+            assert constrainer.validate_config(sample_df) is False
+
+    def test_apply_with_nonexistent_columns(self, sample_df):
+        """Test apply method with non-existent columns"""
+        constraints = [({"nonexistent_field": "salary"}, {"HR": 75000})]
+
+        constrainer = FieldCombinationConstrainer(constraints)
+
+        with pytest.warns(
+            UserWarning, match="Columns .* do not exist in the DataFrame"
+        ):
+            result = constrainer.apply(sample_df)
+            pd.testing.assert_frame_equal(result, sample_df)
+
     def test_single_field_constraint_with_specific_value(self, sample_df):
         """Test single field constraint with specific value"""
         constraints = [({"department": "salary"}, {"HR": 75000})]
@@ -34,7 +69,6 @@ class TestFieldCombinationConstrainer:
         assert len(result) == 5  # All rows should be preserved
         assert (result[result["department"] == "HR"]["salary"] == 75000).all()
 
-    # 配置驗證測試
     def test_valid_single_field_constraint(self):
         """Test valid single field constraint configuration"""
         constraints = [
