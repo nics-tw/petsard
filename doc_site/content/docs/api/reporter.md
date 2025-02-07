@@ -1,7 +1,7 @@
 ---
 title: Reporter
 type: docs
-weight: 38
+weight: 39
 prev: docs/api/evaluator
 next: docs/api/metadata
 sidebar:

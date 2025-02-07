@@ -1,8 +1,8 @@
 ---
 title: Evaluator
 type: docs
-weight: 37
-prev: docs/api/synthesizer
+weight: 38
+prev: docs/api/constrainer
 next: docs/api/reporter
 sidebar:
   open: true
