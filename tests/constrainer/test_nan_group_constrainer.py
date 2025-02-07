@@ -60,8 +60,26 @@ class TestNaNGroupConstrainer:
 
         constrainer = NaNGroupConstrainer(config)
 
-        with pytest.warns(UserWarning, match="does not exist in the DataFrame"):
+        with pytest.raises(
+            ConfigError,
+            match="Main field 'nonexistent_main' does not exist in the DataFrame",
+        ):
             assert not constrainer.validate_config(sample_df)
+
+    def test_apply_with_nonexistent_columns(self, sample_df):
+        """Test apply method with non-existent columns"""
+        config = {
+            "nonexistent_main": ("delete", "salary"),
+            "job": ("erase", ["nonexistent_related"]),
+        }
+
+        constrainer = NaNGroupConstrainer(config)
+
+        with pytest.raises(
+            ConfigError,
+            match="Main field 'nonexistent_main' does not exist in the DataFrame",
+        ):
+            constrainer.apply(sample_df)
 
     def test_delete_action(self, sample_df):
         """Test delete action on NaN values"""

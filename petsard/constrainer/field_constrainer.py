@@ -193,14 +193,12 @@ class FieldConstrainer(BaseConstrainer):
 
         Returns:
             DataFrame: Filtered DataFrame based on constraints
+
+        Raises:
+            ConfigError: If any required columns are missing
         """
         # Perform complete validation before applying constraints
-        if not self.validate_config(df):
-            return df
-
-        # Original apply logic continues...
-        if not self.validate_config(df):
-            return df
+        _ = self.validate_config(df)
 
         result = df.copy()
         for constraint in self.config:

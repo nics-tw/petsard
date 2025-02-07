@@ -59,36 +59,30 @@ class NaNGroupConstrainer(BaseConstrainer):
                     f"Related field must be a string or list for field '{main_field}'"
                 )
 
-    def validate_config(self, df: pd.DataFrame) -> bool:
+    def validate_config(self, df: pd.DataFrame) -> None:
         """
         Validate if the configuration is compatible with the given DataFrame
 
         Args:
             df: Input DataFrame to validate against
 
-        Returns:
-            bool: True if configuration is valid for the DataFrame
+        Raises:
+            ConfigError: If any required columns are missing
         """
         for main_field, (action, related) in self.constraints.items():
             # Check if main field exists
             if main_field not in df.columns:
-                warnings.warn(
-                    f"Main field '{main_field}' does not exist in the DataFrame",
-                    UserWarning,
+                raise ConfigError(
+                    f"Main field '{main_field}' does not exist in the DataFrame"
                 )
-                return False
 
             # Check related fields
             related_cols = [related] if isinstance(related, str) else related
             for col in related_cols:
                 if col not in df.columns:
-                    warnings.warn(
-                        f"Related field '{col}' does not exist in the DataFrame",
-                        UserWarning,
+                    raise ConfigError(
+                        f"Related field '{col}' does not exist in the DataFrame"
                     )
-                    return False
-
-        return True
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -99,10 +93,12 @@ class NaNGroupConstrainer(BaseConstrainer):
 
         Returns:
             Filtered DataFrame
+
+        Raises:
+            ConfigError: If any required columns are missing
         """
         # Perform complete validation before applying constraints
-        if not self.validate_config(df):
-            return df
+        _ = self.validate_config(df)
 
         result = df.copy()
         for main, (action, related) in self.constraints.items():
