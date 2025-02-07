@@ -1,3 +1,4 @@
+import warnings
 from typing import List
 
 import pandas as pd
@@ -127,6 +128,41 @@ class FieldCombinationConstrainer:
         # Only string "pd.NA" is considered NA
         return value == "pd.NA"
 
+    def validate_config(self, df: pd.DataFrame) -> bool:
+        """
+        Validate if the configuration is compatible with the given DataFrame
+
+        Args:
+            df: Input DataFrame to validate against
+
+        Returns:
+            bool: True if configuration is valid for the DataFrame
+        """
+        for constraint_group in self.constraints:
+            # Parse source and target fields from the constraint
+            field_map, _ = constraint_group
+
+            # Extract source and target fields
+            source_fields = list(field_map.keys())[0]
+            target_field = list(field_map.values())[0]
+
+            # Ensure source_fields is a tuple
+            if isinstance(source_fields, str):
+                source_fields = (source_fields,)
+
+            # Check all fields exist
+            all_fields = list(source_fields) + [target_field]
+            missing_fields = [f for f in all_fields if f not in df.columns]
+
+            if missing_fields:
+                warnings.warn(
+                    f"Columns {missing_fields} do not exist in the DataFrame",
+                    UserWarning,
+                )
+                return False
+
+        return True
+
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Apply field combination constraints to DataFrame
@@ -137,6 +173,10 @@ class FieldCombinationConstrainer:
         Returns:
             Filtered DataFrame that meets all constraints
         """
+        # Perform complete validation before applying constraints
+        if not self.validate_config(df):
+            return df
+
         result = df.copy()
 
         for constraint_group in self.constraints:
