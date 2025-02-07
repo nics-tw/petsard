@@ -10,7 +10,7 @@ sidebar:
 
 ## 資料讀取
 
-### Loader
+### `Loader`
 
 > tests/loader/test_loader.py
 
@@ -29,7 +29,7 @@ sidebar:
 - `test_invalid_file_extension`：驗證無效的副檔名會觸發 UnsupportedMethodError
 - `test_custom_na_values`：測試自定義空值的處理
 
-### Benchmark
+### `Benchmarker`
 
 > tests/loader/test_benchmark.py
 
@@ -43,7 +43,7 @@ sidebar:
   - SHA256 驗證檢查
 - `test_verify_file_mismatch`：使用模擬的檔案內容測試 SHA256 驗證失敗的處理
 
-### Metadata
+### `Metadata`
 
 > tests/loader/test_metadata.py
 
@@ -71,9 +71,102 @@ sidebar:
   - 布林型態
   - 無效型態
 
+## 資料合成
+
+### `Constrainer`
+
+> tests/constrainer/test_constrainer.py
+
+測試主要約束器類別：
+
+- `test_basic_initialization`：測試基本約束器初始化和配置儲存
+- `test_nan_groups_constraints`：測試空值群組約束：
+  - 刪除動作實作
+  - 多目標的清除動作
+  - 含型別檢查的複製動作
+- `test_field_constraints`：測試欄位級別約束：
+  - 數值範圍條件
+  - 多重條件組合
+- `test_field_combinations`：測試欄位組合規則：
+  - 教育程度與績效對應
+  - 多重值組合
+- `test_all_constraints_together`：測試所有約束共同運作：
+  - 約束之間的互動
+  - 複雜的過濾情境
+- `test_resample_functionality`：測試重複採樣直到滿足：
+  - 達成目標列數
+  - 合成資料生成
+  - 約束條件滿足
+- `test_error_handling`：測試錯誤情況：
+  - 無效的配置格式
+  - 缺少欄位
+- `test_edge_cases`：測試邊界條件：
+  - 空的資料框
+  - 全部為空值
+
+#### `NaNGroupConstrainer`
+
+> tests/constrainer/test_nan_group_constrainer.py
+
+測試空值處理約束：
+
+- `test_invalid_config_initialization`：測試無效配置處理：
+  - 非字典輸入
+  - 無效的動作類型
+  - 無效的目標設定
+  - 刪除動作與其他動作的組合
+- `test_valid_config_initialization`：測試有效配置：
+  - 獨立的刪除動作
+  - 多目標的清除動作
+  - 單目標的複製動作
+  - 不同目標格式
+- `test_erase_action`：測試清除動作功能：
+  - 當來源欄位為空值時設定目標欄位為空值
+  - 處理多個目標欄位
+- `test_copy_action_compatible_types`：測試相容類型間的值複製
+- `test_copy_action_incompatible_types`：測試不相容類型複製的處理
+- `test_multiple_constraints`：測試多個約束同時運作
+
+#### `FieldConstrainer`
+
+> tests/constrainer/test_field_constrainer.py
+
+測試欄位級別約束：
+
+- `test_invalid_config_structure`：測試配置驗證：
+  - 非列表輸入
+  - 無效的約束格式
+  - 空約束
+- `test_invalid_constraint_syntax`：測試語法驗證：
+  - 不匹配的括號
+  - 無效的運算子
+  - 缺少運算子
+- `test_field_extraction`：測試欄位名稱提取：
+  - 加法運算
+  - 括號表達式
+  - 空值檢查
+  - 日期運算
+- `test_complex_expression_validation`：測試複雜約束組合
+
+#### `FieldCombinationConstrainer`
+
+> tests/constrainer/test_field_combination_constrainer.py
+
+測試欄位組合約束：
+
+- `test_validate_config_existing_columns`：測試欄位存在性驗證
+- `test_invalid_constraints_not_list`：測試非列表約束處理
+- `test_invalid_constraint_structure`：測試無效的元組結構
+- `test_invalid_field_map`：測試欄位映射驗證
+- `test_invalid_source_fields`：測試來源欄位類型驗證
+- `test_invalid_target_field`：測試目標欄位類型驗證
+- `test_multi_field_source_value_length_mismatch`：測試多欄位值匹配
+
 ## 資料評測
 
-### MLUtility
+### `Evaluator`
+
+#### `MLUtility`
 
 > tests/evaluator/test_mlutility.py
 
