@@ -29,17 +29,23 @@ The following scenarios guide you in choosing the right YAML configuration:
   - When you only need basic data synthesis
   - For simple privacy-enhanced synthetic data generation
 
-3. **Basic Usage with Evaluation**: [Default Synthesis and Evaluation](docs/tutorial/default-synthesis-default-evaluation)
+3. **Data Constraining**：[Data Constraining](docs/tutorial/data-constraining)
+
+  - When you need to control synthetic data characteristics
+  - Includes field value rules, field combinations, and NA handling
+  - Ensure synthetic data meets business logic
+
+4. **Basic Usage with Evaluation**: [Default Synthesis and Evaluation](docs/tutorial/default-synthesis-default-evaluation)
 
   - When you need both synthesis and comprehensive evaluation
   - Includes protection, fidelity, and utility assessments
 
-4. **Evaluation of External Solutions**: [External Synthesis with Default Evaluation](docs/tutorial/external-synthesis-default-evaluation)
+5. **Evaluation of External Solutions**: [External Synthesis with Default Evaluation](docs/tutorial/external-synthesis-default-evaluation)
 
   - When you have pre-synthesized data
   - For evaluating existing privacy-enhanced solutions
 
-5. **Special Scenarios**: [Special Cases](docs/tutorial/special-cases)
+6. **Special Scenarios**: [Special Cases](docs/tutorial/special-cases)
 
   - For specific requirements or exceptions
   - Contains solutions for unique data situations
