@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,21 +13,39 @@ from petsard.error import ConfigError
 class TestFieldCombinationConstrainer:
     @pytest.fixture
     def sample_df(self):
-        """Generate sample data for testing"""
-        return pd.DataFrame(
+        """
+        Generate sample data for testing
+
+        Returns:
+            pd.DataFrame: DataFrame containing all possible combinations of:
+                - Job categories (including NA)
+                - Experience levels (including NA)
+                - Salary ranges (including NA)
+                - Performance grades (including NA)
+        """
+        jobs = ["Engineer", "Analyst", "Researcher", np.nan]
+        levels = ["Junior", "Senior", "Staff", np.nan]
+        salaries = [50000, 60000, 70000, np.nan]
+        grades = ["A", "B", "C", np.nan]
+
+        data = [
             {
-                "job": ["Engineer", "Doctor", "Engineer", np.nan, "Teacher"],
-                "level": ["Senior", "Junior", "Senior", "Junior", "Senior"],
-                "salary": [50000, 60000, np.nan, 75000, 80000],
-                "department": ["IT", "Medical", "IT", "HR", "Education"],
-                "grade": ["A", "B", "A", np.nan, "C"],
+                "job": job,
+                "level": level,
+                "salary": salary,
+                "grade": grade,
             }
-        )
+            for job, level, salary, grade in itertools.product(
+                jobs, levels, salaries, grades
+            )
+        ]
+
+        return pd.DataFrame(data)
 
     def test_validate_config_existing_columns(self, sample_df):
         """Test validate_config method with existing columns"""
         constraints = [
-            ({"department": "salary"}, {"HR": 75000}),
+            ({"level": "salary"}, {"Senior": 70000}),
             ({("job", "level"): "grade"}, {("Engineer", "Senior"): "A"}),
         ]
 
@@ -38,7 +58,7 @@ class TestFieldCombinationConstrainer:
     def test_validate_config_nonexistent_columns(self, sample_df):
         """Test validate_config method with non-existent columns"""
         constraints = [
-            ({"nonexistent_field": "salary"}, {"HR": 75000}),
+            ({"nonexistent_field": "salary"}, {"Senior": 70000}),
             ({("job", "nonexistent_level"): "grade"}, {("Engineer", "Senior"): "A"}),
         ]
 
@@ -51,7 +71,7 @@ class TestFieldCombinationConstrainer:
 
     def test_apply_with_nonexistent_columns(self, sample_df):
         """Test apply method with non-existent columns"""
-        constraints = [({"nonexistent_field": "salary"}, {"HR": 75000})]
+        constraints = [({"nonexistent_field": "salary"}, {"Senior": 70000})]
 
         constrainer = FieldCombinationConstrainer(constraints)
 
@@ -62,19 +82,19 @@ class TestFieldCombinationConstrainer:
 
     def test_single_field_constraint_with_specific_value(self, sample_df):
         """Test single field constraint with specific value"""
-        constraints = [({"department": "salary"}, {"HR": 75000})]
+        constraints = [({"level": "salary"}, {"Senior": 75000})]
 
         constrainer = FieldCombinationConstrainer(constraints)
         result = constrainer.apply(sample_df)
 
-        # Verify only HR department with 75000 salary is kept
-        assert len(result) == 5  # All rows should be preserved
-        assert (result[result["department"] == "HR"]["salary"] == 75000).all()
+        # Verify only Senior level with 70000 salary is kept
+        assert len(result) == 192  # 4*4*4*4 - 4*4*4
+        assert (result[result["level"] == "Senior"]["salary"] == 70000).all()
 
     def test_valid_single_field_constraint(self):
         """Test valid single field constraint configuration"""
         constraints = [
-            ({"department": "salary"}, {"HR": 75000}),
+            ({"level": "salary"}, {"Senior": 70000}),
             ({"job": "grade"}, {"Engineer": "A"}),
         ]
 
@@ -86,7 +106,7 @@ class TestFieldCombinationConstrainer:
     def test_valid_multi_field_constraint(self):
         """Test valid multi-field constraint configuration"""
         constraints = [
-            ({("department", "level"): "salary"}, {("HR", "Junior"): 75000}),
+            ({("job", "level"): "salary"}, {("Engineer", "Junior"): 70000}),
             ({("job", "level"): "grade"}, {("Engineer", "Senior"): "A"}),
         ]
 
@@ -113,38 +133,38 @@ class TestFieldCombinationConstrainer:
             ConfigError,
             match="Field map must be a dictionary with exactly one key-value pair",
         ):
-            FieldCombinationConstrainer([({}, {"HR": 75000})])
+            FieldCombinationConstrainer([({}, {"Senior": 70000})])
         with pytest.raises(
             ConfigError,
             match="Field map must be a dictionary with exactly one key-value pair",
         ):
-            FieldCombinationConstrainer([({1: 2, 3: 4}, {"HR": 75000})])
+            FieldCombinationConstrainer([({1: 2, 3: 4}, {"Senior": 70000})])
 
     def test_invalid_source_fields(self):
         """Test invalid source fields type"""
         with pytest.raises(
             ConfigError, match="Source fields must be a string or tuple of strings"
         ):
-            FieldCombinationConstrainer([({1: "salary"}, {"HR": 75000})])
+            FieldCombinationConstrainer([({1: "salary"}, {"Senior": 70000})])
         with pytest.raises(
             ConfigError, match="Source fields must be a string or tuple of strings"
         ):
             FieldCombinationConstrainer(
-                [({("department", 1): "salary"}, {("HR", "Junior"): 75000})]
+                [({("job", 1): "salary"}, {("Engineer", "Junior"): 70000})]
             )
 
     def test_invalid_target_field(self):
         """Test invalid target field type"""
         with pytest.raises(ConfigError, match="Target field must be a string"):
             FieldCombinationConstrainer(
-                [({("department", "level"): 1}, {("HR", "Junior"): 75000})]
+                [({("job", "level"): 1}, {("Engineer", "Junior"): 70000})]
             )
 
     def test_multi_field_source_value_length_mismatch(self):
         """Test mismatch between multi-field source fields and source values"""
         with pytest.raises(ConfigError, match="Source value must be a tuple of length"):
             FieldCombinationConstrainer(
-                [({("department", "level"): "salary"}, {("HR",): 75000})]
+                [({("job", "level"): "salary"}, {("Engineer",): 75000})]
             )
 
     def test_unsupported_multi_field_constraint(self):
@@ -152,7 +172,7 @@ class TestFieldCombinationConstrainer:
         with pytest.raises(ConfigError):
             FieldCombinationConstrainer(
                 [
-                    {("department", "job", "level"): "salary"},
-                    {("IT", "Engineer", "Senior"): [50000]},
+                    {("grade", "job", "level"): "salary"},
+                    {("A", "Engineer", "Senior"): [70000]},
                 ]
             )
