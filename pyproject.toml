@@ -47,12 +47,12 @@
 # Dependencies version in key libraries
 # 關鍵套件相依性版本
 #
-# 1. SDV: 1.10 above
+# 1. SDV: 1.17.4 above
 #    - https://github.com/sdv-dev/SDV
-#    - Latest 1.17.1 update: 2024/10/10
-# 2. SDMetrics: 0.13 above
+#    - Latest 1.17.4 update: 2025/01/20
+# 2. SDMetrics: 0.18.0 above
 #    - https://github.com/sdv-dev/SDMetrics
-#    - Latest 0.16.0 update: 2024/09/25
+#    - Latest 0.18.0 update: 2024/12/14
 # 3. anonymeter: 1.0.0 above
 #    - https://github.com/statice/anonymeter
 #    - Latest 1.0.0 update: 2024/02/02
@@ -81,26 +81,17 @@ dependencies = [
     "anonymeter>=1.0.0,<2",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
-    "sdmetrics>=0.16.0,<1",
-    "sdv>=1.17.1,<2",
-    "wheel>=0.43.0",
-    ###### for dependency bot security alert:
-    ###### ###### ######
-    "certifi>=2024.7.4", #581
-    "scikit-learn>=1.6.0", #582
-    "urllib3>=2.2.2", #580
+    "sdmetrics>=0.18.0,<1",
+    "sdv>=1.17.4,<2",
 ]
 
 [dependency-groups]
 dev = [
     "hatchling>=1.27.0",
-    "ipykernel>=6.29.4",
+    "ipykernel>=6.29.5",
     "pytest>=8.3.4",
-    "python-semantic-release>=9.15.1",
-    "ruff>=0.8.6",
-    ###### for dependency bot security alert:
-    ###### ###### ######
-    "tornado>=6.4.2", #579 #606
+    "python-semantic-release>=9.18.0",
+    "ruff>=0.9.5",
 ]
 
 [build-system]
