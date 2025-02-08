@@ -128,6 +128,7 @@ logging_use_named_masks = false
 version_variable = [
    "pyproject.toml:project.version",
 ]
+version_source = "tag"
 
 # Main branch release configuration
 [tool.semantic_release.branches.main]
