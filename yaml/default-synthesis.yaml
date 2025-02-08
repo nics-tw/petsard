@@ -1,0 +1,18 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default' # sdv-single_table-gaussiancopula
+Postprocessor:
+  demo:
+    method: 'default'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+...

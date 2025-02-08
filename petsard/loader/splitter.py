@@ -3,9 +3,9 @@ from typing import Optional, Union
 
 import pandas as pd
 
+from petsard.error import ConfigError
 from petsard.loader.loader import Loader
 from petsard.loader.metadata import Metadata
-from petsard.error import ConfigError
 
 
 class Splitter:
@@ -21,10 +21,10 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        num_samples:       int = 1,
+        num_samples: int = 1,
         train_split_ratio: float = 0.8,
-        random_state:      Optional[Union[int, float, str]] = None,
-        **kwargs
+        random_state: Optional[Union[int, float, str]] = None,
+        **kwargs,
     ):
         """
         Args:
@@ -69,41 +69,44 @@ class Splitter:
         if method is None:
             if not (0 <= train_split_ratio <= 1):
                 raise ConfigError(
-                    "Splitter:  train_split_ratio must be a float between 0 and 1.")
+                    "Splitter:  train_split_ratio must be a float between 0 and 1."
+                )
             self.config = {
-                'num_samples': num_samples,
-                'train_split_ratio': train_split_ratio,
-                'random_state': random_state,
+                "num_samples": num_samples,
+                "train_split_ratio": train_split_ratio,
+                "random_state": random_state,
             }
 
         # custom_data Splitter use case
         else:
-            if method.lower() != 'custom_data':
+            if method.lower() != "custom_data":
                 raise ConfigError
 
-            filepath = kwargs.get('filepath', None)
+            filepath = kwargs.get("filepath", None)
             if filepath is None or not isinstance(filepath, dict):
                 raise ConfigError
-            if not all(k in filepath for k in ('ori', 'control')):
+            if not all(k in filepath for k in ("ori", "control")):
                 raise ConfigError
 
             config = kwargs
             self.loader: dict = {}
 
-            for key in ['ori', 'control']:
+            for key in ["ori", "control"]:
                 self.loader[key] = Loader(
-                    filepath = filepath[key],
+                    filepath=filepath[key],
                     **{
-                    k: config.get(k) for k in [
-                            'column_types',
-                            'header_names',
-                            'na_values',
-                        ] if config.get(k) is not None
+                        k: config.get(k)
+                        for k in [
+                            "column_types",
+                            "header_names",
+                            "na_values",
+                        ]
+                        if config.get(k) is not None
                     },
                 )
 
-            config['method'] = method
-            config['filepath'] = filepath
+            config["method"] = method
+            config["filepath"] = filepath
             self.config = config
 
     def split(
@@ -125,45 +128,43 @@ class Splitter:
                 The exist index we want to exclude them from our sampling.
             metadata (Metadata, optional): The metadata class of the data.
         """
-        if 'method' in self.config:
-            self.loader['ori'].load()
-            self.loader['control'].load()
+        if "method" in self.config:
+            self.loader["ori"].load()
+            self.loader["control"].load()
             self.data[1] = {
-                'train': self.loader['ori'].data,
-                'validation': self.loader['control'].data
+                "train": self.loader["ori"].data,
+                "validation": self.loader["control"].data,
             }
             # Setting metadata by train
             metadata = Metadata()
-            metadata.build_metadata(data=self.loader['ori'].data)
-            if 'row_num' in metadata.metadata['global']:
-                metadata.metadata['global']['row_num_after_split'] = \
-                    metadata.metadata['global'].pop('row_num')
+            metadata.build_metadata(data=self.loader["ori"].data)
+            if "row_num" in metadata.metadata["global"]:
+                metadata.metadata["global"]["row_num_after_split"] = metadata.metadata[
+                    "global"
+                ].pop("row_num")
             self.metadata = metadata
         else:
             data.reset_index(drop=True, inplace=True)  # avoid unexpected index
 
             self.index = self._index_bootstrapping(
-                index=data.index.tolist(),
-                exclude_index=exclude_index
+                index=data.index.tolist(), exclude_index=exclude_index
             )
 
             for key, index in self.index.items():
                 self.data[key] = {
-                    'train': data.iloc[index['train']].reset_index(drop=True),
-                    'validation': data.iloc[index['validation']].reset_index(drop=True)
+                    "train": data.iloc[index["train"]].reset_index(drop=True),
+                    "validation": data.iloc[index["validation"]].reset_index(drop=True),
                 }
 
         if metadata is not None:
             self.metadata = metadata
-            self.metadata.metadata['global']['row_num_after_split'] = {
-                'train': self.data[1]['train'].shape[0],
-                'validation': self.data[1]['validation'].shape[0],
+            self.metadata.metadata["global"]["row_num_after_split"] = {
+                "train": self.data[1]["train"].shape[0],
+                "validation": self.data[1]["validation"].shape[0],
             }
 
     def _index_bootstrapping(
-        self,
-        index: list,
-        exclude_index: list[int] = None
+        self, index: list, exclude_index: list[int] = None
     ) -> dict[int, list[int]]:
         """
         Generate randomized index samples for splitting data.
@@ -174,10 +175,10 @@ class Splitter:
             exist_index (dict[int, list[int]])
                 same as split()
         """
-        if self.config['random_state'] is not None:
-            random.seed(self.config['random_state'])
+        if self.config["random_state"] is not None:
+            random.seed(self.config["random_state"])
 
-        sample_size = int(len(index) * self.config['train_split_ratio'])
+        sample_size = int(len(index) * self.config["train_split_ratio"])
 
         sampled_seen = set()
         if exclude_index:  # external samples seen\
@@ -185,22 +186,20 @@ class Splitter:
 
         sampled_index = {}
         # assume max sampling time as num_sample.
-        maxattempts = self.config['num_samples']
-        for n in range(self.config['num_samples']):
+        maxattempts = self.config["num_samples"]
+        for n in range(self.config["num_samples"]):
             # re-calculate when success.
             attempts = 0
             while attempts < maxattempts:
-                sampled_indices = tuple(
-                    sorted(random.sample(index, sample_size))
-                )
+                sampled_indices = tuple(sorted(random.sample(index, sample_size)))
 
                 if sampled_indices in sampled_seen:
                     attempts += 1
                 else:
                     sampled_seen.add(sampled_indices)
-                    sampled_index[n+1] = {
-                        'train':      list(sampled_indices),
-                        'validation': list(set(index) - set(sampled_indices))
+                    sampled_index[n + 1] = {
+                        "train": list(sampled_indices),
+                        "validation": list(set(index) - set(sampled_indices)),
                     }
                     break
                 if attempts == maxattempts:

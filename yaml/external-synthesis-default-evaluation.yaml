@@ -1,0 +1,42 @@
+---
+Splitter:
+  custom:
+    method: 'custom_data'
+    filepath:
+      ori: 'benchmark/adult-income_ori.csv'
+      control: 'benchmark/adult-income_control.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+Evaluator:
+  demo-diagnostic:
+    method: 'sdmetrics-diagnosticreport'
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+  demo-singlingout:
+    method: 'anonymeter-singlingout'
+  demo-linkability:
+    method: 'anonymeter-linkability'
+    aux_cols:
+      -
+        - 'age'
+        - 'marital-status'
+        - 'relationship'
+        - 'gender'
+      -
+        - 'workclass'
+        - 'educational-num'
+        - 'occupation'
+        - 'income'
+  demo-inference:
+    method: 'anonymeter-inference'
+    secret: 'income'
+  demo-classification:
+    method: 'mlutility-classification'
+    target: 'income'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

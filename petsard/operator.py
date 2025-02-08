@@ -1,22 +1,29 @@
+import functools
+import logging
+import time
 from copy import deepcopy
+from datetime import timedelta
 
 import pandas as pd
 
-from petsard import (
+from petsard.constrainer import Constrainer
+from petsard.error import ConfigError
+from petsard.evaluator import (
+    Describer,
+    Evaluator,
+)
+from petsard.loader import (
     Loader,
     Metadata,
     Splitter,
-    Processor,
-    Synthesizer,
-    Evaluator,
-    Describer,
-    Reporter
 )
+from petsard.processor import Processor
 from petsard.processor.encoder import EncoderUniform
-from petsard.error import ConfigError
+from petsard.reporter import Reporter
+from petsard.synthesizer import Synthesizer
 
 
-class Operator:
+class BaseOperator:
     """
     The interface of the objects used by Executor.run()
     """
@@ -26,10 +33,25 @@ class Operator:
         Args:
             config (dict):
                 A dictionary containing configuration parameters.
+
+        Attr.:
+            module_name (str):
+                The name of the module.
+            logger (logging.Logger):
+                The logger object for the module.
+            config (dict):
+                The configuration parameters for the module.
+            input (dict):
+                The input data for the module.
         """
+        self.module_name: str = self.__class__.__name__.replace("Operator", "")
+        self.logger = logging.getLogger(f"PETsARD.{self.module_name}")
+
         self.config = config
         self.input: dict = {}
         if config is None:
+            self.logger.error("Configuration is None")
+            self.logger.debug("Error details: ", exc_info=True)
             raise ConfigError
 
     def run(self, input: dict):
@@ -40,8 +62,61 @@ class Operator:
             input (dict): A input dictionary contains module required input from Status.
                 See self.set_input() for more details.
         """
+        start_time: time = time.time()
+        self.logger.info(f"Starting {self.module_name} execution")
+
+        self._run(input)
+
+        elapsed_time: time = time.time() - start_time
+        formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
+        self.logger.info(
+            f"Completed {self.module_name} execution "
+            f"(elapsed: {formatted_elapsed_time})"
+        )
+
+    @classmethod
+    def log_and_raise_config_error(cls, func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except Exception as e:
+                self.logger.error(f"Configuration error in {func.__name__}: {str(e)}")
+                self.logger.debug("Error details: ", exc_info=True)
+                raise ConfigError(f"Config error in {func.__name__}: {str(e)}")
+
+        return wrapper
+
+    @staticmethod
+    def log_and_raise_not_implemented(func):
+        """Decorator for handling not implemented methods"""
+
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except NotImplementedError:
+                self.logger.error(
+                    f"Method {func.__name__} not implemented in {self.module_name}"
+                )
+                raise NotImplementedError(
+                    f"Method {func.__name__} must be implemented in {self.module_name}"
+                )
+
+        return wrapper
+
+    @log_and_raise_not_implemented
+    def _run(self, input: dict):
+        """
+        Execute the module's functionality.
+
+        Args:
+            input (dict): A input dictionary contains module required input from Status.
+                See self.set_input() for more details.
+        """
         raise NotImplementedError
 
+    @log_and_raise_not_implemented
     def set_input(self, status) -> dict:
         """
         Set the input for the module.
@@ -51,6 +126,7 @@ class Operator:
         """
         raise NotImplementedError
 
+    @log_and_raise_not_implemented
     def get_result(self):
         """
         Retrieve the result of the module's operation,
@@ -58,6 +134,7 @@ class Operator:
         """
         raise NotImplementedError
 
+    @log_and_raise_not_implemented
     def get_metadata(self) -> Metadata:
         """
         Retrieve the metadata of the loaded data.
@@ -68,7 +145,7 @@ class Operator:
         raise NotImplementedError
 
 
-class LoaderOperator(Operator):
+class LoaderOperator(BaseOperator):
     """
     LoaderOperator is responsible for loading data using the configured Loader instance as a decorator.
     """
@@ -85,7 +162,7 @@ class LoaderOperator(Operator):
         super().__init__(config)
         self.loader = Loader(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data loading process using the Loader instance.
 
@@ -96,7 +173,9 @@ class LoaderOperator(Operator):
             loader.data (pd.DataFrame):
                 An loading result data.
         """
+        self.logger.debug("Starting data loading process")
         self.loader.load()
+        self.logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
         """
@@ -128,7 +207,7 @@ class LoaderOperator(Operator):
         return metadata
 
 
-class SplitterOperator(Operator):
+class SplitterOperator(BaseOperator):
     """
     SplitterOperator is responsible for splitting data
         using the configured Loader instance as a decorator.
@@ -146,7 +225,7 @@ class SplitterOperator(Operator):
         super().__init__(config)
         self.splitter = Splitter(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data splitting process using the Splitter instance.
 
@@ -161,8 +240,11 @@ class SplitterOperator(Operator):
                     Second layer is the splitting result of specific splitting,
                     key as str: 'train' and 'validation', value as pd.DataFrame.
         """
+        self.logger.debug("Starting data splitting process")
         self.splitter.split(**input)
+        self.logger.debug("Data splitting completed")
 
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the SplitterOperator.
@@ -174,17 +256,14 @@ class SplitterOperator(Operator):
             dict: Splitter input should contains
                 data (pd.DataFrame), exclude_index (list), and Metadata (Metadata)
         """
-        try:
-            if 'method' in self.config:
-                # Splitter method = 'custom_data'
-                self.input['data'] = None
-            else:
-                # Splitter accept following Loader only
-                self.input['data'] = status.get_result('Loader')
-                self.input['metadata'] = status.get_metadata('Loader')
-            self.input['exclude_index'] = status.get_exist_index()
-        except:
-            raise ConfigError
+        if "method" in self.config:
+            # Splitter method = 'custom_data'
+            self.input["data"] = None
+        else:
+            # Splitter accept following Loader only
+            self.input["data"] = status.get_result("Loader")
+            self.input["metadata"] = status.get_metadata("Loader")
+        self.input["exclude_index"] = status.get_exist_index()
 
         return self.input
 
@@ -206,7 +285,7 @@ class SplitterOperator(Operator):
         return deepcopy(self.splitter.metadata)
 
 
-class PreprocessorOperator(Operator):
+class PreprocessorOperator(BaseOperator):
     """
     PreprocessorOperator is responsible for pre-processing data
         using the configured Processor instance as a decorator.
@@ -224,14 +303,14 @@ class PreprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        method = config['method'].lower() if 'method' in config else 'custom'
+        method = config["method"].lower() if "method" in config else "custom"
         self._sequence = None
-        if 'sequence' in config:
-            self._sequence = config['sequence']
-            del config['sequence']
-        self._config = {} if method == 'default' else config
+        if "sequence" in config:
+            self._sequence = config["sequence"]
+            del config["sequence"]
+        self._config = {} if method == "default" else config
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
 
@@ -243,15 +322,24 @@ class PreprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = Processor(metadata=input['metadata'])
-        # for keep default but update manual only
-        self.processor.update_config(self._config)
-        if self._sequence is None:
-            self.processor.fit(data=input['data'])
-        else:
-            self.processor.fit(data=input['data'], sequence=self._sequence)
-        self.data_preproc = self.processor.transform(data=input['data'])
+        self.logger.debug("Initializing processor")
+        self.processor = Processor(metadata=input["metadata"])
 
+        # for keep default but update manual only
+        self.logger.debug("Updating processor configuration")
+        self.processor.update_config(self._config)
+
+        if self._sequence is None:
+            self.logger.debug("Using default processing sequence")
+            self.processor.fit(data=input["data"])
+        else:
+            self.logger.debug(f"Using custom sequence: {self._sequence}")
+            self.processor.fit(data=input["data"], sequence=self._sequence)
+
+        self.logger.debug("Transforming data")
+        self.data_preproc = self.processor.transform(data=input["data"])
+
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the PreprocessorOperator.
@@ -264,15 +352,12 @@ class PreprocessorOperator(Operator):
                 Preprocessor input should contains
                     data (pd.DataFrame) and metadata (Metadata).
         """
-        try:
-            pre_module = status.get_pre_module('Preprocessor')
-            if pre_module == 'Splitter':
-                self.input['data'] = status.get_result(pre_module)['train']
-            else: # Loader only
-                self.input['data'] = status.get_result(pre_module)
-            self.input['metadata'] = status.get_metadata(pre_module)
-        except:
-            raise ConfigError
+        pre_module = status.get_pre_module("Preprocessor")
+        if pre_module == "Splitter":
+            self.input["data"] = status.get_result(pre_module)["train"]
+        else:  # Loader only
+            self.input["data"] = status.get_result(pre_module)
+        self.input["metadata"] = status.get_metadata(pre_module)
 
         return self.input
 
@@ -294,15 +379,15 @@ class PreprocessorOperator(Operator):
         """
         metadata: Metadata = deepcopy(self.processor._metadata)
 
-        if 'encoder' in self.processor._sequence:
-            encoder_cfg: dict = self.processor.get_config()['encoder']
+        if "encoder" in self.processor._sequence:
+            encoder_cfg: dict = self.processor.get_config()["encoder"]
             for col, encoder in encoder_cfg.items():
                 if isinstance(encoder, EncoderUniform):
-                    metadata.set_col_infer_dtype(col, 'numerical') # for SDV
+                    metadata.set_col_infer_dtype(col, "numerical")  # for SDV
         return metadata
 
 
-class SynthesizerOperator(Operator):
+class SynthesizerOperator(BaseOperator):
     """
     SynthesizerOperator is responsible for synthesizing data
         using the configured Synthesizer instance as a decorator.
@@ -318,15 +403,19 @@ class SynthesizerOperator(Operator):
         self.synthesizer = Synthesizer(**config)
 
         self.sample_dict: dict = {}
-        self.sample_dict.update({
-            key: config[key]
-            for key in [
-                'sample_num_rows', 'reset_sampling', 'output_file_path',
-            ]
-            if key in config
-        })
+        self.sample_dict.update(
+            {
+                key: config[key]
+                for key in [
+                    "sample_num_rows",
+                    "reset_sampling",
+                    "output_file_path",
+                ]
+                if key in config
+            }
+        )
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data synthesizing using the Synthesizer instance.
 
@@ -337,9 +426,15 @@ class SynthesizerOperator(Operator):
             synthesizer.data_syn (pd.DataFrame):
                 An synthesizing result data.
         """
-        self.synthesizer.create(**input)
-        self.synthesizer.fit_sample(**self.sample_dict)
+        self.logger.debug("Starting data synthesizing process")
 
+        self.synthesizer.create(**input)
+        self.logger.debug("Synthesizing model initialization completed")
+
+        self.synthesizer.fit_sample(**self.sample_dict)
+        self.logger.debug("Train and sampling Synthesizing model completed")
+
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the SynthesizerOperator.
@@ -352,20 +447,18 @@ class SynthesizerOperator(Operator):
                 Synthesizer input should contains data (pd.DataFrame)
                     and SDV format metadata (dict or None).
         """
-        pre_module = status.get_pre_module('Synthesizer')
+        pre_module = status.get_pre_module("Synthesizer")
 
         if status.metadata == {}:  # no metadata
-            self.input['metadata'] = None
+            self.input["metadata"] = None
         else:
-            self.input['metadata'] = status.get_metadata(pre_module)
+            self.input["metadata"] = status.get_metadata(pre_module)
 
-        try:
-            if pre_module == 'Splitter':
-                self.input['data'] = status.get_result(pre_module)['train']
-            else: # Loader or Preprocessor
-                self.input['data'] = status.get_result(pre_module)
-        except:
-            raise ConfigError
+        if pre_module == "Splitter":
+            self.input["data"] = status.get_result(pre_module)["train"]
+        else:  # Loader or Preprocessor
+            self.input["data"] = status.get_result(pre_module)
+
         return self.input
 
     def get_result(self):
@@ -376,7 +469,7 @@ class SynthesizerOperator(Operator):
         return result
 
 
-class PostprocessorOperator(Operator):
+class PostprocessorOperator(BaseOperator):
     """
     PostprocessorOperator is responsible for post-processing data
         using the configured Processor instance as a decorator.
@@ -393,9 +486,9 @@ class PostprocessorOperator(Operator):
         """
         super().__init__(config)
         self.processor = None
-        self._config = {} if config['method'].lower() == 'default' else config
+        self._config = {} if config["method"].lower() == "default" else config
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data pre-process using the Processor instance.
 
@@ -407,11 +500,15 @@ class PostprocessorOperator(Operator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self.processor = input['preprocessor']
-        self.data_postproc = self.processor.inverse_transform(
-            data=input['data']
-        )
+        self.logger.debug("Starting data postprocessing process")
 
+        self.processor = input["preprocessor"]
+        self.logger.debug("Processor configuration loading completed")
+
+        self.data_postproc = self.processor.inverse_transform(data=input["data"])
+        self.logger.debug("Data postprocessing completed")
+
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the PostprocessorOperator.
@@ -423,13 +520,8 @@ class PostprocessorOperator(Operator):
             dict:
                 Postprocessor input should contains data (pd.DataFrame) and preprocessor (Processor).
         """
-        try:
-            self.input['data'] = status.get_result(
-                status.get_pre_module('Postprocessor')
-            )
-            self.input['preprocessor'] = status.get_processor()
-        except:
-            raise ConfigError
+        self.input["data"] = status.get_result(status.get_pre_module("Postprocessor"))
+        self.input["preprocessor"] = status.get_processor()
 
         return self.input
 
@@ -441,7 +533,135 @@ class PostprocessorOperator(Operator):
         return result
 
 
-class EvaluatorOperator(Operator):
+class ConstrainerOperator(BaseOperator):
+    """
+    ConstrainerOperator is responsible for applying constraints to data
+    using the configured Constrainer instance as a decorator.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Initialize ConstrainerOperator with given configuration.
+
+        Args:
+            config (dict): Configuration parameters for the Constrainer.
+
+        Attributes:
+            constrainer (Constrainer): An instance of the Constrainer class
+                initialized with the provided configuration.
+        """
+        # Transform field combinations before initializing
+        config = self._transform_field_combinations(config)
+        super().__init__(config)
+        self.constrainer = Constrainer(config)
+
+        # Store sampling configuration if provided
+        self.sample_dict = {}
+        self.sample_dict.update(
+            {
+                key: config[key]
+                for key in [
+                    "target_rows",
+                    "sampling_ratio",
+                    "max_trials",
+                    "verbose_step",
+                ]
+                if key in config
+            }
+        )
+
+    def _run(self, input: dict):
+        """
+        Execute data constraining process using the Constrainer instance.
+
+        Args:
+            input (dict): Constrainer input should contain:
+                - data (pd.DataFrame): Data to be constrained
+                - synthesizer (optional): Synthesizer instance if resampling is needed
+                - postprocessor (optional): Postprocessor instance if needed
+
+        Attributes:
+            constrained_data (pd.DataFrame): The constrained result data.
+        """
+        self.logger.debug("Starting data constraining process")
+
+        if self.sample_dict and "synthesizer" in input:
+            # Use resample_until_satisfy if sampling parameters and synthesizer are provided
+            self.logger.debug("Using resample_until_satisfy method")
+            self.constrained_data = self.constrainer.resample_until_satisfy(
+                data=input["data"],
+                synthesizer=input["synthesizer"],
+                postprocessor=input.get("postprocessor"),
+                **self.sample_dict,
+            )
+        else:
+            # Use simple apply method
+            self.logger.debug("Using apply method")
+            self.constrained_data = self.constrainer.apply(input["data"])
+
+        self.logger.debug("Data constraining completed")
+
+    @BaseOperator.log_and_raise_config_error
+    def set_input(self, status) -> dict:
+        """
+        Set the input for the ConstrainerOperator.
+
+        Args:
+            status (Status): The current status object.
+
+        Returns:
+            dict: Constrainer input should contain:
+                - data (pd.DataFrame)
+                - synthesizer (optional)
+                - postprocessor (optional)
+        """
+        pre_module = status.get_pre_module("Constrainer")
+
+        # Get data from previous module
+        if pre_module == "Splitter":
+            self.input["data"] = status.get_result(pre_module)["train"]
+        else:  # Loader, Preprocessor, Synthesizer, or Postprocessor
+            self.input["data"] = status.get_result(pre_module)
+
+        # Get synthesizer if available
+        if "Synthesizer" in status.status:
+            self.input["synthesizer"] = status.get_synthesizer()
+
+        # Get postprocessor if available
+        if "Postprocessor" in status.status:
+            self.input["postprocessor"] = status.get_processor()
+
+        return self.input
+
+    def get_result(self):
+        """
+        Retrieve the constraining result.
+
+        Returns:
+            pd.DataFrame: The constrained data.
+        """
+        return deepcopy(self.constrained_data)
+
+    def _transform_field_combinations(self, config: dict) -> dict:
+        """Transform field combinations from YAML list format to tuple format
+
+        Args:
+            config: Original config dictionary
+
+        Returns:
+            Updated config with transformed field_combinations
+        """
+        if "field_combinations" in config:
+            # Deep copy to avoid modifying original config
+            config = deepcopy(config)
+            # Transform each combination from [dict, dict] to tuple(dict, dict)
+            config["field_combinations"] = [
+                tuple(combination) for combination in config["field_combinations"]
+            ]
+        return config
+
+
+class EvaluatorOperator(BaseOperator):
     """
     EvaluatorOperator is responsible for evaluating data
         using the configured Evaluator instance as a decorator.
@@ -456,7 +676,7 @@ class EvaluatorOperator(Operator):
         super().__init__(config)
         self.evaluator = Evaluator(**config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data evaluating using the Evaluator instance.
 
@@ -466,9 +686,15 @@ class EvaluatorOperator(Operator):
         Attributes:
             evaluator.result (dict): An evaluating result data.
         """
-        self.evaluator.create(**input)
-        self.evaluator.eval()
+        self.logger.debug("Starting data evaluating process")
 
+        self.evaluator.create(**input)
+        self.logger.debug("Evaluation model initialization completed")
+
+        self.evaluator.eval()
+        self.logger.debug("Data evaluating completed")
+
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the EvaluatorOperator.
@@ -480,20 +706,17 @@ class EvaluatorOperator(Operator):
             dict:
                 Evaluator input should contains data (dict).
         """
-        try:
-            if 'Splitter' in status.status:
-                self.input['data'] = {
-                    'ori':     status.get_result('Splitter')['train'],
-                    'syn':     status.get_result(status.get_pre_module('Evaluator')),
-                    'control': status.get_result('Splitter')['validation']
-                }
-            else:  # Loader only
-                self.input['data'] = {
-                    'ori': status.get_result('Loader'),
-                    'syn': status.get_result(status.get_pre_module('Evaluator')),
-                }
-        except:
-            raise ConfigError
+        if "Splitter" in status.status:
+            self.input["data"] = {
+                "ori": status.get_result("Splitter")["train"],
+                "syn": status.get_result(status.get_pre_module("Evaluator")),
+                "control": status.get_result("Splitter")["validation"],
+            }
+        else:  # Loader only
+            self.input["data"] = {
+                "ori": status.get_result("Loader"),
+                "syn": status.get_result(status.get_pre_module("Evaluator")),
+            }
 
         return self.input
 
@@ -502,14 +725,14 @@ class EvaluatorOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.evaluator.get_global() # pd.DataFrame
-        result['columnwise'] = self.evaluator.get_columnwise() # pd.DataFrame
-        result['pairwise'] = self.evaluator.get_pairwise() # pd.DataFrame
+        result["global"] = self.evaluator.get_global()  # pd.DataFrame
+        result["columnwise"] = self.evaluator.get_columnwise()  # pd.DataFrame
+        result["pairwise"] = self.evaluator.get_pairwise()  # pd.DataFrame
 
         return deepcopy(result)
 
 
-class DescriberOperator(Operator):
+class DescriberOperator(BaseOperator):
     """
     DescriberOperator is responsible for describing data
         using the configured Describer instance as a decorator.
@@ -522,11 +745,11 @@ class DescriberOperator(Operator):
                 An instance of the Describer class initialized with the provided configuration.
         """
         super().__init__(config)
-        if 'method' not in config:
-            config['method'] = 'default'
+        if "method" not in config:
+            config["method"] = "default"
         self.describer = Describer(config=config)
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Executes the data describing using the Describer instance.
 
@@ -536,9 +759,15 @@ class DescriberOperator(Operator):
         Attributes:
             describer.result (dict): An describing result data.
         """
-        self.describer.create(**input)
-        self.describer.eval()
+        self.logger.debug("Starting data describing process")
 
+        self.describer.create(**input)
+        self.logger.debug("Describing model initialization completed")
+
+        self.describer.eval()
+        self.logger.debug("Data describing completed")
+
+    @BaseOperator.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
         Sets the input for the DescriberOperator.
@@ -550,12 +779,9 @@ class DescriberOperator(Operator):
             dict:
                 Describer input should contains data (dict).
         """
-        try:
-            self.input['data'] = {
-                'data': status.get_result(status.get_pre_module('Describer'))
-            }
-        except:
-            raise ConfigError
+        self.input["data"] = {
+            "data": status.get_result(status.get_pre_module("Describer"))
+        }
 
         return self.input
 
@@ -564,14 +790,14 @@ class DescriberOperator(Operator):
         Retrieve the pre-processing result.
         """
         result: dict = {}
-        result['global'] = self.describer.get_global() # pd.DataFrame
-        result['columnwise'] = self.describer.get_columnwise() # pd.DataFrame
-        result['pairwise'] = self.describer.get_pairwise() # pd.DataFrame
+        result["global"] = self.describer.get_global()  # pd.DataFrame
+        result["columnwise"] = self.describer.get_columnwise()  # pd.DataFrame
+        result["pairwise"] = self.describer.get_pairwise()  # pd.DataFrame
 
         return deepcopy(result)
 
 
-class ReporterOperator(Operator):
+class ReporterOperator(BaseOperator):
     """
     Operator class for generating reports using the Reporter class.
 
@@ -583,7 +809,7 @@ class ReporterOperator(Operator):
         report (dict): Dictionary to store the generated reports.
 
     Methods:
-        run(input: dict): Runs the Reporter to create and generate reports.
+        _run(input: dict): Runs the Reporter to create and generate reports.
         set_input(status) -> dict: Sets the input data for the Reporter.
         get_result(): Placeholder method for getting the result.
 
@@ -594,7 +820,7 @@ class ReporterOperator(Operator):
         self.reporter = Reporter(**config)
         self.report: dict = {}
 
-    def run(self, input: dict):
+    def _run(self, input: dict):
         """
         Runs the Reporter to create and generate reports.
 
@@ -602,27 +828,31 @@ class ReporterOperator(Operator):
             input (dict): Input data for the Reporter.
                 - data (dict): The data to be reported.
         """
+        self.logger.debug("Starting data reporting process")
+
         temp: dict = None
         eval_expt_name: str = None
         report: pd.DataFrame = None
+        self.reporter.create(data=input["data"])
+        self.logger.debug("Reporting configuration initialization completed")
 
-        self.reporter.create(data=input['data'])
         self.reporter.report()
-        if 'Reporter' in self.reporter.result:
+        if "Reporter" in self.reporter.result:
             # ReporterSaveReport
-            temp = self.reporter.result['Reporter']
+            temp = self.reporter.result["Reporter"]
             # exception handler so no need to collect exist report in this round
             #   e.g. no matched granularity
-            if 'warnings' in temp:
+            if "warnings" in temp:
                 return
-            if not all(key in temp for key in ['eval_expt_name', 'report']):
+            if not all(key in temp for key in ["eval_expt_name", "report"]):
                 raise ConfigError
-            eval_expt_name = temp['eval_expt_name']
-            report = deepcopy(temp['report'])
+            eval_expt_name = temp["eval_expt_name"]
+            report = deepcopy(temp["report"])
             self.report[eval_expt_name] = report
         else:
             # ReporterSaveData
             self.report = self.reporter.result
+        self.logger.debug("Data reporting completed")
 
     def set_input(self, status) -> dict:
         """
@@ -656,8 +886,8 @@ class ReporterOperator(Operator):
                     item for pair in index_dict.items() for item in pair
                 )
                 data[index_tuple] = deepcopy(result)
-        self.input['data'] = data
-        self.input['data']['exist_report'] = status.get_report()
+        self.input["data"] = data
+        self.input["data"]["exist_report"] = status.get_report()
 
         return self.input
 

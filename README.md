@@ -68,8 +68,6 @@ smartnoise-synth==1.0.3
 anonymeter==1.0.0
 sdmetrics==0.14.0
 pyyaml==6.0.1
-requests
-boto3
 git+https://github.com/ryan112358/private-pgm.git
 ```
 
@@ -180,7 +178,6 @@ Key Dependencies' Licenses 主要相依套件授權：
 - SDV: Business Source License 1.1
 - Anonymeter: The Clear BSD License
 - SDMetrics: MIT License
-- Smartnoise: MIT License
 
 For commercial use involving synthetic data services, please contact DataCebo, Inc.
 
@@ -191,7 +188,6 @@ For commercial use involving synthetic data services, please contact DataCebo, I
 - `Synthesizer` module:
   - SDV - [sdv-dev/SDV](https://github.com/sdv-dev/SDV):
     - Patki, N., Wedge, R., & Veeramachaneni, K. (2016). The Synthetic Data Vault. IEEE International Conference on Data Science and Advanced Analytics (DSAA), 399–410. https://doi.org/10.1109/DSAA.2016.49
-  - smartnoise - [opendp/smartnoise-sdk](https://github.com/opendp/smartnoise-sdk):
 - `Evaluator` module:
   - Anonymeter - [statice/anonymeter](https://github.com/statice/anonymeter):
     - Giomi, M., Boenisch, F., Wehmeyer, C., & Tasnádi, B. (2023). A Unified Framework for Quantifying Privacy Risk in Synthetic Data. Proceedings of Privacy Enhancing Technologies Symposium. https://doi.org/10.56553/popets-2023-0055

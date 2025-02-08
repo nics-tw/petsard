@@ -2,20 +2,19 @@ import re
 
 import pandas as pd
 
-from petsard import Loader, Metadata
-from petsard.synthesizer.sdv import SDVFactory
-from petsard.synthesizer.smartnoise import SmartNoiseFactory
 from petsard.error import ConfigError, UnsupportedMethodError
+from petsard.loader import Loader, Metadata
+from petsard.synthesizer.sdv import SDVFactory
 
 
-class SynthesizerMap():
+class SynthesizerMap:
     """
     Mapping of Synthesizer.
     """
-    DEFAULT:     int = 0
+
+    DEFAULT: int = 0
     CUSTOM_DATA: int = 1
-    SDV:         int = 10
-    SMARTNOISE:  int = 11
+    SDV: int = 10
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -27,8 +26,8 @@ class SynthesizerMap():
         """
         try:
             # Get the string before 1st dash, if not exist, get emply ('').
-            libname_match = re.match(r'^[^-]*', method)
-            libname = libname_match.group() if libname_match else ''
+            libname_match = re.match(r"^[^-]*", method)
+            libname = libname_match.group() if libname_match else ""
             return cls.__dict__[libname.upper()]
         except KeyError:
             raise UnsupportedMethodError
@@ -40,24 +39,21 @@ class Synthesizer:
     as well as generating synthetic data based on the fitted model.
     """
 
-    def __init__(self, method: str, epsilon: float = 5.0, **kwargs) -> None:
+    def __init__(self, method: str, **kwargs) -> None:
         """
         Args:
             method (str): The method to be used for synthesizing the data.
-            epsilon (float, default=5.0): The privacy parameter for the synthesizer.
 
         Attributes:
             config (dict):
                 A dictionary containing the configuration parameters for the synthesizer.
         """
         self.config: dict = kwargs
-        self.config['method'] = method.lower()
-        self.config['epsilon'] = epsilon
-        self.config['method_code'] = SynthesizerMap.map(self.config['method'])
+        self.config["method"] = method.lower()
+        self.config["method_code"] = SynthesizerMap.map(self.config["method"])
 
         # result in self.data_syn
         self.data_syn: pd.DataFrame = None
-
 
     def create(self, data: pd.DataFrame, metadata: Metadata = None) -> None:
         """
@@ -69,29 +65,30 @@ class Synthesizer:
 
         # TODO: verify method in __init__
         """
-        self.config['data'] = data
-        self.config['metadata'] = metadata
+        self.config["data"] = data
+        self.config["metadata"] = metadata
 
-        if self.config['method_code'] == SynthesizerMap.DEFAULT:
+        if self.config["method_code"] == SynthesizerMap.DEFAULT:
             # default will use SDV - GaussianCopula
-            self.config['method'] = 'sdv-single_table-gaussiancopula'
+            self.config["method"] = "sdv-single_table-gaussiancopula"
             self.synthesizer = SDVFactory(**self.config).create()
-        elif self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
-            if 'filepath' not in self.config:
+        elif self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
+            if "filepath" not in self.config:
                 raise ConfigError
             self.loader = Loader(
-                **{k: self.config.get(k) for k in [
-                        'filepath',
-                        'column_types',
-                        'header_names',
-                        'na_values',
-                    ] if self.config.get(k) is not None
+                **{
+                    k: self.config.get(k)
+                    for k in [
+                        "filepath",
+                        "column_types",
+                        "header_names",
+                        "na_values",
+                    ]
+                    if self.config.get(k) is not None
                 }
             )
-        elif self.config['method_code'] == SynthesizerMap.SDV:
+        elif self.config["method_code"] == SynthesizerMap.SDV:
             self.synthesizer = SDVFactory(**self.config).create()
-        elif self.config['method_code'] == SynthesizerMap.SMARTNOISE:
-            self.synthesizer = SmartNoiseFactory(**self.config).create()
         else:
             raise UnsupportedMethodError
 
@@ -99,7 +96,7 @@ class Synthesizer:
         """
         Fits the synthesizer model with the given parameters.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
+        if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
             self.loader.load()
         else:
             self.synthesizer.fit()
@@ -111,7 +108,7 @@ class Synthesizer:
         Return:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
+        if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
             self.data_syn = self.loader.data
         else:
             self.data_syn = self.synthesizer.sample(**kwargs)
@@ -124,7 +121,7 @@ class Synthesizer:
         Return:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
-        if self.config['method_code'] == SynthesizerMap.CUSTOM_DATA:
+        if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
             self.fit()
             self.data_syn = self.loader.data
         else:

@@ -1,13 +1,20 @@
 import numpy as np
 import pandas as pd
 import pytest
-from petsard.processor.missing import MissingMean, MissingMedian, MissingSimple, MissingDrop
+
 from petsard.error import UnfittedError
+from petsard.processor.missing import (
+    MissingDrop,
+    MissingMean,
+    MissingMedian,
+    MissingSimple,
+)
+
 
 class Test_MissingMean:
     def test_mean_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
+        df_data = pd.DataFrame({"col1": [1.0, 2.0, 3.0]})
 
         # Create an instance of the class
         missing = MissingMean()
@@ -20,14 +27,14 @@ class Test_MissingMean:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -38,8 +45,8 @@ class Test_MissingMean:
 
     def test_mean_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, None, 3.0]})
-        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
+        df_data = pd.DataFrame({"col1": [1.0, None, 3.0]})
+        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name="col1")
 
         # Create an instance of the class
         missing = MissingMean()
@@ -52,14 +59,14 @@ class Test_MissingMean:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -69,10 +76,11 @@ class Test_MissingMean:
         assert transformed.equals(df_expected)
         assert rtransform.isna().any().any()
 
+
 class Test_MissingMedian:
     def test_median_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
+        df_data = pd.DataFrame({"col1": [1.0, 2.0, 3.0]})
 
         # Create an instance of the class
         missing = MissingMedian()
@@ -85,14 +93,14 @@ class Test_MissingMedian:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -103,8 +111,8 @@ class Test_MissingMedian:
 
     def test_median_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, None, 3.0]})
-        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
+        df_data = pd.DataFrame({"col1": [1.0, None, 3.0]})
+        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name="col1")
 
         # Create an instance of the class
         missing = MissingMedian()
@@ -117,14 +125,14 @@ class Test_MissingMedian:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -134,10 +142,11 @@ class Test_MissingMedian:
         assert transformed.equals(df_expected)
         assert rtransform.isna().any().any()
 
+
 class Test_MissingSimple:
     def test_simple_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
+        df_data = pd.DataFrame({"col1": [1.0, 2.0, 3.0]})
 
         # Create an instance of the class
         missing = MissingSimple(value=1.0)
@@ -150,14 +159,14 @@ class Test_MissingSimple:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -168,8 +177,8 @@ class Test_MissingSimple:
 
     def test_simple_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, None, 3.0]})
-        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name='col1')
+        df_data = pd.DataFrame({"col1": [1.0, None, 3.0]})
+        df_expected = pd.Series(data=[1.0, 2.0, 3.0], name="col1")
 
         # Create an instance of the class
         missing = MissingSimple(value=2.0)
@@ -182,14 +191,14 @@ class Test_MissingSimple:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed.values == np.array([1.0, 2.0, 3.0])).all()
@@ -199,10 +208,11 @@ class Test_MissingSimple:
         assert transformed.equals(df_expected)
         assert rtransform.isna().any().any()
 
+
 class Test_MissingDrop:
     def test_drop_no_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, 2.0, 3.0]})
+        df_data = pd.DataFrame({"col1": [1.0, 2.0, 3.0]})
 
         # Create an instance of the class
         missing = MissingDrop()
@@ -215,14 +225,14 @@ class Test_MissingDrop:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed == np.array([False, False, False])).all()
@@ -233,7 +243,7 @@ class Test_MissingDrop:
 
     def test_drop_with_missing_values(self):
         # Prepare test data
-        df_data = pd.DataFrame({'col1': [1.0, None, 3.0]})
+        df_data = pd.DataFrame({"col1": [1.0, None, 3.0]})
 
         # Create an instance of the class
         missing = MissingDrop()
@@ -246,14 +256,14 @@ class Test_MissingDrop:
             missing.set_na_percentage(-1.8)
 
         with pytest.raises(UnfittedError):
-            missing.transform(df_data['col1'])
+            missing.transform(df_data["col1"])
 
         # Call the method to be tested
-        missing.fit(df_data['col1'])
+        missing.fit(df_data["col1"])
 
-        transformed = missing.transform(df_data['col1'])
+        transformed = missing.transform(df_data["col1"])
 
-        rtransform = missing.inverse_transform(df_data['col1'])
+        rtransform = missing.inverse_transform(df_data["col1"])
 
         # Assert the result
         assert (transformed == np.array([False, True, False])).all()

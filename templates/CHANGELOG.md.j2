@@ -1,0 +1,6 @@
+{% for version in versions %}
+  - **{{ version.version }}** ({{ version.date }}): {% if version.title %}**{{ version.title }}**{% endif %}
+    {% for commit in version.commits %}
+    - {{ commit.message }}
+    {% endfor %}
+{% endfor %}

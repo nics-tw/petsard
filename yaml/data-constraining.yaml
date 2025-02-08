@@ -1,0 +1,38 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Constrainer:
+  demo:
+    nan_groups:
+      # Delete entire row when workclass is NA
+      workclass: 'delete'
+      # Set income to NA if occupation is NA
+      occupation:
+        'erase':
+          - 'income'
+      # Copy educational-num value to age when educational-num exists but age is NA
+      age:
+        'copy':
+          'educational-num'
+    field_constraints:
+      - "age >= 18 & age <= 65"
+      - "hours-per-week >= 20 & hours-per-week <= 60"
+    field_combinations:
+      -
+        - {'education': 'income'}
+        - {'Doctorate': ['>50K'], 'Masters': ['>50K', '<=50K']}
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Constrainer'
+...

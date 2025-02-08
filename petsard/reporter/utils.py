@@ -1,5 +1,5 @@
-from typing import List, Union
 import re
+from typing import List, Union
 
 from petsard.error import ConfigError
 
@@ -26,10 +26,9 @@ def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:
             - A single step experiment: 'Loader[default]'
             - A multi-step experiment: 'Loader[default]_Preprocessor[default]'
     """
-    return '_'.join([
-        f"{expt_tuple[i]}[{expt_tuple[i+1]}]"
-        for i in range(0, len(expt_tuple), 2)
-    ])
+    return "_".join(
+        [f"{expt_tuple[i]}[{expt_tuple[i+1]}]" for i in range(0, len(expt_tuple), 2)]
+    )
 
 
 def convert_full_expt_name_to_tuple(expt_name: str) -> tuple:
@@ -54,7 +53,7 @@ def convert_full_expt_name_to_tuple(expt_name: str) -> tuple:
             - A single step experiment: ('Loader', 'default'),
             - A multi-step experiment: ('Loader', 'default', 'Preprocessor', 'default')
     """
-    pattern = re.compile(r'(?:^|_)(\w+)\[((?:[^\[\]]+|\[[^\[\]]+\])*)\]')
+    pattern = re.compile(r"(?:^|_)(\w+)\[((?:[^\[\]]+|\[[^\[\]]+\])*)\]")
     matches = pattern.findall(expt_name)
     return tuple([item for match in matches for item in match])
 
@@ -77,17 +76,18 @@ def convert_eval_expt_name_to_tuple(expt_name: str) -> tuple:
     Raises:
         ConfigError: If the experiment name does not match the expected pattern.
     """
-    pattern = re.compile(r'([A-Za-z0-9_-]+)\_\[([\w-]+)\]')
+    pattern = re.compile(r"([A-Za-z0-9_-]+)\_\[([\w-]+)\]")
     match = pattern.match(expt_name)
     if match:
         return match.groups()
     else:
         return ConfigError
 
+
 def full_expt_tuple_filter(
     full_expt_tuple: tuple,
     method: str,
-    target: Union[str,List[str]],
+    target: Union[str, List[str]],
 ) -> tuple:
     """
     Filters a tuple based on the given method and target.
@@ -104,7 +104,7 @@ def full_expt_tuple_filter(
         ConfigError: If the method is not 'include' or 'exclude'.
     """
     method = method.lower()
-    if method not in ['include', 'exclude']:
+    if method not in ["include", "exclude"]:
         raise ConfigError
     if isinstance(target, str):
         target = [target]
@@ -112,7 +112,7 @@ def full_expt_tuple_filter(
     result: list = []
     action_next: bool = False
 
-    if method == 'include':
+    if method == "include":
         for item in full_expt_tuple:
             if action_next:
                 action_next = False
@@ -121,7 +121,7 @@ def full_expt_tuple_filter(
             if item in target:
                 result.append(item)
                 action_next = True
-    else: # 'exclude'
+    else:  # 'exclude'
         for item in full_expt_tuple:
             if action_next:
                 action_next = False
