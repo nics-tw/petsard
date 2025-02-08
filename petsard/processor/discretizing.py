@@ -12,7 +12,7 @@ class DiscretizingHandler:
     Base class for all Discretizer.
     """
 
-    PROC_TYPE = ('discretizing',)
+    PROC_TYPE = ("discretizing",)
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -35,8 +35,9 @@ class DiscretizingHandler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -50,7 +51,7 @@ class DiscretizingHandler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         return self._transform(data)
 
@@ -63,8 +64,9 @@ class DiscretizingHandler:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -78,7 +80,7 @@ class DiscretizingHandler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         return self._inverse_transform(data)
 
@@ -91,8 +93,9 @@ class DiscretizingHandler:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +
-                                  "implemented in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be " + "implemented in subclasses."
+        )
 
     def _drop_na(self, data: pd.Series) -> pd.Series:
         """
@@ -123,10 +126,9 @@ class DiscretizingKBins(DiscretizingHandler):
             n_bins (int, default=5): The number of bins.
         """
         super().__init__()
-        self.model = KBinsDiscretizer(encode='ordinal',
-                                      strategy='uniform',
-                                      n_bins=n_bins,
-                                      subsample=200000)
+        self.model = KBinsDiscretizer(
+            encode="ordinal", strategy="uniform", n_bins=n_bins, subsample=200000
+        )
         self.bin_edges: np.ndarray = None
         self.is_constant = False  # Flag for constant data
 
@@ -150,8 +152,9 @@ class DiscretizingKBins(DiscretizingHandler):
             (np.ndarray): The transformed data.
         """
         if len(data.unique()) < 2:
-            warnings.warn(f'{data.name} is constant.' +
-                          ' No transformation will be applied.')
+            warnings.warn(
+                f"{data.name} is constant." + " No transformation will be applied."
+            )
             self.is_constant = True
             return data.values
 

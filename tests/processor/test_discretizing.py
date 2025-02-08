@@ -3,11 +3,10 @@ import random
 import numpy as np
 import pandas as pd
 
-from petsard.processor import DiscretizingKBins
+from petsard.processor.discretizing import DiscretizingKBins
 
 
 class Test_Discretizing:
-
     def test_inverse_transform_with_na(self):
         """
         Test case for `inverse_transform` method of `DiscretizingKBins` class.
@@ -24,17 +23,17 @@ class Test_Discretizing:
         )
         modified_data: pd.Series = sample_data.copy()
         data_dict: dict = {
-            'with np.nan': {
-                'na_ratio': 0.25,
-                'value': np.nan,
+            "with np.nan": {
+                "na_ratio": 0.25,
+                "value": np.nan,
             },
-            'with pd.NA': {
-                'na_ratio': 0.25,
-                'value': pd.NA,
+            "with pd.NA": {
+                "na_ratio": 0.25,
+                "value": pd.NA,
             },
-            'with None': {
-                'na_ratio': 0.25,
-                'value': None,
+            "with None": {
+                "na_ratio": 0.25,
+                "value": None,
             },
         }
 
@@ -45,13 +44,11 @@ class Test_Discretizing:
         proc = DiscretizingKBins()
         proc.fit(sample_data)
         for setting in data_dict.values():
-            n_replace = int(n_samples * setting['na_ratio'])
+            n_replace = int(n_samples * setting["na_ratio"])
             indices_to_replace = random.sample(list(sample_data.index), n_replace)
-            modified_data.iloc[indices_to_replace] = setting['value']
+            modified_data.iloc[indices_to_replace] = setting["value"]
 
-            postproc_data = pd.Series(
-                proc.inverse_transform(modified_data).ravel()
-            )
+            postproc_data = pd.Series(proc.inverse_transform(modified_data).ravel())
             assert postproc_data.isna().sum() == 0
 
             modified_data = sample_data.copy()

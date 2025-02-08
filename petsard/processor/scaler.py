@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from petsard.error import UnfittedError
 
@@ -11,7 +10,7 @@ class Scaler:
     Base class for all Scaler classes.
     """
 
-    PROC_TYPE = ('scaler',)
+    PROC_TYPE = ("scaler",)
 
     def __init__(self) -> None:
         self._is_fitted = False
@@ -23,7 +22,7 @@ class Scaler:
         Args:
             data (pd.Series): The data needed to be fitted.
         """
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         self._fit(data)
@@ -37,8 +36,9 @@ class Scaler:
         fit method is responsible for general action defined by the base class.
         _fit method is for specific procedure conducted by each subclasses.
         """
-        raise NotImplementedError("_fit method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_fit method should be implemented " + "in subclasses."
+        )
 
     def transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -52,9 +52,9 @@ class Scaler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         return self._transform(data)
@@ -68,8 +68,9 @@ class Scaler:
         _transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_transform method should be implemented " +
-                                  "in subclasses.")
+        raise NotImplementedError(
+            "_transform method should be implemented " + "in subclasses."
+        )
 
     def inverse_transform(self, data: pd.Series) -> np.ndarray:
         """
@@ -83,9 +84,9 @@ class Scaler:
         """
         # Check the object is fitted
         if not self._is_fitted:
-            raise UnfittedError('The object is not fitted. Use .fit() first.')
+            raise UnfittedError("The object is not fitted. Use .fit() first.")
 
-        if type(data) == pd.Series:
+        if isinstance(data, pd.Series):
             data = data.values.reshape(-1, 1)
 
         return self._inverse_transform(data)
@@ -99,8 +100,9 @@ class Scaler:
         _inverse_transform method is for specific procedure
             conducted by each subclasses.
         """
-        raise NotImplementedError("_inverse_transform method should be " +
-                                  "implemented in subclasses.")
+        raise NotImplementedError(
+            "_inverse_transform method should be " + "implemented in subclasses."
+        )
 
 
 class ScalerStandard(Scaler):
@@ -184,8 +186,7 @@ class ScalerLog(Scaler):
             data (np.ndarray): The data needed to be transformed.
         """
         if (data <= 0).any():
-            raise ValueError(
-                'Log transformation does not support non-positive values.')
+            raise ValueError("Log transformation does not support non-positive values.")
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """
@@ -198,8 +199,7 @@ class ScalerLog(Scaler):
             (np.ndarray): The transformed data.
         """
         if (data <= 0).any():
-            raise ValueError(
-                'Log transformation does not support non-positive values.')
+            raise ValueError("Log transformation does not support non-positive values.")
         else:
             return np.log(data)
 
@@ -215,3 +215,49 @@ class ScalerLog(Scaler):
         """
 
         return np.exp(data)
+
+
+class ScalerTimeAnchor(Scaler):
+    """
+    Scale the data by time difference from a reference time series.
+    """
+
+    def __init__(self, unit: str = "D") -> None:
+        super().__init__()
+        if unit not in ["D", "S"]:
+            raise ValueError("unit must be either 'D'(days) or 'S'(seconds)")
+        self.unit = unit
+        self.reference_series = None
+
+    def set_reference_time(self, reference_series: pd.Series) -> None:
+        """Set reference series for row-wise time difference calculation"""
+        if not pd.api.types.is_datetime64_any_dtype(reference_series):
+            raise ValueError("Reference data must be datetime type")
+        self.reference_series = reference_series
+
+    def _fit(self, data: np.ndarray) -> None:
+        """Validate data type and reference"""
+        if not pd.api.types.is_datetime64_any_dtype(data):
+            raise ValueError("Data must be in datetime format")
+        if self.reference_series is None:
+            raise ValueError("Reference series not set")
+        if len(data) != len(self.reference_series):
+            raise ValueError("Target and reference must have same length")
+
+    def _transform(self, data: np.ndarray) -> np.ndarray:
+        """Transform to time differences"""
+        delta = pd.Series(data.ravel()) - self.reference_series
+
+        if self.unit == "D":
+            return (delta.dt.total_seconds() / (24 * 3600)).values.reshape(-1, 1)
+        else:
+            return delta.dt.total_seconds().values.reshape(-1, 1)
+
+    def _inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """Restore to original datetime"""
+        if self.unit == "D":
+            delta = pd.Series(data.ravel()) * pd.Timedelta(days=1)
+        else:
+            delta = pd.Series(data.ravel()) * pd.Timedelta(seconds=1)
+
+        return (self.reference_series + delta).values.reshape(-1, 1)
