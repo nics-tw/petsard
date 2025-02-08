@@ -1,6 +1,9 @@
 ## Changelog 歷史
 
 - **Formal Release 正式版**
+{# SEMANTIC RELEASE UPDATES START #}
+  - 這裡會是新的更新
+{# SEMANTIC RELEASE UPDATES END #}
   - **1.0.0** (2024-11-25): **Release to moda** **交付給數發部**
     - Fix critical and urgent issues.
     - Close all issues and pull requests.
