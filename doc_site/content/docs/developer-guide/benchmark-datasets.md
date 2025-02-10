@@ -1,8 +1,8 @@
 ---
 title: Benchmark Dataset Maintenance
 type: docs
-weight: 51
-prev: docs/developer-guide
+weight: 52
+prev: docs/developer-guide/development-guidelines
 next: docs/developer-guide/uniform-encoder
 sidebar:
   open: true

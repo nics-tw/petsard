@@ -1,7 +1,7 @@
 ---
 title: Reporter 中的實驗名稱
 type: docs
-weight: 53
+weight: 55
 prev: docs/developer-guide/anonymeter
 next: docs/developer-guide/test-coverage
 sidebar:

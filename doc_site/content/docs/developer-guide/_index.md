@@ -8,6 +8,12 @@ sidebar:
   open: true
 ---
 
+
+- [Development Guidelines](./development-guidelines)
+  - Branch protection and merge guidelines
+  - Issue and PR workflows
+  - Package management and version control
+
 ## Data Loading
 - [Benchmark Dataset Maintenance](./benchmark-datasets)
   - Maintaining and extending benchmark datasets

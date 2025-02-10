@@ -121,9 +121,6 @@ class Loader:
                 The instance of LoaderPandasCsv or LoaderPandasExcel.
             data (pd.DataFrame): The dataset been loaded.
             metadata (Metadata): The metadata of dataset.
-
-        TODO combine method and filepath to one parameter.
-        TODO support Minguo calendar (民國紀元)
         """
         self.config: dict = None
         self.loader = None
