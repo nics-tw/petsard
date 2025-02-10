@@ -3,10 +3,6 @@
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange.svg)
 
-<!-- GitHub Issues number, build, dependency
-TODO Git
--->
-
 `PETsARD` (Privacy Enhancing Technologies Analysis, Research, and Development, /pəˈtɑrd/) is a Python library for facilitating data generation algorithm and their evaluation processes.
 
 The main functionalities include dataset description, various dataset generation algorithms, and the measurements on privacy protection and utility.

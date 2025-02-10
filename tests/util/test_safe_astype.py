@@ -291,7 +291,6 @@ def test_data():
 )
 def test_safe_astype(test_data, declare_dtype, expected_success_cols):
     for col_name in expected_success_cols:
-        # TODO: weird pairs, un-testable, skip first
         if declare_dtype == "float32" and col_name in [
             "float16",
             "nullable_int",
@@ -300,9 +299,9 @@ def test_safe_astype(test_data, declare_dtype, expected_success_cols):
 
         col = test_data[col_name]
         new_col = safe_astype(col, declare_dtype)
-        assert (
-            new_col.dtype.name == declare_dtype
-        ), f"Unexpected failure for {col_name} with {declare_dtype}"
+        assert new_col.dtype.name == declare_dtype, (
+            f"Unexpected failure for {col_name} with {declare_dtype}"
+        )
 
     for col_name, dtypes in test_data.dtypes.items():
         if col_name not in expected_success_cols:
