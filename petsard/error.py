@@ -1,10 +1,3 @@
-"""
-TODO:
-    ResultError  in Anonymeter.py -> or make it as Reporter
-    SamplingError in Splitter.py
-"""
-
-
 class NoConfigError(Exception):
     """
     Exception raised when there is no configuration available.
