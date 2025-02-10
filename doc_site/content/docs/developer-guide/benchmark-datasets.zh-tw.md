@@ -1,8 +1,8 @@
 ---
 title: 基準資料集維護
 type: docs
-weight: 51
-prev: docs/developer-guide
+weight: 52
+prev: docs/developer-guide/development-guidelines
 next: docs/developer-guide/uniform-encoder
 sidebar:
   open: true

@@ -1,7 +1,7 @@
 ---
 title: 測試覆蓋範圍
 type: docs
-weight: 54
+weight: 56
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 sidebar:

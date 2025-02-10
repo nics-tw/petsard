@@ -41,8 +41,6 @@ class SDMetricsMap:
 class SDMetrics(EvaluatorBase):
     """
     Factory for SDMetrics Evaluator, defines which module to use within SDMetrics.
-
-    TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
     def __init__(self, config: dict):
@@ -81,8 +79,6 @@ class SDMetrics(EvaluatorBase):
         Attributes:
             metadata (dict):
                 A dictionary containing the metadata information as SDV format.
-
-        TODO Consider use nametupled to replace "data" dict for more certain requirement
         """
         if not set(["ori", "syn"]).issubset(set(data.keys())):
             raise ConfigError
