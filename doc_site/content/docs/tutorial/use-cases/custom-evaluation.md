@@ -1,11 +1,9 @@
 ---
 title: Custom Evaluation
 type: docs
-weight: 20
-prev: docs/tutorial/special-cases/benchmark-datasets
-next: docs/tutorial/special-cases
-sidebar:
-  open: true
+weight: 32
+prev: docs/tutorial/use-cases/data-constraining
+next: docs/tutorial/use-cases/benchmark-datasets
 ---
 
 

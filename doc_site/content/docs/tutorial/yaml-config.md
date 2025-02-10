@@ -4,8 +4,6 @@ type: docs
 weight: 11
 prev: docs/tutorial
 next: docs/tutorial/default-synthesis
-sidebar:
- open: true
 ---
 
 YAML is a human-readable data serialization format used by PETsARD for experiment configuration. This document explains how to structure your YAML configurations effectively.

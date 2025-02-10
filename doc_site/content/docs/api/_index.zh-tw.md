@@ -1,11 +1,11 @@
 ---
 title: API 文件
 type: docs
-weight: 31
-prev: docs/tutorial/special-cases
+weight: 50
+prev: docs/best-practices
 next: docs/developer-guide
 sidebar:
-  open: true
+  open: false
 ---
 
 

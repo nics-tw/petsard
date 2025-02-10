@@ -1,11 +1,9 @@
 ---
 title: 基準資料集維護
 type: docs
-weight: 52
+weight: 82
 prev: docs/developer-guide/development-guidelines
 next: docs/developer-guide/uniform-encoder
-sidebar:
-  open: true
 ---
 
 本文件說明如何維護和擴充 PETsARD 的基準資料集功能。主要面向開發者，提供新增或修改基準資料集的相關指南。

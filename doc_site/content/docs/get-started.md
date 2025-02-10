@@ -1,11 +1,9 @@
 ---
 title: Get Started
 type: docs
-weight: 7
+weight: 2
 prev: docs
 next: docs/tutorial
-sidebar:
-  open: true
 ---
 
 ## Installation

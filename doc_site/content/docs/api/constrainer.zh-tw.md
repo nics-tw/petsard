@@ -1,11 +1,9 @@
 ---
 title: Constrainer
 type: docs
-weight: 37
+weight: 56
 prev: docs/api/synthesizer
 next: docs/api/evaluator
-sidebar:
-  open: true
 ---
 
 
@@ -148,8 +146,6 @@ cnst.resample_until_satisfy(
 
 - pd.DataFrame：滿足所有約束條件且具有目標列數的資料框
 
-## 類別方法
-
 ### register()
 
 註冊新的約束條件類型。
@@ -162,3 +158,7 @@ cnst.resample_until_satisfy(
 **回傳值**
 
 無
+
+## 屬性
+
+- `resample_trails`：重新抽樣的次數，僅在執行 `resample_until_satisfy()` 後產生 (int)

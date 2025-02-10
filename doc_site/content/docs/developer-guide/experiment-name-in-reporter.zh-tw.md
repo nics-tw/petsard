@@ -1,11 +1,9 @@
 ---
 title: Reporter 中的實驗名稱
 type: docs
-weight: 55
+weight: 85
 prev: docs/developer-guide/anonymeter
 next: docs/developer-guide/test-coverage
-sidebar:
-  open: true
 ---
 
 PETsARD 採用統一的實驗命名規範，用於識別和追蹤實驗過程。本文件說明兩種主要的命名格式及其使用方式。
