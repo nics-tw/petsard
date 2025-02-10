@@ -62,8 +62,6 @@ class Synthesizer:
         Args:
             data (pd.DataFrame): The input data for synthesizing.
             metadata (Metadata, default=None): The metadata class of the data.
-
-        # TODO: verify method in __init__
         """
         self.config["data"] = data
         self.config["metadata"] = metadata

@@ -1,7 +1,7 @@
 ---
 title: Uniform Encoder
 type: docs
-weight: 52
+weight: 53
 prev: docs/developer-guide/benchmark-datasets
 next: docs/developer-guide/anonymeter
 sidebar:

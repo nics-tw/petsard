@@ -44,8 +44,6 @@ class Anonymeter(EvaluatorBase):
     """
     Factory for "Anonymeter" Evaluator.
         AnonymeterFactory defines which module to use within Anonymeter.
-
-    TODO Consider use nametupled to replace "data" dict for more certain requirement
     """
 
     def __init__(self, config: dict):

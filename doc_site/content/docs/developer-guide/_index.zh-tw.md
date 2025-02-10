@@ -8,6 +8,12 @@ sidebar:
   open: true
 ---
 
+
+- [開發指引](./development-guidelines)
+  - 分支保護與合併規範
+  - Issue 與 PR 工作流程
+  - 套件管理與版本控制
+
 ## 資料讀取
 - [基準資料集維護](./benchmark-datasets)
   - 維護與擴充基準資料集

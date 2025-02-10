@@ -53,8 +53,6 @@ class BaseBenchmarker(ABC):
         Args:
             already_exist (bool) If the file already exist. Default is True.
               False means verify under download process.
-
-        TODO ValueError
         """
         file_sha256hash = DigestSha256(self.config["filepath"])
 
