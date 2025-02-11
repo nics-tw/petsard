@@ -27,6 +27,7 @@ The top level defines the processing modules in execution order:
 - Preprocessor: Data preprocessing
 - Synthesizer: Data synthesis
 - Postprocessor: Data postprocessing
+- Constrainer: Data constraining
 - Evaluator: Result evaluation
 - Reporter: Report generation
 
@@ -65,7 +66,7 @@ Loader:
 
 When multiple experiments are defined, PETsARD executes them in a depth-first order:
 ```
-Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Evaluator -> Reporter
+Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Constrainer -> Evaluator -> Reporter
 ```
 
 For example:
