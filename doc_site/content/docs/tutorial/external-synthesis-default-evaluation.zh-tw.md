@@ -3,9 +3,7 @@ title: 外部合成與預設評測
 type: docs
 weight: 14
 prev: docs/tutorial/default-synthesis-default-evaluation
-next: docs/tutorial/special-cases
-sidebar:
-  open: true
+next: docs/tutorial/use-cases
 ---
 
 

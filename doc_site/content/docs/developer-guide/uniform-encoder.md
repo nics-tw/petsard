@@ -1,11 +1,9 @@
 ---
 title: Uniform Encoder
 type: docs
-weight: 53
+weight: 83
 prev: docs/developer-guide/benchmark-datasets
 next: docs/developer-guide/anonymeter
-sidebar:
- open: true
 ---
 
 When converting categorical variables to continuous values, the Uniform Encoder can provide better performance for generative models. This method, proposed by [datacebo](https://datacebo.com/), maps each category to a specific range in a uniform distribution, with the range size determined by the relative proportion of each category in the data.

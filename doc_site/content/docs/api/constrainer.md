@@ -1,11 +1,9 @@
 ---
 title: Constrainer
 type: docs
-weight: 37
+weight: 56
 prev: docs/api/synthesizer
 next: docs/api/evaluator
-sidebar:
-  open: true
 ---
 
 
@@ -148,8 +146,6 @@ Resample data until meeting constraints with target number of rows.
 
 - pd.DataFrame: DataFrame that satisfies all constraints with target number of rows
 
-## Class Methods
-
 ### register()
 
 Register a new constraint type.
@@ -162,3 +158,7 @@ Register a new constraint type.
 **Returns**
 
 None
+
+## Attributes
+
+- `resample_trails`: Numbers of resampling, only create after executing `resample_until_satisfy()` (int)

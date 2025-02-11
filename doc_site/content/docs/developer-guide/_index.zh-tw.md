@@ -1,11 +1,11 @@
 ---
 title: 開發者手冊
 type: docs
-weight: 50
+weight: 80
 prev: docs/api
 next: docs
 sidebar:
-  open: true
+  open: false
 ---
 
 
