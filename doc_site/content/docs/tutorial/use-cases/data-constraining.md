@@ -1,11 +1,9 @@
 ---
 title: Data Constraining
 type: docs
-weight: 12
-prev: docs/tutorial/default-synthesis
-next: docs/tutorial/advanced-synthesis
-sidebar:
-  open: true
+weight: 31
+prev: docs/tutorial/use-cases/comparing-synthesizers
+next: docs/tutorial/use-cases/custom-evaluation
 ---
 
 Constrain synthetic data through field value rules, field combinations, and NA handling strategies.
@@ -26,22 +24,29 @@ Preprocessor:
 Synthesizer:
   demo:
     method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
 Constrainer:
   demo:
     nan_groups:
-      workclass: ('delete', 'occupation')  # Delete row if workclass is NA
-      occupation: ('erase', ['income'])    # Set income to NA if occupation is NA
-      income: ('copy', 'salary')          # Copy income to salary if salary is NA
+      # Delete entire row when workclass is NA
+      workclass: 'delete'
+      # Set income to NA if occupation is NA
+      occupation:
+        'erase':
+          - 'income'
+      # Copy educational-num value to age when educational-num exists but age is NA
+      age:
+        'copy':
+          'educational-num'
     field_constraints:
-      - "age >= 18 & age <= 65"
-      - "hours-per-week >= 20 & hours-per-week <= 60"
+      - "age >= 18 & age <= 65" # age limits to 18~65
+      - "hours-per-week >= 20 & hours-per-week <= 60" # hours per week limits to 20 ~ 60
     field_combinations:
       -
         - {'education': 'income'}
         - {'Doctorate': ['>50K'], 'Masters': ['>50K', '<=50K']}
-Postprocessor:
-  demo:
-    method: 'default'
 Reporter:
   output:
     method: 'save_data'

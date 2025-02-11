@@ -1,11 +1,9 @@
 ---
 title: Describer
 type: docs
-weight: 41
+weight: 60
 prev: docs/api/metadata
 next: docs/api
-sidebar:
- open: true
 ---
 
 ```python

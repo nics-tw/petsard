@@ -1,11 +1,9 @@
 ---
 title: Anonymeter Privacy risk evaluation
 type: docs
-weight: 54
+weight: 84
 prev: docs/developer-guide/uniform-encoder
 next: docs/developer-guide/experiment-name-in-reporter
-sidebar:
-  open: true
 math: true
 ---
 

@@ -1,11 +1,9 @@
 ---
 title: Synthesizer
 type: docs
-weight: 36
+weight: 55
 prev: docs/api/processor
-next: docs/api/evaluator
-sidebar:
-  open: true
+next: docs/api/constrainer
 ---
 
 

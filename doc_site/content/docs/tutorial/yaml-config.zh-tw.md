@@ -4,8 +4,6 @@ type: docs
 weight: 11
 prev: docs/tutorial
 next: docs/tutorial/default-synthesis
-sidebar:
- open: true
 ---
 
 YAML 是一種人類可讀的資料序列化格式，PETsARD 使用它來進行實驗設定。本文件說明如何有效地組織您的 YAML 設定。

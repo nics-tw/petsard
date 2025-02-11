@@ -1,11 +1,9 @@
 ---
 title: Processor
 type: docs
-weight: 35
+weight: 54
 prev: docs/api/splitter
 next: docs/api/synthesizer
-sidebar:
-  open: true
 ---
 
 
@@ -156,6 +154,45 @@ Perform data postprocessing inverse transformation.
 
 ## Appx.: Available Process type
 
+### Default Processor method
+
+This mapping defines default processing methods for different data types. Numerical types use mean imputation, interquartile range for outliers, standard scaling, and K-bins discretization; categorical types use drop missing values, uniform encoding, and label encoding.
+
+```python
+PROCESSOR_MAP: dict[str, dict[str, str]] = {
+    "missing": {
+        "numerical": MissingMean,
+        "categorical": MissingDrop,
+        "datetime": MissingDrop,
+        "object": MissingDrop,
+    },
+    "outlier": {
+        "numerical": OutlierIQR,
+        "categorical": lambda: None,
+        "datetime": OutlierIQR,
+        "object": lambda: None,
+    },
+    "encoder": {
+        "numerical": lambda: None,
+        "categorical": EncoderUniform,
+        "datetime": lambda: None,
+        "object": EncoderUniform,
+    },
+    "scaler": {
+        "numerical": ScalerStandard,
+        "categorical": lambda: None,
+        "datetime": ScalerStandard,
+        "object": lambda: None,
+    },
+    "discretizing": {
+        "numerical": DiscretizingKBins,
+        "categorical": EncoderLabel,
+        "datetime": DiscretizingKBins,
+        "object": EncoderLabel,
+    },
+}
+```
+
 ### Config Setting
 
 **Format**
@@ -196,57 +233,23 @@ config = {
 }
 ```
 
-### Available Process type
+### Encoding
 
-Processor supports two main types of data processing:
-
-- **Representation Transformation** changes how data is represented while preserving the original information. This includes:
-  - **Encoding**: converting categorical data to numerical representation
-  - **Discretizing**: continuous values to discrete representation
-  - **Scaling**: remapping numerical ranges
-
-- **Information Modification** enhances data quality by addressing data imperfections. This includes:
-  - **Missing handling**: completing missing data points
-  - **Outlier handling**: smoothing data noise
-
-| Process type | Process method | Parameters |
-| :---: | :---: | :---: |
-| Encoding | `EncoderUniform` | 'encoder_uniform' |
-| Encoding | `EncoderLabel`   | 'encoder_label'   |
-| Encoding | `EncoderOneHot`  | 'encoder_onehot'  |
-| Discretizing | `DiscretizingKBins` | 'discretizing_kbins' |
-| Scaling | `ScalerStandard`   | 'scaler_standard'   |
-| Scaling | `ScalerZeroCenter` | 'scaler_zerocenter' |
-| Scaling | `ScalerMinMax`     | 'scaler_minmax'     |
-| Scaling | `ScalerLog`        | 'scaler_log'        |
-| Scaling | `ScalerTimeAnchor` | 'scaler_timeanchor' |
-| Missing | `MissingMean`   | 'missing_mean'   |
-| Missing | `MissingMedian` | 'missing_median' |
-| Missing | `MissingMode`   | 'missing_mode'   |
-| Missing | `MissingSimple` | 'missing_simple' |
-| Missing | `MissingDrop`   | 'missing_drop'   |
-| Outlier | `OutlierZScore`          | 'outlier_zscore'          |
-| Outlier | `OutlierIQR`             | 'outlier_iqr'             |
-| Outlier | `OutlierIsolationForest` | 'outlier_isolationforest' |
-| Outlier | `OutlierLOF`             | 'outlier_lof'             |
-
-#### Encoding
-
-##### `EncoderUniform`
+#### `EncoderUniform`
 
 Mapping each category to a specific range within a uniform distribution, with the range size determined by the frequency of the category in the data.
 
-##### `EncoderLabel`
+#### `EncoderLabel`
 
 Transform categorical data into numerical data by assigning a series of integers (1, 2, 3,…) to the categories.
 
-##### `EncoderOneHot`
+#### `EncoderOneHot`
 
 Transform categorical data into a one-hot numeric data.
 
-#### Discretizing
+### Discretizing
 
-##### `DiscretizingKBins`
+#### `DiscretizingKBins`
 
 Discretize continuous data into k bins (k intervals).
 
@@ -254,25 +257,25 @@ Discretize continuous data into k bins (k intervals).
 
 - `n_bins` (int, default=5): The value k, the number of bins.
 
-#### Scaling
+### Scaling
 
-##### `ScalerStandard`
+#### `ScalerStandard`
 
 Utilising `StandardScaler` from the `sklearn` library, transforming the data to have a mean of 0 and a standard deviation of 1.
 
-##### `ScalerZeroCenter`
+#### `ScalerZeroCenter`
 
 Utilising `StandardScaler` from `sklearn`, this method centres the transformed data around a mean of 0.
 
-##### `ScalerMinMax`
+#### `ScalerMinMax`
 
 By applying `MinMaxScaler` from `sklearn`, this method scales the data to fit within the range [0, 1].
 
-##### `ScalerLog`
+#### `ScalerLog`
 
 This method requires the input data to be positive. It applies log transformation to mitigate the impact of extreme values.
 
-##### `ScalerTimeAnchor`
+#### `ScalerTimeAnchor`
 
 This method scales datetime data by calculating time differences from a reference time series. It provides two modes of scaling:
 
@@ -293,21 +296,21 @@ scaler:
       unit: 'D'
 ```
 
-#### Missing
+### Missing
 
-##### `MissingMean`
+#### `MissingMean`
 
 Missing values are filled with the mean value of the corresponding column.
 
-##### `MissingMedian`
+#### `MissingMedian`
 
 Missing values are filled with the median value of the corresponding column.
 
-##### `MissingMode`
+#### `MissingMode`
 
 Missing values are filled with the mode value of the corresponding column. If there are multiple modes, it will randomly fill in one of them.
 
-##### `MissingSimple`
+#### `MissingSimple`
 
 Missing values are filled with a predefined value for the corresponding column.
 
@@ -315,63 +318,24 @@ Missing values are filled with a predefined value for the corresponding column.
 
 - `value` (float, default=0.0): The value to be imputed.
 
-##### `MissingDrop`
+#### `MissingDrop`
 
 This method involves dropping the rows containing missing values in any column.
 
-#### Outlier
+### Outlier
 
-##### `OutlierZScore`
+#### `OutlierZScore`
 
 This method classifies data as outliers if the absolute value of the z-score is greater than 3.
 
-##### `OutlierIQR`
+#### `OutlierIQR`
 
 Data outside the range of 1.5 times the interquartile range (IQR) is determined as an outlier.
 
-##### `OutlierIsolationForest`
+#### `OutlierIsolationForest`
 
 This method uses `IsolationForest` from `sklearn` to identify outliers. It is a global transformation, meaning that if any column uses the isolation forest as an outlierist, it will overwrite the entire config and apply isolation forest to all outlierists.
 
-##### `OutlierLOF`
+#### `OutlierLOF`
 
 This method uses `LocalOutlierFactor` from `sklearn` to identify outliers. It is a global transformation, meaning that if any column uses the isolation forest as an outlierist, it will overwrite the entire config and apply isolation forest to all outlierists.
-
-### Default Processor method
-
-This mapping defines default processing methods for different data types. Numerical types use mean imputation, interquartile range for outliers, standard scaling, and K-bins discretization; categorical types use drop missing values, uniform encoding, and label encoding.
-
-```python
-PROCESSOR_MAP: dict[str, dict[str, str]] = {
-    "missing": {
-        "numerical": MissingMean,
-        "categorical": MissingDrop,
-        "datetime": MissingDrop,
-        "object": MissingDrop,
-    },
-    "outlier": {
-        "numerical": OutlierIQR,
-        "categorical": lambda: None,
-        "datetime": OutlierIQR,
-        "object": lambda: None,
-    },
-    "encoder": {
-        "numerical": lambda: None,
-        "categorical": EncoderUniform,
-        "datetime": lambda: None,
-        "object": EncoderUniform,
-    },
-    "scaler": {
-        "numerical": ScalerStandard,
-        "categorical": lambda: None,
-        "datetime": ScalerStandard,
-        "object": lambda: None,
-    },
-    "discretizing": {
-        "numerical": DiscretizingKBins,
-        "categorical": EncoderLabel,
-        "datetime": DiscretizingKBins,
-        "object": EncoderLabel,
-    },
-}
-```

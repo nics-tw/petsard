@@ -1,11 +1,9 @@
 ---
 title: 開發指引
 type: docs
-weight: 51
+weight: 81
 prev: docs/developer-guide
 next: docs/developer-guide/benchmark-datasets
-sidebar:
-  open: true
 ---
 
 ## 開發流程

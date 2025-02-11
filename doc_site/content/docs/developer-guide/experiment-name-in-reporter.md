@@ -1,11 +1,9 @@
 ---
 title: Experiment Name in Reporter
 type: docs
-weight: 55
+weight: 85
 prev: docs/developer-guide/anonymeter
 next: docs/developer-guide/test-coverage
-sidebar:
-  open: true
 ---
 
 PETsARD adopts a standardized naming convention for identifying and tracking experiments. This document explains the two main naming formats and their usage.
