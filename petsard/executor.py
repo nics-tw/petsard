@@ -54,8 +54,7 @@ class Executor:
         elapsed_time: time = time.time() - start_time
         formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
         self.logger.info(
-            f"Completed PETsARD execution workflow "
-            f"(elapsed: {formatted_elapsed_time})"
+            f"Completed PETsARD execution workflow (elapsed: {formatted_elapsed_time})"
         )
 
     def _set_result(self, module: str):

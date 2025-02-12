@@ -233,69 +233,6 @@ config = {
 }
 ```
 
-### Encoding
-
-#### `EncoderUniform`
-
-Mapping each category to a specific range within a uniform distribution, with the range size determined by the frequency of the category in the data.
-
-#### `EncoderLabel`
-
-Transform categorical data into numerical data by assigning a series of integers (1, 2, 3,…) to the categories.
-
-#### `EncoderOneHot`
-
-Transform categorical data into a one-hot numeric data.
-
-### Discretizing
-
-#### `DiscretizingKBins`
-
-Discretize continuous data into k bins (k intervals).
-
-**Parameters**
-
-- `n_bins` (int, default=5): The value k, the number of bins.
-
-### Scaling
-
-#### `ScalerStandard`
-
-Utilising `StandardScaler` from the `sklearn` library, transforming the data to have a mean of 0 and a standard deviation of 1.
-
-#### `ScalerZeroCenter`
-
-Utilising `StandardScaler` from `sklearn`, this method centres the transformed data around a mean of 0.
-
-#### `ScalerMinMax`
-
-By applying `MinMaxScaler` from `sklearn`, this method scales the data to fit within the range [0, 1].
-
-#### `ScalerLog`
-
-This method requires the input data to be positive. It applies log transformation to mitigate the impact of extreme values.
-
-#### `ScalerTimeAnchor`
-
-This method scales datetime data by calculating time differences from a reference time series. It provides two modes of scaling:
-
-**Parameters**
-
-- `reference` (str): The name of the reference column used for time difference calculation. Must be a datetime column.
-- `unit` (str, default='D'): The unit of time difference calculation.
-  - 'D': Days (default)
-  - 'S': Seconds
-
-**Examples**
-
-```yaml
-scaler:
-    create_time:
-      method: 'scaler_timeanchor'
-      reference: 'event_time'
-      unit: 'D'
-```
-
 ### Missing
 
 #### `MissingMean`
@@ -339,3 +276,123 @@ This method uses `IsolationForest` from `sklearn` to identify outliers. It is a 
 #### `OutlierLOF`
 
 This method uses `LocalOutlierFactor` from `sklearn` to identify outliers. It is a global transformation, meaning that if any column uses the isolation forest as an outlierist, it will overwrite the entire config and apply isolation forest to all outlierists.
+
+### Encoding
+
+#### `EncoderUniform`
+
+Mapping each category to a specific range within a uniform distribution, with the range size determined by the frequency of the category in the data.
+
+#### `EncoderLabel`
+
+Transform categorical data into numerical data by assigning a series of integers (1, 2, 3,…) to the categories.
+
+#### `EncoderOneHot`
+
+Transform categorical data into a one-hot numeric data.
+
+#### `EncoderDate`
+
+Transform non-standard date-time data into datetime format with flexible handling of various date formats, including custom calendars like Taiwan's Minguo calendar.
+
+**Parameters**
+
+- `input_format` (str, optional): Format string for parsing dates
+  - Default: None (uses fuzzy parsing)
+  - Example: "%Y-%m-%d" or "%MinguoY-%m-%d"
+- `date_type` (str, default="datetime"): Output type for transformed dates
+  - "date": Date only (no time component)
+  - "datetime": Date and time
+  - "datetime_tz": Date and time with timezone
+- `tz` (str, optional): Timezone for output dates
+  - Default: None
+  - Example: "Asia/Taipei"
+- `numeric_convert` (bool, default=False): Whether to attempt converting numeric timestamps
+- `invalid_handling` (str, default="error"): How to handle invalid dates
+  - "error": Raise an error
+  - "erase": Replace with None
+  - "replace": Use replacement rules
+- `invalid_rules` (list[dict[str, str]], optional): Rules for replacing invalid dates
+  - Default: None
+
+**Examples**
+
+```python
+# Basic usage with standard dates
+config = {
+    'encoder': {
+        'created_at': 'encoder_date'
+    }
+}
+
+# Using Minguo calendar format
+config = {
+    'encoder': {
+        'doc_date': {
+            'method': 'encoder_date',
+            'input_format': '%MinguoY-%m-%d'
+        }
+    }
+}
+
+# With timezone and invalid handling
+config = {
+    'encoder': {
+        'event_time': {
+            'method': 'encoder_date',
+            'date_type': 'datetime_tz',
+            'tz': 'Asia/Taipei',
+            'invalid_handling': 'erase'
+        }
+    }
+}
+```
+
+### Scaling
+
+#### `ScalerStandard`
+
+Utilising `StandardScaler` from the `sklearn` library, transforming the data to have a mean of 0 and a standard deviation of 1.
+
+#### `ScalerZeroCenter`
+
+Utilising `StandardScaler` from `sklearn`, this method centres the transformed data around a mean of 0.
+
+#### `ScalerMinMax`
+
+By applying `MinMaxScaler` from `sklearn`, this method scales the data to fit within the range [0, 1].
+
+#### `ScalerLog`
+
+This method requires the input data to be positive. It applies log transformation to mitigate the impact of extreme values.
+
+#### `ScalerTimeAnchor`
+
+This method scales datetime data by calculating time differences from a reference time series. It provides two modes of scaling:
+
+**Parameters**
+
+- `reference` (str): The name of the reference column used for time difference calculation. Must be a datetime column.
+- `unit` (str, default='D'): The unit of time difference calculation.
+  - 'D': Days (default)
+  - 'S': Seconds
+
+**Examples**
+
+```yaml
+scaler:
+    create_time:
+      method: 'scaler_timeanchor'
+      reference: 'event_time'
+      unit: 'D'
+```
+
+### Discretizing
+
+#### `DiscretizingKBins`
+
+Discretize continuous data into k bins (k intervals).
+
+**Parameters**
+
+- `n_bins` (int, default=5): The value k, the number of bins.

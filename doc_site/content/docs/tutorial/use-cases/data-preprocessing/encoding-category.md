@@ -65,21 +65,30 @@ Preprocessor:
 ## Encoding Methods
 
 1. Uniform Encoding (`encoding_uniform`)
-
   - Converts categorical values to uniformly distributed numbers
   - Suitable for general categorical variables
   - Default encoding method
 
 2. Label Encoding (`encoding_label`)
-
   - Converts categorical values to consecutive integers
   - Suitable for ordinal categorical variables
   - Preserves order relationships between categories
 
 3. One-Hot Encoding (`encoding_onehot`)
-
   - Transforms each category into an independent feature column, where each column represents the presence or absence of a category
   - Categorical data is processed as independent features during synthesis and recombined afterward
   - Suitable for variables with fewer categories, as each additional category increases feature dimensionality
+
+4. Date Encoding (`encoder_date`)
+   - Converts datetime values into numerical format for synthesis
+   - Supports multiple output formats:
+       - Date only: Basic date information
+       - Datetime: Full date and time information
+       - Datetime with timezone: Complete temporal information
+   - Provides special features:
+       - Custom calendar support (e.g., Minguo calendar)
+       - Flexible date parsing with or without format strings
+       - Invalid date handling strategies
+       - Timezone awareness
 
 You can use different encoding methods for different columns by specifying the appropriate configuration in your settings file.
