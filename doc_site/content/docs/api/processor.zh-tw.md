@@ -237,70 +237,6 @@ config = {
 }
 ```
 
-
-### 編碼
-
-#### `EncoderUniform`
-
-將每個類別映射到均勻分布的特定範圍，範圍大小由資料中類別的出現頻率決定。
-
-#### `EncoderLabel`
-
-將類別變數對應到一系列的整數 (1, 2, 3,…) 藉此達到轉換為連續型資料的目的。
-
-#### `EncoderOneHot`
-
-將類別變數對應到一系列的獨熱編碼 (One-hot) 數值資料。
-
-### 離散化
-
-#### `DiscretizingKBins`
-
-將連續資料切分為 k 個類別（k 個區間）。
-
-**參數**
-
-- `n_bins` (int, default=5)：k 值，即為類別數。
-
-### 尺度
-
-#### `ScalerStandard`
-
-利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0、標準差為 1 的樣態。
-
-#### `ScalerZeroCenter`
-
-利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0 的樣態。
-
-#### `ScalerMinMax`
-
-利用 `sklearn` 中的 `MinMaxScaler`，將資料轉換至 [0, 1] 的範圍。
-
-#### `ScalerLog`
-
-此方法僅能在資料為正的情形可用，可用於減緩極端值對整體資料的影響。
-
-#### `ScalerTimeAnchor`
-
-此方法透過計算與參考時間序列的時間差來縮放日期時間資料。提供兩種縮放模式：
-
-**參數**
-
-- `reference` (str)：用於計算時間差的參考欄位名稱。必須是日期時間型態的欄位。
-- `unit` (str, default='D')：時間差計算的單位。
-  - 'D'：天（預設）
-  - 'S'：秒
-
-**範例**
-
-```yaml
-scaler:
-    create_time:
-      method: 'scaler_timeanchor'
-      reference: 'event_time'
-      unit: 'D'
-```
-
 ### 遺失值
 
 #### `MissingMean`
@@ -344,3 +280,123 @@ scaler:
 #### `OutlierLOF`
 
 此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
+
+### 編碼
+
+#### `EncoderUniform`
+
+將每個類別映射到均勻分布的特定範圍，範圍大小由資料中類別的出現頻率決定。
+
+#### `EncoderLabel`
+
+將類別變數對應到一系列的整數 (1, 2, 3,…) 藉此達到轉換為連續型資料的目的。
+
+#### `EncoderOneHot`
+
+將類別變數對應到一系列的獨熱編碼 (One-hot) 數值資料。
+
+#### `EncoderDate`
+
+將不標準的日期時間資料轉換為日期格式，支援各種日期格式，包含民國年等自訂曆法。
+
+**參數**
+
+- `input_format` (str, optional)：日期解析格式字串
+  - 預設值：無（使用模糊解析）
+  - 範例："%Y-%m-%d" 或 "%MinguoY-%m-%d"
+- `date_type` (str, default="datetime")：轉換後的日期型別
+  - "date"：僅日期（無時間）
+  - "datetime"：日期和時間
+  - "datetime_tz"：含時區的日期和時間
+- `tz` (str, optional)：輸出日期的時區
+  - 預設值：無
+  - 範例："Asia/Taipei"
+- `numeric_convert` (bool, default=False)：是否嘗試轉換數值型時間戳
+- `invalid_handling` (str, default="error")：無效日期的處理方式
+  - "error"：拋出錯誤
+  - "erase"：替換為空值
+  - "replace"：使用替換規則
+- `invalid_rules` (list[dict[str, str]], optional)：無效日期的替換規則
+  - 預設值：無
+
+**範例**
+
+```python
+# 基本使用方式
+config = {
+    'encoder': {
+        'created_at': 'encoder_date'
+    }
+}
+
+# 使用民國年格式
+config = {
+    'encoder': {
+        'doc_date': {
+            'method': 'encoder_date',
+            'input_format': '%MinguoY-%m-%d'
+        }
+    }
+}
+
+# 使用時區和無效日期處理
+config = {
+    'encoder': {
+        'event_time': {
+            'method': 'encoder_date',
+            'date_type': 'datetime_tz',
+            'tz': 'Asia/Taipei',
+            'invalid_handling': 'erase'
+        }
+    }
+}
+```
+
+### 尺度
+
+#### `ScalerStandard`
+
+利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0、標準差為 1 的樣態。
+
+#### `ScalerZeroCenter`
+
+利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0 的樣態。
+
+#### `ScalerMinMax`
+
+利用 `sklearn` 中的 `MinMaxScaler`，將資料轉換至 [0, 1] 的範圍。
+
+#### `ScalerLog`
+
+此方法僅能在資料為正的情形可用，可用於減緩極端值對整體資料的影響。
+
+#### `ScalerTimeAnchor`
+
+此方法透過計算與參考時間序列的時間差來縮放日期時間資料。提供兩種縮放模式：
+
+**參數**
+
+- `reference` (str)：用於計算時間差的參考欄位名稱。必須是日期時間型態的欄位。
+- `unit` (str, default='D')：時間差計算的單位。
+  - 'D'：天（預設）
+  - 'S'：秒
+
+**範例**
+
+```yaml
+scaler:
+    create_time:
+      method: 'scaler_timeanchor'
+      reference: 'event_time'
+      unit: 'D'
+```
+
+### 離散化
+
+#### `DiscretizingKBins`
+
+將連續資料切分為 k 個類別（k 個區間）。
+
+**參數**
+
+- `n_bins` (int, default=5)：k 值，即為類別數。

@@ -1,8 +1,13 @@
+from datetime import date, datetime
+from typing import Any, Optional, Union
+
 import numpy as np
 import pandas as pd
+from dateutil import parser
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from petsard.error import UnfittedError
+from petsard.error import ConfigError, UnfittedError
+from petsard.processor.date_format_converter import MinguoYConverter
 
 
 class Encoder:
@@ -313,3 +318,245 @@ class EncoderOneHot(Encoder):
         """
 
         return data
+
+
+class EncoderDate(Encoder):
+    """
+    Flexible date encoder for transforming various date formats
+    """
+
+    def __init__(
+        self,
+        input_format: Optional[str] = None,
+        date_type: str = "datetime",
+        tz: Optional[str] = None,
+        numeric_convert: bool = False,
+        invalid_handling: str = "error",
+        invalid_rules: Optional[list[dict[str, str]]] = None,
+    ) -> None:
+        super().__init__()
+
+        # Validate inputs
+        self._validate_init_params(date_type, invalid_handling)
+
+        # Store parameters
+        self.input_format = input_format
+        self.date_type = date_type
+        self.tz = tz
+        self.numeric_convert = numeric_convert
+        self.invalid_handling = invalid_handling
+        self.invalid_rules = invalid_rules or []
+
+        # Register built-in format converters
+        self._custom_format_converters = {
+            converter.custom_format: converter
+            for converter in [
+                MinguoYConverter(),
+            ]
+        }
+
+    def _validate_init_params(self, date_type: str, invalid_handling: str) -> None:
+        """Validate initialization parameters"""
+        if date_type not in ["date", "datetime", "datetime_tz"]:
+            raise ConfigError("date_type must be 'date', 'datetime', or 'datetime_tz'")
+
+        if invalid_handling not in ["error", "erase", "replace"]:
+            raise ValueError("invalid_handling must be 'error', 'erase', or 'replace'")
+
+    def _convert_to_standard_format(
+        self, value: str, format_str: str
+    ) -> tuple[str, str]:
+        """Convert custom format to standard format"""
+        current_value = str(value)
+        current_format = format_str
+
+        for fmt, converter in self._custom_format_converters.items():
+            if fmt in current_format:
+                current_value = converter.to_standard(current_value, self.input_format)
+                current_format = current_format.replace(fmt, converter.standard_format)
+
+        return current_value, current_format
+
+    def _format_output(self, parsed_date: datetime) -> Union[date, datetime]:
+        """Format output according to specified date_type"""
+        if parsed_date is None:
+            return None
+
+        if self.date_type == "date":
+            return parsed_date.date()
+        elif self.date_type == "datetime_tz" and self.tz:
+            try:
+                import zoneinfo
+
+                return parsed_date.replace(tzinfo=zoneinfo.ZoneInfo(self.tz))
+            except ImportError:
+                raise ImportError("zoneinfo module required for timezone support")
+        return parsed_date.replace(tzinfo=None)
+
+    def _apply_replacement_rules(self, value: str) -> Union[datetime, None]:
+        """Apply replacement rules for invalid dates"""
+        for index, rule in enumerate(self.invalid_rules):
+            is_last_rule = index == len(self.invalid_rules) - 1
+            if "fallback" in rule:
+                return self._handle_invalid_date(
+                    value, invalid_handling=rule["fallback"]
+                )
+            elif is_last_rule:
+                return self._handle_invalid_date(value, invalid_handling="erase")
+
+            current_value = str(value)
+            current_format = self.input_format
+
+            try:
+                # Try applying value in custom format
+                for fmt, repl in rule.items():
+                    # replace custom format
+                    if fmt in self._custom_format_converters:
+                        current_value = self._custom_format_converters[fmt].to_standard(
+                            current_value, self.input_format
+                        )
+                        current_format = current_format.replace(
+                            fmt, self._custom_format_converters[fmt].standard_format
+                        )
+
+                # Try replacing the value in standard strptime format
+                new_date_value = list(current_value)
+
+                # Calculate cumulative position for each format token
+                fmt_positions = {}
+                current_pos = 0
+                for fmt in ["%Y", "%m", "%d", "%H", "%M", "%S"]:
+                    if fmt in current_format:
+                        fmt_positions[fmt] = current_pos
+                        # Use standard length for common tokens
+                        current_pos += {
+                            "%Y": 4,
+                            "%m": 2,
+                            "%d": 2,
+                            "%H": 2,
+                            "%M": 2,
+                            "%S": 2,
+                        }.get(fmt, len(str(fmt)))
+
+                for fmt, repl in rule.items():
+                    if fmt not in self._custom_format_converters:
+                        # Find the starting position using cumulative calculation
+                        fmt_index = fmt_positions[fmt]
+
+                        try:
+                            # Use standard length for common tokens
+                            length = {
+                                "%Y": 4,
+                                "%m": 2,
+                                "%d": 2,
+                                "%H": 2,
+                                "%M": 2,
+                                "%S": 2,
+                            }.get(fmt, len(repl))
+
+                            # Replace the corresponding portion of the date string
+                            new_date_value[fmt_index : fmt_index + length] = list(
+                                str(repl).zfill(length)[:length]
+                            )
+                        except ValueError:
+                            # Raise an error if the replacement is incompatible with the format
+                            raise ConfigError(
+                                f"Cannot replace {fmt} with {repl} in the given format"
+                            )
+                current_value = "".join(new_date_value)
+
+                # Try parsing with the modified value
+                return datetime.strptime(current_value, current_format)
+
+            except Exception:
+                continue
+
+        return None
+
+    def _handle_invalid_date(
+        self, value: Any, invalid_handling: str
+    ) -> Union[datetime, None]:
+        """Handle invalid dates according to specified strategy"""
+        if invalid_handling == "error":
+            raise ValueError(f"Invalid date format: {value}")
+        elif invalid_handling in ["drop", "erase"]:
+            return None
+        elif invalid_handling == "replace":
+            return self._apply_replacement_rules(value)
+        else:
+            raise ValueError(f"Invalid handling strategy: {invalid_handling}")
+
+    def _parse_date(self, value: Union[str, int, float]) -> Union[datetime, date, None]:
+        """Main date parsing method"""
+        if value is None:
+            return None
+
+        if self.numeric_convert and isinstance(value, (int, float)):
+            value = str(int(value))
+
+        try:
+            if self.input_format:
+                # Handle custom formats first
+                current_value, current_format = self._convert_to_standard_format(
+                    value, self.input_format
+                )
+                # Then use standard strptime
+                parsed = datetime.strptime(current_value, current_format)
+            else:
+                # Use fuzzy parsing if no format specified
+                try:
+                    parsed = parser.parse(str(value), fuzzy=True)
+                except Exception:
+                    if isinstance(value, (int, float)):
+                        parsed = pd.to_datetime(float(value), unit="s")
+                    else:
+                        parsed = pd.to_datetime(value)
+
+            return self._format_output(parsed)
+        except Exception:
+            return self._handle_invalid_date(value, self.invalid_handling)
+
+    def _fit(self, data: pd.Series) -> None:
+        """Fit the encoder to the data"""
+        self.labels = data.unique().tolist()
+        # Validate parsing
+        data.apply(self._parse_date)
+
+    def _inverse_transform(self, data: pd.Series) -> pd.Series:
+        """Transform dates back to original format"""
+        if not self.input_format:
+            format_str = {
+                "date": "%Y-%m-%d",
+                "datetime": "%Y-%m-%d %H:%M:%S",
+                "datetime_tz": "%Y-%m-%d %H:%M:%S %Z"
+                if self.tz
+                else "%Y-%m-%d %H:%M:%S",
+            }[self.date_type]
+            return data.apply(lambda x: x.strftime(format_str) if pd.notna(x) else None)
+
+        def format_date(x: Optional[datetime]) -> Optional[str]:
+            """Format a single date value"""
+            if pd.isna(x):
+                return None
+
+            result = self.input_format
+            for fmt, converter in self._custom_format_converters.items():
+                if fmt in self.input_format:
+                    custom_part = converter.from_standard(x)
+                    if custom_part is None:
+                        return None
+                    pos = result.find(fmt)
+                    if pos >= 0:
+                        result = (
+                            x.strftime(result[:pos])
+                            + custom_part
+                            + x.strftime(result[pos + len(fmt) :])
+                        )
+
+            return result if "%" not in result else x.strftime(result)
+
+        return data.apply(format_date)
+
+    def _transform(self, data: pd.Series) -> np.ndarray:
+        """Convert single column of data to date format"""
+        return data.apply(self._parse_date).values

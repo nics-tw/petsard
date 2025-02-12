@@ -9,7 +9,12 @@ import pandas as pd
 from petsard.error import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
 from petsard.processor.discretizing import DiscretizingKBins
-from petsard.processor.encoder import EncoderLabel, EncoderOneHot, EncoderUniform
+from petsard.processor.encoder import (
+    EncoderDate,
+    EncoderLabel,
+    EncoderOneHot,
+    EncoderUniform,
+)
 from petsard.processor.mediator import (
     Mediator,
     MediatorEncoder,
@@ -98,26 +103,27 @@ class ProcessorClassMap:
 
     CLASS_MAP: dict[str, str] = {
         # encoder
-        "encoder_uniform": EncoderUniform,
+        "encoder_date": EncoderDate,
         "encoder_label": EncoderLabel,
         "encoder_onehot": EncoderOneHot,
+        "encoder_uniform": EncoderUniform,
         # missing
+        "missing_drop": MissingDrop,
         "missing_mean": MissingMean,
         "missing_median": MissingMedian,
-        "missing_simple": MissingSimple,
-        "missing_drop": MissingDrop,
         "missing_mode": MissingMode,
+        "missing_simple": MissingSimple,
         # outlier
-        "outlier_zscore": OutlierZScore,
+        "outlier_lof": OutlierLOF,
         "outlier_iqr": OutlierIQR,
         "outlier_isolationforest": OutlierIsolationForest,
-        "outlier_lof": OutlierLOF,
+        "outlier_zscore": OutlierZScore,
         # scaler
-        "scaler_standard": ScalerStandard,
-        "scaler_zerocenter": ScalerZeroCenter,
-        "scaler_minmax": ScalerMinMax,
         "scaler_log": ScalerLog,
+        "scaler_minmax": ScalerMinMax,
+        "scaler_standard": ScalerStandard,
         "scaler_timeanchor": ScalerTimeAnchor,
+        "scaler_zerocenter": ScalerZeroCenter,
         # discretizing
         "discretizing_kbins": DiscretizingKBins,
     }
@@ -563,13 +569,14 @@ class Processor:
                         if isinstance(
                             obj,
                             (
-                                EncoderUniform,
+                                EncoderDate,
                                 EncoderLabel,
                                 EncoderOneHot,
+                                EncoderUniform,
+                                ScalerLog,
+                                ScalerMinMax,
                                 ScalerStandard,
                                 ScalerZeroCenter,
-                                ScalerMinMax,
-                                ScalerLog,
                             ),
                         ):
                             self._adjust_metadata(

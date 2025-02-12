@@ -44,7 +44,7 @@ class BaseOperator:
             input (dict):
                 The input data for the module.
         """
-        self.module_name: str = self.__class__.__name__.replace("Operator", "")
+        self.module_name: str = self.__class__.__name__.replace("Operator", "Op")
         self.logger = logging.getLogger(f"PETsARD.{self.module_name}")
 
         self.config = config
