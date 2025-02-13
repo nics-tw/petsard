@@ -13,7 +13,7 @@ sidebar:
 
 ## **資料理解**
 
-### **資料洞察：[資料描述](docs/tutorial/topics/data-description/)**
+### **資料洞察：[資料描述](./data-description)**
 
   - 在合成之前了解您的資料
   - 從不同的顆粒度分析資料特性
@@ -26,19 +26,19 @@ sidebar:
   - 調整模型參數（如果有）
   - 進行更精細的資料前處理
 
-### **資料品質提升：[資料前處理](docs/tutorial/topics/data-preprocessing/)**
+### **資料品質提升：[資料前處理](./data-preprocessing)**
 
   - 系統性處理資料中的各種品質問題
   - 提供遺失值、編碼、極端值等多種處理方法
   - 包含均勻編碼、標準化與離散化等技術
 
-### **合成方法選擇：[比較合成演算法](docs/tutorial/topics/comparing-synthesizers/)**
+### **合成方法選擇：[比較合成演算法](./comparing-synthesizers)**
 
   - 比較不同合成演算法的效果
   - 在同一個實驗中使用多種演算法
   - 包含 Gaussian Copula、CTGAN 與 TVAE
 
-### **資料合理性：[資料約束](docs/tutorial/topics/data-constraining/)**
+### **資料合理性：[資料約束](./data-constraining)**
 
   - 確保合成資料符合實際業務規則
   - 提供欄位值、欄位組合與空值的約束方法
@@ -46,7 +46,7 @@ sidebar:
 
 ## **資料評測**
 
-### **客製化評估：[自定義評測](docs/tutorial/topics/custom-evaluation/)**
+### **客製化評估：[自定義評測](./custom-evaluation)**
 
   - 建立自己的評測方法
   - 實作不同顆粒度的評估
@@ -54,7 +54,7 @@ sidebar:
 
 ## **流程提升**
 
-### **實驗流程驗證：[基準資料集](docs/tutorial/topics/benchmark-datasets/)**
+### **實驗流程驗證：[基準資料集](./benchmark-datasets)**
 
   - 使用基準資料集測試您的合成流程
   - 確認合成參數設定的合理性

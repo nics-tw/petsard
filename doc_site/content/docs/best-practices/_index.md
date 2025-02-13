@@ -23,7 +23,7 @@ In light of this, since 2024, the CAPE team has been assisting Taiwan's public e
 - The dataset primarily consists of yes/no questions, single-choice, and multiple-choice questions, characterized by few options and uneven response distributions
 - This best practice applies to similar low-cardinality data scenarios, such as market research surveys, user experience studies, public opinion polls, and socioeconomic statistics, particularly when dealing with structured questionnaires with standardized options
 
-### **[Synthesizing High-Cardinality and Multi-Table Data](docs/best-practices/high-cardinality-multi-table): Enterprise Data Case Study**
+### **[Synthesizing High-Cardinality and Multi-Table Data](./high-cardinality-multi-table): Enterprise Data Case Study**
 
 - Collaborating with a policy-oriented financial institution to synthesize enterprise client data (including basic information, financing applications, and financial tracking)
 - The dataset spans multiple business tables with complex relationships, and due to diverse industry categories and numerous financing programs, exhibits high cardinality (numerous unique values) in many fields, along with longitudinal tracking characteristics
