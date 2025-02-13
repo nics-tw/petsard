@@ -5,7 +5,7 @@ weight: 20
 prev: docs/tutorial/use-cases/data-description
 next: docs/tutorial/use-cases/comparing-synthesizers
 sidebar:
-  open: true
+  open: false
 ---
 
 
@@ -15,13 +15,13 @@ Ensuring the quality of source data before synthesis is crucial. High-quality in
 
 ## Information Modification
 
-### [Handling Missing Values](docs/tutorial/data-preprocessing/handling-missing)
+### [Handling Missing Values](./handling-missing)
 
 - Handle missing and incomplete values in data
 - Ensure data completeness through deletion, statistical imputation, and custom imputation methods
 - Provide customized options for different data fields and types
 
-<!-- [Handling Outlier](docs/tutorial/data-preprocessing/handling-outliers) -->
+<!-- [Handling Outlier](./handling-outliers) -->
 ### Handling Outliers (WIP)
 
 - Identify and handle abnormal or extreme values
@@ -30,20 +30,20 @@ Ensuring the quality of source data before synthesis is crucial. High-quality in
 
 ## Representation Transformation
 
-### [Encoding Categorical Variables](docs/tutorial/data-preprocessing/encoding-category)
+### [Encoding Categorical Variables](./encoding-category)
 
 - Convert categorical data to numerical format
 - Support various encoding methods to preserve data characteristics
 - Ensure synthetic algorithms can effectively process all data types
 
-<!-- [Discretizing Continuous Values](docs/tutorial/data-preprocessing/discretizing-continuous) -->
+<!-- [Discretizing Continuous Values](./discretizing-continuous) -->
 ### Discretizing Continuous Values (WIP)
 
 - Convert continuous values into discrete intervals
 - Reduce data complexity
 - Provide multiple grouping strategy options
 
-<!-- [Scaling Numerical Features](docs/tutorial/data-preprocessing/scaling-numeric) -->
+<!-- [Scaling Numerical Features](./scaling-numeric) -->
 ### Scaling Numerical Features (WIP)
 
 - Unify value ranges across different columns
@@ -63,7 +63,7 @@ Following CAPE team's preprocessing taxonomy, `PETsARD` subdivides data preproce
   - **Discretizing**: continuous values to discrete representation
   - **Scaling**: remapping numerical ranges
 
-The following table lists all preprocessing methods supported by `PETsARD`. You can learn how to use each method through the tutorial examples, or visit [Processor](docs/api/processor/) for detailed technical implementation.
+The following table lists all preprocessing methods supported by `PETsARD`. You can learn how to use each method through the tutorial examples, or visit [Processor](../../../api/processor/) for detailed technical implementation.
 
 | Process type | Process method | Parameters |
 | :---: | :---: | :---: |

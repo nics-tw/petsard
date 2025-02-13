@@ -5,7 +5,7 @@ weight: 20
 prev: docs/tutorial/use-cases/data-description
 next: docs/tutorial/use-cases/comparing-synthesizers
 sidebar:
-  open: true
+  open: false
 ---
 
 
@@ -15,13 +15,13 @@ sidebar:
 
 ## 資訊調整
 
-### [遺失值處理](docs/tutorial/data-preprocessing/handling-missing)
+### [遺失值處理](./handling-missing)
 
 - 處理資料中的遺失值缺漏值
 - 透過刪除、統計插補與自定義插補等方式確保資料完整性
 - 針對不同的資料欄位與型態提供客製化選項
 
-<!-- [極端值處理](docs/tutorial/data-preprocessing/handling-outliers) -->
+<!-- [極端值處理](./handling-outliers) -->
 ### 極端值處理（撰寫中）
 
 - 識別並處理異常或極端的數值
@@ -30,20 +30,20 @@ sidebar:
 
 ## 表示形式轉換
 
-### [類別編碼](docs/tutorial/data-preprocessing/encoding-category)
+### [類別編碼](./encoding-category)
 
 - 將類別型資料轉換為數值型態
 - 支援多種編碼方式以保留資料特性
 - 確保合成演算法能有效處理所有資料型態
 
-<!-- [連續值離散化](docs/tutorial/data-preprocessing/discretizing-continuous) -->
+<!-- [連續值離散化](./discretizing-continuous) -->
 ### 連續值離散化（撰寫中）
 
 - 將連續數值轉換為離散區間
 - 降低資料的複雜度
 - 提供多種分組策略選擇
 
-<!-- [數值尺度轉換](docs/tutorial/data-preprocessing/scaling-numeric) -->
+<!-- [數值尺度轉換](./scaling-numeric) -->
 ### 數值尺度轉換（撰寫中）
 
 - 統一不同欄位的數值範圍
@@ -64,7 +64,7 @@ sidebar:
   - **離散化** (Discretizing)：連續值轉換為類別資料表示
   - **尺度轉換** (Scaling)：數值範圍的重新映射
 
-下表列出 `PETsARD` 支援的所有前處理方法。您可以透過閱讀各方法的教學範例來了解使用方式，或是前往 [Processor](docs/api/processor/) 查看詳細的技術實現。
+下表列出 `PETsARD` 支援的所有前處理方法。您可以透過閱讀各方法的教學範例來了解使用方式，或是前往 [Processor](../../../api/processor/) 查看詳細的技術實現。
 
 | 處理類型 | 處理方式 | 參數 |
 | :---: | :---: | :---: |
