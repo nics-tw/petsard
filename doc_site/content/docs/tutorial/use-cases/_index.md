@@ -13,7 +13,7 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
 
 ## **Data Understanding**:
 
-### **Data Insights: [Data Description](docs/tutorial/topics/data-description/)**
+### **Data Insights: [Data Description](./data-description)**
 
   - Understand your data before synthesis
   - Analyze data characteristics at different granularities
@@ -26,19 +26,19 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
   - Adjust model parameters (if any)
   - Perform more detailed data preprocessing
 
-### **Data Quality Enhancement: [Data Preprocessing](docs/tutorial/topics/data-preprocessing/)**
+### **Data Quality Enhancement: [Data Preprocessing](./data-preprocessing)**
 
   - Systematically address various data quality issues
   - Provide multiple methods for handling missing values, encoding, and outliers
   - Include uniform encoding, standardization, and discretization techniques
 
-### **Synthesis Method Selection: [Comparing Synthesizers](docs/tutorial/topics/comparing-synthesizers/)**
+### **Synthesis Method Selection: [Comparing Synthesizers](./comparing-synthesizers)**
 
   - Compare effects of different synthesis algorithms
   - Use multiple algorithms in a single experiment
   - Includes Gaussian Copula, CTGAN, and TVAE
 
-### **Data Plausibility: [Data Constraining](docs/tutorial/topics/data-constraining/)**
+### **Data Plausibility: [Data Constraining](./data-constraining)**
 
   - Ensure synthetic data complies with real business rules
   - Provide constraints for field values, field combinations, and null values
@@ -46,7 +46,7 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
 
 ## **Data Evaluating**
 
-### **Custom Evaluation: [Custom Evaluation](docs/tutorial/topics/custom-evaluation/)**
+### **Custom Evaluation: [Custom Evaluation](./custom-evaluation)**
 
   - Create your own evaluation methods
   - Implement assessments at different granularities
@@ -54,7 +54,7 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
 
 ## **Workflow improvement**
 
-### **Workflow Validation: [Benchmark Datasets](docs/tutorial/topics/benchmark-datasets/)**
+### **Workflow Validation: [Benchmark Datasets](./benchmark-datasets)**
 
   - Test your synthesis workflow on benchmark data
   - Verify synthesis parameter settings
