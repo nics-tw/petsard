@@ -95,16 +95,16 @@ class MyEvaluator(EvaluatorBase):
 
 您的評測類別必須實作以下所有方法：
 
-  1. `get_global()`：回傳整體評估結果
+1. `get_global()`：回傳整體評估結果
 
     - 一列資料顯示整體評分
 
-  2. `get_columnwise()`：回傳各欄位的評估結果
+2. `get_columnwise()`：回傳各欄位的評估結果
 
     - 每個欄位一列資料
     - 使用原始資料的欄位名稱作為索引
 
-  3. `get_pairwise()`：回傳欄位間關係的評估結果
+3. `get_pairwise()`：回傳欄位間關係的評估結果
 
     - 每對欄位組合一列資料
     - 使用欄位配對作為索引

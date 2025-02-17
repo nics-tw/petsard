@@ -95,16 +95,16 @@ class MyEvaluator(EvaluatorBase):
 
 Your evaluator class must implement all of the following methods:
 
-  1. `get_global()`：Returns overall evaluation results
+1. `get_global()`：Returns overall evaluation results
 
     - One row showing overall scores
 
-  2. `get_columnwise()`：Returns per-column evaluation results
+2. `get_columnwise()`：Returns per-column evaluation results
 
     - One row per column
     - Uses original column names as index
 
-  3. `get_pairwise()`：Returns column relationship evaluation results
+3. `get_pairwise()`：Returns column relationship evaluation results
 
     - One row per column pair
     - Uses column pairs as index
