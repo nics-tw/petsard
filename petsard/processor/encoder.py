@@ -325,6 +325,16 @@ class EncoderDate(Encoder):
     Flexible date encoder for transforming various date formats
     """
 
+    # defined format length table
+    FORMAT_LENGTH: dict[str, int] = {
+        "%Y": 4,
+        "%m": 2,
+        "%d": 2,
+        "%H": 2,
+        "%M": 2,
+        "%S": 2,
+    }
+
     def __init__(
         self,
         input_format: Optional[str] = None,
@@ -384,7 +394,10 @@ class EncoderDate(Encoder):
 
         if self.date_type == "date":
             return parsed_date.date()
-        elif self.date_type == "datetime_tz" and self.tz:
+        elif self.date_type == "datetime_tz":
+            if self.tz is None:
+                raise ConfigError("tz must be specified for datetime_tz")
+
             try:
                 import zoneinfo
 
@@ -392,6 +405,58 @@ class EncoderDate(Encoder):
             except ImportError:
                 raise ImportError("zoneinfo module required for timezone support")
         return parsed_date.replace(tzinfo=None)
+
+    def _split_format_and_value(self, format_str: str, value_str: str):
+        """
+        Find positions for format tokens in the value string
+
+        Args:
+            format_str: Format string (e.g., '%Y-%m-%d' or '%MinguoY%m%d')
+            value_str: Actual value string
+        """
+        positions = []
+        value_pos = 0
+
+        # First handle custom formats
+        format_parts = []
+        i = 0
+        while i < len(format_str):
+            if format_str[i] == "%":
+                # Check custom formats first
+                custom_found = False
+                for fmt, converter in self._custom_format_converters.items():
+                    if format_str[i:].startswith(fmt):
+                        format_parts.append(("custom", fmt, converter.default_length))
+                        i += len(fmt)
+                        custom_found = True
+                        break
+
+                # If no custom format found, check standard formats
+                if not custom_found:
+                    for fmt in sorted(self.FORMAT_LENGTH.keys(), key=len, reverse=True):
+                        if format_str[i:].startswith(fmt):
+                            format_parts.append(
+                                ("standard", fmt, self.FORMAT_LENGTH[fmt])
+                            )
+                            i += len(fmt)
+                            break
+            else:
+                # It's a separator
+                format_parts.append(("separator", format_str[i], 1))
+                i += 1
+
+        # Map positions
+        for part_type, part, length in format_parts:
+            if part_type in ("custom", "standard"):
+                positions.append((part, value_pos, value_pos + length))
+                value_pos += length
+            else:  # separator
+                if (
+                    "-" in format_str
+                ):  # Only advance position if format contains separators
+                    value_pos += length
+
+        return positions
 
     def _apply_replacement_rules(self, value: str) -> Union[datetime, None]:
         """Apply replacement rules for invalid dates"""
@@ -402,7 +467,7 @@ class EncoderDate(Encoder):
                     value, invalid_handling=rule["fallback"]
                 )
             elif is_last_rule:
-                return self._handle_invalid_date(value, invalid_handling="erase")
+                return self._handle_invalid_date(value)
 
             current_value = str(value)
             current_format = self.input_format
@@ -410,63 +475,57 @@ class EncoderDate(Encoder):
             try:
                 # Try applying value in custom format
                 for fmt, repl in rule.items():
-                    # replace custom format
                     if fmt in self._custom_format_converters:
-                        current_value = self._custom_format_converters[fmt].to_standard(
-                            current_value, self.input_format
-                        )
-                        current_format = current_format.replace(
-                            fmt, self._custom_format_converters[fmt].standard_format
-                        )
-
-                # Try replacing the value in standard strptime format
-                new_date_value = list(current_value)
-
-                # Calculate cumulative position for each format token
-                fmt_positions = {}
-                current_pos = 0
-                for fmt in ["%Y", "%m", "%d", "%H", "%M", "%S"]:
-                    if fmt in current_format:
-                        fmt_positions[fmt] = current_pos
-                        # Use standard length for common tokens
-                        current_pos += {
-                            "%Y": 4,
-                            "%m": 2,
-                            "%d": 2,
-                            "%H": 2,
-                            "%M": 2,
-                            "%S": 2,
-                        }.get(fmt, len(str(fmt)))
-
-                for fmt, repl in rule.items():
-                    if fmt not in self._custom_format_converters:
-                        # Find the starting position using cumulative calculation
-                        fmt_index = fmt_positions[fmt]
-
                         try:
-                            # Use standard length for common tokens
-                            length = {
-                                "%Y": 4,
-                                "%m": 2,
-                                "%d": 2,
-                                "%H": 2,
-                                "%M": 2,
-                                "%S": 2,
-                            }.get(fmt, len(repl))
-
-                            # Replace the corresponding portion of the date string
-                            new_date_value[fmt_index : fmt_index + length] = list(
-                                str(repl).zfill(length)[:length]
+                            # Find positions for each format token
+                            positions = self._split_format_and_value(
+                                current_format, current_value
                             )
+                            for f, start, end in positions:
+                                if f == fmt:
+                                    new_date_value = list(current_value)
+                                    new_date_value[start:end] = list(str(repl).zfill(3))
+                                    current_value = "".join(new_date_value)
+                                    break
                         except ValueError:
-                            # Raise an error if the replacement is incompatible with the format
+                            continue
+
+                    # Handle standard format replacements
+                    if fmt not in self._custom_format_converters:
+                        try:
+                            positions = self._split_format_and_value(
+                                current_format, current_value
+                            )
+                            target_pos = None
+                            for f, start, end in positions:
+                                if f == fmt:
+                                    target_pos = (start, end)
+                                    break
+
+                            if target_pos:
+                                start, end = target_pos
+                                length = self.FORMAT_LENGTH.get(fmt, len(str(repl)))
+                                new_value = str(repl).zfill(length)
+                                value_start = start
+                                value_end = value_start + length
+                                new_date_value = list(current_value)
+                                new_date_value[value_start:value_end] = list(new_value)
+                                current_value = "".join(new_date_value)
+
+                        except ValueError:
                             raise ConfigError(
                                 f"Cannot replace {fmt} with {repl} in the given format"
                             )
-                current_value = "".join(new_date_value)
+
+                # After all replacements, convert to standard format
+                current_value, current_format = self._convert_to_standard_format(
+                    current_value, self.input_format
+                )
 
                 # Try parsing with the modified value
-                return datetime.strptime(current_value, current_format)
+                return self._format_output(
+                    datetime.strptime(current_value, current_format)
+                )
 
             except Exception:
                 continue
@@ -474,12 +533,12 @@ class EncoderDate(Encoder):
         return None
 
     def _handle_invalid_date(
-        self, value: Any, invalid_handling: str
+        self, value: Any, invalid_handling: str = "erase"
     ) -> Union[datetime, None]:
         """Handle invalid dates according to specified strategy"""
         if invalid_handling == "error":
             raise ValueError(f"Invalid date format: {value}")
-        elif invalid_handling in ["drop", "erase"]:
+        elif invalid_handling in ["erase"]:
             return None
         elif invalid_handling == "replace":
             return self._apply_replacement_rules(value)
@@ -496,12 +555,14 @@ class EncoderDate(Encoder):
 
         try:
             if self.input_format:
-                # Handle custom formats first
-                current_value, current_format = self._convert_to_standard_format(
-                    value, self.input_format
-                )
-                # Then use standard strptime
-                parsed = datetime.strptime(current_value, current_format)
+                try:
+                    # Try direct parsing first
+                    parsed = datetime.strptime(value, self.input_format)
+                    return self._format_output(parsed)
+                except ValueError:
+                    # If direct parsing fails, handle invalid date
+                    # This way we preserve the original format for replacement rules
+                    return self._handle_invalid_date(value, self.invalid_handling)
             else:
                 # Use fuzzy parsing if no format specified
                 try:
@@ -559,4 +620,16 @@ class EncoderDate(Encoder):
 
     def _transform(self, data: pd.Series) -> np.ndarray:
         """Convert single column of data to date format"""
-        return data.apply(self._parse_date).values
+        transformed = data.apply(self._parse_date)
+        if not pd.api.types.is_datetime64_any_dtype(transformed):
+            # OutofBoundsDatetime will raised when the date is out of range
+            max_date = pd.Timestamp.max.date()
+            min_date = pd.Timestamp.min.date()
+            transformed = transformed.apply(
+                lambda x: None
+                if pd.isna(x)
+                or (isinstance(x, date) and (x > max_date or x < min_date))
+                else x
+            )
+            transformed = pd.to_datetime(transformed, errors="coerce")
+        return transformed

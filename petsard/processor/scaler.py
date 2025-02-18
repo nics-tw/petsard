@@ -222,12 +222,12 @@ class ScalerTimeAnchor(Scaler):
     Scale the data by time difference from a reference time series.
     """
 
-    def __init__(self, unit: str = "D") -> None:
+    def __init__(self, reference: str, unit: str = "D") -> None:
         super().__init__()
         if unit not in ["D", "S"]:
             raise ValueError("unit must be either 'D'(days) or 'S'(seconds)")
-        self.unit = unit
-        self.reference_series = None
+        self.unit: str = unit
+        self.reference: str = reference
 
     def set_reference_time(self, reference_series: pd.Series) -> None:
         """Set reference series for row-wise time difference calculation"""
@@ -237,15 +237,13 @@ class ScalerTimeAnchor(Scaler):
 
     def _fit(self, data: np.ndarray) -> None:
         """Validate data type and reference"""
-        if not pd.api.types.is_datetime64_any_dtype(data):
-            raise ValueError("Data must be in datetime format")
-        if self.reference_series is None:
-            raise ValueError("Reference series not set")
-        if len(data) != len(self.reference_series):
-            raise ValueError("Target and reference must have same length")
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """Transform to time differences"""
+
+        if len(data) != len(self.reference_series):
+            raise ValueError("Target and reference must have same length")
+
         delta = pd.Series(data.ravel()) - self.reference_series
 
         if self.unit == "D":

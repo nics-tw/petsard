@@ -95,7 +95,10 @@ class DefaultProcessorMap:
 
     @classmethod
     def get_processor(cls, processor_type: str, data_type: str):
-        return cls.PROCESSOR_MAP.get(processor_type, {}).get(data_type)
+        processor_class = cls.CLASS_MAP.get(processor_type, lambda: None)
+        if processor_class is None:
+            raise ConfigError(f"Invalid sub-processor type: {processor_type}")
+        return processor_class
 
 
 class ProcessorClassMap:
@@ -132,7 +135,30 @@ class ProcessorClassMap:
 
     @classmethod
     def get_class(cls, processor_name: str):
-        return cls.CLASS_MAP.get(processor_name, lambda: None)
+        subprocessor_class = cls.CLASS_MAP.get(processor_name, lambda: None)
+        if subprocessor_class is None:
+            raise ConfigError(f"Invalid sub-processor name: {processor_name}")
+        return subprocessor_class
+
+
+class MediatorMap:  # pragma: no cover
+    """
+    Mapping of mediator classes to their corresponding processors.
+    """
+
+    MEDIATOR_MAP = {
+        "missing": {"class": MediatorMissing, "attr_name": "mediator_missing"},
+        "outlier": {"class": MediatorOutlier, "attr_name": "mediator_outlier"},
+        "encoder": {"class": MediatorEncoder, "attr_name": "mediator_encoder"},
+        "scaler": {"class": MediatorScaler, "attr_name": "mediator_scaler"},
+    }
+
+    @classmethod
+    def get_class_info(cls, processor_type: str):
+        mediator_class = cls.MEDIATOR_MAP.get(processor_type)
+        if mediator_class is None:
+            raise ConfigError(f"Invalid processor type of mediator: {processor_type}")
+        return mediator_class
 
 
 class Processor:
@@ -180,12 +206,10 @@ class Processor:
             _sequence (list): The user-defined sequence.
             _fitting_sequence (list): The actual fitting sequence with mediators.
             _inverse_sequence (list): The sequence for inverse transformation.
-            _mediator_missing (MediatorMissing): The mediator for missing handling.
-            _mediator_outlier (MediatorOutlier): The mediator for outlier handling.
-            _mediator_encoder (MediatorEncoder): The mediator for encoder handling.
             _na_percentage_global (float): The global NA percentage.
             _rng (np.random.Generator): The random number generator for NA imputation.
         """
+
         # Setup logging
         self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
         self.logger.debug("Initializing Processor")
@@ -193,6 +217,9 @@ class Processor:
             f"Loaded metadata contains {len(metadata.metadata['col'])} columns, "
             f"with {metadata.metadata['global']['row_num']} rows"
         )
+
+        self.logger.debug("config is provided:")
+        self.logger.debug(f"config is provided: {config}")
 
         # Initialize metadata
         self._metadata: Metadata = metadata
@@ -208,11 +235,8 @@ class Processor:
         self._fitting_sequence: list = None  # Actual fitting sequence with mediators
         self._inverse_sequence: list = None  # Sequence for inverse transformation
 
-        # deal with global transformation of missinghandler and outlierhandler
-        self._mediator_missing: MediatorMissing | None = None
-        self._mediator_outlier: MediatorOutlier | None = None
-        self._mediator_encoder: MediatorEncoder | None = None
-        self.mediator_scaler: MediatorScaler | None = None
+        # setup mediators
+        self._mediator: dict[str, Mediator] = {}
 
         # Setup NA handling
         self._na_percentage_global: float = self._metadata.metadata["global"].get(
@@ -262,7 +286,7 @@ class Processor:
 
         self.logger.debug("Config generation completed")
 
-    def get_config(self, col: list = None, print_config: bool = False) -> dict:
+    def get_config(self, col: list = None) -> dict:
         """
         Get the config from the instance.
 
@@ -270,8 +294,6 @@ class Processor:
             col (list): The columns the user want to get the config from.
             If the list is empty,
                 all columns from the metadata will be selected.
-            print_config (bool, default=False):
-                Whether the result should be printed.
 
         Return:
             (dict): The config with selected columns.
@@ -286,19 +308,9 @@ class Processor:
         else:
             get_col_list = list(self._metadata.metadata["col"].keys())
 
-        if print_config:
-            for processor in self._config.keys():
-                print(processor)
-                for colname in get_col_list:
-                    print(
-                        f"    {colname}:",
-                        f" {type(self._config[processor][colname]).__name__}",
-                    )
-                    result_dict[processor][colname] = self._config[processor][colname]
-        else:
-            for processor in self._config.keys():
-                for colname in get_col_list:
-                    result_dict[processor][colname] = self._config[processor][colname]
+        for processor in self._config.keys():
+            for colname in get_col_list:
+                result_dict[processor][colname] = self._config[processor][colname]
 
         return result_dict
 
@@ -312,12 +324,17 @@ class Processor:
 
         for processor, val in config.items():
             for col, processor_spec in val.items():
-                # accept string of processor
-                obj = (
-                    ProcessorClassMap.get_class(processor_spec)()
-                    if isinstance(processor_spec, str)
-                    else processor_spec
-                )
+                # convert sub-processor name to class
+                if isinstance(processor_spec, str):
+                    processor_code = processor_spec
+                    obj = ProcessorClassMap.get_class(processor_code)()
+                elif isinstance(processor_spec, dict):
+                    processor_code = processor_spec.pop("method")
+                    self.logger.debug(f"{processor} config: {processor_spec}")
+                    obj = ProcessorClassMap.get_class(processor_code)(**processor_spec)
+                else:
+                    self.logger.error(f"Invalid processor spec: {processor_spec}")
+                    raise ConfigError(f"Invalid processor spec: {processor_spec}")
 
                 self._config[processor][col] = obj
 
@@ -342,45 +359,23 @@ class Processor:
 
         self._fitting_sequence = self._sequence.copy()
 
-        if "missing" in self._sequence:
-            # if missing is in the procedure,
-            # MediatorMissing should be in the queue
-            # right after the missing
-            self._mediator_missing = MediatorMissing(self._config)
-            self._fitting_sequence.insert(
-                self._fitting_sequence.index("missing") + 1, self._mediator_missing
-            )
-            self.logger.info("MediatorMissing is created.")
-
-        if "outlier" in self._sequence:
-            # if outlier is in the procedure,
-            # MediatorOutlier should be in the queue
-            # right after the outlier
-            self._mediator_outlier = MediatorOutlier(self._config)
-            self._fitting_sequence.insert(
-                self._fitting_sequence.index("outlier") + 1, self._mediator_outlier
-            )
-            self.logger.info("MediatorOutlier is created.")
-
-        if "encoder" in self._sequence:
-            # if encoder is in the procedure,
-            # MediatorEncoder should be in the queue
-            # right after the encoder
-            self._mediator_encoder = MediatorEncoder(self._config)
-            self._fitting_sequence.insert(
-                self._fitting_sequence.index("encoder") + 1, self._mediator_encoder
-            )
-            self.logger.info("MediatorEncoder is created.")
-
-        if "scaler" in self._sequence:
-            # if scaler is in the procedure,
-            # MediatorScaler should be in the queue
-            # right after the scaler
-            self.mediator_scaler = MediatorScaler(self._config)
-            self._fitting_sequence.insert(
-                self._fitting_sequence.index("scaler") + 1, self.mediator_scaler
-            )
-            self.logger.info("MediatorScaler is created.")
+        # Mediator creation
+        for proc_name in self._sequence:
+            mediator_info = MediatorMap.get_class_info(proc_name)
+            if mediator_info:
+                mediator = mediator_info["class"](self._config)
+                self._mediator[proc_name] = mediator
+                # MediatorScaler for TimeAnchor should .set_reference_time() before Scaler in transform()
+                if isinstance(mediator, MediatorScaler):
+                    self._fitting_sequence.insert(
+                        self._fitting_sequence.index(proc_name), mediator
+                    )
+                # Other Mediator is modified after the processor
+                else:
+                    self._fitting_sequence.insert(
+                        self._fitting_sequence.index(proc_name) + 1, mediator
+                    )
+                self.logger.info(f"{mediator_info['class'].__name__} is created.")
 
         self._detect_edit_global_transformation()
 
@@ -406,9 +401,13 @@ class Processor:
                 # if the processor is not a string,
                 # it should be a mediator, which could be fitted directly.
 
-                self.logger.debug(f"mediator: {type(obj).__name__} start processing.")
-                processor.fit(data)
-                self.logger.info(f"{type(obj).__name__} fitting done.")
+                # Skip fit() for MediatorScaler
+                if not isinstance(processor, MediatorScaler):
+                    self.logger.debug(
+                        f"mediator: {type(obj).__name__} start processing."
+                    )
+                    processor.fit(data)
+                    self.logger.info(f"{type(obj).__name__} fitting done.")
 
         # it is a shallow copy
         self._working_config = self._config.copy()
@@ -533,7 +532,7 @@ class Processor:
 
         self.logger.debug(f"Starting data transformation, input shape: {data.shape}")
 
-        transformed: pd.DataFrame = data.copy()
+        self.transformed: pd.DataFrame = data.copy()
 
         for processor in self._fitting_sequence:
             if isinstance(processor, str):
@@ -551,15 +550,15 @@ class Processor:
                         continue
 
                     # Log pre-transformation statistics
-                    if transformed[col].dtype.kind in "biufc":  # numeric columns
+                    if self.transformed[col].dtype.kind in "biufc":  # numeric columns
                         self.logger.debug(
                             f"  > Pre-transform stats: "
-                            f"mean={transformed[col].mean():.4f}, "
-                            f"std={transformed[col].std():.4f}, "
-                            f"na_cnt={transformed[col].isna().sum()}"
+                            f"mean={self.transformed[col].mean():.4f}, "
+                            f"std={self.transformed[col].std():.4f}, "
+                            f"na_cnt={self.transformed[col].isna().sum()}"
                         )
 
-                    transformed[col] = obj.transform(transformed[col])
+                    self.transformed[col] = obj.transform(self.transformed[col])
 
                     col_metadata: dict = self._metadata.metadata["col"][col]
                     if col_metadata["infer_dtype"] == "datetime":
@@ -581,17 +580,17 @@ class Processor:
                         ):
                             self._adjust_metadata(
                                 mode="columnwise",
-                                data=transformed[col],
+                                data=self.transformed[col],
                                 col=col,
                             )
 
                     # Log post-transformation statistics
-                    if transformed[col].dtype.kind in "biufc":
+                    if self.transformed[col].dtype.kind in "biufc":
                         self.logger.debug(
                             f"  > Post-transform stats: "
-                            f"mean={transformed[col].mean():.4f}, "
-                            f"std={transformed[col].std():.4f}, "
-                            f"na_cnt={transformed[col].isna().sum()}"
+                            f"mean={self.transformed[col].mean():.4f}, "
+                            f"std={self.transformed[col].std():.4f}, "
+                            f"na_cnt={self.transformed[col].isna().sum()}"
                         )
 
                 self.logger.info(f"{processor} transformation done.")
@@ -603,25 +602,34 @@ class Processor:
                     f"mediator: {type(processor).__name__} start transforming."
                 )
                 self.logger.debug(
-                    f"before transformation: data shape: {transformed.shape}"
+                    f"before transformation: data shape: {self.transformed.shape}"
                 )
 
-                transformed = processor.transform(transformed)
-                if isinstance(processor, MediatorEncoder):
+                # MediatorScaler for TimeAnchor should use Encoder transformed results sometimes.\
+                if isinstance(processor, MediatorScaler):
+                    processor.fit(self.transformed)
+
+                self.transformed = processor.transform(self.transformed)
+                if isinstance(processor, MediatorEncoder) or isinstance(
+                    processor, MediatorScaler
+                ):
                     self._adjust_metadata(
                         mode="global",
-                        data=transformed,
+                        data=self.transformed,
                     )
                 self._adjust_working_config(processor, self._fitting_sequence)
 
                 self.logger.debug(
-                    f"after transformation: data shape: {transformed.shape}"
+                    f"after transformation: data shape: {self.transformed.shape}"
                 )
                 self.logger.info(f"{type(processor).__name__} transformation done.")
 
-        self._metadata.metadata["global"]["row_num_after_preproc"] = transformed.shape[
-            0
-        ]
+        self._metadata.metadata["global"]["row_num_after_preproc"] = (
+            self.transformed.shape[0]
+        )
+
+        transformed: pd.DataFrame = self.transformed.copy()
+        delattr(self, "transformed")
 
         return transformed
 
@@ -680,7 +688,7 @@ class Processor:
             # MediatorEncoder should be in the queue
             # right after the encoder
             self._inverse_sequence.insert(
-                self._inverse_sequence.index("encoder"), self._mediator_encoder
+                self._inverse_sequence.index("encoder"), self._mediator["encoder"]
             )
             self.logger.info("MediatorEncoder is created.")
 
@@ -695,7 +703,7 @@ class Processor:
             # MediatorScaler should be in the queue
             # right after the scaler
             self._inverse_sequence.insert(
-                self._inverse_sequence.index("scaler"), self.mediator_scaler
+                self._inverse_sequence.index("scaler"), self._mediator["scaler"]
             )
             self.logger.info("MediatorScaler is created.")
 
