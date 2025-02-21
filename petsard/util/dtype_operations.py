@@ -1,5 +1,4 @@
 import logging
-import sys
 import warnings
 from typing import Dict, Union
 
@@ -16,14 +15,6 @@ from pandas.api.types import (
 
 from petsard.error import ConfigError
 from petsard.util.params import ALLOWED_COLUMN_TYPES, OPTIMIZED_DTYPES
-
-# 設定 logging
-logging.basicConfig(
-    level=logging.INFO,
-    stream=sys.stdout,
-    format="[%(levelname).1s %(asctime)s] %(message)s",
-    datefmt="%Y%m%d %H:%M:%S",
-)
 
 # 常數定義
 NUMERIC_MAP: dict[str, int] = {
@@ -65,6 +56,7 @@ def safe_dtype(
     Raises:
         TypeError: If the input data type is not supported.
     """
+
     dtype_name: str = ""
 
     if isinstance(dtype, np.dtype):
@@ -268,6 +260,8 @@ def safe_astype(
     """
     Safely cast a pandas Series to a given dtype.
     """
+    logger = logging.getLogger(f"PETsARD.{__name__}")
+
     data_dtype_name: str = safe_dtype(col.dtype)
     declared_dtype_name: str = safe_dtype(declared_dtype)
 
@@ -276,7 +270,7 @@ def safe_astype(
         colname = col.name
 
     if data_dtype_name == "float16":
-        logging.info(
+        logger.info(
             f"dtype {data_dtype_name} change to float32 first"
             + "for pandas only support float32 above.",
         )
@@ -305,7 +299,7 @@ def safe_astype(
         if declared_dtype_name == "float16" and (
             is_integer_dtype(data_dtype_name) or is_float_dtype(data_dtype_name)
         ):
-            logging.info(
+            logger.info(
                 f"declared dtype {declared_dtype_name} "
                 + "will changes to float32 "
                 + "for pandas only support float32 above.",
@@ -372,7 +366,7 @@ def safe_astype(
         else:
             col = col.astype(declared_dtype_name)
 
-        logging.info(
+        logger.info(
             f"{colname} changes data dtype from "
             + f"{data_dtype_name} to {declared_dtype_name} "
             + "for metadata alignment.",

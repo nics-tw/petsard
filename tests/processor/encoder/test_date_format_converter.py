@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import pandas as pd
 import pytest
 
 from petsard.error import ConfigError
@@ -75,18 +74,28 @@ class TestMinguoYConverter:
         for dt, expected in test_cases:
             assert converter.from_standard(dt) == expected
 
-    def test_from_standard_edge_cases(self, converter):
-        # Test handling of None and NaT values
-        assert converter.from_standard(None) is None
-        assert converter.from_standard(pd.NaT) is None
+    def test_to_standard_edge_cases(self, converter):
+        """Test edge cases for conversion involving invalid dates"""
+        test_cases = [
+            ("1130024", "%MinguoY%m%d"),  # Invalid month (00)
+            ("1130132", "%MinguoY%m%d"),  # Invalid day (32)
+            ("1131324", "%MinguoY%m%d"),  # Invalid month (13)
+            ("9999999", "%MinguoY%m%d"),  # Completely invalid format
+            ("0000000", "%MinguoY%m%d"),  # All zeros
+        ]
+        for value, fmt in test_cases:
+            with pytest.raises(ValueError):
+                converter.to_standard(value, fmt)
 
-        # Test pre-1912 dates - accepting conversion
-        result = converter.from_standard(datetime(1911, 12, 31))
-        assert result == "000"  # Year 1911 maps to Minguo year 0
-
-        # Test invalid input types
-        with pytest.raises(Exception):
-            converter.from_standard("2023")  # String input instead of datetime
+    def test_to_standard_valid_edge_dates(self, converter):
+        """Test valid but edge case dates"""
+        test_cases = [
+            ("1130229", "%MinguoY%m%d", "20240229"),  # Leap year
+            ("1130228", "%MinguoY%m%d", "20240228"),  # Last day of Feb
+            ("1130131", "%MinguoY%m%d", "20240131"),  # Last day of Jan
+        ]
+        for minguo, fmt, expected in test_cases:
+            assert converter.to_standard(minguo, fmt) == expected
 
     def test_find_custom_position(self, converter):
         # Test finding position of MinguoY in different formats

@@ -323,11 +323,7 @@ class PreprocessorOperator(BaseOperator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self.logger.debug("Initializing processor")
-        self.processor = Processor(metadata=input["metadata"])
-
-        # for keep default but update manual only
-        self.logger.debug("Updating processor configuration")
-        self.processor.update_config(self._config)
+        self.processor = Processor(metadata=input["metadata"], config=self._config)
 
         if self._sequence is None:
             self.logger.debug("Using default processing sequence")

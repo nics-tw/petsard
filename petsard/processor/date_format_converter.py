@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional, Union
 
 import pandas as pd
@@ -184,25 +184,60 @@ class MinguoYConverter(DateFormatConverter):
         Returns:
             Date string with Gregorian year
 
-        Raises:
+        Raise:
             ConfigError: If %MinguoY not found in format string
             ValueError: If year string is invalid
         """
         try:
-            # Find the position of Minguo year in the value string
-            start_pos, end_pos = self.find_custom_position(value, format_str)
+            # Find positions for each format token
+            positions = []
+            current_pos = 0
 
-            # Extract and validate the year
-            minguo_year = self._validate_minguo_year(value[start_pos:end_pos])
-            gregorian_year = minguo_year + 1911
+            # Parse format string to find token positions
+            i = 0
+            while i < len(format_str):
+                if format_str[i:].startswith(self.custom_format):
+                    positions.append(
+                        ("year", current_pos, current_pos + self.default_length)
+                    )
+                    current_pos += self.default_length
+                    i += len(self.custom_format)
+                elif format_str[i:].startswith("%m"):
+                    positions.append(("month", current_pos, current_pos + 2))
+                    current_pos += 2
+                    i += 2
+                elif format_str[i:].startswith("%d"):
+                    positions.append(("day", current_pos, current_pos + 2))
+                    current_pos += 2
+                    i += 2
+                else:
+                    i += 1
+                    current_pos += 1
 
-            # Replace year while keeping the rest of string intact
-            return value[:start_pos] + str(gregorian_year) + value[end_pos:]
+            # Extract and validate components
+            for token_type, start, end in positions:
+                component = value[start:end]
+                if token_type == "month":
+                    month = int(component)
+                    if month < 1 or month > 12:
+                        raise ValueError(f"Invalid month: {month}")
+                elif token_type == "day":
+                    day = int(component)
+                    if day < 1 or day > 31:  # Basic validation
+                        raise ValueError(f"Invalid day: {day}")
+                elif token_type == "year":
+                    year = int(component)
+
+            # Only convert year if all components are valid
+            gregorian_year = year + 1911
+            return str(gregorian_year) + value[self.default_length :]
 
         except ValueError as e:
-            raise ValueError(f"Failed to convert Minguo year: {e}")
+            raise ValueError(f"Invalid date component: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Failed to convert date: {str(e)}")
 
-    def from_standard(self, value: Union[datetime, None]) -> Optional[str]:
+    def from_standard(self, value: Union[datetime, date, None]) -> Optional[str]:
         """Convert from Gregorian year to Minguo year
 
         Args:
@@ -215,14 +250,12 @@ class MinguoYConverter(DateFormatConverter):
             return None
 
         try:
-            if not isinstance(value, datetime):
-                raise ValueError(f"Invalid datetime object: {value}")
-
-            minguo_year = value.year - 1911
-            if minguo_year < 0:
-                raise ValueError(f"Year {value.year} is before Minguo calendar era")
-
-            return f"{minguo_year:03d}"
+            if isinstance(value, (datetime, date)):
+                minguo_year = value.year - 1911
+                if minguo_year < 0:
+                    raise ValueError(f"Year {value.year} is before Minguo calendar era")
+                return str(f"{minguo_year:03d}")
+            raise ValueError(f"Invalid datetime/date object: {value}")
 
         except AttributeError:
             raise ValueError(f"Invalid datetime object: {value}")
