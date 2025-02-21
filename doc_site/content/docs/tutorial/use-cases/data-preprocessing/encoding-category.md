@@ -52,14 +52,12 @@ In the `encoder` block, we apply different encoding strategies for three fields:
 ```yaml
 Preprocessor:
   encoding-custom:
-    method: 'default'
     sequence:
       - 'encoder'
-    config:
-      encoder:
-        workclass: 'encoding_uniform'
-        occupation: 'encoding_label'
-        native-country: 'encoding_onehot'
+    encoder:
+      workclass: 'encoding_uniform'
+      occupation: 'encoding_label'
+      native-country: 'encoding_onehot'
 ```
 
 ## Encoding Methods

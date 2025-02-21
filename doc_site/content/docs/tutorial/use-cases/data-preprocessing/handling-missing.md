@@ -59,14 +59,12 @@ In the `missing` section, three fields are customized: missing values in the `wo
 ```yaml
 Preprocessor:
   missing-custom:
-    method: 'default'
-    config:
-      missing:
-        workclass: 'missing_drop'
-        occupation: 'missing_mode'
-        native-country:
-          method: 'missing-simple'
-          value: 'Galactic Empire'
+    missing:
+      workclass: 'missing_drop'
+      occupation: 'missing_mode'
+      native-country:
+        method: 'missing-simple'
+        value: 'Galactic Empire'
 ```
 
 ## Missing Value Handling Methods

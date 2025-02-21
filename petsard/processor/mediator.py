@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
@@ -411,7 +413,8 @@ class MediatorScaler(Mediator):
             config (dict): Configuration dictionary containing scaler settings
         """
         super().__init__()
-        self._config = config
+        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        self._config = config["scaler"]
 
     def _fit(self, data: pd.DataFrame) -> None:
         """
@@ -423,27 +426,24 @@ class MediatorScaler(Mediator):
         - Reference column existence
         - Reference column datetime type
         """
-        time_anchor_cols = []
-        reference_cols = {}
+        self.time_anchor_cols: list[str] = []
+        self.reference_cols: dict[str, str] = {}
 
-        for col, processor in self._config["scaler"].items():
-            # Skip non-dictionary processors
-            if not isinstance(processor, dict):
-                continue
-
+        for col, processor in self._config.items():
             # Check if it's a TimeAnchor scaler
-            if processor.get("method") == "scaler_timeanchor":
+            if isinstance(processor, ScalerTimeAnchor):
                 # Check if reference column is specified
-                if "reference" not in processor:
+                if not hasattr(processor, "reference"):
                     self.logger.error(
                         f"TimeAnchor scaler {col} has no reference column specified"
                     )
                     raise ValueError(
                         f"TimeAnchor scaler {col} has no reference column specified"
                     )
+                ref_col = processor.reference
 
                 # Validate unit, default to 'D'
-                unit = processor.get("unit", "D")
+                unit = processor.unit
                 if unit not in ["D", "S"]:
                     self.logger.error(
                         f"TimeAnchor scaler {col} has incorrect unit, must be 'D'(days) or 'S'(seconds)"
@@ -451,8 +451,6 @@ class MediatorScaler(Mediator):
                     raise ValueError(
                         f"TimeAnchor scaler {col} has incorrect unit, must be 'D'(days) or 'S'(seconds)"
                     )
-
-                ref_col = processor["reference"]
 
                 # Check if reference column exists in dataset
                 if ref_col not in data.columns:
@@ -464,33 +462,36 @@ class MediatorScaler(Mediator):
                     )
 
                 # Check if reference column is datetime type
-                if not pd.api.types.is_datetime64_any_dtype(data[ref_col]):
-                    self.logger.error(
-                        f"Reference column {ref_col} must be datetime type"
-                    )
-                    raise ValueError(
-                        f"Reference column {ref_col} must be datetime type"
-                    )
+                # if not pd.api.types.is_datetime64_any_dtype(data[ref_col]):
+                #     self.logger.error(
+                #         f"Reference column {ref_col} must be datetime type"
+                #     )
+                #     raise ValueError(
+                #         f"Reference column {ref_col} must be datetime type"
+                #     )
 
-                time_anchor_cols.append(col)
-                reference_cols[col] = ref_col
+                self.time_anchor_cols.append(col)
+                self.reference_cols[col] = ref_col
 
-        # Set reference time series for each TimeAnchor scaler
-        for col in time_anchor_cols:
-            ref_col = reference_cols[col]
-            self._config["scaler"][col].set_reference_time(data[ref_col])
+                processor.set_reference_time(data[ref_col])
 
     def _transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """Transform data, ensuring TimeAnchor operations are done first"""
+        # Set reference time series for each TimeAnchor scaler
+        for col in self.time_anchor_cols:
+            ref_col = self.reference_cols[col]
+            self._config[col].set_reference_time(data[ref_col])
+
         result = data.copy()
+        self.original_dtypes = result.dtypes.to_dict()
 
         # First transform TimeAnchor columns
-        for col, processor in self._config["scaler"].items():
+        for col, processor in self._config.items():
             if isinstance(processor, ScalerTimeAnchor):
                 result[col] = processor.transform(data[col])
 
         # Then transform other columns
-        for col, processor in self._config["scaler"].items():
+        for col, processor in self._config.items():
             if processor is not None and not isinstance(processor, ScalerTimeAnchor):
                 result[col] = processor.transform(data[col])
 
@@ -501,13 +502,15 @@ class MediatorScaler(Mediator):
         result = data.copy()
 
         # First inverse transform non-TimeAnchor columns
-        for col, processor in self._config["scaler"].items():
+        for col, processor in self._config.items():
             if processor is not None and not isinstance(processor, ScalerTimeAnchor):
                 result[col] = processor.inverse_transform(data[col])
 
         # Then inverse transform TimeAnchor columns
-        for col, processor in self._config["scaler"].items():
+        for col, processor in self._config.items():
             if isinstance(processor, ScalerTimeAnchor):
                 result[col] = processor.inverse_transform(data[col])
+                if hasattr(self, "original_dtypes"):
+                    result[col] = result[col].astype(self.original_dtypes[col])
 
         return result

@@ -52,14 +52,12 @@ Reporter:
 ```yaml
 Preprocessor:
   encoding-custom:
-    method: 'default'
     sequence:
       - 'encoder'
-    config:
-      encoder:
-        workclass: 'encoding_uniform'
-        occupation: 'encoding_label'
-        native-country: 'encoding_onehot'
+    encoder:
+      workclass: 'encoding_uniform'
+      occupation: 'encoding_label'
+      native-country: 'encoding_onehot'
 ```
 
 ## 編碼處理方法

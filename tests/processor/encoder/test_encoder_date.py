@@ -142,3 +142,58 @@ class TestEncoderDate:
         basic_encoder.fit(data)
         result = basic_encoder.transform(data)
         assert pd.isna(result[1])
+
+    def test_replacement_rules_with_invalid_dates(self):
+        """Test replacement rules with various invalid date formats"""
+        rules = [
+            {"%MinguoY": "113"},
+            {"%MinguoY": "113", "%m": "01"},
+            {"%MinguoY": "113", "%m": "01", "%d": "01"},
+            {"fallback": "erase"},
+        ]
+        encoder = EncoderDate(
+            input_format="%MinguoY%m%d",
+            date_type="date",
+            invalid_handling="replace",
+            invalid_rules=rules,
+        )
+
+        test_cases = [
+            ("1130024", "1130124"),  # Invalid month (00) -> 01
+            ("1130132", "1130101"),  # Invalid day (32) -> 01
+            ("1131324", "1130124"),  # Invalid month (13) -> 01
+            ("9999999", "1130101"),  # Invalid format -> default
+            ("0000000", "1130101"),  # All zeros -> default
+        ]
+
+        data = pd.Series([case[0] for case in test_cases])
+        encoder.fit(data)
+        result = encoder.transform(data)
+        back = encoder.inverse_transform(pd.Series(result))
+
+        for (input_val, expected), output in zip(test_cases, back):
+            assert output == expected
+
+    def test_inverse_transform_with_edge_dates(self):
+        """Test inverse transform with edge case dates"""
+        encoder = EncoderDate(input_format="%MinguoY%m%d", date_type="date")
+
+        test_cases = [
+            ("1130229", datetime(2024, 2, 29)),  # Leap year
+            ("1130228", datetime(2024, 2, 28)),  # Last day of Feb
+            ("1130131", datetime(2024, 1, 31)),  # Last day of Jan
+        ]
+
+        # Test forward transformation
+        input_data = pd.Series([case[0] for case in test_cases])
+        encoder.fit(input_data)
+        transformed = encoder.transform(input_data)
+
+        # Verify transformed dates
+        for (_, expected_date), actual_date in zip(test_cases, transformed):
+            assert actual_date.date() == expected_date.date()
+
+        # Test inverse transformation
+        back = encoder.inverse_transform(pd.Series(transformed))
+        for (expected_str, _), actual_str in zip(test_cases, back):
+            assert actual_str == expected_str
