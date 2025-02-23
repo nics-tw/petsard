@@ -1,11 +1,9 @@
 ---
 title: 均勻編碼
 type: docs
-weight: 53
+weight: 83
 prev: docs/developer-guide/benchmark-datasets
 next: docs/developer-guide/anonymeter
-sidebar:
-  open: true
 ---
 
 將類別變數轉換為連續值時，均勻編碼 (Uniform Encoder) 能提供更好的生成模型效果。此方法由 [datacebo](https://datacebo.com/) 提出，核心概念是將各類別對應到均勻分布中的特定區間，區間大小由該類別在資料中的比例決定。

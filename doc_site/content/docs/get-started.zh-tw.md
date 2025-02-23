@@ -1,11 +1,9 @@
 ---
 title: 入門指南
 type: docs
-weight: 7
+weight: 2
 prev: docs
 next: docs/tutorial
-sidebar:
-  open: true
 ---
 
 ## 安裝

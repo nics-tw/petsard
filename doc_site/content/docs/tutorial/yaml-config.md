@@ -4,8 +4,6 @@ type: docs
 weight: 11
 prev: docs/tutorial
 next: docs/tutorial/default-synthesis
-sidebar:
- open: true
 ---
 
 YAML is a human-readable data serialization format used by PETsARD for experiment configuration. This document explains how to structure your YAML configurations effectively.
@@ -29,6 +27,7 @@ The top level defines the processing modules in execution order:
 - Preprocessor: Data preprocessing
 - Synthesizer: Data synthesis
 - Postprocessor: Data postprocessing
+- Constrainer: Data constraining
 - Evaluator: Result evaluation
 - Reporter: Report generation
 
@@ -67,7 +66,7 @@ Loader:
 
 When multiple experiments are defined, PETsARD executes them in a depth-first order:
 ```
-Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Evaluator -> Reporter
+Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Constrainer -> Evaluator -> Reporter
 ```
 
 For example:

@@ -4,8 +4,6 @@ type: docs
 weight: 11
 prev: docs/tutorial
 next: docs/tutorial/default-synthesis
-sidebar:
- open: true
 ---
 
 YAML 是一種人類可讀的資料序列化格式，PETsARD 使用它來進行實驗設定。本文件說明如何有效地組織您的 YAML 設定。
@@ -29,6 +27,7 @@ PETsARD 的 YAML 設定採用三層架構：
 - Preprocessor：資料前處理
 - Synthesizer：資料合成
 - Postprocessor：資料後處理
+- Constrainer：資料約束
 - Evaluator：結果評估
 - Reporter：報告產生
 
@@ -67,7 +66,7 @@ Loader:
 
 當定義多個實驗時，PETsARD 採用深度優先的順序執行：
 ```
-Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Evaluator -> Reporter
+Loader -> Preprocessor -> Synthesizer -> Postprocessor -> Constrainer -> Evaluator -> Reporter
 ```
 
 例如：

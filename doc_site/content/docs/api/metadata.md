@@ -1,11 +1,9 @@
 ---
 title: Metadata
 type: docs
-weight: 40
+weight: 59
 prev: docs/api/reporter
 next: docs/api/describer
-sidebar:
-  open: true
 ---
 
 

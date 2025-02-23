@@ -1,7 +1,7 @@
 ---
 title: PETsARD (/pəˈtɑrd/)
 type: page
-weight: 1
+weight: 0
 toc: false
 ---
 
@@ -9,7 +9,7 @@ toc: false
   隱私強化技術分析、研究與開發
 </p>
 
-<p align="center"><img src="/petsard/images/PETsARD-logo.png"></p>
+<p align="center"><img src="../images/PETsARD-logo.png"></p>
 
 ## 探索
 

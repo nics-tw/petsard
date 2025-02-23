@@ -1,11 +1,9 @@
 ---
 title: Splitter
 type: docs
-weight: 34
+weight: 53
 prev: docs/api/loader
 next: docs/api/processor
-sidebar:
-  open: true
 ---
 
 

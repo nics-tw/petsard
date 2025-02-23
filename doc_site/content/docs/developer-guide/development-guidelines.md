@@ -1,11 +1,9 @@
 ---
 title: Development Guidelines
 type: docs
-weight: 51
+weight: 81
 prev: docs/developer-guide
 next: docs/developer-guide/test-coverage
-sidebar:
- open: true
 ---
 
 ## Development Process

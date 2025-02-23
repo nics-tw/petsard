@@ -4,8 +4,6 @@ type: docs
 weight: 13
 prev: docs/tutorial/default-synthesis
 next: docs/tutorial/external-synthesis-default-evaluation
-sidebar:
-  open: true
 ---
 
 

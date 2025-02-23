@@ -1,11 +1,9 @@
 ---
 title: Benchmark Datasets
 type: docs
-weight: 19
-prev: docs/tutorial/special-cases/handling-missing-values
-next: docs/tutorial/special-cases/custom-evaluation
-sidebar:
-  open: true
+weight: 33
+prev: docs/tutorial/use-cases/custom-evaluation
+next: docs/tutorial/use-cases
 ---
 
 
@@ -49,7 +47,7 @@ Reporter:
 ...
 ```
 
-## Available Benchmark Dataset
+## Appx. Available Benchmark Dataset
 
 Currently, `PETsARD` provides the **Adult Income Dataset** as a benchmark:
 
@@ -66,3 +64,5 @@ Currently, `PETsARD` provides the **Adult Income Dataset** as a benchmark:
   1. Use `benchmark://` in `filepath` to specify the benchmark dataset
   2. `PETsARD` will automatically download and verify the dataset
   3. Subsequent synthesis and evaluation processes remain the same as with regular data
+
+For detailed implementation of benchmark datasets, please refer to [Benchmark Dataset Maintenance](docs/developer-guide/benchmark-datasets/) in the Developer Guide.

@@ -1,11 +1,9 @@
 ---
 title: 基準資料集
 type: docs
-weight: 19
-prev: docs/tutorial/special-cases/handling-missing-values
-next: docs/tutorial/special-cases/custom-evaluation
-sidebar:
-  open: true
+weight: 33
+prev: docs/tutorial/use-cases/custom-evaluation
+next: docs/tutorial/use-cases
 ---
 
 
@@ -49,7 +47,7 @@ Reporter:
 ...
 ```
 
-## 可用的基準資料集
+## 附錄：可用的基準資料集
 
 目前 `PETsARD` 提供 **Adult Income Dataset** 作為基準資料集：
 
@@ -66,3 +64,5 @@ Reporter:
   1. 在 `filepath` 中使用 `benchmark://` 指定要使用的基準資料集
   2. `PETsARD` 會自動下載並驗證資料集
   3. 後續的合成與評測流程與一般資料相同
+
+詳細的基準資料集實現方式，請參考開發者手冊的[基準資料集維護](docs/developer-guide/benchmark-datasets/)。
