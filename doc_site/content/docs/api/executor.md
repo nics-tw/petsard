@@ -1,11 +1,9 @@
 ---
 title: Executor
 type: docs
-weight: 32
+weight: 51
 prev: docs/api
 next: docs/api/loader
-sidebar:
-  open: true
 ---
 
 

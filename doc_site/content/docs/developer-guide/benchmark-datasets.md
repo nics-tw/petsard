@@ -1,11 +1,9 @@
 ---
 title: Benchmark Dataset Maintenance
 type: docs
-weight: 52
+weight: 82
 prev: docs/developer-guide/development-guidelines
 next: docs/developer-guide/uniform-encoder
-sidebar:
-  open: true
 ---
 
 This document explains how to maintain and extend PETsARD's benchmark dataset functionality. It is primarily intended for developers, providing guidelines for adding or modifying benchmark datasets.

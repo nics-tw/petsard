@@ -1,11 +1,9 @@
 ---
 title: 測試覆蓋範圍
 type: docs
-weight: 56
+weight: 86
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
-sidebar:
-  open: true
 ---
 
 ## 資料讀取

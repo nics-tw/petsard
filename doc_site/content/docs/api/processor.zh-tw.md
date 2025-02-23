@@ -1,11 +1,9 @@
 ---
 title: Processor
 type: docs
-weight: 35
+weight: 54
 prev: docs/api/splitter
 next: docs/api/synthesizer
-sidebar:
-  open: true
 ---
 
 
@@ -158,6 +156,45 @@ proc.inverse_transform(data)
 
 ## 附錄：支援處理方式
 
+### 預設處理方式
+
+此映射定義了不同資料型別的預設處理方法。數值型別採用平均值填補、四分位距異常值處理、標準化縮放和K-bins離散化；類別型別則使用丟棄遺失值、均勻編碼和標籤編碼。
+
+```python
+PROCESSOR_MAP: dict[str, dict[str, str]] = {
+    "missing": {
+        "numerical": MissingMean,
+        "categorical": MissingDrop,
+        "datetime": MissingDrop,
+        "object": MissingDrop,
+    },
+    "outlier": {
+        "numerical": OutlierIQR,
+        "categorical": lambda: None,
+        "datetime": OutlierIQR,
+        "object": lambda: None,
+    },
+    "encoder": {
+        "numerical": lambda: None,
+        "categorical": EncoderUniform,
+        "datetime": lambda: None,
+        "object": EncoderUniform,
+    },
+    "scaler": {
+        "numerical": ScalerStandard,
+        "categorical": lambda: None,
+        "datetime": ScalerStandard,
+        "object": lambda: None,
+    },
+    "discretizing": {
+        "numerical": DiscretizingKBins,
+        "categorical": EncoderLabel,
+        "datetime": DiscretizingKBins,
+        "object": EncoderLabel,
+    },
+}
+```
+
 ### Config 設定
 
 `config` 是一個巢狀字典，用於自訂各欄位的處理程序。
@@ -200,83 +237,140 @@ config = {
 }
 ```
 
-### 支援處理方式
+### 遺失值
 
-處理器支援兩大類的主要的處理方式：
+#### `MissingMean`
 
-- **表示形式轉換** (Representation Transformation) 指在保留原始資訊的前提下，改變資料的呈現形式。包括：
-  - **編碼** (Encoding)：將類別資料轉換為數值表示
-  - **離散化** (Discretizing)：連續值轉換為類別資料表示
-  - **尺度轉換** (Scaling)：數值範圍的重新映射
+將缺失值用該欄的平均值填入。
 
-- **資訊調整** (Information Modification) 則針對資料品質進行增強。包括：
-  - **遺失值處理** (Missing handling)：對資料缺失處進行補齊
-  - **極端值處理** (Outlier handling)：對資料雜訊進行弭平
+#### `MissingMedian`
 
-| 處理類型 | 處理方式 | 參數 |
-| :---: | :---: | :---: |
-| 編碼 | `EncoderUniform` | 'encoder_uniform' |
-| 編碼 | `EncoderLabel`   | 'encoder_label'   |
-| 編碼 | `EncoderOneHot`  | 'encoder_onehot'  |
-| 離散化 | `DiscretizingKBins` | 'discretizing_kbins' |
-| 尺度 | `ScalerStandard`   | 'scaler_standard'   |
-| 尺度 | `ScalerZeroCenter` | 'scaler_zerocenter' |
-| 尺度 | `ScalerMinMax`     | 'scaler_minmax'     |
-| 尺度 | `ScalerLog`        | 'scaler_log'        |
-| 尺度 | `ScalerTimeAnchor` | 'scaler_timeanchor' |
-| 遺失值 | `MissingMean`   | 'missing_mean'   |
-| 遺失值 | `MissingMedian` | 'missing_median' |
-| 遺失值 | `MissingMode`   | 'missing_mode'   |
-| 遺失值 | `MissingSimple` | 'missing_simple' |
-| 遺失值 | `MissingDrop`   | 'missing_drop'   |
-| 極端值 | `OutlierZScore`          | 'outlier_zscore'          |
-| 極端值 | `OutlierIQR`             | 'outlier_iqr'             |
-| 極端值 | `OutlierIsolationForest` | 'outlier_isolationforest' |
-| 極端值 | `OutlierLOF`             | 'outlier_lof'             |
+將缺失值用該欄的中位數填入。
 
-#### 編碼
+#### `MissingMode`
 
-##### `EncoderUniform`
+將缺失值用該欄的眾數填入。如果有多個眾數會隨機填入。
 
-將每個類別映射到均勻分布的特定範圍，範圍大小由資料中類別的出現頻率決定。
+#### `MissingSimple`
 
-##### `EncoderLabel`
-
-將類別變數對應到一系列的整數 (1, 2, 3,…) 藉此達到轉換為連續型資料的目的。
-
-##### `EncoderOneHot`
-
-將類別變數對應到一系列的獨熱編碼 (One-hot) 數值資料。
-
-#### 離散化
-
-##### `DiscretizingKBins`
-
-將連續資料切分為 k 個類別（k 個區間）。
+將缺失值用指定的值填入。
 
 **參數**
 
-- `n_bins` (int, default=5)：k 值，即為類別數。
+- `value` (float, default=0.0)：要填入的自訂值。
 
-#### 尺度
+#### `MissingDrop`
 
-##### `ScalerStandard`
+捨棄任何含有缺失值的列。
+
+### 離群值
+
+#### `OutlierZScore`
+
+此方法將 z 分數的絕對值大於 3 的資料歸類為異常值。
+
+#### `OutlierIQR`
+
+在此方法中，超過 1.5 倍四分位距（IQR）範圍的資料會被視為異常值。
+
+#### `OutlierIsolationForest`
+
+此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
+
+#### `OutlierLOF`
+
+此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
+
+### 編碼
+
+#### `EncoderUniform`
+
+將每個類別映射到均勻分布的特定範圍，範圍大小由資料中類別的出現頻率決定。
+
+#### `EncoderLabel`
+
+將類別變數對應到一系列的整數 (1, 2, 3,…) 藉此達到轉換為連續型資料的目的。
+
+#### `EncoderOneHot`
+
+將類別變數對應到一系列的獨熱編碼 (One-hot) 數值資料。
+
+#### `EncoderDate`
+
+將不標準的日期時間資料轉換為日期格式，支援各種日期格式，包含民國年等自訂曆法。
+
+**參數**
+
+- `input_format` (str, optional)：日期解析格式字串
+  - 預設值：無（使用模糊解析）
+  - 範例："%Y-%m-%d" 或 "%MinguoY-%m-%d"
+- `date_type` (str, default="datetime")：轉換後的日期型別
+  - "date"：僅日期（無時間）
+  - "datetime"：日期和時間
+  - "datetime_tz"：含時區的日期和時間
+- `tz` (str, optional)：輸出日期的時區
+  - 預設值：無
+  - 範例："Asia/Taipei"
+- `numeric_convert` (bool, default=False)：是否嘗試轉換數值型時間戳
+- `invalid_handling` (str, default="error")：無效日期的處理方式
+  - "error"：拋出錯誤
+  - "erase"：替換為空值
+  - "replace"：使用替換規則
+- `invalid_rules` (list[dict[str, str]], optional)：無效日期的替換規則
+  - 預設值：無
+
+**範例**
+
+```python
+# 基本使用方式
+config = {
+    'encoder': {
+        'created_at': 'encoder_date'
+    }
+}
+
+# 使用民國年格式
+config = {
+    'encoder': {
+        'doc_date': {
+            'method': 'encoder_date',
+            'input_format': '%MinguoY-%m-%d'
+        }
+    }
+}
+
+# 使用時區和無效日期處理
+config = {
+    'encoder': {
+        'event_time': {
+            'method': 'encoder_date',
+            'date_type': 'datetime_tz',
+            'tz': 'Asia/Taipei',
+            'invalid_handling': 'erase'
+        }
+    }
+}
+```
+
+### 尺度
+
+#### `ScalerStandard`
 
 利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0、標準差為 1 的樣態。
 
-##### `ScalerZeroCenter`
+#### `ScalerZeroCenter`
 
 利用 `sklearn` 中的 `StandardScaler`，將資料轉換為平均值為 0 的樣態。
 
-##### `ScalerMinMax`
+#### `ScalerMinMax`
 
 利用 `sklearn` 中的 `MinMaxScaler`，將資料轉換至 [0, 1] 的範圍。
 
-##### `ScalerLog`
+#### `ScalerLog`
 
 此方法僅能在資料為正的情形可用，可用於減緩極端值對整體資料的影響。
 
-##### `ScalerTimeAnchor`
+#### `ScalerTimeAnchor`
 
 此方法透過計算與參考時間序列的時間差來縮放日期時間資料。提供兩種縮放模式：
 
@@ -297,85 +391,12 @@ scaler:
       unit: 'D'
 ```
 
-#### 遺失值
+### 離散化
 
-##### `MissingMean`
+#### `DiscretizingKBins`
 
-將缺失值用該欄的平均值填入。
-
-##### `MissingMedian`
-
-將缺失值用該欄的中位數填入。
-
-##### `MissingMode`
-
-將缺失值用該欄的眾數填入。如果有多個眾數會隨機填入。
-
-##### `MissingSimple`
-
-將缺失值用指定的值填入。
+將連續資料切分為 k 個類別（k 個區間）。
 
 **參數**
 
-- `value` (float, default=0.0)：要填入的自訂值。
-
-##### `MissingDrop`
-
-捨棄任何含有缺失值的列。
-
-#### 離群值
-
-##### `OutlierZScore`
-
-此方法將 z 分數的絕對值大於 3 的資料歸類為異常值。
-
-##### `OutlierIQR`
-
-在此方法中，超過 1.5 倍四分位距（IQR）範圍的資料會被視為異常值。
-
-##### `OutlierIsolationForest`
-
-此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
-
-##### `OutlierLOF`
-
-此方法使用 `sklearn` 的 `LocalOutlierFactor` 進行異常值識別。這是一種全域轉換，意即只要設定檔中有任何欄位使用此方法作為異常值處理器，它將覆寫整個設定檔並將此方法應用於所有欄位。
-
-### 預設處理方式
-
-此映射定義了不同資料型別的預設處理方法。數值型別採用平均值填補、四分位距異常值處理、標準化縮放和K-bins離散化；類別型別則使用丟棄遺失值、均勻編碼和標籤編碼。
-
-```python
-PROCESSOR_MAP: dict[str, dict[str, str]] = {
-    "missing": {
-        "numerical": MissingMean,
-        "categorical": MissingDrop,
-        "datetime": MissingDrop,
-        "object": MissingDrop,
-    },
-    "outlier": {
-        "numerical": OutlierIQR,
-        "categorical": lambda: None,
-        "datetime": OutlierIQR,
-        "object": lambda: None,
-    },
-    "encoder": {
-        "numerical": lambda: None,
-        "categorical": EncoderUniform,
-        "datetime": lambda: None,
-        "object": EncoderUniform,
-    },
-    "scaler": {
-        "numerical": ScalerStandard,
-        "categorical": lambda: None,
-        "datetime": ScalerStandard,
-        "object": lambda: None,
-    },
-    "discretizing": {
-        "numerical": DiscretizingKBins,
-        "categorical": EncoderLabel,
-        "datetime": DiscretizingKBins,
-        "object": EncoderLabel,
-    },
-}
-```
+- `n_bins` (int, default=5)：k 值，即為類別數。

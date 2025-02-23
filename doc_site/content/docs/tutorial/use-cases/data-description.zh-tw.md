@@ -2,10 +2,8 @@
 title: 資料描述
 type: docs
 weight: 16
-prev: docs/tutorial/special-cases
-next: docs/tutorial/special-cases/comparing-synthesizers
-sidebar:
-  open: true
+prev: docs/tutorial/use-cases
+next: docs/tutorial/use-cases/data-preprocessing
 ---
 
 

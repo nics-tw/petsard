@@ -29,10 +29,8 @@ def setup_environment(
             f"current version is {sys.version_info.major}.{sys.version_info.minor}"
         )
 
-    # Ensure pip is installed and upgraded
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "pip"], check=True
-    )
+    # Ensure pip is installed
+    subprocess.run([sys.executable, "-m", "ensurepip"], check=True)
 
     if is_colab:
         # Install petsard directly from GitHub

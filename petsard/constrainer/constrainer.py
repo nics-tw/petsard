@@ -30,12 +30,19 @@ class Constrainer:
                     'field_constraints': [...],
                     'field_combinations': [...]
                 }
+
+        Attr.:
+            resample_trails (int):
+                Number of trials to reach the target number of rows,
+                set after calling resample_until_satisfy
         """
         if not isinstance(config, dict):
             raise ValueError("Config must be a dictionary")
         self.config = config
         self._constrainers = {}
         self._setup_constrainers()
+
+        self.resample_trails = None
 
     def _setup_constrainers(self):
         """Initialize all constraint instances"""
@@ -100,6 +107,9 @@ class Constrainer:
                     to compensate for data loss during constraint filtering.
             verbose_step: Print progress every verbose_step trials. Default is 10.
 
+        Attr:
+            resample_trails (int): Number of trials to reach the target number of rows
+
         Returns:
             DataFrame that satisfies all constraints with target number of rows
 
@@ -112,22 +122,21 @@ class Constrainer:
         if synthesizer is None:
             raise ValueError("Synthesizer cannot be None")
 
-        trial = 0
+        self.resample_trails = 0
         result_df = None
         remain_rows = target_rows
 
         while remain_rows > 0:
-            trial += 1
-            if trial >= max_trials:
+            self.resample_trails += 1
+            if self.resample_trails >= max_trials:
                 warnings.warn(
                     f"Maximum trials ({max_trials}) reached but only got {result_df.shape[0] if result_df is not None else 0} rows"
                 )
                 break
 
             # Generate new samples
-            new_samples = synthesizer.sample(
-                num_rows=int(target_rows * sampling_ratio)
-            ).reset_index(drop=True)
+            synthesizer.sample(sample_num_rows=int(target_rows * sampling_ratio))
+            new_samples = synthesizer.data_syn.reset_index(drop=True)
 
             # Apply postprocessor if provided
             if postprocessor is not None:
@@ -156,9 +165,9 @@ class Constrainer:
             else:
                 remain_rows = target_rows - result_df.shape[0]
 
-            if verbose_step > 0 and trial % verbose_step == 0:
+            if verbose_step > 0 and self.resample_trails % verbose_step == 0:
                 print(
-                    f"Trial {trial}: Got {result_df.shape[0] if result_df is not None else 0} rows, need {remain_rows} more"
+                    f"Trial {self.resample_trails}: Got {result_df.shape[0] if result_df is not None else 0} rows, need {remain_rows} more"
                 )
 
         return result_df

@@ -42,6 +42,9 @@ def casting_dataframe(data: pd.DataFrame, optimized_dtypes: dict) -> pd.DataFram
         elif optimized_dtype == "datetime":
             optimized_dtype = OPTIMIZED_DTYPES["datetime"]
 
-        data[col_name] = data[col_name].astype(optimized_dtype)
+        try:
+            data[col_name] = data[col_name].astype(optimized_dtype)
+        except Exception:
+            data[col_name] = data[col_name].astype("object")
 
     return data

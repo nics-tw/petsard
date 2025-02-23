@@ -2,26 +2,15 @@
 Loader:
   data:
     filepath: 'benchmark/adult-income.csv'
+    na_values: '?' # every '?' in the dataset will be considered as missing value
 Preprocessor:
-  drop:
-    method: 'default'
-    config:
-      missing:
-        age: 'missing_drop'      # Drop rows with missing values
-        income: 'missing_drop'
-  fill:
-    method: 'default'
-    config:
-      missing:
-        age: 'missing_mean'      # Fill with mean value
-        workclass: 'missing_mode'  # Fill with mode
-  simple:
-    method: 'default'
-    config:
-      missing:
-        age:
-          method: 'missing_simple'  # Fill with specified value
-          value: 0
+  missing-only:
+    # only execute the missing values handler and encoding by their default,
+    #   the rest of the preprocessing steps will be skipped
+    # keep encoding due to we have categorical features
+    sequence:
+      - 'missing'
+      - 'encoder'
 Synthesizer:
   demo:
     method: 'default'

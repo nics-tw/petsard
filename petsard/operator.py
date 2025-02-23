@@ -44,7 +44,7 @@ class BaseOperator:
             input (dict):
                 The input data for the module.
         """
-        self.module_name: str = self.__class__.__name__.replace("Operator", "")
+        self.module_name: str = self.__class__.__name__.replace("Operator", "Op")
         self.logger = logging.getLogger(f"PETsARD.{self.module_name}")
 
         self.config = config
@@ -323,11 +323,7 @@ class PreprocessorOperator(BaseOperator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self.logger.debug("Initializing processor")
-        self.processor = Processor(metadata=input["metadata"])
-
-        # for keep default but update manual only
-        self.logger.debug("Updating processor configuration")
-        self.processor.update_config(self._config)
+        self.processor = Processor(metadata=input["metadata"], config=self._config)
 
         if self._sequence is None:
             self.logger.debug("Using default processing sequence")
@@ -585,7 +581,10 @@ class ConstrainerOperator(BaseOperator):
         """
         self.logger.debug("Starting data constraining process")
 
-        if self.sample_dict and "synthesizer" in input:
+        if "target_rows" not in self.sample_dict:
+            self.sample_dict["target_rows"] = len(input["data"])
+
+        if "synthesizer" in input:
             # Use resample_until_satisfy if sampling parameters and synthesizer are provided
             self.logger.debug("Using resample_until_satisfy method")
             self.constrained_data = self.constrainer.resample_until_satisfy(

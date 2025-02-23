@@ -1,0 +1,26 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  encoding-only:
+    # only execute the encoding by their default,
+    sequence:
+      - 'encoder'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

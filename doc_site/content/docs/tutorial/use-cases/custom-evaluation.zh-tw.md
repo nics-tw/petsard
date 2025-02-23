@@ -1,17 +1,15 @@
 ---
-title: Custom Evaluation
+title: 自定義評測
 type: docs
-weight: 20
-prev: docs/tutorial/special-cases/benchmark-datasets
-next: docs/tutorial/special-cases
-sidebar:
-  open: true
+weight: 32
+prev: docs/tutorial/use-cases/data-constraining
+next: docs/tutorial/use-cases/benchmark-datasets
 ---
 
 
-Besides built-in evaluation methods, you can create your own evaluation methods. This is particularly useful when you have specific evaluation needs.
+除了使用內建的評測方法外，您也可以建立自己的評測方法。這在您有特定的評估需求時特別有用。
 
-Click the below button to run this example in Colab:
+請點擊下方按鈕在 Colab 中執行範例：
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/custom-evaluation.ipynb)
 
@@ -48,9 +46,9 @@ Reporter:
 ...
 ```
 
-## Creating Custom Evaluator
+## 建立自定義評測
 
-Create an evaluator class inheriting from `EvaluatorBase`:
+建立評測類別，繼承 `EvaluatorBase`：
 
 ```python
 import pandas as pd
@@ -93,22 +91,22 @@ class MyEvaluator(EvaluatorBase):
         return pd.DataFrame(self.result, index=pd.MultiIndex.from_tuples(pairs))
 ```
 
-## Required Methods
+## 必要實作方法
 
-Your evaluator class must implement all of the following methods:
+您的評測類別必須實作以下所有方法：
 
-  1. `get_global()`：Returns overall evaluation results
+1. `get_global()`：回傳整體評估結果
 
-    - One row showing overall scores
+    - 一列資料顯示整體評分
 
-  2. `get_columnwise()`：Returns per-column evaluation results
+2. `get_columnwise()`：回傳各欄位的評估結果
 
-    - One row per column
-    - Uses original column names as index
+    - 每個欄位一列資料
+    - 使用原始資料的欄位名稱作為索引
 
-  3. `get_pairwise()`：Returns column relationship evaluation results
+3. `get_pairwise()`：回傳欄位間關係的評估結果
 
-    - One row per column pair
-    - Uses column pairs as index
+    - 每對欄位組合一列資料
+    - 使用欄位配對作為索引
 
-All three methods must be implemented to ensure evaluation results can be presented at different granularities. Each method should return a DataFrame containing your evaluation metrics.
+這三個方法都必須實作，以確保評測結果能在不同的顆粒度下呈現。每個方法都應該回傳一個包含您評測指標的 DataFrame。
