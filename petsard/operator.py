@@ -7,11 +7,11 @@ from datetime import timedelta
 import pandas as pd
 
 from petsard.constrainer import Constrainer
-from petsard.error import ConfigError
 from petsard.evaluator import (
     Describer,
     Evaluator,
 )
+from petsard.exceptions import ConfigError
 from petsard.loader import (
     Loader,
     Metadata,
@@ -174,7 +174,7 @@ class LoaderOperator(BaseOperator):
                 An loading result data.
         """
         self.logger.debug("Starting data loading process")
-        self.loader.load()
+        self.data, self.metadata = self.loader.load()
         self.logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
@@ -193,8 +193,7 @@ class LoaderOperator(BaseOperator):
         """
         Retrieve the loading result.
         """
-        result: pd.DataFrame = deepcopy(self.loader.data)
-        return result
+        return self.data
 
     def get_metadata(self) -> Metadata:
         """
@@ -203,8 +202,7 @@ class LoaderOperator(BaseOperator):
         Returns:
             (Metadata): The metadata of the loaded data.
         """
-        metadata: Metadata = deepcopy(self.loader.metadata)
-        return metadata
+        return self.metadata
 
 
 class SplitterOperator(BaseOperator):

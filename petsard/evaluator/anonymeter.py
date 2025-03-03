@@ -9,8 +9,8 @@ from anonymeter.evaluators import (
     SinglingOutEvaluator,
 )
 
-from petsard.error import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.exceptions import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.util import safe_round
 
 

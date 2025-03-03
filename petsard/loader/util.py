@@ -2,7 +2,7 @@ import hashlib
 
 import pandas as pd
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.util import OPTIMIZED_DTYPES
 
 

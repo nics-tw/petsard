@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from petsard.constrainer.field_constrainer import FieldConstrainer
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 
 
 class TestFieldConstrainerValidation:

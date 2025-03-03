@@ -5,8 +5,8 @@ import pandas as pd
 from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
 from sdv.metadata import SingleTableMetadata
 
-from petsard.error import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.exceptions import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.util import safe_round
 
 

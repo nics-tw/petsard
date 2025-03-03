@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from petsard.error import UnfittedError
+from petsard.exceptions import UnfittedError
 from petsard.loader import Metadata
 
 

@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 
 
 class DateFormatConverter:

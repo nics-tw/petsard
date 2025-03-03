@@ -8,8 +8,8 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from scipy.spatial.distance import jensenshannon
 
-from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.loader import Metadata
 from petsard.util import safe_round
 
@@ -714,7 +714,7 @@ class Stats(EvaluatorBase):
 
         eval_col: str = ""
         for ori_col, syn_col in zip(ori_cols, syn_cols):
-            eval_col = f'{ori_col.replace("_ori", "_diff")}'
+            eval_col = f"{ori_col.replace('_ori', '_diff')}"
             if eval_col in df.columns:
                 df.drop(columns=[eval_col], inplace=True)
             df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
@@ -748,7 +748,7 @@ class Stats(EvaluatorBase):
 
         eval_col: str = ""
         for ori_col, syn_col in zip(ori_cols, syn_cols):
-            eval_col = f'{ori_col.replace("_ori", "_pct_change")}'
+            eval_col = f"{ori_col.replace('_ori', '_pct_change')}"
             if eval_col in df.columns:
                 df.drop(columns=[eval_col], inplace=True)
             df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
