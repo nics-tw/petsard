@@ -129,15 +129,14 @@ class Splitter:
             metadata (Metadata, optional): The metadata class of the data.
         """
         if "method" in self.config:
-            self.loader["ori"].load()
-            self.loader["control"].load()
+            ori_data, ori_metadata = self.loader["ori"].load()
+            ctrl_data, _ = self.loader["control"].load()
             self.data[1] = {
-                "train": self.loader["ori"].data,
-                "validation": self.loader["control"].data,
+                "train": ori_data,
+                "validation": ctrl_data,
             }
             # Setting metadata by train
-            metadata = Metadata()
-            metadata.build_metadata(data=self.loader["ori"].data)
+            metadata = ori_metadata
             if "row_num" in metadata.metadata["global"]:
                 metadata.metadata["global"]["row_num_after_split"] = metadata.metadata[
                     "global"

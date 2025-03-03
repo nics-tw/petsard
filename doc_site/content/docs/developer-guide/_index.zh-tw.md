@@ -28,6 +28,9 @@ sidebar:
   - 三個面向的隱私風險量測
 
 ## 設定與報告
+- [日誌設定](./logging-configuration)
+  - 設定日誌層級與輸出目標
+  - 自訂日誌格式與檔案位置
 - [Reporter 中的實驗名稱](./experiment-naming-in-reporter)
   - 實驗命名規範
   - 實驗設定管理

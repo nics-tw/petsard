@@ -1,10 +1,35 @@
 ---
 title: Test Coverage
 type: docs
-weight: 86
+weight: 87
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 ---
+
+
+### `Executor`
+
+> tests/test_executor.py
+
+Tests for the main Executor functionality:
+
+- `test_default_values`: Verifies default configuration values are set correctly
+- `test_update_config`: Tests updating configuration values via the update method
+- `test_validation_log_output_type`: Tests validation of log output type settings:
+  - Valid values (stdout, file, both) are accepted
+  - Invalid values raise ConfigError
+- `test_validation_log_level`: Tests validation of log levels:
+  - Valid levels (DEBUG, INFO, WARNING, ERROR, CRITICAL) are accepted
+  - Invalid levels raise ConfigError
+- `test_executor_default_config`: Tests initialization with YAML without Executor section uses default values
+- `test_executor_custom_config`: Verifies custom logging settings from YAML are properly applied
+- `test_logger_setup`: Tests logger initialization with correct:
+  - Log level
+  - Multiple handlers (file and console)
+  - Handler types
+- `test_logger_file_creation`: Tests log file is created in specified directory with timestamp substitution
+- `test_logger_reconfiguration`: Tests logger can be reconfigured after initial setup
+- `test_get_config`: Tests YAML configuration loading from file
 
 ## Data Loading
 

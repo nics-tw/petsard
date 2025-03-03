@@ -265,7 +265,7 @@ class TestLoader:
             # 斷言
             mock_read_csv.assert_called_once_with(
                 sample_csv_path,
-                header=loader.config.header_names,
+                header="infer",  # 更新為 "infer"
                 na_values=loader.config.na_values,
             )
             mock_optimize.assert_called_once()
@@ -306,7 +306,7 @@ class TestLoader:
             # 斷言
             mock_read_excel.assert_called_once_with(
                 excel_path,
-                header=loader.config.header_names,
+                header="infer",  # 更新為 "infer"
                 na_values=loader.config.na_values,
             )
             mock_optimize.assert_called_once()
@@ -392,7 +392,9 @@ class TestLoader:
             # Assertions
             # 斷言
             mock_read_csv.assert_called_once_with(
-                sample_csv_path, header=loader.config.header_names, na_values=na_values
+                sample_csv_path,
+                header="infer",  # 更新為 "infer"
+                na_values=na_values,
             )
             assert data is not None
             assert metadata is not None
@@ -426,7 +428,10 @@ class TestLoader:
             # Assertions
             # 斷言
             mock_read_csv.assert_called_once_with(
-                sample_csv_path, header=header_names, na_values=loader.config.na_values
+                sample_csv_path,
+                header=0,  # 當有 header_names 時，應該是 0 而不是 header_names
+                names=header_names,
+                na_values=loader.config.na_values,
             )
             assert data is not None
             assert metadata is not None

@@ -1,8 +1,8 @@
 ---
 title: Experiment Name in Reporter
 type: docs
-weight: 85
-prev: docs/developer-guide/anonymeter
+weight: 86
+prev: docs/developer-guide/logging-configuration
 next: docs/developer-guide/test-coverage
 ---
 
