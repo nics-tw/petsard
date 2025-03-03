@@ -14,6 +14,14 @@ class ConfigError(Exception):
     pass
 
 
+class BenchmarkDatasetsError(Exception):
+    """
+    Exception raised for errors related to benchmark datasets.
+    """
+
+    pass
+
+
 class UnsupportedMethodError(Exception):
     """
     Exception raised when an unsupported synthesizing/evaluating method is used.

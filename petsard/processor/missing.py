@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-from petsard.error import UnfittedError
+from petsard.exceptions import UnfittedError
 
 
 class MissingHandler:

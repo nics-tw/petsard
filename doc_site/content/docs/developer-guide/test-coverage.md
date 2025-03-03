@@ -14,7 +14,7 @@ next: docs/developer-guide
 
 Tests for the main Loader functionality:
 
-- `test_loader_init_no_config`: Verifies initialization with no config raises NoConfigError
+- `test_loader_init_no_config`: Verifies initialization with no config raises ConfigError
 - `test_loader_init_with_filepath`: Tests initialization with file path, checks config path and extension are set correctly
 - `test_handle_filepath_with_complex_name`: Tests various file path patterns including:
   - Path with multiple dots
@@ -22,14 +22,16 @@ Tests for the main Loader functionality:
   - Absolute paths
   - Mixed case extensions
 - `test_loader_init_with_column_types`: Verifies column type specifications are stored correctly in config
-- `test_benchmark_loader`: Tests benchmark dataset loading functionality using mocked BenchmarkerRequests
-- `test_load_csv`: Tests CSV file loading and metadata creation using a temporary test file
-- `test_invalid_file_extension`: Verifies invalid file extensions raise UnsupportedMethodError
+- `test_benchmark_loader`: Tests benchmark dataset initialization using mocked configs
+- `test_load_csv`: Tests CSV file loading returns proper DataFrame and Metadata tuple
+- `test_load_excel`: Tests Excel file loading returns proper DataFrame and Metadata tuple
+- `test_benchmark_data_load`: Tests full benchmark data loading process with simulated data
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
+- `test_custom_header_names`: Tests loading data with custom column headers
 
 ### `Benchmarker`
 
-> tests/loader/test_benchmark.py
+> tests/loader/test_benchmarker.py
 
 Tests for benchmark dataset handling:
 
@@ -40,6 +42,11 @@ Tests for benchmark dataset handling:
   - Mocked file operations
   - SHA256 verification checks
 - `test_verify_file_mismatch`: Tests SHA256 verification failure handling using mocked file content
+- `test_download_request_fails`: Tests handling of download request failures (HTTP 404, etc.)
+- `test_file_already_exists_hash_match`: Tests scenario where file already exists with matching hash, confirming local file is used
+- `test_verify_file_remove_fails`: Tests error handling when file removal fails during verification
+- `test_init_file_exists_hash_match`: Tests initialization logic when file exists with matching hash
+- `test_file_content_change`: Tests hash verification mechanism after file content changes, ensuring changes are properly detected
 
 ### `Metadata`
 

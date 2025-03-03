@@ -9,7 +9,7 @@ from typing import (
 import pandas as pd
 
 import yaml
-from petsard.error import ConfigError, UnexecutedError
+from petsard.exceptions import ConfigError, UnexecutedError
 from petsard.loader import Metadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
     BaseOperator,

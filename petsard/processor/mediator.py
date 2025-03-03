@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
-from petsard.error import UnfittedError
+from petsard.exceptions import UnfittedError
 from petsard.processor.encoder import EncoderOneHot
 from petsard.processor.missing import MissingDrop
 from petsard.processor.outlier import (

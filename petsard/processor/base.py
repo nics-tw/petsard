@@ -6,7 +6,7 @@ from types import NoneType
 import numpy as np
 import pandas as pd
 
-from petsard.error import ConfigError, UnfittedError
+from petsard.exceptions import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
 from petsard.processor.discretizing import DiscretizingKBins
 from petsard.processor.encoder import (

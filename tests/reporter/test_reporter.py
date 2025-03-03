@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from petsard import Reporter
-from petsard.error import (
+from petsard.exceptions import (
     ConfigError,
     UnsupportedMethodError,
 )

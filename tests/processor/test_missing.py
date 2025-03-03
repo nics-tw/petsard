@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from petsard.error import UnfittedError
+from petsard.exceptions import UnfittedError
 from petsard.processor.missing import (
     MissingDrop,
     MissingMean,

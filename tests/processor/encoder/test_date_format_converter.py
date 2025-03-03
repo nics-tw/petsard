@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.processor.date_format_converter import (
     DateFormatConverter,
     MinguoYConverter,

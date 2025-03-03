@@ -7,7 +7,7 @@ from typing import (
 
 import pandas as pd
 
-from petsard.error import ConfigError, UnexecutedError, UnsupportedMethodError
+from petsard.exceptions import ConfigError, UnexecutedError, UnsupportedMethodError
 from petsard.reporter.utils import (
     convert_eval_expt_name_to_tuple,
     convert_full_expt_tuple_to_name,
