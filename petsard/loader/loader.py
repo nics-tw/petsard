@@ -7,6 +7,7 @@ from typing import Optional, Union
 import pandas as pd
 
 import yaml
+from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.loader.benchmarker import BenchmarkerRequests
 from petsard.loader.metadata import Metadata
@@ -52,7 +53,7 @@ class LoaderFileExt:
 
 
 @dataclass
-class LoaderConfig:
+class LoaderConfig(BaseConfig):
     """
     Configuration for the data loader.
     """
@@ -176,23 +177,6 @@ class LoaderConfig:
 
         return config["datasets"]
 
-    def get(self) -> dict:
-        """
-        Get all attributes of the LoaderConfig instance as a dictionary.
-
-        Returns:
-            dict: A dictionary containing all instance attributes.
-        """
-        # Get all instance attributes
-        config_dict = {
-            key: value
-            for key, value in self.__dict__.items()
-            # Filter out class variables which start with '__'
-            if not key.startswith("__")
-        }
-
-        return config_dict
-
 
 class Loader:
     """
@@ -283,11 +267,19 @@ class Loader:
             LoaderFileExt.CSVTYPE: pd.read_csv,
             LoaderFileExt.EXCELTYPE: pd.read_excel,
         }
-        data: pd.DataFrame = loaders[self.config.file_ext_type](
-            self.config.filepath,
-            header=self.config.header_names,
-            na_values=self.config.na_values,
-        )
+        if self.config.header_names:
+            data: pd.DataFrame = loaders[self.config.file_ext_type](
+                self.config.filepath,
+                header=0,
+                names=self.config.header_names,
+                na_values=self.config.na_values,
+            )
+        else:
+            data: pd.DataFrame = loaders[self.config.file_ext_type](
+                self.config.filepath,
+                header="infer",
+                na_values=self.config.na_values,
+            )
 
         # 3. Optimizing dtype
         self.config.dtype = optimize_dtypes(

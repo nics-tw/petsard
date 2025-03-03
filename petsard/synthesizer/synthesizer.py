@@ -94,9 +94,7 @@ class Synthesizer:
         """
         Fits the synthesizer model with the given parameters.
         """
-        if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
-            self.loader.load()
-        else:
+        if not self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
             self.synthesizer.fit()
 
     def sample(self, **kwargs) -> None:
@@ -107,7 +105,7 @@ class Synthesizer:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
         if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
-            self.data_syn = self.loader.data
+            self.data_syn, _ = self.loader.load()
         else:
             self.data_syn = self.synthesizer.sample(**kwargs)
 
@@ -120,7 +118,6 @@ class Synthesizer:
             None. The synthesized data is stored in the `data_syn` attribute.
         """
         if self.config["method_code"] == SynthesizerMap.CUSTOM_DATA:
-            self.fit()
-            self.data_syn = self.loader.data
+            self.data_syn, _ = self.loader.load()
         else:
             self.data_syn = self.synthesizer.fit_sample(**kwargs)
