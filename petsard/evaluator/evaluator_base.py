@@ -3,7 +3,7 @@ from typing import Union
 
 import pandas as pd
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.loader import Metadata
 from petsard.util import safe_astype
 

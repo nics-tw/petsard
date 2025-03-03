@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.preprocessing import StandardScaler
 
-from petsard.error import UnfittedError
+from petsard.exceptions import UnfittedError
 from petsard.processor.scaler import (
     ScalerLog,
     ScalerMinMax,

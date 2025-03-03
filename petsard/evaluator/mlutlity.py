@@ -15,8 +15,8 @@ from sklearn.metrics import f1_score, silhouette_score
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
 
-from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.util import safe_round
 
 
@@ -229,8 +229,8 @@ class MLWorker:
                 ) or self.col_cardinality[col]["syn"] >= round(self.n_rows["syn"] / 10):
                     warnings.warn(
                         f"The cardinality of the column {col} is too high "
-                        + f'(ori: {self.col_cardinality[col]["ori"]},'
-                        + f' syn: {self.col_cardinality[col]["syn"]}). '
+                        + f"(ori: {self.col_cardinality[col]['ori']},"
+                        + f" syn: {self.col_cardinality[col]['syn']}). "
                         + "The column is removed."
                     )
                     data_ori = data_ori.drop(columns=col)

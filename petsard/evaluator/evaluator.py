@@ -3,12 +3,12 @@ import re
 
 import pandas as pd
 
-from petsard.error import ConfigError, UnsupportedMethodError
 from petsard.evaluator.anonymeter import Anonymeter
 from petsard.evaluator.evaluator_base import EvaluatorBase
 from petsard.evaluator.mlutlity import MLUtility
 from petsard.evaluator.sdmetrics import SDMetrics
 from petsard.evaluator.stats import Stats
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 
 
 class EvaluatorMap:

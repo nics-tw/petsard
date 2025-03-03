@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from petsard.constrainer.nan_group_constrainer import NaNGroupConstrainer
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 
 
 class TestNaNGroupConstrainer:

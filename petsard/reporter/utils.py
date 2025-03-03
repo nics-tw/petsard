@@ -1,7 +1,7 @@
 import re
 from typing import List, Union
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 
 
 def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:
@@ -27,7 +27,7 @@ def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:
             - A multi-step experiment: 'Loader[default]_Preprocessor[default]'
     """
     return "_".join(
-        [f"{expt_tuple[i]}[{expt_tuple[i+1]}]" for i in range(0, len(expt_tuple), 2)]
+        [f"{expt_tuple[i]}[{expt_tuple[i + 1]}]" for i in range(0, len(expt_tuple), 2)]
     )
 
 

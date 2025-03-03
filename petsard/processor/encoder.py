@@ -6,7 +6,7 @@ import pandas as pd
 from dateutil import parser
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from petsard.error import ConfigError, UnfittedError
+from petsard.exceptions import ConfigError, UnfittedError
 from petsard.processor.date_format_converter import MinguoYConverter
 
 

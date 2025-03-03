@@ -13,7 +13,7 @@ from pandas.api.types import (
     is_object_dtype,
 )
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.util.params import ALLOWED_COLUMN_TYPES, OPTIMIZED_DTYPES
 
 # 常數定義

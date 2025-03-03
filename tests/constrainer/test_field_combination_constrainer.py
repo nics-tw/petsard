@@ -7,7 +7,7 @@ import pytest
 from petsard.constrainer.field_combination_constrainer import (
     FieldCombinationConstrainer,
 )
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 
 
 class TestFieldCombinationConstrainer:

@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.loader.loader import Loader
 from petsard.loader.metadata import Metadata
 
@@ -21,8 +21,8 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        num_samples: int = 1,
-        train_split_ratio: float = 0.8,
+        num_samples: Optional[int] = 1,
+        train_split_ratio: Optional[float] = 0.8,
         random_state: Optional[Union[int, float, str]] = None,
         **kwargs,
     ):

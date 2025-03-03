@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from petsard.error import ConfigError
 from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.exceptions import ConfigError
 from petsard.util import safe_round
 
 

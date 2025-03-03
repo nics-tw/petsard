@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from petsard.error import ConfigError, UnsupportedMethodError
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.loader import Loader, Metadata
 from petsard.synthesizer.sdv import SDVFactory
 

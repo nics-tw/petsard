@@ -3,7 +3,7 @@ from datetime import date, datetime
 import pandas as pd
 import pytest
 
-from petsard.error import ConfigError, UnfittedError
+from petsard.exceptions import ConfigError, UnfittedError
 from petsard.processor.encoder import EncoderDate
 
 
