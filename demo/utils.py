@@ -61,7 +61,7 @@ def setup_environment(
     print("Installation complete!")
 
     if benchmark_data:
-        from petsard import Loader
+        from petsard.loader import Loader
 
         for benchmark in benchmark_data:
             try:

@@ -1,6 +1,6 @@
 [project]
 name = "petsard"
-version = "1.1.0"
+version = "1.1.1"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     { name = "alexchen830", email = "alexchen830@gmail.com" },

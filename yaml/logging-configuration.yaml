@@ -1,0 +1,35 @@
+---
+Executor:
+  log_output_type: both
+  log_level: DEBUG
+  log_dir: demo_logs
+  log_filename: PETsARD_demo_{timestamp}.log
+Loader:
+  log-data:
+    filepath: 'benchmark/adult-income.csv'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-diagnostic:
+    method: 'sdmetrics-diagnosticreport'
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

@@ -1,17 +1,54 @@
 import logging
+import os
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+import yaml
 from petsard.config import Config, Status
+from petsard.config_base import BaseConfig
+from petsard.exceptions import ConfigError
+
+
+@dataclass
+class ExecutorConfig(BaseConfig):
+    """
+    Defines the configuration for the Executor.
+
+    Attr.:
+        log_output_type (str): Output destination
+            - stdout
+            - file
+            - both
+        log_level (str): Logging level
+            - DEBUG
+            - INFO
+            - WARNING
+            - ERROR
+            - CRITICAL
+        log_dir (str): Directory for storing log files
+        log_name (str): Log file name template (can include {timestamp})
+    """
+
+    log_output_type: str = "file"
+    log_level: str = "INFO"
+    log_dir: str = "."
+    log_filename: str = "PETsARD_{timestamp}.log"
+
+    def __post_init__(self):
+        """
+        Post-initialization method to validate the configuration.
+        """
+        if self.log_output_type not in ["stdout", "file", "both"]:
+            raise ConfigError("Invalid log_output_type {self.log_output_type}")
+        if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+            raise ConfigError("Invalid log_level {self.log_level}")
 
 
 class Executor:
     """
     Represents an executor that runs a series of operators based on a given configuration.
     """
-
-    LOG_FILE: str = "PETsARD"
-    LOG_LEVEL: str = "INFO"  # DEBUG / INFO / WARNING / ERROR / CRITICAL
 
     def __init__(self, config: str):
         """
@@ -25,12 +62,100 @@ class Executor:
             status (Status): The status of the executor.
             result (dict): The result of the executor.
         """
+
+        # 1. set the default Executor
+        self.executor_config = ExecutorConfig()
+
+        # 2. set the default logger
         self._setup_logger()
 
-        self.config = Config(filename=config)
-        self.sequence = self.config.sequence  # sequence default in Config
+        # 3. load the configuration
+        self.logger.info(f"Loading configuration from {config}")
+        yaml_config: dict = self._get_config(yaml_file=config)
+
+        self.config = Config(config=yaml_config)
+        self.sequence = self.config.sequence
         self.status = Status(config=self.config)
         self.result: dict = {}
+
+    def _setup_logger(self, reconfigure=False):
+        """
+        Setting up the logger based on ExecutorConfig settings.
+
+        Args:
+            reconfigure (bool): If True, clear existing handlers before setup
+        """
+        if reconfigure:
+            # If reconfigure, clear existing handlers
+            root_logger = logging.getLogger("PETsARD")
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+        else:
+            # If new configuration, disable the root logger
+            logging.getLogger().handlers = []
+            root_logger = logging.getLogger("PETsARD")
+
+        # setup logging level
+        root_logger.setLevel(getattr(logging, self.executor_config.log_level.upper()))
+
+        # setup formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - "  # timestamp
+            "%(name)-21s - "  # logger name (left align w/ 21 digits: 'PETsARD.Postprocessor')
+            "%(funcName)-17s - "  # function name (left align w/ 17 digits: 'inverse_transform')
+            "%(levelname)-8s - "  # logger level (left align w/ 8 digits: 'CRITICAL')
+            "%(message)s"  # message
+        )
+
+        # Handle file output
+        if self.executor_config.log_output_type in ["file", "both"]:
+            log_dir = self.executor_config.log_dir
+
+            # Create log directory if it doesn't exist
+            if log_dir and not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+
+            # Create log file
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            log_filename = self.executor_config.log_filename.replace(
+                "{timestamp}", timestamp
+            )
+            log_path = os.path.join(log_dir, log_filename)
+
+            # Create file handler
+            file_handler = logging.FileHandler(log_path)
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+
+        # Handle stdout output
+        if self.executor_config.log_output_type in ["stdout", "both"]:
+            console_handler = logging.StreamHandler()
+            console_handler.setFormatter(formatter)
+            root_logger.addHandler(console_handler)
+
+        # setup this logger as a child of root logger
+        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+
+    def _get_config(self, yaml_file: str) -> dict:
+        """
+        Load the configuration from a YAML file.
+        """
+        if not os.path.isfile(yaml_file):
+            raise ConfigError(f"YAML file {yaml_file} does not exist")
+
+        yaml_config: dict = {}
+        with open(yaml_file, "r") as yaml_file:
+            yaml_config = yaml.safe_load(yaml_file)
+
+        if "Executor" in yaml_config:
+            self.executor_config.update(yaml_config["Executor"])
+
+            self._setup_logger(reconfigure=True)
+            self.logger.info("Logger reconfigured with settings from YAML")
+
+            yaml_config.pop("Executor")
+
+        return yaml_config
 
     def run(self):
         """
@@ -80,37 +205,3 @@ class Executor:
         Returns the result of the executor.
         """
         return self.result
-
-    def _setup_logger(self):
-        """
-        Setting the output method of logger.
-        """
-        # Disable the root logger
-        logging.getLogger().handlers = []
-
-        # setup root logger
-        root_logger = logging.getLogger("PETsARD")
-
-        # setup output_type
-        timestamp: str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file: str = f"{self.LOG_FILE}_{timestamp}.log"
-        file_handler = logging.FileHandler(log_file)
-
-        # setup formatter
-        formatter = logging.Formatter(
-            "%(asctime)s - "  # timestamp
-            "%(name)-21s - "  # logger name (left align w/ 21 digits: 'PETsARD.Postprocessor')
-            "%(funcName)-17s - "  # function name (left align w/ 17 digits: 'inverse_transform')
-            "%(levelname)-8s - "  # logger level (left align w/ 8 digits: 'CRITICAL')
-            "%(message)s"  # message
-        )
-        file_handler.setFormatter(formatter)
-
-        # add file handler to root logger
-        root_logger.addHandler(file_handler)
-
-        # setup logging level
-        root_logger.setLevel(getattr(logging, self.LOG_LEVEL.upper()))
-
-        # setup this logger as a child of root logger
-        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")

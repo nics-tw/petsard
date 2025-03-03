@@ -1,10 +1,35 @@
 ---
 title: 測試覆蓋範圍
 type: docs
-weight: 86
+weight: 87
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 ---
+
+
+### `Executor`
+
+> tests/test_executor.py
+
+測試 Executor 的主要功能：
+
+- `test_default_values`：驗證預設配置值是否正確設定
+- `test_update_config`：測試透過 update 方法更新配置值
+- `test_validation_log_output_type`：測試日誌輸出類型設定的驗證：
+  - 有效值（stdout、file、both）被接受
+  - 無效值引發 ConfigError
+- `test_validation_log_level`：測試日誌等級的驗證：
+  - 有效等級（DEBUG、INFO、WARNING、ERROR、CRITICAL）被接受
+  - 無效等級引發 ConfigError
+- `test_executor_default_config`：測試使用不含 Executor 部分的 YAML 初始化時使用預設值
+- `test_executor_custom_config`：驗證 YAML 中的自定義日誌設定是否正確應用
+- `test_logger_setup`：測試日誌初始化的正確性：
+  - 日誌等級
+  - 多個處理器（檔案和控制台）
+  - 處理器類型
+- `test_logger_file_creation`：測試日誌檔案是否在指定目錄中創建並正確替換時間戳
+- `test_logger_reconfiguration`：測試日誌器能否在初始設置後重新配置
+- `test_get_config`：測試從檔案載入 YAML 配置
 
 ## 資料讀取
 
