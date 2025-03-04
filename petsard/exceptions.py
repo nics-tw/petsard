@@ -14,6 +14,22 @@ class ConfigError(Exception):
     pass
 
 
+class MetadataError(Exception):
+    """
+    Exception raised for errors related to metadata.
+    """
+
+    pass
+
+
+class UnableToLoadError(Exception):
+    """
+    Exception raised when an object is unable to be loaded.
+    """
+
+    pass
+
+
 class BenchmarkDatasetsError(Exception):
     """
     Exception raised for errors related to benchmark datasets.
@@ -22,9 +38,25 @@ class BenchmarkDatasetsError(Exception):
     pass
 
 
+class UnableToFollowMetadataError(Exception):
+    """
+    Exception raised when an object is unable to follow metadata.
+    """
+
+    pass
+
+
 class UnsupportedMethodError(Exception):
     """
     Exception raised when an unsupported synthesizing/evaluating method is used.
+    """
+
+    pass
+
+
+class UncreatedError(Exception):
+    """
+    Exception raised when an object is not created.
     """
 
     pass

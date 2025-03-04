@@ -1,9 +1,9 @@
 import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 
 
-class MyEvaluator(EvaluatorBase):
+class MyEvaluator(BaseEvaluator):
     def __init__(self, config: dict):
         super().__init__(config=config)
         self.result = None

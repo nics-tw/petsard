@@ -38,6 +38,11 @@ sidebar:
   - 在同一個實驗中使用多種演算法
   - 包含 Gaussian Copula、CTGAN 與 TVAE
 
+### **客製化合成：[自定義合成](./custom-synthesis)**
+
+  - 建立自己的合成方法
+  - 整合進 PETsARD 的合成流程
+
 ### **資料合理性：[資料約束](./data-constraining)**
 
   - 確保合成資料符合實際業務規則

@@ -394,20 +394,9 @@ class SynthesizerOperator(BaseOperator):
                 An instance of the Synthesizer class initialized with the provided configuration.
         """
         super().__init__(config)
-        self.synthesizer = Synthesizer(**config)
 
-        self.sample_dict: dict = {}
-        self.sample_dict.update(
-            {
-                key: config[key]
-                for key in [
-                    "sample_num_rows",
-                    "reset_sampling",
-                    "output_file_path",
-                ]
-                if key in config
-            }
-        )
+        self.synthesizer: SyntaxError = Synthesizer(**config)
+        self.data_syn: pd.DataFrame = None
 
     def _run(self, input: dict):
         """
@@ -422,10 +411,10 @@ class SynthesizerOperator(BaseOperator):
         """
         self.logger.debug("Starting data synthesizing process")
 
-        self.synthesizer.create(**input)
+        self.synthesizer.create(metadata=input["metadata"])
         self.logger.debug("Synthesizing model initialization completed")
 
-        self.synthesizer.fit_sample(**self.sample_dict)
+        self.data_syn = self.synthesizer.fit_sample(data=input["data"])
         self.logger.debug("Train and sampling Synthesizing model completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -459,8 +448,7 @@ class SynthesizerOperator(BaseOperator):
         """
         Retrieve the synthesizing result.
         """
-        result: pd.DataFrame = deepcopy(self.synthesizer.data_syn)
-        return result
+        return deepcopy(self.data_syn)
 
 
 class PostprocessorOperator(BaseOperator):

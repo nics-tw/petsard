@@ -18,7 +18,8 @@ class BaseBenchmarker(ABC):
 
     def __init__(self, config: dict):
         """
-        Attr.:
+        Attributes:
+            logger (logging.Logger): The logger object.
             config (dict) The configuration of the benchmarker.
                 benchmark_bucket_name (str) The name of the S3 bucket.
                 benchmark_filename (str)
@@ -29,7 +30,9 @@ class BaseBenchmarker(ABC):
                 benchmark_already_exist (bool)
                     If the benchmark data already exist. Default is False.
         """
-        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        self.logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
 
         self.config: dict = config
         self.config["benchmark_already_exist"] = False

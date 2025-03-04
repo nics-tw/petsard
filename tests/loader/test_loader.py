@@ -105,7 +105,7 @@ class TestLoaderConfig:
                 LoaderConfig(filepath="benchmark://private-data")
 
     @pytest.mark.parametrize(
-        "filepath,expected_ext,expected_type",
+        "filepath,expected_ext,expected_code",
         [
             ("path/to/file.csv", ".csv", LoaderFileExt.CSVTYPE),
             ("path/to/file.xlsx", ".xlsx", LoaderFileExt.EXCELTYPE),
@@ -114,13 +114,13 @@ class TestLoaderConfig:
             ("path/to/file.XLSX", ".xlsx", LoaderFileExt.EXCELTYPE),
         ],
     )
-    def test_file_extension_handling(self, filepath, expected_ext, expected_type):
+    def test_file_extension_handling(self, filepath, expected_ext, expected_code):
         """Test file extension parsing and mapping
         測試檔案副檔名解析和映射
         """
         config = LoaderConfig(filepath=filepath)
         assert config.file_ext == expected_ext
-        assert config.file_ext_type == expected_type
+        assert config.file_ext_code == expected_code
 
     def test_invalid_file_extension(self):
         """Test handling of invalid file extensions
@@ -443,7 +443,7 @@ class TestLoaderFileExt:
     """
 
     @pytest.mark.parametrize(
-        "file_ext,expected_type",
+        "file_ext,expected_code",
         [
             (".csv", LoaderFileExt.CSVTYPE),
             (".CSV", LoaderFileExt.CSVTYPE),
@@ -456,15 +456,15 @@ class TestLoaderFileExt:
             (".odt", LoaderFileExt.EXCELTYPE),
         ],
     )
-    def test_get_file_ext_type(self, file_ext, expected_type):
-        """Test getting file extension type
+    def test_get_file_ext_code(self, file_ext, expected_code):
+        """Test getting file extension code
         測試獲取檔案副檔名類型
         """
-        assert LoaderFileExt.get(file_ext) == expected_type
+        assert LoaderFileExt.get(file_ext) == expected_code
 
     def test_unsupported_file_ext(self):
         """Test handling of unsupported file extensions
         測試處理不支援的檔案副檔名
         """
-        with pytest.raises(UnsupportedMethodError):
+        with pytest.raises(KeyError):
             LoaderFileExt.get(".unsupported")

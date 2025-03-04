@@ -100,16 +100,16 @@ Custom evaluations require users to define a Python class that conforms to a spe
 
 This class should include an __init__ method that accepts settings (`config`), a `.create()` method that takes a dictionary named `data` for input of evaluation data, and `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` methods to output results at different levels of granularity for the entire dataset, individual fields, and between fields, respectively.
 
-We recommend directly inheriting the `EvaluatorBase` class to meet the requirements. Its location is
+We recommend directly inheriting the `BaseEvaluator` class to meet the requirements. Its location is
 
 自訂評測需要使用者自訂一個符合格式的 Python 類別。
 
 該類別應該在 `__init__` 時接受設定 (`config`)，提供 `.create()` 方法接受名為 `data` 的字典做評測資料的輸入，以及 `.get_global()`, `.get_columnwise()`, `.get_pairwiser()` 方法以分別輸出全資料集、個別欄位、與欄位與欄位間不同報告粒度的結果。
 
-我們建議直接繼承 `EvaluatorBase` 類別來滿足要求。它的位置在
+我們建議直接繼承 `BaseEvaluator` 類別來滿足要求。它的位置在
 
 ```Python
-from PETsARD.evaluator.evaluator_base import EvaluatorBase
+from PETsARD.evaluator.evaluator_base import BaseEvaluator
 ```
 
 

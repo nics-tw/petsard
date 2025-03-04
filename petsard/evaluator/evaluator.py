@@ -4,7 +4,7 @@ import re
 import pandas as pd
 
 from petsard.evaluator.anonymeter import Anonymeter
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.evaluator.mlutlity import MLUtility
 from petsard.evaluator.sdmetrics import SDMetrics
 from petsard.evaluator.stats import Stats
@@ -70,14 +70,14 @@ class Evaluator:
                 It should include:
                     - method (str): The method of how you evaluating data.
                     - method_code (int): The method code of how you evaluating data.
-            evaluator (EvaluatorBase):
+            evaluator (BaseEvaluator):
                 The evaluator object.
             result (dict):
                 The dictionary contains the evaluation result.
         """
         self.config = kwargs
         self.config["method"] = method.lower()
-        self.evaluator: EvaluatorBase = None
+        self.evaluator: BaseEvaluator = None
         self.result = None
 
         method_code: int = EvaluatorMap.map(self.config["method"])
