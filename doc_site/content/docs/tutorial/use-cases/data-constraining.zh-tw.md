@@ -1,8 +1,8 @@
 ---
 title: 資料約束
 type: docs
-weight: 31
-prev: docs/tutorial/use-cases/comparing-synthesizers
+weight: 32
+prev: docs/tutorial/use-cases/custom-synthesis
 next: docs/tutorial/use-cases/custom-evaluation
 ---
 

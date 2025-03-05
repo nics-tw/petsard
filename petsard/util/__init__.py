@@ -6,6 +6,7 @@ from petsard.util.dtype_operations import (
     safe_infer_dtype,
     verify_column_types,
 )
+from petsard.util.external_module import load_external_module
 from petsard.util.numeric_operations import safe_round
 from petsard.util.params import (
     ALLOWED_COLUMN_TYPES,
@@ -22,4 +23,5 @@ __all__ = [
     "verify_column_types",
     "ALLOWED_COLUMN_TYPES",
     "OPTIMIZED_DTYPES",
+    "load_external_module",
 ]

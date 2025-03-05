@@ -1,0 +1,23 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  custom:
+    method: 'custom_method'
+    module_path: 'custom-synthesis.py'  # Path to your custom synthesizer
+    class_name: 'MySynthesizer_Shuffle'  # Synthesizer class name
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo:
+    method: 'default'
+Reporter:
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

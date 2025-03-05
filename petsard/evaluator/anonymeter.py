@@ -9,7 +9,7 @@ from anonymeter.evaluators import (
     SinglingOutEvaluator,
 )
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.util import safe_round
 
@@ -40,7 +40,7 @@ class AnonymeterMap:
             raise UnsupportedMethodError
 
 
-class Anonymeter(EvaluatorBase):
+class Anonymeter(BaseEvaluator):
     """
     Factory for "Anonymeter" Evaluator.
         AnonymeterFactory defines which module to use within Anonymeter.

@@ -1,7 +1,7 @@
 ---
 title: Custom Evaluation
 type: docs
-weight: 32
+weight: 33
 prev: docs/tutorial/use-cases/data-constraining
 next: docs/tutorial/use-cases/benchmark-datasets
 ---
@@ -48,15 +48,15 @@ Reporter:
 
 ## Creating Custom Evaluator
 
-Create an evaluator class inheriting from `EvaluatorBase`:
+Create an evaluator class inheriting from `BaseEvaluator`:
 
 ```python
 import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 
 
-class MyEvaluator(EvaluatorBase):
+class MyEvaluator(BaseEvaluator):
     def __init__(self, config: dict):
         super().__init__(config=config)
         self.result = None

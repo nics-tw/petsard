@@ -106,33 +106,3 @@ class Metadata:
             return "object"
         else:
             raise ValueError(f"{dtype} is invalid.")
-
-    def to_sdv(self) -> dict:
-        """
-        Transform the metadata to meet the format of SDV.
-
-        Return:
-            sdv_metadata (dict): The metadata in SDV metadata format.
-        """
-        if self.metadata is None:
-            raise ValueError(
-                "Please use `build_metadata()` to construct the metadata first."
-            )
-
-        sdv_metadata = {"columns": {}}
-
-        col_name: str = (
-            "col_after_preproc" if "col_after_preproc" in self.metadata else "col"
-        )
-
-        for col, val in self.metadata[col_name].items():
-            sdtype = val.get("infer_dtype")
-            if "infer_dtype_after_preproc" in val:
-                sdtype = val.get("infer_dtype_after_preproc")
-
-            if sdtype is None or sdtype == "object":
-                raise ValueError(f"{col} is in invalid type {sdtype}.")
-
-            sdv_metadata["columns"][col] = {"sdtype": sdtype}
-
-        return sdv_metadata

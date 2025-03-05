@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from scipy.spatial.distance import jensenshannon
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.loader import Metadata
 from petsard.util import safe_round
@@ -241,7 +241,7 @@ class StatsJSDivergence(StatsBase):
         return jensenshannon(p, q) ** 2
 
 
-class Stats(EvaluatorBase):
+class Stats(BaseEvaluator):
     """
     The "Stats" statistics Evaluator.
         This class is responsible for computing various statistical measures

@@ -15,7 +15,7 @@ from sklearn.metrics import f1_score, silhouette_score
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.util import safe_round
 
@@ -46,7 +46,7 @@ class MLUtilityMap:
             raise UnsupportedMethodError
 
 
-class MLUtility(EvaluatorBase):
+class MLUtility(BaseEvaluator):
     """
     Interface class for MLWorker Models.
 

@@ -5,7 +5,7 @@ import pandas as pd
 from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
 from sdv.metadata import SingleTableMetadata
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnfittedError, UnsupportedMethodError
 from petsard.util import safe_round
 
@@ -38,7 +38,7 @@ class SDMetricsMap:
             raise UnsupportedMethodError
 
 
-class SDMetrics(EvaluatorBase):
+class SDMetrics(BaseEvaluator):
     """
     Factory for SDMetrics Evaluator, defines which module to use within SDMetrics.
     """

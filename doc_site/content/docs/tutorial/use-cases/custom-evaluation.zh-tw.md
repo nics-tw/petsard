@@ -1,7 +1,7 @@
 ---
 title: 自定義評測
 type: docs
-weight: 32
+weight: 33
 prev: docs/tutorial/use-cases/data-constraining
 next: docs/tutorial/use-cases/benchmark-datasets
 ---
@@ -48,15 +48,15 @@ Reporter:
 
 ## 建立自定義評測
 
-建立評測類別，繼承 `EvaluatorBase`：
+建立評測類別，繼承 `BaseEvaluator`：
 
 ```python
 import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
 
 
-class MyEvaluator(EvaluatorBase):
+class MyEvaluator(BaseEvaluator):
     def __init__(self, config: dict):
         super().__init__(config=config)
         self.result = None

@@ -8,7 +8,7 @@ from petsard.loader import Metadata
 from petsard.util import safe_astype
 
 
-class EvaluatorBase(ABC):
+class BaseEvaluator(ABC):
     """
     Base class for Describers/Evaluators.
     """

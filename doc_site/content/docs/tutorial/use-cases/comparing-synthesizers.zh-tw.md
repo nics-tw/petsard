@@ -3,7 +3,7 @@ title: 比較合成演算法
 type: docs
 weight: 30
 prev: docs/tutorial/use-cases/data-preprocessing
-next: docs/tutorial/use-cases/data-constraining
+next: docs/tutorial/use-cases/custom-synthesis
 ---
 
 
