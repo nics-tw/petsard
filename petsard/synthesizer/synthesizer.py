@@ -46,43 +46,40 @@ class SynthesizerConfig(BaseConfig):
     Configuration for the synthesizer.
 
     Attributes:
+        _logger (logging.Logger): The logger object.
+        DEFAULT_SYNTHESIS_METHOD (str): The default synthesizer method.
         method (str): The method to be used for synthesizing the data.
         method_code (int): The code of the synthesizer method.
         syn_method (str): The name of the synthesizer method.
+            The difference between 'method' and 'syn_method' is that 'method' is the user input,
+            while 'syn_method' is the actual method used for synthesizing the data
         sample_from (str): The source of the sample number of rows.
         sample_num_rows (int): The number of rows to be sampled.
+        custom_params (dict): Any additional parameters to be stored in custom_params.
     """
 
     DEFAULT_SYNTHESIS_METHOD: str = "sdv-single_table-gaussiancopula"
 
-    method: str = "Undefined"
+    method: str = "default"
     method_code: int = None
     syn_method: str = None
-
     sample_from: str = "Undefined"
     sample_num_rows: int = 0
-
     custom_params: dict[Any, Any] = field(default_factory=dict)
-
-    reset_sampling: bool = None
-    output_file_path: str = None
+    _logger: logging.Logger = None
 
     def __post_init__(self):
-        # Set up logger for this class
-        self.logger: logging.Logger = logging.getLogger(
-            f"PETsARD.{self.__class__.__name__}"
-        )
-        self.logger.debug("Initializing SynthesizerConfig")
-        error_msg: str = ""
+        super().__post_init__()
+        self._logger.debug("Initializing SynthesizerConfig")
 
         try:
             self.method_code: int = SynthesizerMap.map(self.method.lower())
-            self.logger.debug(
-                f"Mapped method '{self.method}' to code {self.method_code}"
+            self._logger.debug(
+                f"Mapped synthesizing method '{self.method}' to code {self.method_code}"
             )
         except KeyError:
-            error_msg = f"Unsupported synthesizer method: {self.method}"
-            self.logger.error(error_msg)
+            error_msg: str = f"Unsupported synthesizer method: {self.method}"
+            self._logger.error(error_msg)
             raise UnsupportedMethodError(error_msg)
 
         # Set the default
@@ -91,8 +88,7 @@ class SynthesizerConfig(BaseConfig):
             if self.method_code == SynthesizerMap.DEFAULT
             else self.method
         )
-        self.logger.debug(f"Set syn_method to '{self.syn_method}'")
-        self.logger.info(
+        self._logger.info(
             f"SynthesizerConfig initialized with method: {self.method}, syn_method: {self.syn_method}"
         )
 
@@ -103,6 +99,13 @@ class Synthesizer:
     as well as generating synthetic data based on the fitted model.
     """
 
+    SYNTHESIZER_MAP: dict[int, BaseSynthesizer] = {
+        SynthesizerMap.DEFAULT: SDVSingleTableSynthesizer,
+        SynthesizerMap.SDV: SDVSingleTableSynthesizer,
+        SynthesizerMap.CUSTOM_DATA: CustomDataSynthesizer,
+        SynthesizerMap.CUSTOM_METHOD: CustomSynthesizer,
+    }
+
     def __init__(self, method: str, sample_num_rows: int = None, **kwargs) -> None:
         """
         Args:
@@ -111,39 +114,39 @@ class Synthesizer:
             **kwargs: Any additional parameters to be stored in custom_params.
 
         Attributes:
-            logger (logging.Logger): The logger object.
-            config (dict):
-                A dictionary containing the configuration parameters for the synthesizer.
-            _synthesizer (BaseSynthesizer): The synthesizer object.
+            _logger (logging.Logger): The logger object.
+            config (SynthesizerConfig): The configuration parameters for the synthesizer.
+            _impl (BaseSynthesizer): The synthesizer object.
         """
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
-        self.logger.info(
+        self._logger.info(
             f"Initializing Synthesizer with method: {method}, sample_num_rows: {sample_num_rows}"
         )
 
+        # Initialize the SynthesizerConfig object
         self.config: SynthesizerConfig = (
             SynthesizerConfig(method=method)
             if sample_num_rows is None
             else SynthesizerConfig(method=method, sample_num_rows=sample_num_rows)
         )
-        self.logger.debug("SynthesizerConfig successfully initialized")
+        self._logger.debug("SynthesizerConfig successfully initialized")
 
         # Add custom parameters to the config
         if kwargs:
-            self.logger.debug(
+            self._logger.debug(
                 f"Additional keyword arguments provided: {list(kwargs.keys())}"
             )
             self.config.update({"custom_params": kwargs})
-            self.logger.debug(
+            self._logger.debug(
                 "SynthesizerConfig successfully updated with custom parameters"
             )
         else:
-            self.logger.debug("No additional parameters provided")
+            self._logger.debug("No additional parameters provided")
 
-        self._synthesizer: BaseSynthesizer = None
-        self.logger.info("Synthesizer initialization completed")
+        self._impl: BaseSynthesizer = None
+        self._logger.info("Synthesizer initialization completed")
 
     def _determine_sample_configuration(
         self, metadata: Metadata = None
@@ -166,7 +169,7 @@ class Synthesizer:
                 - sample_from (str): Description of where the sample size was determined from
                 - sample_num_rows (Optional[int]): Number of rows to sample, or None if undetermined
         """
-        self.logger.debug("Determining sample configuration")
+        self._logger.debug("Determining sample configuration")
         sample_from: str = self.config.sample_from
         sample_num_rows: Optional[int] = self.config.sample_num_rows
 
@@ -174,13 +177,13 @@ class Synthesizer:
         if self.config.sample_num_rows is not None:
             sample_from = "Manual input"
             sample_num_rows = self.config.sample_num_rows
-            self.logger.debug(
+            self._logger.debug(
                 f"Using manually specified sample size: {sample_num_rows}"
             )
 
         # 2. If no manual input, get the sample number of rows from metadata
         elif metadata is not None:
-            self.logger.debug("Checking metadata for sample size information")
+            self._logger.debug("Checking metadata for sample size information")
             # 2-1. if Splitter information exist, use row_num after split
             if hasattr(metadata, "metadata") and "global" in metadata.metadata:
                 if (
@@ -191,27 +194,27 @@ class Synthesizer:
                     sample_num_rows = metadata.metadata["global"][
                         "row_num_after_split"
                     ]["train"]
-                    self.logger.debug(
+                    self._logger.debug(
                         f"Using splitter train data count: {sample_num_rows}"
                     )
                 # 2-2. if Loader only, assume data didn't been split
                 elif "row_num" in metadata.metadata["global"]:
                     sample_from = "Loader data"
                     sample_num_rows = metadata.metadata["global"]["row_num"]
-                    self.logger.debug(f"Using loader data count: {sample_num_rows}")
+                    self._logger.debug(f"Using loader data count: {sample_num_rows}")
                 else:
-                    self.logger.debug("No row count information found in metadata")
+                    self._logger.debug("No row count information found in metadata")
             else:
-                self.logger.debug("Metadata lacks global information structure")
+                self._logger.debug("Metadata lacks global information structure")
 
         # 3. if sample_from didn't been assign, means no effective metadata been used
         if self.config.sample_from == "Undefined":
             sample_from = "Source data"
-            self.logger.debug(
+            self._logger.debug(
                 "Using source data as sample source (will be determined during fit)"
             )
 
-        self.logger.info(
+        self._logger.info(
             f"Sample configuration determined: source={sample_from}, rows={sample_num_rows}"
         )
         return sample_from, sample_num_rows
@@ -223,16 +226,16 @@ class Synthesizer:
         Args.:
             metadata (Metadata, optional): The metadata class of the data.
         """
-        self.logger.info("Creating synthesizer instance")
+        self._logger.info("Creating synthesizer instance")
         if metadata is not None:
-            self.logger.debug("Metadata provided for synthesizer creation")
+            self._logger.debug("Metadata provided for synthesizer creation")
         else:
-            self.logger.debug("No metadata provided for synthesizer creation")
+            self._logger.debug("No metadata provided for synthesizer creation")
 
         # Determine sample configuration using internal method
         sample_from, sample_num_rows = self._determine_sample_configuration(metadata)
 
-        self.logger.debug(
+        self._logger.debug(
             f"Sample configuration: source={sample_from}, rows={sample_num_rows}"
         )
         self.config.update(
@@ -242,41 +245,37 @@ class Synthesizer:
             }
         )
 
-        synthesizer_map: dict[int, BaseSynthesizer] = {
-            SynthesizerMap.DEFAULT: SDVSingleTableSynthesizer,
-            SynthesizerMap.SDV: SDVSingleTableSynthesizer,
-            SynthesizerMap.CUSTOM_DATA: CustomDataSynthesizer,
-            SynthesizerMap.CUSTOM_METHOD: CustomSynthesizer,
-        }
+        synthesizer_class = self.SYNTHESIZER_MAP[self.config.method_code]
+        self._logger.debug(f"Using synthesizer class: {synthesizer_class.__name__}")
 
-        synthesizer_class = synthesizer_map[self.config.method_code]
-        self.logger.debug(f"Using synthesizer class: {synthesizer_class.__name__}")
-
-        merged_config = self.config.get_and_merge_params(
-            param_dict_name="custom_params",
-            additional_attrs=["syn_method", "sample_num_rows"],
+        merged_config: dict = self.config.get_params(
+            param_configs=[
+                {"syn_method": {"action": "include"}},
+                {"sample_num_rows": {"action": "include"}},
+                {"custom_params": {"action": "merge"}},
+            ]
         )
-        self.logger.debug(f"Merged config keys: {list(merged_config.keys())}")
+        self._logger.debug(f"Merged config keys: {list(merged_config.keys())}")
 
-        self.logger.info(f"Creating {synthesizer_class.__name__} instance")
-        self._synthesizer = synthesizer_class(
+        self._logger.info(f"Creating {synthesizer_class.__name__} instance")
+        self._impl = synthesizer_class(
             config=merged_config,
             metadata=metadata,
         )
-        self.logger.info(f"Successfully created {synthesizer_class.__name__} instance")
+        self._logger.info(f"Successfully created {synthesizer_class.__name__} instance")
 
     def fit(self, data: pd.DataFrame = None) -> None:
         """
-        Fits the synthesizer model with the given parameters.
+        Fits the synthesizer model with the given data.
 
         Args:
             data (pd.DataFrame):
                 The data to be fitted.
                 Only 'CUSTOM_DATA' method doesn't need data to fit.
         """
-        if self._synthesizer is None:
+        if self._impl is None:
             error_msg: str = "Synthesizer not created yet, call create() first"
-            self.logger.warning(error_msg)
+            self._logger.warning(error_msg)
             raise UncreatedError(error_msg)
 
         if data is None:
@@ -285,35 +284,35 @@ class Synthesizer:
                 error_msg: str = (
                     f"Data must be provided for fitting in {self.config.method}"
                 )
-                self.logger.error(error_msg)
+                self._logger.error(error_msg)
                 raise ConfigError(error_msg)
 
-            self.logger.info("Fitting synthesizer without data")
+            self._logger.info("Fitting synthesizer without data")
         else:
             # In other methods, update the sample_num_rows in the synthesizer config
-            self.logger.info(f"Fitting synthesizer with data shape: {data.shape}")
+            self._logger.info(f"Fitting synthesizer with data shape: {data.shape}")
 
             if self.config.sample_from == "Source data":
                 old_value: int = self.config.sample_num_rows
                 self.config.update({"sample_num_rows": data.shape[0]})
-                self.logger.debug(
+                self._logger.debug(
                     f"Updated sample_num_rows from {old_value} to {data.shape[0]}"
                 )
 
-            self._synthesizer.update_config({"sample_num_rows": data.shape[0]})
-            self.logger.debug(
+            self._impl.update_config({"sample_num_rows": data.shape[0]})
+            self._logger.debug(
                 f"Updated synthesizer config with sample_num_rows={data.shape[0]}"
             )
 
         time_start: time = time.time()
 
-        self.logger.info(f"Starting fit process for {self.config.syn_method}")
+        self._logger.info(f"Starting fit process for {self.config.syn_method}")
         try:
-            self._synthesizer.fit(data=data)
+            self._impl.fit(data=data)
             time_spent = round(time.time() - time_start, 4)
-            self.logger.info(f"Fitting completed successfully in {time_spent} seconds")
+            self._logger.info(f"Fitting completed successfully in {time_spent} seconds")
         except Exception as e:
-            self.logger.error(f"Error during fitting: {str(e)}")
+            self._logger.error(f"Error during fitting: {str(e)}")
             raise
 
     def sample(self) -> pd.DataFrame:
@@ -323,19 +322,19 @@ class Synthesizer:
         Return:
             pd.DataFrame: The synthesized data.
         """
-        if self._synthesizer is None:
-            self.logger.warning("Synthesizer not created or fitted yet")
+        if self._impl is None:
+            self._logger.warning("Synthesizer not created or fitted yet")
             return pd.DataFrame()
 
         time_start: time = time.time()
 
-        self.logger.info(
+        self._logger.info(
             f"Sampling {self.config.sample_num_rows} rows using {self.config.syn_method}"
         )
 
         try:
-            data: pd.DataFrame = self._synthesizer.sample()
-            time_spent = round(time.time() - time_start, 4)
+            data: pd.DataFrame = self._impl.sample()
+            time_spent: float = round(time.time() - time_start, 4)
 
             sample_info: str = (
                 f" (same as {self.config.sample_from})"
@@ -343,16 +342,16 @@ class Synthesizer:
                 else ""
             )
 
-            self.logger.info(
+            self._logger.info(
                 f"Successfully sampled {len(data)} rows{sample_info} in {time_spent} seconds"
             )
-            self.logger.debug(
+            self._logger.debug(
                 f"Sampled data shape: {data.shape}, dtypes: {data.dtypes.value_counts().to_dict()}"
             )
 
             return data
         except Exception as e:
-            self.logger.error(f"Error during sampling: {str(e)}")
+            self._logger.error(f"Error during sampling: {str(e)}")
             raise
 
     def fit_sample(self, data: pd.DataFrame) -> pd.DataFrame:

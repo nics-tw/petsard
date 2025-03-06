@@ -64,6 +64,8 @@ class MLUtility(BaseEvaluator):
             Ignored for regression and classification.
     """
 
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn", "control"]
+
     def __init__(self, config: dict):
         if "method" not in config:
             raise ConfigError
