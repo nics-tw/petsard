@@ -92,3 +92,11 @@ class UnexecutedError(Exception):
     """
 
     pass
+
+
+class CustomMethodEvaluatorError(Exception):
+    """
+    Exception raised when an error occurs in the custom method evaluator.
+    """
+
+    pass

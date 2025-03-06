@@ -1,30 +1,36 @@
-import importlib.util
+import logging
 import re
+import time
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any
 
 import pandas as pd
 
+from petsard.config_base import BaseConfig
 from petsard.evaluator.anonymeter import Anonymeter
+from petsard.evaluator.customer_evaluator import CustomEvaluator
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.evaluator.mlutlity import MLUtility
-from petsard.evaluator.sdmetrics import SDMetrics
+from petsard.evaluator.sdmetrics import SDMetricsSingleTable
 from petsard.evaluator.stats import Stats
-from petsard.exceptions import ConfigError, UnsupportedMethodError
+from petsard.exceptions import UncreatedError, UnsupportedMethodError
 
 
-class EvaluatorMap:
+class EvaluatorMap(Enum):
     """
     Mapping of Evaluator.
     """
 
-    DEFAULT: int = 0
-    CUSTOM_METHOD: int = 1
+    DEFAULT: int = auto()
+    CUSTOM_METHOD: int = auto()
     # Protection
-    ANONYMETER: int = 10
+    ANONYMETER: int = auto()
     # Fidelity
-    SDMETRICS: int = 20
-    STATS: int = 21
+    SDMETRICS: int = auto()
+    STATS: int = auto()
     # Utility
-    MLUTILITY: int = 30
+    MLUTILITY: int = auto()
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -34,145 +40,180 @@ class EvaluatorMap:
         Args:
             method (str): evaluating method
         """
+        # Get the string before 1st dash, if not exist, get emply ('').
+        libname_match = re.match(r"^[^-]*", method)
+        libname = libname_match.group() if libname_match else ""
+        return cls.__dict__[libname.upper()]
+
+
+@dataclass
+class EvaluatorConfig(BaseConfig):
+    """
+    Configuration for the evaluator.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+        method (str): The method to be used for evaluating the data.
+        method_code (int): The code of the evaluator method.
+        eval_method (str): The name of the evaluator method.
+            The difference between 'method' and 'eval_method' is that 'method' is the user input,
+            while 'eval_method' is the actual method used for evaluating the data
+        custom_params (dict): Any additional parameters to be stored in custom_params.
+    """
+
+    DEFAULT_EVALUATING_METHOD: str = "sdmetrics-single_table-qualityreport"
+
+    method: str = "default"
+    method_code: int = None
+    eval_method: str = None
+
+    custom_params: dict[Any, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._logger.debug("Initializing EvaluatorConfig")
+
         try:
-            # Get the string before 1st dash, if not exist, get emply ('').
-            libname_match = re.match(r"^[^-]*", method)
-            libname = libname_match.group() if libname_match else ""
-            return cls.__dict__[libname.upper()]
+            self.method_code: int = EvaluatorMap.map(self.method.lower())
+            self._logger.debug(
+                f"Mapped evaluating method '{self.method}' to code {self.method_code}"
+            )
         except KeyError:
-            raise UnsupportedMethodError
+            error_msg: str = f"Unsupported evaluator method: {self.method}"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        # Set the default
+        self.eval_method: str = (
+            self.DEFAULT_EVALUATING_METHOD
+            if self.method_code == EvaluatorMap.DEFAULT
+            else self.method
+        )
+        self._logger.info(
+            f"EvaluatorConfig initialized with method: {self.method}, eval_method: {self.eval_method}"
+        )
 
 
 class Evaluator:
     """
-    Base class for all "Evaluator".
-
-    The "Evaluator" class defines the common API
-    that all "Evaluators" need to implement, as well as common functionality.
+    The Evaluator class is responsible for creating and evaluating a evaluator model,
+    as well as analyzing data based on the evaluation criteria.
     """
 
-    def __init__(self, method: str, custom_method: dict = None, **kwargs):
+    EVALUATOR_MAP: dict[int, BaseEvaluator] = {
+        EvaluatorMap.DEFAULT: SDMetricsSingleTable,
+        EvaluatorMap.CUSTOM_METHOD: CustomEvaluator,
+        EvaluatorMap.ANONYMETER: Anonymeter,
+        EvaluatorMap.SDMETRICS: SDMetricsSingleTable,
+        EvaluatorMap.STATS: Stats,
+        EvaluatorMap.MLUTILITY: MLUtility,
+    }
+
+    def __init__(self, method: str, **kwargs):
         """
         Args:
-            method (str):
-                The method of how you evaluating data. Case insensitive.
-                    The format should be: {library name}_{function name},
-                    e.g., 'anonymeter_singlingout_univariate'.
-            custom_method (dict):
-                The dictionary contains the custom method information.
-                It should include:
-                    - filepath (str): The path to the custom method file.
-                    - method (str): The method name in the custom method file.
+            method (str): The method to be used for evaluating the data.
+            **kwargs: Any additional parameters to be stored in custom_params.
 
         Attr:
-            config (dict):
-                The dictionary contains the configuration information.
-                It should include:
-                    - method (str): The method of how you evaluating data.
-                    - method_code (int): The method code of how you evaluating data.
-            evaluator (BaseEvaluator):
-                The evaluator object.
-            result (dict):
-                The dictionary contains the evaluation result.
+            _logger (logging.Logger): The logger object.
+            config (EvaluatorConfig): The configuration parameters for the evaluator.
+            _impl (BaseEvaluator): The evaluator object.
         """
-        self.config = kwargs
-        self.config["method"] = method.lower()
-        self.evaluator: BaseEvaluator = None
-        self.result = None
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
+        self._logger.info(f"Initializing Evaluator with method: {method}")
 
-        method_code: int = EvaluatorMap.map(self.config["method"])
-        self.config["method_code"] = method_code
-        if method_code == EvaluatorMap.DEFAULT:
-            # default will use SDMetrics - QualityReport
-            self.config["method"] = "sdmetrics-single_table-qualityreport"
-            self.evaluator = SDMetrics(config=self.config)
-        elif method_code == EvaluatorMap.CUSTOM_METHOD:
-            # custom method
-            self.config["custom_method"] = custom_method
-            if (
-                "filepath" not in self.config["custom_method"]
-                or "method" not in self.config["custom_method"]
-            ):
-                raise ConfigError
+        # Initialize the EvaluatorConfig object
+        self.config: EvaluatorConfig = EvaluatorConfig(method=method)
+        self._logger.debug("EvaluatorConfig successfully initialized")
 
-            try:
-                spec = importlib.util.spec_from_file_location(
-                    "module.name", self.config["custom_method"]["filepath"]
-                )
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                evaluator = getattr(module, self.config["custom_method"]["method"])
-            except Exception:
-                raise ConfigError
-            self.evaluator = evaluator(config=self.config)
-        elif method_code == EvaluatorMap.ANONYMETER:
-            self.evaluator = Anonymeter(config=self.config)
-        elif method_code == EvaluatorMap.SDMETRICS:
-            self.evaluator = SDMetrics(config=self.config)
-        elif method_code == EvaluatorMap.STATS:
-            self.evaluator = Stats(config=self.config)
-        elif method_code == EvaluatorMap.MLUTILITY:
-            self.evaluator = MLUtility(config=self.config)
+        # Add custom parameters to the config
+        if kwargs:
+            self._logger.debug(
+                f"Additional keyword arguments provided: {list(kwargs.keys())}"
+            )
+            self.config.update({"custom_params": kwargs})
+            self._logger.debug(
+                "SynthesizerConfig successfully updated with custom parameters"
+            )
         else:
-            raise UnsupportedMethodError
+            self._logger.debug("No additional parameters provided")
 
-    def create(self, data: dict) -> None:
+        self._impl: BaseEvaluator = None
+        self._logger.info("Synthesizer initialization completed")
+
+    def create(self) -> None:
         """
         Create a Evaluator object with the given data.
+        """
+        self._logger.info("Creating evaluator instance")
+
+        evaluator_class = self.EVALUATOR_MAP[self.config.method_code]
+        self._logger.debug(f"Using evaluator class: {evaluator_class.__name__}")
+
+        merged_config: dict = self.config.get_params(
+            param_configs=[
+                {"eval_method": {"action": "include"}},
+                {"custom_params": {"action": "merge"}},
+            ]
+        )
+        self._logger.debug(f"Merged config keys: {list(merged_config.keys())}")
+
+        self._logger.info(f"Creating {evaluator_class.__name__} instance")
+        self._impl = evaluator_class(
+            config=merged_config,
+        )
+        self._logger.info(f"Successfully created {evaluator_class.__name__} instance")
+
+    def eval(self, data: dict[str, pd.DataFrame]) -> None:
+        """
+        Evaluating the synthesizer model with the given data.
+
 
         Args:
-            data (dict)
+            data (dict[str, pd.DataFrame])
                 The dictionary contains necessary information.
-                For Anonymeter and MLUtility requirements:
-                    data = {
-                        'ori' : pd.DataFrame   # Original data used for synthesis
-                        'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
-                        'control: pd.DataFrame # Original data but NOT used for synthesis
-                    }
-                    Note: So it is recommended to split your original data before synthesizing it.
-                    (We recommend to use our Splitter!)
-                For SDMetrics and AutoML requirements:
-                    data = {
-                        'ori' : pd.DataFrame   # Original data used for synthesis
-                        'syn' : pd.DataFrame   # Synthetic data generated from 'ori'
-                    }
-        """
-        self.evaluator.create(data=data)
 
-    def eval(self) -> None:
-        """
-        eval()
-            Call the evaluating method within implementation after Factory.
-        """
-        self.evaluator.eval()
-        self.result = self.evaluator.result
+                data = {
+                    'ori': pd.DataFrame    # Original data used for synthesis
+                    'syn': pd.DataFrame    # Synthetic data generated from 'ori'
+                    'control: pd.DataFrame # Original data but NOT used for synthesis
+                }
 
-    def get_global(self) -> pd.DataFrame:
-        """
-        Returns the global evaluation result.
+                Note:
+                    1. Control is required in Anonymeter and MLUtility.
+                    2. So it is recommended to split your original data before synthesizing it.
+                        (We recommend to use our Splitter!)
 
         Returns:
-            pd.DataFrame: A dataFrame with the global evaluation result.
-                One row only for representing the whole data result.
+            (dict[str, pd.DataFrame]): The evaluated report.
         """
-        return self.evaluator.get_global()
+        if self._impl is None:
+            error_msg: str = "Synthesizer not created yet, call create() first"
+            self._logger.warning(error_msg)
+            raise UncreatedError(error_msg)
 
-    def get_columnwise(self) -> pd.DataFrame:
-        """
-        Returns the column-wise evaluation result.
+        time_start: time = time.time()
 
-        Returns:
-            pd.DataFrame: A dataFrame with the column-wise evaluation result.
-                Each row contains one column in original data.
-        """
-        return self.evaluator.get_columnwise()
+        self._logger.info(
+            f"Evaluating data with keys {list(data.keys())} using evaluation method: {self.config.eval_method}"
+        )
+        evaluated_report: dict[str, pd.DataFrame] = self._impl.eval(data=data)
+        time_spent: float = round(time.time() - time_start, 4)
+        self._logger.info(f"Evaluation completed successfully in {time_spent} seconds")
 
-    def get_pairwise(self) -> pd.DataFrame:
-        """
-        Retrieves the pairwise evaluation result.
+        columns_info: list[str, list[str]] = {}
+        dtype_counts: list[str, list[str]] = {}
+        for key, df in data.items():
+            columns_info[key] = list(df.columns)
+            dtype_counts[key] = dict(df.dtypes.value_counts())
 
-        Returns:
-            pd.DataFrame: A dataFrame with the pairwise evaluation result.
-                Each row contains column x column in original data.
-        """
-        return self.evaluator.get_pairwise()
+        self._logger.debug(
+            f"Evaluation report summary: Data keys: {list(data.keys())}, "
+            f"Column count by type per dataframe: {dtype_counts}, "
+            f"Columns by key: {columns_info}"
+        )
+
+        return evaluated_report

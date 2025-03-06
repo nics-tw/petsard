@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 import pandas as pd
 
@@ -27,11 +26,12 @@ class CustomSynthesizer(BaseSynthesizer):
             metadata (Metadata, optional): The metadata object.
 
         Attributes:
-            logger (logging.Logger): The logger object.
+            _logger (logging.Logger): The logger object.
             config (dict): The configuration of the synthesizer_base.
+            _impl (Any): The synthesizer object.
         """
         super().__init__(config, metadata)
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
 
@@ -39,34 +39,34 @@ class CustomSynthesizer(BaseSynthesizer):
             error_msg: str = (
                 "Module path (module_path) is not provided in the configuration."
             )
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
 
         if "class_name" not in self.config:
             error_msg: str = (
                 "Class name (class_name) is not provided in the configuration."
             )
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
 
-        synthesizer_class: Any = None
+        synthesizer_class: callable = None
         _, synthesizer_class = load_external_module(
             module_path=self.config["module_path"],
             class_name=self.config["class_name"],
-            logger=self.logger,
+            logger=self._logger,
             required_methods=self.REQUIRED_METHODS,
         )
-        self._synthesizer = synthesizer_class(config=config, metadata=metadata)
+        self._impl = synthesizer_class(config=config, metadata=metadata)
 
     def _fit(self, data: pd.DataFrame) -> None:
         """
         Fit the synthesizer.
-            _synthesizer should be initialized in this method.
+            _impl should be initialized in this method.
 
         Args:
             data (pd.DataFrame): The data to be fitted.
         """
-        self._synthesizer.fit(data)
+        self._impl.fit(data)
 
     def _sample(self) -> pd.DataFrame:
         """
@@ -75,4 +75,4 @@ class CustomSynthesizer(BaseSynthesizer):
         Return:
             (pd.DataFrame): The synthesized data.
         """
-        return self._synthesizer.sample()
+        return self._impl.sample()

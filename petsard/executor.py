@@ -16,6 +16,7 @@ class ExecutorConfig(BaseConfig):
     Defines the configuration for the Executor.
 
     Attr.:
+        _logger (logging.Logger): The logger object.
         log_output_type (str): Output destination
             - stdout
             - file
@@ -39,6 +40,7 @@ class ExecutorConfig(BaseConfig):
         """
         Post-initialization method to validate the configuration.
         """
+        super().__post_init__()
         if self.log_output_type not in ["stdout", "file", "both"]:
             raise ConfigError("Invalid log_output_type {self.log_output_type}")
         if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
@@ -52,12 +54,12 @@ class Executor:
 
     def __init__(self, config: str):
         """
-        Initialize the executor object.
-
         Args:
             config (str): The configuration filename for the executor.
 
         Attributes:
+            executor_config (ExecutorConfig): The configuration for the executor.
+            _logger (logging.Logger): The logger object.
             config (Config): The configuration object.
             status (Status): The status of the executor.
             result (dict): The result of the executor.
@@ -70,7 +72,7 @@ class Executor:
         self._setup_logger()
 
         # 3. load the configuration
-        self.logger.info(f"Loading configuration from {config}")
+        self._logger.info(f"Loading configuration from {config}")
         yaml_config: dict = self._get_config(yaml_file=config)
 
         self.config = Config(config=yaml_config)
@@ -134,7 +136,7 @@ class Executor:
             root_logger.addHandler(console_handler)
 
         # setup this logger as a child of root logger
-        self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
 
     def _get_config(self, yaml_file: str) -> dict:
         """
@@ -151,7 +153,7 @@ class Executor:
             self.executor_config.update(yaml_config["Executor"])
 
             self._setup_logger(reconfigure=True)
-            self.logger.info("Logger reconfigured with settings from YAML")
+            self._logger.info("Logger reconfigured with settings from YAML")
 
             yaml_config.pop("Executor")
 
@@ -162,13 +164,13 @@ class Executor:
         run(): Runs the operators based on the configuration.
         """
         start_time: time = time.time()
-        self.logger.info("Starting PETsARD execution workflow")
+        self._logger.info("Starting PETsARD execution workflow")
         while self.config.config.qsize() > 0:
             ops = self.config.config.get()
             module = self.config.module_flow.get()
             expt = self.config.expt_flow.get()
 
-            self.logger.info(f"Executing {module} with {expt}")
+            self._logger.info(f"Executing {module} with {expt}")
             ops.run(ops.set_input(status=self.status))
 
             self.status.put(module, expt, ops)
@@ -178,7 +180,7 @@ class Executor:
 
         elapsed_time: time = time.time() - start_time
         formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
-        self.logger.info(
+        self._logger.info(
             f"Completed PETsARD execution workflow (elapsed: {formatted_elapsed_time})"
         )
 
@@ -193,7 +195,7 @@ class Executor:
             None. Update in self.result
         """
         if module == self.sequence[-1]:
-            self.logger.debug(f"Collecting final results for {module}")
+            self._logger.debug(f"Collecting final results for {module}")
             full_expt = self.status.get_full_expt()
             full_expt_name = "_".join(
                 [f"{module}[{expt}]" for module, expt in full_expt.items()]
