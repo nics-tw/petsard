@@ -46,6 +46,8 @@ class Anonymeter(BaseEvaluator):
         AnonymeterFactory defines which module to use within Anonymeter.
     """
 
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn", "control"]
+
     def __init__(self, config: dict):
         """
         Args:
@@ -87,7 +89,7 @@ class Anonymeter(BaseEvaluator):
                 A dictionary to store evaluation data. Default is an empty.
             result (dict):
                 A dictionary to store the result of the description/evaluation. Default is an empty.
-            evaluator (Anonymeter):
+            _impl (Anonymeter):
                 Anonymeter class for implementing the Anonymeter.
         """
         super().__init__(config=config)
@@ -106,7 +108,7 @@ class Anonymeter(BaseEvaluator):
             config.setdefault(key, value)
         self.config["method_code"] = AnonymeterMap.map(self.config["method"])
 
-        self.evaluator = None
+        self._impl = None
 
     def _create(self, data: dict) -> None:
         """
@@ -125,7 +127,7 @@ class Anonymeter(BaseEvaluator):
             data (dict): The data to be stored in the anonymeter instance.
 
         Resurn:
-            None. Anonymeter class store in self.evaluator.
+            None. Anonymeter class store in self._impl.
 
         """
         if not set(["ori", "syn", "control"]).issubset(set(data.keys())):
@@ -151,7 +153,7 @@ class Anonymeter(BaseEvaluator):
 
         if method_code == AnonymeterMap.SINGLINGOUT:
             self.config["singlingout_mode"] = "multivariate"
-            self.evaluator = SinglingOutEvaluator(
+            self._impl = SinglingOutEvaluator(
                 ori=self.data["ori"],
                 syn=self.data["syn"],
                 control=self.data["control"],
@@ -162,7 +164,7 @@ class Anonymeter(BaseEvaluator):
         elif method_code == AnonymeterMap.LINKABILITY:
             if "aux_cols" not in self.config or self.config["aux_cols"] is None:
                 raise ConfigError
-            self.evaluator = LinkabilityEvaluator(
+            self._impl = LinkabilityEvaluator(
                 ori=self.data["ori"],
                 syn=self.data["syn"],
                 control=self.data["control"],
@@ -182,7 +184,7 @@ class Anonymeter(BaseEvaluator):
                     raise ConfigError
                 else:
                     aux_cols = self.config["aux_cols"]
-            self.evaluator = InferenceEvaluator(
+            self._impl = InferenceEvaluator(
                 ori=self.data["ori"],
                 syn=self.data["syn"],
                 control=self.data["control"],
@@ -216,7 +218,7 @@ class Anonymeter(BaseEvaluator):
         """
         _extract_result of Anonymeter.
             Uses .risk()/.results() method in Anonymeter
-            to extract result from self.evaluator into the designated dictionary.
+            to extract result from self._impl into the designated dictionary.
 
         Return
             (dict). Result as specific format describe in eval().
@@ -226,7 +228,7 @@ class Anonymeter(BaseEvaluator):
 
         # Handle the risk
         try:
-            risk = self.evaluator.risk()
+            risk = self._impl.risk()
             result["risk"] = safe_round(risk.value)
             result["risk_CI_btm"] = safe_round(risk.ci[0])
             result["risk_CI_top"] = safe_round(risk.ci[1])
@@ -237,7 +239,7 @@ class Anonymeter(BaseEvaluator):
 
         # Handle the attack_rate, baseline_rate, control_rate
         try:
-            results = self.evaluator.results()
+            results = self._impl.results()
             for rate_type in ["attack_rate", "baseline_rate", "control_rate"]:
                 rate_result = getattr(results, rate_type, None)
                 if rate_result:
@@ -307,7 +309,7 @@ class Anonymeter(BaseEvaluator):
         Exception:
             UnfittedError: If the anonymeter has not been create() yet.
         """
-        if not self.evaluator:
+        if not self._impl:
             raise UnfittedError
 
         with warnings.catch_warnings():
@@ -315,13 +317,13 @@ class Anonymeter(BaseEvaluator):
             try:
                 if self.config["method_code"] == AnonymeterMap.SINGLINGOUT:
                     # SinglingOut
-                    self.evaluator.evaluate(mode=self.config["singlingout_mode"])
+                    self._impl.evaluate(mode=self.config["singlingout_mode"])
                 elif self.config["method_code"] in [
                     AnonymeterMap.LINKABILITY,
                     AnonymeterMap.INFERENCE,
                 ]:
                     # Linkability and Inference
-                    self.evaluator.evaluate(n_jobs=self.config["n_jobs"])
+                    self._impl.evaluate(n_jobs=self.config["n_jobs"])
                 else:
                     raise UnsupportedMethodError
             except RuntimeError:
@@ -380,19 +382,19 @@ class Anonymeter(BaseEvaluator):
         if self.config["method_code"] == AnonymeterMap.SINGLINGOUT:
             # SinglingOut attacks of Univariate
             #   control queries didn't been stored
-            details["attack_queries"] = self.evaluator._attack_queries
-            details["baseline_queries"] = self.evaluator._baseline_queries
+            details["attack_queries"] = self._impl._attack_queries
+            details["baseline_queries"] = self._impl._baseline_queries
         elif self.config["method_code"] == AnonymeterMap.LINKABILITY:
             # Linkability: Dict[int, Set(int)]
             #   aux_cols[0] indexes links to aux_cols[1]
             n_neighbors = self.config["n_neighbors"]
-            details["attack_links"] = self.evaluator._attack_links.find_links(
+            details["attack_links"] = self._impl._attack_links.find_links(
                 n_neighbors=n_neighbors
             )
-            details["baseline_links"] = self.evaluator._baseline_links.find_links(
+            details["baseline_links"] = self._impl._baseline_links.find_links(
                 n_neighbors=n_neighbors
             )
-            details["control_links"] = self.evaluator._control_links.find_links(
+            details["control_links"] = self._impl._control_links.find_links(
                 n_neighbors=n_neighbors
             )
         elif self.config["method_code"] == AnonymeterMap.INFERENCE:

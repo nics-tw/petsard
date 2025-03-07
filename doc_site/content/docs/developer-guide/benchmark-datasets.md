@@ -49,10 +49,10 @@ Benchmark datasets use SHA256 for file integrity verification:
 
 1. **Verification Tool**
    ```python
-   from petsard.loader.util import DigestSha256
+   from petsard.util import digest_sha256
 
 
-   hasher = DigestSha256(filepath)
+   hasher = digest_sha256(filepath)
    hash_value = hasher.hexdigest()
    ```
 

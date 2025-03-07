@@ -49,10 +49,10 @@ next: docs/developer-guide/uniform-encoder
 
 1. **校驗工具**
    ```python
-   from petsard.loader.util import DigestSha256
+   from petsard.util import digest_sha256
 
 
-   hasher = DigestSha256(filepath)
+   hasher = digest_sha256(filepath)
    hash_value = hasher.hexdigest()
    ```
 

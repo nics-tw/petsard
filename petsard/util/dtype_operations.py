@@ -390,3 +390,28 @@ def verify_column_types(column_types: Dict[str, list] = None) -> bool:
     return all(
         coltype.lower() in ALLOWED_COLUMN_TYPES for coltype in column_types.keys()
     )
+
+
+def align_dtypes(
+    data: pd.DataFrame,
+    metadata,
+) -> pd.DataFrame:
+    """
+    Align the data types between the metadata from ori data
+        and the data to be aligned.
+
+    metadata should be Metadata object,
+        but we don't set a type hint
+        for don't import it here to avoid circular import.
+
+    Args:
+        data (pd.DataFrame): The data to be aligned.
+        metadata (Metadata): The metadata of ori data.
+
+    Return:
+        (pd.DataFrame): The aligned data.
+    """
+    for col, val in metadata.metadata["col"].items():
+        data[col] = safe_astype(data[col], val["dtype"])
+
+    return data

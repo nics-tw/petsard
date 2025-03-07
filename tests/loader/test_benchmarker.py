@@ -113,7 +113,7 @@ class TestBenchmarker:
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = True
             with patch("builtins.open", mock_open(read_data=b"test data")):
-                with patch("petsard.loader.util.DigestSha256") as mock_sha:
+                with patch("petsard.util.digest_sha256") as mock_sha:
                     mock_sha.return_value = "wrong_sha256"
                     with pytest.raises(BenchmarkDatasetsError):
                         BenchmarkerRequests(sample_config)
@@ -163,7 +163,7 @@ class TestBenchmarker:
 
         # Create benchmarker with mocked logger
         # 創建帶有模擬 logger 的 benchmarker
-        with patch("petsard.loader.benchmarker.DigestSha256") as mock_digest:
+        with patch("petsard.loader.benchmarker.digest_sha256") as mock_digest:
             mock_digest.return_value = file_hash
             benchmarker = create_test_benchmarker_impl(config)
             benchmarker.logger = MagicMock()
@@ -245,7 +245,7 @@ class TestBenchmarker:
 
         # Create benchmarker with real file and hash
         # 使用真實檔案和哈希值創建 benchmarker
-        with patch("petsard.loader.benchmarker.DigestSha256") as mock_digest:
+        with patch("petsard.loader.benchmarker.digest_sha256") as mock_digest:
             mock_digest.return_value = file_hash
             benchmarker = create_test_benchmarker_impl(config)
             assert benchmarker.config["benchmark_already_exist"]
@@ -277,7 +277,7 @@ class TestBenchmarker:
 
         # Initially should match
         # 初始應該匹配
-        with patch("petsard.loader.benchmarker.DigestSha256") as mock_digest:
+        with patch("petsard.loader.benchmarker.digest_sha256") as mock_digest:
             mock_digest.return_value = original_hash
             benchmarker = create_test_benchmarker_impl(config)
             assert benchmarker.config["benchmark_already_exist"]

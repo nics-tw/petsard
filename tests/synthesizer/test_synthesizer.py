@@ -13,7 +13,7 @@ class TestSynthesizer:
     def test_initialization(self):
         synthesizer = Synthesizer(method="sdv-single_table-gaussiancopula")
         assert synthesizer.config.method == "sdv-single_table-gaussiancopula"
-        assert synthesizer._synthesizer is None
+        assert synthesizer._impl is None
 
         synthesizer = Synthesizer(
             method="sdv-single_table-gaussiancopula", sample_num_rows=500
@@ -27,8 +27,8 @@ class TestSynthesizer:
         mock_sdv.__name__ = "SDVSingleTableSynthesizer"
         synthesizer = Synthesizer(method="sdv-single_table-gaussiancopula")
 
-        # 在 create 前，_synthesizer 為 None
-        assert synthesizer._synthesizer is None
+        # 在 create 前，_impl 為 None
+        assert synthesizer._impl is None
 
         # 模擬 _determine_sample_configuration 方法，避免依賴實際邏輯
         with patch.object(
@@ -38,8 +38,8 @@ class TestSynthesizer:
         ):
             synthesizer.create()
 
-            # 在 create 後，_synthesizer 已設置
-            assert synthesizer._synthesizer is not None
+            # 在 create 後，_impl 已設置
+            assert synthesizer._impl is not None
 
     # 測試在未 create 前呼叫 fit 會引發 UncreatedError
     def test_fit_without_create(self):
@@ -50,8 +50,8 @@ class TestSynthesizer:
     # 測試非 CUSTOM_DATA 方法但無資料時引發 ConfigError
     def test_fit_without_data_raises_error(self):
         synthesizer = Synthesizer(method="sdv-single_table-gaussiancopula")
-        # 手動設置 _synthesizer，避免使用 create
-        synthesizer._synthesizer = Mock()
+        # 手動設置 _impl，避免使用 create
+        synthesizer._impl = Mock()
         synthesizer.config.method_code = SynthesizerMap.SDV
 
         with pytest.raises(ConfigError):

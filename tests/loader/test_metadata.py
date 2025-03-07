@@ -77,28 +77,6 @@ class TestMetadata:
         with pytest.raises(ValueError):
             metadata.set_col_infer_dtype("numerical", "invalid_type")
 
-    def test_to_sdv(self, sample_df):
-        """Test conversion to SDV format"""
-        metadata = Metadata()
-        metadata.build_metadata(sample_df)
-
-        sdv_metadata = metadata.to_sdv()
-
-        # Validate SDV metadata structure
-        assert "columns" in sdv_metadata
-
-        # Validate each column has correct sdtype
-        expected_sdtypes = {
-            "numerical": "numerical",
-            "categorical": "categorical",
-            "datetime": "datetime",
-            "boolean": "categorical",
-        }
-
-        for col, expected_type in expected_sdtypes.items():
-            assert col in sdv_metadata["columns"]
-            assert sdv_metadata["columns"][col]["sdtype"] == expected_type
-
     def test_convert_dtypes(self):
         """Test dtype conversion logic"""
         metadata = Metadata()

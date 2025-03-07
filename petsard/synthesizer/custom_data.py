@@ -26,11 +26,12 @@ class CustomDataSynthesizer(BaseSynthesizer):
             metadata (Metadata, optional): The metadata object.
 
         Attributes:
-            logger (logging.Logger): The logger object.
+            _logger (logging.Logger): The logger object.
             config (dict): The configuration of the synthesizer_base.
+            _impl (Any): The synthesizer object.
         """
         super().__init__(config, metadata)
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
 
@@ -46,7 +47,7 @@ class CustomDataSynthesizer(BaseSynthesizer):
         """
         if not any(key in self.config for key in self.LOADER_REQUIRED_CONFIGS):
             error_msg: str = "The 'filepath' or 'method' parameter is required for the 'custom_data' method."
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
 
         filtered_config: dict = {
@@ -59,7 +60,7 @@ class CustomDataSynthesizer(BaseSynthesizer):
             loader = Loader(**filtered_config)
         except Exception as e:
             error_msg: str = f"Unable to load data from the given filepath and config {filtered_config}: {e}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
 
         data: pd.DataFrame = None
@@ -72,7 +73,7 @@ class CustomDataSynthesizer(BaseSynthesizer):
                 f"If the input data exceeds this number of rows, "
                 f"PETsARD will only use the first {sample_num_rows} rows."
             )
-            self.logger.warning(error_msg)
+            self._logger.warning(error_msg)
 
             if sample_num_rows < data.shape[0]:
                 data = data.iloc[:sample_num_rows]
@@ -82,12 +83,12 @@ class CustomDataSynthesizer(BaseSynthesizer):
     def _fit(self, data: pd.DataFrame) -> None:
         """
         Fit the synthesizer.
-            _synthesizer should be initialized in this method.
+            _impl should be initialized in this method.
 
         Args:
             data (pd.DataFrame): The data to be fitted.
         """
-        self._synthesizer: Any = object()  # avoid check
+        self._impl: Any = object()  # avoid check
 
     def _sample(self) -> pd.DataFrame:
         """
