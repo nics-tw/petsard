@@ -1,27 +1,34 @@
+import logging
 import re
-from typing import Union
+import warnings
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Any, Union
 
 import pandas as pd
+from sdmetrics.reports.base_report import BaseReport
 from sdmetrics.reports.single_table import DiagnosticReport, QualityReport
-from sdv.metadata import SingleTableMetadata
+from sdv.metadata import Metadata as SDV_Metadata
 
+from petsard.config_base import BaseConfig
 from petsard.evaluator.evaluator_base import BaseEvaluator
-from petsard.exceptions import ConfigError, UnfittedError, UnsupportedMethodError
+from petsard.exceptions import UnsupportedMethodError
 from petsard.util import safe_round
 
 
-class SDMetricsMap:
+class SDMetricsSingleTableMap(Enum):
     """
     Mapping of SDMetrics.
     """
 
-    DIAGNOSTICREPORT: int = 1
-    QUALITYREPORT: int = 2
+    DIAGNOSTICREPORT: int = auto()
+    QUALITYREPORT: int = auto()
 
     @classmethod
     def map(cls, method: str) -> int:
         """
         Get suffixes mapping int value
+            Accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
 
         Args:
             method (str): evaluating method
@@ -29,130 +36,196 @@ class SDMetricsMap:
         Return:
             (int): The method code.
         """
-        try:
-            # accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
-            return cls.__dict__[
-                re.sub(r"^(sdmetrics-single_table-|sdmetrics-)", "", method).upper()
-            ]
-        except KeyError:
-            raise UnsupportedMethodError
+        return cls.__dict__[
+            re.sub(r"^(sdmetrics-single_table-|sdmetrics-)", "", method).upper()
+        ]
 
 
-class SDMetrics(BaseEvaluator):
+@dataclass
+class SDMetricsSingleTableConfig(BaseConfig):
     """
-    Factory for SDMetrics Evaluator, defines which module to use within SDMetrics.
+    Configuration for the sdmetrics single-table evaluator.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+        real_data (pd.DataFrame): The real data. copy from
+        synthetic_data (pd.DataFrame): The synthetic data.
+        metadata (dict): The metadata of the data.
+        ori (pd.DataFrame): The original data.
+        syn (pd.DataFrame): The synthetic data.
     """
+
+    ori: pd.DataFrame
+    syn: pd.DataFrame
+    real_data: pd.DataFrame = None
+    synthetic_data: pd.DataFrame = None
+    metadata: dict = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        if not all(isinstance(attr, pd.DataFrame) for attr in [self.ori, self.syn]):
+            error_msg: str = "The 'ori' and 'syn' attributes must be DataFrames."
+            self._logger.error(error_msg)
+            raise TypeError(error_msg)
+
+        self.real_data = self.ori.copy()
+        self.synthetic_data = self.syn.copy()
+        self.ori = None
+        self.syn = None
+
+    def create_metadata(self) -> None:
+        """
+        Create metadata from the original data.
+        """
+        self._logger.debug("Creating SDV metadata")
+        sdv_metadata_result: SDV_Metadata = SDV_Metadata().detect_from_dataframe(
+            self.real_data
+        )
+        self.metadata = sdv_metadata_result._convert_to_single_table().to_dict()
+
+
+class SDMetricsSingleTable(BaseEvaluator):
+    """
+    Factory for SDMetrics Evaluator.
+    """
+
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn"]
+    SDMETRICS_SINGLETABLE_CLASS_MAP: dict[int, BaseReport] = {
+        SDMetricsSingleTableMap.DIAGNOSTICREPORT: DiagnosticReport,
+        SDMetricsSingleTableMap.QUALITYREPORT: QualityReport,
+    }
+    REQUIRED_SDMETRICS_SINGLETABLE_KEYS: list[str] = [
+        "real_data",
+        "synthetic_data",
+        "metadata",
+    ]
+    AVAILABLE_SCORES_GRANULARITY: list[str] = [
+        "global",
+        "columnwise",
+        "pairwise",
+    ]
+    SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP: dict[tuple[str, int], str] = {
+        ("columnwise", SDMetricsSingleTableMap.DIAGNOSTICREPORT): "Data Validity",
+        ("columnwise", SDMetricsSingleTableMap.QUALITYREPORT): "Column Shapes",
+        ("pairwise", SDMetricsSingleTableMap.QUALITYREPORT): "Column Pair Trends",
+    }
 
     def __init__(self, config: dict):
         """
         Args:
             config (dict): A dictionary containing the configuration settings.
-                - method (str): The method of how you evaluating data.
+                - eval_method (str): The method of how you evaluating data.
 
         Attributes:
-            evaluator (Anonymeter): Anonymeter class for implementing the Anonymeter.
+            REQUIRED_INPUT_KEYS (list[str]): The required input keys.
+            SDMETRICS_SINGLETABLE_CLASS_MAP (dict[int, BaseReport]): The mapping of the SDMetrics classes.
+            REQUIRED_SDMETRICS_SINGLETABLE_KEYS (list[str]): The required SDMetrics keys.
+            AVAILABLE_SCORES_GRANULARITY (list[str]): The available scores granularity.
+            SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP (dict[tuple[str, int], str]): The mapping of the scores granularity properties.
+            _logger (logging.Logger): The logger object.
+            config (dict): A dictionary containing the configuration settings.
+            _impl (Any): The evaluator object.
         """
         super().__init__(config=config)
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
 
-        self.config["method_code"] = SDMetricsMap.map(self.config["method"])
+        self._logger.debug(
+            f"Initializing synthesizer with method: {self.config['eval_method']}"
+        )
+        try:
+            method_code: int = SDMetricsSingleTableMap.map(self.config["eval_method"])
+            self._logger.debug(f"Mapped method code: {method_code}")
+            evaluator_class: Any = self.SDMETRICS_SINGLETABLE_CLASS_MAP[method_code]
+        except KeyError:
+            error_msg: str = (
+                f"Unsupported evaluator method: {self.config['eval_method']}"
+            )
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
 
-        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
-            self.evaluator = DiagnosticReport()
-        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
-            self.evaluator = QualityReport()
-        else:
-            raise UnsupportedMethodError
+        self._impl: BaseReport = evaluator_class()
 
-        self.metadata: dict = None
-
-    def _create(self, data: dict):
-        """
-        create() of SDMetrics.
-            Defines the sub-evaluator from the SDMetrics library,
-            and build the metadata from the original data.
-
-        Args:
-            data (dict): The data required for description/evaluation.
-                - ori (pd.DataFrame): The original data used for synthesis.
-                - syn (pd.DataFrame): The synthetic data generated from 'ori'.
-
-        Attributes:
-            metadata (dict):
-                A dictionary containing the metadata information as SDV format.
-        """
-        if not set(["ori", "syn"]).issubset(set(data.keys())):
-            raise ConfigError
-        data = {key: value for key, value in data.items() if key in ["ori", "syn"]}
-        self.data = data
-
-        data_ori_metadata = SingleTableMetadata()
-        data_ori_metadata.detect_from_dataframe(self.data["ori"])
-        self.metadata = data_ori_metadata.to_dict()
-
-    def _extract_result(self) -> dict:
+    def _extract_scores(self) -> dict[str, pd.DataFrame]:
         """
         _extract_result of SDMetrics.
             Uses .get_score()/.get_properties()/.get_details() method in SDMetrics
-            to extract result from self.evaluator into the designated dictionary.
+            to extract result from self._impl into the designated dictionary.
 
         Return
-            (dict). Result as following key-value pairs:
-            - score (pd.DataFrame):
-            - properties (pd.DataFrame):
-            - details (pd.DataFrame):
+            (dict[str, pd.DataFrame]) Result as following key-value pairs:
+                - score
+                - properties
+                - details
         """
 
-        result = {}
+        sdmetrics_scores: dict[str, pd.DataFrame] = {}
 
-        result["score"] = safe_round(self.evaluator.get_score())
+        self._logger.debug("Extract scores level from SDMetrics")
+        sdmetrics_scores["score"] = safe_round(self._impl.get_score())
 
         # Tranfer pandas to desired dict format:
-        #     {'properties name': {'Score': ...},
-        #      'properties name': {'Score': ...}
-        #     }
-        properties = self.evaluator.get_properties()
+        #     {'properties name': {'Score': ...}, ...}
+        properties = self._impl.get_properties()
         properties["Score"] = safe_round(properties["Score"])
 
-        result["properties"] = (
+        self._logger.debug("Extracting properties level from SDMetrics")
+        sdmetrics_scores["properties"] = (
             properties.set_index("Property").rename_axis(None).to_dict("index")
         )
 
-        result["details"] = {}
-        for property in result["properties"].keys():
-            result["details"][property] = self.evaluator.get_details(
+        self._logger.debug("Extracting details level from SDMetrics")
+        sdmetrics_scores["details"] = {}
+        for property in sdmetrics_scores["properties"].keys():
+            sdmetrics_scores["details"][property] = self._impl.get_details(
                 property_name=property
             )
 
-        return result
+        return sdmetrics_scores
 
-    def eval(self) -> None:
+    def _get_global(
+        self, sdmetrics_scores: dict[str, pd.DataFrame]
+    ) -> Union[pd.DataFrame, None]:
         """
-        Evaluate the SDMetrics process.
+        Returns the global result from the SDMetrics.
 
-        Return
-            None. Result contains in self.result as following key-value pairs:
+        Args:
+            sdmetrics_scores (dict[str, pd.DataFrame]): The SDMetrics scores.
+            property (str): The name of the property.
+
+        Returns:
+            (pd.DataFrame): A DataFrame with the global evaluation result.
+                One row only for representing the whole data result.
         """
-        if not self.evaluator:
-            raise UnfittedError
-
-        self.evaluator.generate(
-            real_data=self.data["ori"],
-            synthetic_data=self.data["syn"],
-            metadata=self.metadata,
+        # get_score
+        data = {"Score": sdmetrics_scores["score"]}
+        # get_properties
+        data.update(
+            {
+                key: value["Score"]
+                for key, value in sdmetrics_scores["properties"].items()
+            }
         )
-        self.result = self._extract_result()
+        return pd.DataFrame.from_dict(data={"result": data}, orient="columns").T
 
-    def _transform_details(self, property: str) -> pd.DataFrame:
+    def _transform_details(
+        self,
+        sdmetrics_scores: dict[str, pd.DataFrame],
+        property: str,
+    ) -> pd.DataFrame:
         """
         Transforms the details of a specific property in the result dictionary.
 
         Args:
+            sdmetrics_scores (dict[str, pd.DataFrame]): The SDMetrics scores.
             property (str): The name of the property.
 
         Returns:
             (pd.DataFrame) The transformed details dataframe.
         """
-        data: pd.DataFrame = self.result["details"][property].copy()
+        data: pd.DataFrame = sdmetrics_scores["details"][property].copy()
 
         # set column as index, and remove index name
         if "Column" in data.columns:
@@ -172,51 +245,81 @@ class SDMetrics(BaseEvaluator):
             + [col for col in data.columns if col not in ["Property", "Metric"]]
         ]
 
-    def get_global(self) -> Union[pd.DataFrame, None]:
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         """
-        Returns the global result from the SDMetrics.
+        Evaluating the evaluator.
+            _impl should be initialized in this method.
 
-        Returns:
-            pd.DataFrame: A DataFrame with the global evaluation result.
-                One row only for representing the whole data result.
+        Args:
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+
+        Return:
+            (dict[str, pd.DataFrame]): The evaluation result
         """
-        # get_score
-        data = {"Score": self.result["score"]}
-        # get_properties
-        data.update(
-            {key: value["Score"] for key, value in self.result["properties"].items()}
+        self._logger.info("Evaluating with data")
+
+        self._logger.debug("Initializing SDMetricsSingleTableConfig")
+        sdmetrics_singletable_config: SDMetricsSingleTableConfig = (
+            SDMetricsSingleTableConfig.from_dict(data)
         )
-        return pd.DataFrame.from_dict(data={"result": data}, orient="columns").T
+        sdmetrics_singletable_config.create_metadata()
 
-    def get_columnwise(self) -> Union[pd.DataFrame, None]:
-        """
-        Retrieves the column-wise result from the SDMetrics.
+        self._logger.debug("Initializing evaluator in _eval method")
 
-        Returns:
-            pd.DataFrame: A DataFrame with the column-wise evaluation result.
-                One row represent one column data result.
-        """
-        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
-            property = "Data Validity"
-        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
-            property = "Column Shapes"
-        else:
-            raise UnsupportedMethodError
+        # catch warnings during synthesizer initialization:
+        # "We strongly recommend saving the metadata using 'save_to_json' for replicability in future SDV versions."
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self._impl.generate(
+                **sdmetrics_singletable_config.get_params(
+                    param_configs=[
+                        {attr: {"action": "INCLUDE"}}
+                        for attr in self.REQUIRED_SDMETRICS_SINGLETABLE_KEYS
+                    ]
+                )
+            )
 
-        return self._transform_details(property=property)
+            for warning in w:
+                self._logger.debug(f"Warning during _eval: {warning.message}")
 
-    def get_pairwise(self) -> Union[pd.DataFrame, None]:
-        """
-        Retrieves the pairwise result from the SDMetrics.
+        self._logger.info("Successfully evaluating from data")
 
-        Returns:
-            pd.DataFrame: A DataFrame with the column-wise evaluation result.
-                One row represent one "column x column" data result.
-        """
-        if self.config["method_code"] == SDMetricsMap.DIAGNOSTICREPORT:
-            return None
-        elif self.config["method_code"] == SDMetricsMap.QUALITYREPORT:
-            property = "Column Pair Trends"
-            return self._transform_details(property=property)
-        else:
-            raise UnsupportedMethodError
+        sdmetrics_scores: dict[str, pd.DataFrame] = self._extract_scores()
+        self._logger.debug(f"Extracted scores: {list(sdmetrics_scores.keys())}")
+
+        scores: dict[str, pd.DataFrame] = {}
+        property: str = None
+        for granularity in self.AVAILABLE_SCORES_GRANULARITY:
+            self._logger.debug(f"Extracting {granularity} level as PETsARD format")
+
+            if granularity == "global":
+                scores[granularity] = self._get_global(
+                    sdmetrics_scores=sdmetrics_scores,
+                )
+            else:
+                method_code: int = SDMetricsSingleTableMap.map(
+                    self.config["eval_method"]
+                )
+                if (
+                    granularity,
+                    method_code,
+                ) in self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP:
+                    property = self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP[
+                        (
+                            granularity,
+                            method_code,
+                        )
+                    ]
+
+                if property is None:
+                    self._logger.debug(
+                        f"Property not found for {granularity} level. Skipping."
+                    )
+                    scores[granularity] = None
+                else:
+                    scores[granularity] = self._transform_details(
+                        sdmetrics_scores, property=property
+                    )
+        self._logger.info("Successfully extracting scores")
+
+        return scores

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import requests
 
 from petsard.exceptions import BenchmarkDatasetsError
-from petsard.loader.util import DigestSha256
+from petsard.util import digest_sha256
 
 
 class BaseBenchmarker(ABC):
@@ -19,7 +19,7 @@ class BaseBenchmarker(ABC):
     def __init__(self, config: dict):
         """
         Attributes:
-            logger (logging.Logger): The logger object.
+            _logger (logging.Logger): The logger object.
             config (dict) The configuration of the benchmarker.
                 benchmark_bucket_name (str) The name of the S3 bucket.
                 benchmark_filename (str)
@@ -30,8 +30,11 @@ class BaseBenchmarker(ABC):
                 benchmark_already_exist (bool)
                     If the benchmark data already exist. Default is False.
         """
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
+        )
+        self._logger.info(
+            f"Initializing Benchmarker with benchmark_filename: {config['benchmark_filename']}"
         )
 
         self.config: dict = config
@@ -61,20 +64,20 @@ class BaseBenchmarker(ABC):
             already_exist (bool) If the file already exist. Default is True.
               False means verify under download process.
         """
-        file_sha256hash = DigestSha256(self.config["filepath"])
+        file_sha256hash = digest_sha256(self.config["filepath"])
 
         if file_sha256hash == self.config["benchmark_sha256"]:
             self.config["benchmark_already_exist"] = True
         else:
             if already_exist:
-                self.logger.error(f"SHA-256 mismatch: {self.config['filepath']}")
+                self._logger.error(f"SHA-256 mismatch: {self.config['filepath']}")
                 raise BenchmarkDatasetsError(
                     f"SHA-256 mismatch: {self.config['filepath']}. "
                 )
             else:
                 try:
                     os.remove(self.config["filepath"])
-                    self.logger.error(
+                    self._logger.error(
                         f"Downloaded file SHA-256 mismatch: {self.config['benchmark_filename']} from "
                         f"{self.config['benchmark_bucket_name']}. "
                     )
@@ -83,7 +86,7 @@ class BaseBenchmarker(ABC):
                         f"{self.config['benchmark_bucket_name']}. "
                     )
                 except OSError:
-                    self.logger.error(
+                    self._logger.error(
                         f"Failed to remove file: {self.config['filepath']}. Please delete it manually."
                     )
                     raise OSError(
@@ -109,7 +112,7 @@ class BenchmarkerRequests(BaseBenchmarker):
 
         """
         if self.config["benchmark_already_exist"]:
-            self.logger.info(f"Using local file: {self.config['filepath']}")
+            self._logger.info(f"Using local file: {self.config['filepath']}")
         else:
             url = (
                 f"https://"
@@ -117,18 +120,18 @@ class BenchmarkerRequests(BaseBenchmarker):
                 f".s3.amazonaws.com/"
                 f"{self.config['benchmark_filename']}"
             )
-            self.logger.info(f"Downloading from: {url}")
+            self._logger.info(f"Downloading from: {url}")
             with requests.get(url, stream=True) as response:
                 if response.status_code == 200:
                     with open(self.config["filepath"], "wb") as f:
                         # load 8KB at one time
                         for chunk in response.iter_content(chunk_size=8192):
                             f.write(chunk)
-                    self.logger.info(
+                    self._logger.info(
                         f"Download completed: {self.config['benchmark_filename']}"
                     )
                 else:
-                    self.logger.error(
+                    self._logger.error(
                         f"Download failed: status={response.status_code}, url={url}"
                     )
                     raise BenchmarkDatasetsError(

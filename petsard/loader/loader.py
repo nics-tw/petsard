@@ -18,9 +18,9 @@ from petsard.exceptions import (
 )
 from petsard.loader.benchmarker import BenchmarkerRequests
 from petsard.loader.metadata import Metadata
-from petsard.loader.util import casting_dataframe
 from petsard.util import (
     ALLOWED_COLUMN_TYPES,
+    casting_dataframe,
     optimize_dtypes,
 )
 
@@ -57,6 +57,31 @@ class LoaderFileExt:
 class LoaderConfig(BaseConfig):
     """
     Configuration for the data loader.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+        DEFAULT_METHOD_FILEPATH (str): The default method filepath.
+        VALID_COLUMN_TYPES (list): The valid column types.
+        YAML_FILENAME (str): The benchmark datasets YAML filename.
+        filepath (str): The fullpath of dataset.
+        method (str): The method of Loader.
+        column_types (dict): The dictionary of column types and their corresponding column names.
+        dtype (dict): The dictionary of column names and their types.
+        header_names (list): Specifies a list of headers for the data without header.
+        na_values (str | list | dict): Extra string to recognized as NA/NaN.
+        dir_name (str): The directory name of the file path.
+        base_name (str): The base name of the file path.
+        file_name (str): The file name of the file path.
+        file_ext (str): The file extension of the file path.
+        file_ext_code (int): The file extension code.
+        benchmark (bool): The flag to indicate if the file path is a benchmark.
+        filepath_raw (str): The raw file path.
+        benchmark_name (str): The benchmark name.
+        benchmark_filename (str): The benchmark filename.
+        benchmark_access (str): The benchmark access type.
+        benchmark_region_name (str): The benchmark region name.
+        benchmark_bucket_name (str): The benchmark bucket name.
+        benchmark_sha256 (str): The benchmark SHA-256 value.
     """
 
     DEFAULT_METHOD_FILEPATH: str = "benchmark://adult-income"
@@ -88,49 +113,46 @@ class LoaderConfig(BaseConfig):
     benchmark_sha256: Optional[str] = None
 
     def __post_init__(self):
-        # Set up logger for this class
-        self.logger: logging.Logger = logging.getLogger(
-            f"PETsARD.{self.__class__.__name__}"
-        )
-        self.logger.debug("Initializing LoaderConfig")
+        super().__post_init__()
+        self._logger.debug("Initializing LoaderConfig")
         error_msg: str = ""
 
         # 1. set default method if method = 'default'
         if self.filepath is None and self.method is None:
             error_msg = "filepath or method must be specified"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
         elif self.method:
             if self.method.lower() == "default":
                 # default will use adult-income
-                self.logger.info("Using default method: adult-income")
+                self._logger.info("Using default method: adult-income")
                 self.filepath = self.DEFAULT_METHOD_FILEPATH
             else:
                 error_msg = f"Unsupported method: {self.method}"
-                self.logger.error(error_msg)
+                self._logger.error(error_msg)
                 raise UnsupportedMethodError(error_msg)
         # 2. check if filepath is specified as a benchmark
         if self.filepath.lower().startswith("benchmark://"):
-            self.logger.info(f"Detected benchmark filepath: {self.filepath}")
+            self._logger.info(f"Detected benchmark filepath: {self.filepath}")
             self.benchmark = True
             self.benchmark_name = re.sub(
                 r"^benchmark://", "", self.filepath, flags=re.IGNORECASE
             ).lower()
-            self.logger.debug(f"Extracted benchmark name: {self.benchmark_name}")
+            self._logger.debug(f"Extracted benchmark name: {self.benchmark_name}")
 
         if self.benchmark:
             # 3. if benchmark, load and organized yaml: BENCHMARK_CONFIG
-            self.logger.info("Loading benchmark configuration")
+            self._logger.info("Loading benchmark configuration")
             benchmark_config: dict = self._load_benchmark_config()
 
             # 4. if benchmark name exist in BENCHMARK_CONFIG, update config with benchmark values
             if self.benchmark_name not in benchmark_config:
                 error_msg = f"Benchmark dataset {self.benchmark_name} is not supported"
-                self.logger.error(error_msg)
+                self._logger.error(error_msg)
                 raise UnsupportedMethodError(error_msg)
 
             benchmark_value: dict = benchmark_config[self.benchmark_name]
-            self.logger.debug(
+            self._logger.debug(
                 f"Found benchmark configuration for {self.benchmark_name}"
             )
             self.filepath_raw = self.filepath
@@ -139,14 +161,14 @@ class LoaderConfig(BaseConfig):
 
             if benchmark_value["access"] != "public":
                 error_msg = f"Benchmark access type {benchmark_value['access']} is not supported"
-                self.logger.error(error_msg)
+                self._logger.error(error_msg)
                 raise UnsupportedMethodError(error_msg)
 
             self.benchmark_access = benchmark_value["access"]
             self.benchmark_region_name = benchmark_value["region_name"]
             self.benchmark_bucket_name = benchmark_value["bucket_name"]
             self.benchmark_sha256 = benchmark_value["sha256"]
-            self.logger.info(
+            self._logger.info(
                 f"Configured benchmark dataset: {self.benchmark_name}, filename: {self.benchmark_filename}"
             )
 
@@ -160,21 +182,21 @@ class LoaderConfig(BaseConfig):
             self.file_ext_code = LoaderFileExt.get(self.file_ext)
         except KeyError:
             error_msg = f"Unsupported file extension: {self.file_ext}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnsupportedMethodError(error_msg)
-        self.logger.debug(
+        self._logger.debug(
             f"File path information - dir: {self.dir_name}, name: {self.file_name}, ext: {self.file_ext}, ext code: {self.file_ext_code}"
         )
 
         # 6. validate column_types
         if self.column_types is not None:
-            self.logger.debug(f"Validating column types: {self.column_types}")
+            self._logger.debug(f"Validating column types: {self.column_types}")
             for col_type, columns in self.column_types.items():
                 if col_type.lower() not in self.VALID_COLUMN_TYPES:
                     error_msg = f"Column type {col_type} on {columns} is not supported"
-                    self.logger.error(error_msg)
+                    self._logger.error(error_msg)
                     raise UnsupportedMethodError(error_msg)
-            self.logger.debug("Column types validation passed")
+            self._logger.debug("Column types validation passed")
 
     def _load_benchmark_config(self) -> dict:
         """
@@ -189,7 +211,7 @@ class LoaderConfig(BaseConfig):
                     bucket_name (str): Its AWS S3 bucket.
                     sha256 (str): Its SHA-256 value.
         """
-        self.logger.debug(f"Loading benchmark configuration from {self.YAML_FILENAME}")
+        self._logger.debug(f"Loading benchmark configuration from {self.YAML_FILENAME}")
 
         config: dict = {}
         error_msg: str = ""
@@ -197,10 +219,10 @@ class LoaderConfig(BaseConfig):
         try:
             with resources.open_text("petsard.loader", self.YAML_FILENAME) as file:
                 config = yaml.safe_load(file)
-                self.logger.debug("Successfully loaded benchmark YAML configuration")
+                self._logger.debug("Successfully loaded benchmark YAML configuration")
         except Exception as e:
             error_msg = f"Failed to load benchmark configuration: {str(e)}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise BenchmarkDatasetsError(error_msg)
 
         REGION_NAME = config["region_name"]
@@ -217,14 +239,14 @@ class LoaderConfig(BaseConfig):
             for key, value in config["datasets"].items()
         }
 
-        self.logger.debug(f"Processed {len(config['datasets'])} benchmark datasets")
+        self._logger.debug(f"Processed {len(config['datasets'])} benchmark datasets")
         return config["datasets"]
 
 
 class Loader:
     """
-    Unified data loader using dlt to handle various data sources and formats.
-    Completely refactored version that doesn't rely on the old loader classes.
+    The Loader class is responsible for creating and configuring a data loader,
+    as well as retrieving and processing data from the specified sources.
     """
 
     def __init__(
@@ -236,8 +258,6 @@ class Loader:
         na_values: Optional[Union[str, list[str], dict[str, str]]] = None,
     ):
         """
-        Initialize the data loader.
-
         Args:
             filepath (str, optional): The fullpath of dataset.
             method (str, optional): The method of Loader.
@@ -260,14 +280,14 @@ class Loader:
                 Check pandas document for Default NA string list.
 
         Attributes:
-            logger (logging.Logger): The logger object.
+            _logger (logging.Logger): The logger object.
             config (LoaderConfig): Configuration
         """
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
-        self.logger.info("Initializing Loader")
-        self.logger.debug(
+        self._logger.info("Initializing Loader")
+        self._logger.debug(
             f"Loader parameters - filepath: {filepath}, method: {method}, column_types: {column_types}"
         )
 
@@ -278,7 +298,7 @@ class Loader:
             header_names=header_names,
             na_values=na_values,
         )
-        self.logger.debug("LoaderConfig successfully initialized")
+        self._logger.debug("LoaderConfig successfully initialized")
 
     @classmethod
     def _assign_str_dtype(
@@ -317,25 +337,25 @@ class Loader:
             data (pd.DataFrame): Data been loaded
             metadata (Metadata): Metadata of the data
         """
-        self.logger.info(f"Loading data from {self.config.filepath}")
+        self._logger.info(f"Loading data from {self.config.filepath}")
         error_msg: str = ""
 
         # 1. If set as load benchmark
         #    downloading benchmark dataset, and executing on local file.
         if self.config.benchmark:
-            self.logger.info(
+            self._logger.info(
                 f"Downloading benchmark dataset: {self.config.benchmark_name}"
             )
             try:
                 BenchmarkerRequests(self.config.get()).download()
-                self.logger.debug("Benchmark dataset downloaded successfully")
+                self._logger.debug("Benchmark dataset downloaded successfully")
             except Exception as e:
                 error_msg = f"Failed to download benchmark dataset: {str(e)}"
-                self.logger.error(error_msg)
+                self._logger.error(error_msg)
                 raise BenchmarkDatasetsError(error_msg)
 
         # 2. Setting self.loader as specified Loader class by file extension and load data
-        self.logger.info(f"Loading data using file extension: {self.config.file_ext}")
+        self._logger.info(f"Loading data using file extension: {self.config.file_ext}")
         loaders_map: dict[int, Any] = {
             LoaderFileExt.CSVTYPE: pd.read_csv,
             LoaderFileExt.EXCELTYPE: pd.read_excel,
@@ -343,7 +363,7 @@ class Loader:
 
         try:
             if self.config.header_names:
-                self.logger.debug(
+                self._logger.debug(
                     f"Using custom header names: {self.config.header_names}"
                 )
                 data: pd.DataFrame = loaders_map[self.config.file_ext_code](
@@ -353,52 +373,52 @@ class Loader:
                     na_values=self.config.na_values,
                 )
             else:
-                self.logger.debug("Using inferred headers")
+                self._logger.debug("Using inferred headers")
                 data: pd.DataFrame = loaders_map[self.config.file_ext_code](
                     self.config.filepath,
                     header="infer",
                     na_values=self.config.na_values,
                 )
 
-            self.logger.info(f"Successfully loaded data with shape: {data.shape}")
+            self._logger.info(f"Successfully loaded data with shape: {data.shape}")
         except Exception as e:
             error_msg = f"Failed to load data: {str(e)}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnableToLoadError(error_msg)
 
         # 3. Optimizing dtype
-        self.logger.info("Optimizing data types")
+        self._logger.info("Optimizing data types")
         try:
             self.config.dtype = optimize_dtypes(
                 data=data,
                 column_types=self.config.column_types,
             )
-            self.logger.debug(f"Optimized dtypes: {self.config.dtype}")
+            self._logger.debug(f"Optimized dtypes: {self.config.dtype}")
         except Exception as e:
             error_msg = f"Failed to optimize data types: {str(e)}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg)
 
         # 4. Casting data for more efficient storage space
-        self.logger.info("Casting dataframe to optimized types")
+        self._logger.info("Casting dataframe to optimized types")
         try:
             data = casting_dataframe(data, self.config.dtype)
-            self.logger.debug("Dataframe cast successfully")
+            self._logger.debug("Dataframe cast successfully")
         except Exception as e:
             error_msg = f"Failed to cast dataframe: {str(e)}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg)
 
         # 5. Setting metadata
-        self.logger.info("Building metadata")
+        self._logger.info("Building metadata")
         try:
             metadata: Metadata = Metadata()
             metadata.build_metadata(data=data)
-            self.logger.debug("Metadata built successfully")
+            self._logger.debug("Metadata built successfully")
         except Exception as e:
             error_msg = f"Failed to build metadata: {str(e)}"
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg)
 
-        self.logger.info("Data loading completed successfully")
+        self._logger.info("Data loading completed successfully")
         return data, metadata

@@ -18,14 +18,16 @@ class BaseSynthesizer(ABC):
         """
         Args:
             config (dict): The configuration assign by Synthesizer
+                - syn_method (str): The method of how you synthesize data.
+                - sample_num_rows (int): The number of rows to be synthesized.
             metadata (Metadata, optional): The metadata object.
 
         Attributes:
-            logger (logging.Logger): The logger object.
+            _logger (logging.Logger): The logger object.
             config (dict): The configuration of the synthesizer_base.
-            _synthesizer (Any): The synthesizer object.
+            _impl (Any): The synthesizer object.
         """
-        self.logger: logging.Logger = logging.getLogger(
+        self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
 
@@ -33,17 +35,17 @@ class BaseSynthesizer(ABC):
             error_msg: str = (
                 "The 'syn_method' parameter is required for the synthesizer."
             )
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
         if "sample_num_rows" not in config:
             error_msg: str = (
                 "The 'sample_num_rows' parameter is required for the synthesizer."
             )
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise ConfigError(error_msg)
 
         self.config: dict = config
-        self._synthesizer: Any = None
+        self._impl: Any = None
 
     def update_config(self, config: dict) -> None:
         """
@@ -58,7 +60,7 @@ class BaseSynthesizer(ABC):
     def _fit(self, data: pd.DataFrame = None) -> None:
         """
         Fit the synthesizer.
-            _synthesizer should be initialized in this method.
+            _impl should be initialized in this method.
 
         Args:
             data (pd.DataFrame, optional): The data to be fitted.
@@ -66,10 +68,9 @@ class BaseSynthesizer(ABC):
         Raises:
             NotImplementedError: If the subclass does not implement this method
         """
-        self._fit(data)
         error_msg: str = "The '_fit' method must be implemented in the derived class."
-        self.logger.error(error_msg)
-        raise NotImplementedError
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
     def fit(self, data: pd.DataFrame = None) -> None:
         """
@@ -79,9 +80,11 @@ class BaseSynthesizer(ABC):
         train the synthesizer and prepare it for generating synthetic data.
 
         Args:
-            data (pd.DataFrame, optional): Data to fit the synthesizer on
+            data (pd.DataFrame, optional): same as _fit method.
         """
+        self._logger.info(f"Fitting {self.__class__.__name__}")
         self._fit(data)
+        self._logger.info(f"Successfully fitting {self.__class__.__name__}")
 
     @abstractmethod
     def _sample(self) -> pd.DataFrame:
@@ -97,8 +100,8 @@ class BaseSynthesizer(ABC):
         error_msg: str = (
             "The '_sample' method must be implemented in the derived class."
         )
-        self.logger.error(error_msg)
-        raise NotImplementedError
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
     def sample(self) -> pd.DataFrame:
         """
@@ -113,9 +116,12 @@ class BaseSynthesizer(ABC):
         Raises:
             UnfittedError: If the synthesizer has not been fitted yet
         """
-        if not hasattr(self, "_synthesizer") or self._synthesizer is None:
+        if not hasattr(self, "_impl") or self._impl is None:
             error_msg: str = "The synthesizer has not been fitted."
-            self.logger.error(error_msg)
+            self._logger.error(error_msg)
             raise UnfittedError(error_msg)
 
-        return self._sample()
+        self._logger.info(f"Sampling {self.__class__.__name__}")
+        sampled_data: pd.DataFrame = self._sample()
+        self._logger.info(f"Successfully sampling {self.__class__.__name__}")
+        return sampled_data
