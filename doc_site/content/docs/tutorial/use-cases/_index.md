@@ -51,6 +51,12 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
 
 ## **Data Evaluating**
 
+### **Machine Learning-based Data Utility：[ML Utility](./ml-utility)**
+
+  - Evaluate synthetic data utility for classification, regression, and clustering
+  - Uses dual-source control group evaluation by default for fair comparison
+  - Support multiple experimental designs for different use cases
+
 ### **Custom Evaluation: [Custom Evaluation](./custom-evaluation)**
 
   - Create your own evaluation methods
