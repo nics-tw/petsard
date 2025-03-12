@@ -40,7 +40,7 @@ build-backend = "hatchling.build"
 tag_format = "v{version}"
 # Not allow 0.x.x version numbers for early development
 major_on_zero = false
-allow_zero_version = true
+allow_zero_version = false
 # Command to build distribution packages (creates dist/ directory)
 build_command = "pip install build && python -m build"
 # Specifies additional files to be included in releases
@@ -63,7 +63,8 @@ logging_use_named_masks = false
 version_variable = [
    "pyproject.toml:project.version",
 ]
-version_source = "tag"
+# tag for use GitHub tag, commit for use pyproject.toml
+version_source = "commit"
 
 # Main branch release configuration
 [tool.semantic_release.branches.main]
