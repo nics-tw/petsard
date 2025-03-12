@@ -28,23 +28,23 @@ from petsard import Describer
 
 
 # Using default descriptive methods
-des = Describer({'method': 'default'})
+desc = Describer(method='default')
 
 # Using custom descriptive methods
-des = Describer({
-   'method': 'summary',
-   'describe': ['mean', 'median', 'std',
-               {'percentile': 0.95}]
-})
+desc = Describer(
+    method='default',
+    describe_method=['mean', 'median', 'std', 'percentile'],
+    percentile=0.95,
+)
 
 # Analysis
-des.create({'data': df})
-des.eval()
+desc.create()
+desc_result: dict[str, pd.DataFrame] = desc.eval({'data': df})
 
 # Get results
-global_stats = des.get_global()      # Global statistics
-column_stats = des.get_columnwise()  # Column-wise statistics
-pairwise_stats = des.get_pairwise()  # Pairwise statistics
+global_stats: pd.DataFrame = desc_result.get('global')      # Global statistics
+column_stats: pd.DataFrame = desc_result.get('columnwise')  # Column-wise statistics
+pairwise_stats: pd.DataFrame = desc_result.get('pairwise')  # Pairwise statistics
 ```
 
 ## Methods
@@ -55,8 +55,7 @@ Initialize descriptor.
 
 **Parameters**
 
-- `data` (dict): Data to analyze
-  - Format: `{'data': pd.DataFrame}`
+None
 
 **Returns**
 
@@ -68,47 +67,15 @@ Perform descriptive statistical analysis.
 
 **Parameters**
 
-None
+- `data` (dict): Data to analyze
+  - Format: `{'data': pd.DataFrame}`
 
 **Returns**
 
-None. Results are stored in `aggregator`
-
-### get_global()
-
-Get global descriptive statistics.
-
-**Parameters**
-
-None
-
-**Returns**
-
-- pd.DataFrame: Single row containing global descriptive statistics
-
-### get_columnwise()
-
-Get column-wise descriptive statistics.
-
-**Parameters**
-
-None
-
-**Returns**
-
-- pd.DataFrame: Each row represents statistics for one column
-
-### get_pairwise()
-
-Get pairwise descriptive statistics.
-
-**Parameters**
-
-None
-
-**Returns**
-
-- pd.DataFrame: Each row represents statistics for a pair of columns
+`(dict[str, pd.DataFrame])`, varies by module:
+  - 'global': Single row dataframe representing overall dataset desciption results
+  - 'columnwise': Column-level desciption results, each row representing desciption results for one column
+  - 'pairwise': Column pair desciption results, each row representing desciption results for a pair of columns
 
 ## Appendix: Supported Methods
 
