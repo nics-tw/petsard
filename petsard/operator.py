@@ -571,6 +571,10 @@ class ConstrainerOperator(BaseOperator):
             self.sample_dict["target_rows"] = len(input["data"])
 
         if "synthesizer" in input:
+        if "target_rows" not in self.sample_dict:
+            self.sample_dict["target_rows"] = len(input["data"])
+
+        if "synthesizer" in input:
             # Use resample_until_satisfy if sampling parameters and synthesizer are provided
             self._logger.debug("Using resample_until_satisfy method")
             self.constrained_data = self.constrainer.resample_until_satisfy(

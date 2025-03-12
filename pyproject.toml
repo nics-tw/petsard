@@ -9,8 +9,10 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
 # dateutil for DateEncoder
+# dateutil for DateEncoder
 dependencies = [
     "anonymeter>=1.0.0,<2",
+    "python-dateutil>=2.9.0.post0",
     "python-dateutil>=2.9.0.post0",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
