@@ -1,8 +1,8 @@
 ---
 title: Custom Evaluation
 type: docs
-weight: 33
-prev: docs/tutorial/use-cases/data-constraining
+weight: 34
+prev: docs/tutorial/use-cases/ml-utility
 next: docs/tutorial/use-cases/benchmark-datasets
 ---
 

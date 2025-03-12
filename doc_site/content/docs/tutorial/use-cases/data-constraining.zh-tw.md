@@ -3,7 +3,7 @@ title: 資料約束
 type: docs
 weight: 32
 prev: docs/tutorial/use-cases/custom-synthesis
-next: docs/tutorial/use-cases/custom-evaluation
+next: docs/tutorial/use-cases/ml-utility
 ---
 
 透過欄位值規則、欄位組合和空值處理策略來約束合成資料。
