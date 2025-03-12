@@ -28,23 +28,23 @@ from petsard import Describer
 
 
 # 使用預設敘述方法
-des = Describer({'method': 'default'})
+desc = Describer(method='default')
 
 # 自定義敘述方法
-des = Describer({
-    'method': 'summary',
-    'describe': ['mean', 'median', 'std',
-                {'percentile': 0.95}]
-})
+desc = Describer(
+    method='default',
+    describe_method=['mean', 'median', 'std', 'percentile'],
+    percentile=0.95,
+)
 
 # 評測
-des.create({'data': df})
-des.eval()
+desc.create()
+desc_result: dict[str, pd.DataFrame] = desc.eval({'data': df})
 
 # 取得結果
-global_stats = des.get_global()      # 整體統計
-column_stats = des.get_columnwise()  # 各欄位統計
-pairwise_stats = des.get_pairwise()  # 欄位配對統計
+global_stats: pd.DataFrame = desc_result.get('global')      # 整體統計
+column_stats: pd.DataFrame = desc_result.get('columnwise')  # 各欄位統計
+pairwise_stats: pd.DataFrame = desc_result.get('pairwise')  # 欄位配對統計
 ```
 
 ## 方法
@@ -55,8 +55,7 @@ pairwise_stats = des.get_pairwise()  # 欄位配對統計
 
 **參數**
 
-- `data` (dict)：要敘述的資料
-  - 格式：`{'data': pd.DataFrame}`
+無
 
 **回傳值**
 
@@ -68,47 +67,15 @@ pairwise_stats = des.get_pairwise()  # 欄位配對統計
 
 **參數**
 
-無
+- `data` (dict)：要敘述的資料
+  - 格式：`{'data': pd.DataFrame}`
 
 **回傳值**
 
-無，敘述結果儲存於 `aggregator`
-
-### get_global()
-
-取得整體敘述性統計結果。
-
-**參數**
-
-無
-
-**回傳值**
-
-- pd.DataFrame：單列的整體敘述性統計結果
-
-### get_columnwise()
-
-取得各欄位敘述性統計結果。
-
-**參數**
-
-無
-
-**回傳值**
-
-- pd.DataFrame：每列為一個欄位的敘述性統計結果
-
-### get_pairwise()
-
-取得欄位配對敘述性統計結果。
-
-**參數**
-
-無
-
-**回傳值**
-
-- pd.DataFrame：每列為一組欄位配對的敘述性統計結果
+`(dict[str, pd.DataFrame])`，依照模組不同：
+  - 'global'：表示整體資料集敘述結果的單列資料框
+  - 'columnwise'：表示各欄位敘述結果，每列代表一個欄位的敘述結果
+  - 'pairwise'：表示欄位對敘述結果，每列代表一組欄位配對的敘述結果
 
 ## 附錄：支援敘述方法
 

@@ -543,13 +543,13 @@ class ReporterSaveReport(BaseReporter):
 
         # 4. Rename columns as f"{eval_name}_{original column}" if assigned
         #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
-        eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
-        eval_name = eval_expt_tuple[0]
-        for col in report.columns:
-            report.rename(
-                columns={col: f"{eval_name}_{col}"},
-                inplace=True,
-            )
+        # eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+        # eval_name = eval_expt_tuple[0]
+        # for col in report.columns:
+        #     report.rename(
+        #         columns={col: f"{eval_name}_{col}"},
+        #         inplace=True,
+        #     )
 
         # 5. reset index to represent column
         granularity_code: int = ReporterSaveReportMap.map(granularity)
@@ -559,6 +559,8 @@ class ReporterSaveReport(BaseReporter):
         elif granularity_code == ReporterSaveReportMap.PAIRWISE:
             report = report.reset_index(drop=False)
             report = report.rename(columns={"level_0": "column1", "level_1": "column2"})
+            if "index" in report.columns:
+                report = report.drop(columns=["index"])
 
         # 6. Sequentially insert module names
         #   as column names and expt names as values

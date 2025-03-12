@@ -571,10 +571,6 @@ class ConstrainerOperator(BaseOperator):
             self.sample_dict["target_rows"] = len(input["data"])
 
         if "synthesizer" in input:
-        if "target_rows" not in self.sample_dict:
-            self.sample_dict["target_rows"] = len(input["data"])
-
-        if "synthesizer" in input:
             # Use resample_until_satisfy if sampling parameters and synthesizer are provided
             self._logger.debug("Using resample_until_satisfy method")
             self.constrained_data = self.constrainer.resample_until_satisfy(
@@ -726,6 +722,14 @@ class DescriberOperator(BaseOperator):
         using the configured Describer instance as a decorator.
     """
 
+    INPUT_PRIORITY: list[str] = [
+        "Postprocessor",
+        "Synthesizer",
+        "Preprocessor",
+        "Splitter",
+        "Loader",
+    ]
+
     def __init__(self, config: dict):
         """
         Attributes:
@@ -733,9 +737,8 @@ class DescriberOperator(BaseOperator):
                 An instance of the Describer class initialized with the provided configuration.
         """
         super().__init__(config)
-        if "method" not in config:
-            config["method"] = "default"
-        self.describer = Describer(config=config)
+        self.describer = Describer(**config)
+        self.description: dict[str, pd.DataFrame] = None
 
     def _run(self, input: dict):
         """
@@ -749,10 +752,10 @@ class DescriberOperator(BaseOperator):
         """
         self._logger.debug("Starting data describing process")
 
-        self.describer.create(**input)
+        self.describer.create()
         self._logger.debug("Describing model initialization completed")
 
-        self.describer.eval()
+        self.description = self.describer.eval(**input)
         self._logger.debug("Data describing completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -767,9 +770,18 @@ class DescriberOperator(BaseOperator):
             dict:
                 Describer input should contains data (dict).
         """
-        self.input["data"] = {
-            "data": status.get_result(status.get_pre_module("Describer"))
-        }
+
+        self.input["data"]: dict[str, pd.DataFrame] = None
+        for module in self.INPUT_PRIORITY:
+            if module in status.status:
+                self.input["data"] = {
+                    "data": (
+                        status.get_result("Splitter")["train"]
+                        if module == "Splitter"
+                        else status.get_result(module)
+                    )
+                }
+                break
 
         return self.input
 
@@ -777,12 +789,7 @@ class DescriberOperator(BaseOperator):
         """
         Retrieve the pre-processing result.
         """
-        result: dict = {}
-        result["global"] = self.describer.get_global()  # pd.DataFrame
-        result["columnwise"] = self.describer.get_columnwise()  # pd.DataFrame
-        result["pairwise"] = self.describer.get_pairwise()  # pd.DataFrame
-
-        return deepcopy(result)
+        return deepcopy(self.description)
 
 
 class ReporterOperator(BaseOperator):
