@@ -1,9 +1,9 @@
 ---
 title: Data Constraining
 type: docs
-weight: 31
-prev: docs/tutorial/use-cases/comparing-synthesizers
-next: docs/tutorial/use-cases/custom-evaluation
+weight: 32
+prev: docs/tutorial/use-cases/custom-synthesis
+next: docs/tutorial/use-cases/ml-utility
 ---
 
 

@@ -1,9 +1,11 @@
+import logging
 import os
 from abc import ABC, abstractmethod
 
 import requests
 
-from petsard.loader.util import DigestSha256
+from petsard.exceptions import BenchmarkDatasetsError
+from petsard.util import digest_sha256
 
 
 class BaseBenchmarker(ABC):
@@ -17,6 +19,7 @@ class BaseBenchmarker(ABC):
     def __init__(self, config: dict):
         """
         Attributes:
+            _logger (logging.Logger): The logger object.
             config (dict) The configuration of the benchmarker.
                 benchmark_bucket_name (str) The name of the S3 bucket.
                 benchmark_filename (str)
@@ -27,6 +30,13 @@ class BaseBenchmarker(ABC):
                 benchmark_already_exist (bool)
                     If the benchmark data already exist. Default is False.
         """
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
+        self._logger.info(
+            f"Initializing Benchmarker with benchmark_filename: {config['benchmark_filename']}"
+        )
+
         self.config: dict = config
         self.config["benchmark_already_exist"] = False
         if os.path.exists(self.config["filepath"]):
@@ -54,34 +64,33 @@ class BaseBenchmarker(ABC):
             already_exist (bool) If the file already exist. Default is True.
               False means verify under download process.
         """
-        file_sha256hash = DigestSha256(self.config["filepath"])
+        file_sha256hash = digest_sha256(self.config["filepath"])
 
         if file_sha256hash == self.config["benchmark_sha256"]:
             self.config["benchmark_already_exist"] = True
-
-        if not self.config["benchmark_already_exist"]:
+        else:
             if already_exist:
-                raise ValueError(
-                    f"Loader - Benchmarker: file {self.config['filepath']} "
-                    f"already exist but their SHA-256 is NOT match. "
-                    f"Please confirm your dataset version is correct."
+                self._logger.error(f"SHA-256 mismatch: {self.config['filepath']}")
+                raise BenchmarkDatasetsError(
+                    f"SHA-256 mismatch: {self.config['filepath']}. "
                 )
             else:
                 try:
                     os.remove(self.config["filepath"])
-                    raise ValueError(
-                        f"Loader - Benchmarker: The SHA-256 of file "
-                        f"{self.config['benchmark_filename']} "
-                        f"download from link/S3 bucket "
-                        f"{self.config['benchmark_bucket_name']} "
-                        f"didn't match library record. "
-                        f"Download data been remove, "
-                        f"please download benchmark dataset manually."
+                    self._logger.error(
+                        f"Downloaded file SHA-256 mismatch: {self.config['benchmark_filename']} from "
+                        f"{self.config['benchmark_bucket_name']}. "
+                    )
+                    raise BenchmarkDatasetsError(
+                        f"Downloaded file SHA-256 mismatch: {self.config['benchmark_filename']} from "
+                        f"{self.config['benchmark_bucket_name']}. "
                     )
                 except OSError:
+                    self._logger.error(
+                        f"Failed to remove file: {self.config['filepath']}. Please delete it manually."
+                    )
                     raise OSError(
-                        f"Loader - Benchmarker: Failed to remove the downloaded file "
-                        f"{self.config['filepath']}. Please delete it manually."
+                        f"Failed to remove file: {self.config['filepath']}. Please delete it manually."
                     )
 
 
@@ -103,12 +112,7 @@ class BenchmarkerRequests(BaseBenchmarker):
 
         """
         if self.config["benchmark_already_exist"]:
-            print(
-                f"Loader - Benchmarker: file {self.config['filepath']}"
-                f" already exist and match SHA-256.\n"
-                f"                      "
-                f"petsard will ignore download and use local data directly."
-            )
+            self._logger.info(f"Using local file: {self.config['filepath']}")
         else:
             url = (
                 f"https://"
@@ -116,20 +120,21 @@ class BenchmarkerRequests(BaseBenchmarker):
                 f".s3.amazonaws.com/"
                 f"{self.config['benchmark_filename']}"
             )
+            self._logger.info(f"Downloading from: {url}")
             with requests.get(url, stream=True) as response:
                 if response.status_code == 200:
                     with open(self.config["filepath"], "wb") as f:
                         # load 8KB at one time
                         for chunk in response.iter_content(chunk_size=8192):
                             f.write(chunk)
-                    print(
-                        f"Loader - Benchmarker : "
-                        f"Success download the benchmark dataset from {url}."
+                    self._logger.info(
+                        f"Download completed: {self.config['benchmark_filename']}"
                     )
                 else:
-                    print(
-                        f"Loader - Benchmarker : "
-                        f"{response.status_code} error. "
-                        f"Failed to download the benchmark dataset from {url}."
+                    self._logger.error(
+                        f"Download failed: status={response.status_code}, url={url}"
+                    )
+                    raise BenchmarkDatasetsError(
+                        f"Download failed: status={response.status_code}, url={url}"
                     )
             self._verify_file(already_exist=False)

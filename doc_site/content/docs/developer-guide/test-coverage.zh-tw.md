@@ -1,10 +1,35 @@
 ---
 title: 測試覆蓋範圍
 type: docs
-weight: 86
+weight: 87
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 ---
+
+
+### `Executor`
+
+> tests/test_executor.py
+
+測試 Executor 的主要功能：
+
+- `test_default_values`：驗證預設配置值是否正確設定
+- `test_update_config`：測試透過 update 方法更新配置值
+- `test_validation_log_output_type`：測試日誌輸出類型設定的驗證：
+  - 有效值（stdout、file、both）被接受
+  - 無效值引發 ConfigError
+- `test_validation_log_level`：測試日誌等級的驗證：
+  - 有效等級（DEBUG、INFO、WARNING、ERROR、CRITICAL）被接受
+  - 無效等級引發 ConfigError
+- `test_executor_default_config`：測試使用不含 Executor 部分的 YAML 初始化時使用預設值
+- `test_executor_custom_config`：驗證 YAML 中的自定義日誌設定是否正確應用
+- `test_logger_setup`：測試日誌初始化的正確性：
+  - 日誌等級
+  - 多個處理器（檔案和控制台）
+  - 處理器類型
+- `test_logger_file_creation`：測試日誌檔案是否在指定目錄中創建並正確替換時間戳
+- `test_logger_reconfiguration`：測試日誌器能否在初始設置後重新配置
+- `test_get_config`：測試從檔案載入 YAML 配置
 
 ## 資料讀取
 
@@ -14,7 +39,7 @@ next: docs/developer-guide
 
 測試 Loader 的主要功能：
 
-- `test_loader_init_no_config`：驗證無配置初始化時會觸發 NoConfigError
+- `test_loader_init_no_config`：驗證無配置初始化時會觸發 ConfigError
 - `test_loader_init_with_filepath`：測試以檔案路徑初始化，檢查配置路徑和副檔名是否正確設定
 - `test_handle_filepath_with_complex_name`：測試各種檔案路徑模式，包含：
   - 含多個點的路徑
@@ -22,14 +47,16 @@ next: docs/developer-guide
   - 絕對路徑
   - 混合大小寫的副檔名
 - `test_loader_init_with_column_types`：驗證欄位型態設定是否正確存入配置
-- `test_benchmark_loader`：使用模擬的 BenchmarkerRequests 測試基準資料集載入功能
-- `test_load_csv`：使用暫存測試檔案測試 CSV 檔案載入和 metadata 建立
-- `test_invalid_file_extension`：驗證無效的副檔名會觸發 UnsupportedMethodError
+- `test_benchmark_loader`：使用模擬配置測試基準資料集初始化
+- `test_load_csv`：測試 CSV 檔案載入是否返回正確的 DataFrame 和 Metadata 元組
+- `test_load_excel`：測試 Excel 檔案載入是否返回正確的 DataFrame 和 Metadata 元組
+- `test_benchmark_data_load`：使用模擬數據測試完整的基準資料載入流程
 - `test_custom_na_values`：測試自定義空值的處理
+- `test_custom_header_names`：測試使用自定義欄位標題載入資料
 
 ### `Benchmarker`
 
-> tests/loader/test_benchmark.py
+> tests/loader/test_benchmarker.py
 
 測試基準資料集處理：
 
@@ -40,6 +67,11 @@ next: docs/developer-guide
   - 模擬檔案操作
   - SHA256 驗證檢查
 - `test_verify_file_mismatch`：使用模擬的檔案內容測試 SHA256 驗證失敗的處理
+- `test_download_request_fails`：測試下載請求失敗（HTTP 404 等）的處理方式
+- `test_file_already_exists_hash_match`：測試檔案已存在且哈希值匹配的情境，確認直接使用本地檔案
+- `test_verify_file_remove_fails`：測試在驗證過程中刪除檔案失敗的處理機制
+- `test_init_file_exists_hash_match`：測試初始化時檔案存在且哈希值匹配的處理邏輯
+- `test_file_content_change`：測試檔案內容變更後的哈希驗證機制，確保能正確檢測變更
 
 ### `Metadata`
 

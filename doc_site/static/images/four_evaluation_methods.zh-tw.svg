@@ -1,0 +1,994 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 900 750"
+   version="1.1"
+   id="svg44"
+   sodipodi:docname="four_evaluation_methods.zh-tw.svg"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs44" />
+  <sodipodi:namedview
+     id="namedview44"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.1093333"
+     inkscape:cx="603.51563"
+     inkscape:cy="176.68269"
+     inkscape:window-width="1728"
+     inkscape:window-height="935"
+     inkscape:window-x="0"
+     inkscape:window-y="436"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g12" />
+  <!-- Background -->
+  <rect
+     width="900"
+     height="750"
+     fill="#f8f9fa"
+     rx="10"
+     ry="10"
+     id="rect1" />
+  <!-- Title -->
+  <text
+     x="450"
+     y="40"
+     font-family="Arial"
+     font-size="24"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#333"
+     id="text1">四種機器學習效用評測的實驗設計方法比較</text>
+  <!-- Legend for dotted line -->
+  <g
+     transform="translate(720, 60)"
+     id="g2">
+    <line
+       x1="0"
+       y1="0"
+       x2="30"
+       y2="0"
+       stroke="#333"
+       stroke-width="2"
+       stroke-dasharray="5,3"
+       id="line1" />
+    <text
+       x="40"
+       y="5"
+       font-family="Arial"
+       font-size="12"
+       fill="#333"
+       id="text2">評測流程</text>
+  </g>
+  <!-- Method 1: Dual-Model Control Group -->
+  <g
+     transform="translate(479.0224,398.50933)"
+     id="g12">
+    <rect
+       x="0"
+       y="0"
+       width="340"
+       height="280"
+       rx="10"
+       ry="10"
+       fill="#e3f2fd"
+       stroke="#2196f3"
+       stroke-width="2"
+       id="rect2" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.903857;stroke-dasharray:5.42314, 5.42314;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect47"
+       width="106.01582"
+       height="180.38467"
+       x="114.97981"
+       y="49.4594"
+       rx="2.5291798"
+       ry="2.9071195" />
+    <text
+       x="170"
+       y="30"
+       font-family="Arial"
+       font-size="18px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#0d47a1"
+       id="text3">4. 雙模型控制組評測設計</text>
+    <!-- Original Data (Simplified Document icon) -->
+    <g
+       transform="translate(103.35337,53.605769)"
+       id="g4">
+      <path
+         d="M 17.086538,-0.05120685 H 97.470464 L 113.54725,19.964486 V 39.98018 H 17.086538 Z"
+         fill="#bbdefb"
+         stroke="#1976d2"
+         stroke-width="0.896922"
+         id="path3" />
+      <path
+         d="M 97.470464,-0.05120685 V 19.964486 h 16.076786 z"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="0.896922"
+         id="path4" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text4">原始資料</text>
+    </g>
+    <!-- Synthetic Data (Simplified Document icon) -->
+    <g
+       transform="translate(218.16947,50.901442)"
+       id="g6">
+      <path
+         d="M 17.021231,-0.08763464 H 97.405155 L 113.48194,19.928059 V 39.943753 H 17.021231 Z"
+         fill="#ffecb3"
+         stroke="#ffa000"
+         stroke-width="0.896922"
+         id="path5" />
+      <path
+         d="M 97.405155,-0.08763464 V 19.928059 h 16.076785 z"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="0.896922"
+         id="path6" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text6">合成資料</text>
+    </g>
+    <!-- Train Arrows -->
+    <line
+       x1="166.87746"
+       y1="94.93969"
+       x2="64.70961"
+       y2="116.41255"
+       stroke="#333333"
+       stroke-width="3.25876"
+       id="line6"
+       style="stroke-width:2;stroke-dasharray:none" />
+    <polygon
+       points="80,120 75,110 85,110 "
+       fill="#333333"
+       id="polygon6"
+       transform="matrix(0.22945362,0.8357182,-0.9308082,0.20601298,156.81351,24.758955)" />
+    <line
+       x1="284.25421"
+       y1="91.802887"
+       x2="284.25421"
+       y2="115.94352"
+       stroke="#333333"
+       stroke-width="1.61796"
+       id="line7"
+       style="stroke-width:2;stroke-dasharray:none" />
+    <polygon
+       points="260,120 255,110 265,110 "
+       fill="#333333"
+       id="polygon7"
+       transform="translate(24.028846,-3.1550481)" />
+    <!-- Models (Process icons) -->
+    <g
+       transform="translate(-6.1718791,119.09855)"
+       id="g7">
+      <rect
+         x="16.998125"
+         y="-0.013609593"
+         width="96.460709"
+         height="40.031387"
+         rx="4.019196"
+         ry="5.0039234"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="0.896922"
+         id="rect7" />
+      <text
+         x="62.704327"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text7">模型 A</text>
+    </g>
+    <g
+       transform="translate(217.71875,117.29567)"
+       id="g8">
+      <rect
+         x="17.109644"
+         y="0.020696197"
+         width="96.460709"
+         height="40.031387"
+         rx="4.019196"
+         ry="5.0039234"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="0.896922"
+         id="rect8" />
+      <text
+         x="64.50721"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text8">模型 B</text>
+    </g>
+    <!-- Control Data (Simplified Document icon) -->
+    <g
+       transform="translate(191.58053,180.90146)"
+       id="g9">
+      <path
+         d="M -71.409237,3.662582 H 8.9746877 L 25.051473,23.678275 v 20.015693 h -96.46071 z"
+         fill="#c8e6c9"
+         stroke="#388e3c"
+         stroke-width="0.896922"
+         id="path8"
+         style="display:inline;fill:#b2ebf2;fill-opacity:1;stroke:#00838f;stroke-opacity:1" />
+      <path
+         d="M 8.9746877,3.662582 V 23.678275 H 25.051473 Z"
+         fill="#a5d6a7"
+         stroke="#388e3c"
+         stroke-width="0.896922"
+         id="path9"
+         style="display:inline;fill:#b2ebf2;fill-opacity:1;stroke:#008391;stroke-opacity:1" />
+      <text
+         x="-28.341347"
+         y="28.60577"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text9"
+         style="fill:#b2ebf2;fill-opacity:1"><tspan
+           style="fill:#000000"
+           id="tspan47">控制組資料</tspan></text>
+    </g>
+    <!-- Test Arrows -->
+    <line
+       x1="56.128357"
+       y1="160.94868"
+       x2="112.85601"
+       y2="181.30492"
+       stroke="#333333"
+       stroke-width="2.1492"
+       id="line9"
+       style="stroke-width:2;stroke-dasharray:none" />
+    <polygon
+       points="124,168 130,180 119,174 "
+       fill="#333333"
+       id="polygon9"
+       transform="matrix(1.064339,-0.4161031,0.29113734,0.93860526,-74.908409,67.599967)" />
+    <line
+       x1="283.84229"
+       y1="159.66519"
+       x2="221.31393"
+       y2="180.78554"
+       stroke="#333333"
+       stroke-width="2.53202"
+       id="line10"
+       style="stroke-width:1.81544;stroke-dasharray:none" />
+    <polygon
+       points="216,168 210,180 221,174 "
+       fill="#333333"
+       id="polygon10"
+       transform="matrix(1.1792041,0.38391317,-0.20263614,0.93001892,10.252019,-67.176169)" />
+    <!-- Compare Results (Arrows pointing inward) -->
+    <line
+       x1="50"
+       y1="246"
+       x2="160"
+       y2="246"
+       stroke="#673ab7"
+       stroke-width="2"
+       stroke-dasharray="5, 3"
+       id="line11" />
+    <polygon
+       points="150,235 150,245 160,240 "
+       fill="#673ab7"
+       id="polygon11"
+       transform="translate(0,6)" />
+    <line
+       x1="290"
+       y1="246"
+       x2="180"
+       y2="246"
+       stroke="#673ab7"
+       stroke-width="2"
+       stroke-dasharray="5, 3"
+       id="line12" />
+    <polygon
+       points="190,235 190,245 180,240 "
+       fill="#673ab7"
+       id="polygon12"
+       transform="translate(0,6)" />
+    <text
+       x="170"
+       y="271"
+       font-family="Arial"
+       font-size="14px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#4527a0"
+       id="text12">比較效能差異</text>
+  </g>
+  <!-- Method 2: Domain Transfer -->
+  <g
+     transform="translate(480, 90)"
+     id="g18">
+    <rect
+       x="0"
+       y="0"
+       width="340"
+       height="280"
+       rx="10"
+       ry="10"
+       fill="#fff3e0"
+       stroke="#ff9800"
+       stroke-width="2"
+       id="rect12" />
+    <text
+       x="170"
+       y="30"
+       font-family="Arial"
+       font-size="18px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#e65100"
+       id="text13"><tspan
+         sodipodi:role="line"
+         id="tspan46"
+         x="170"
+         y="30">2. 領域遷移評測設計</tspan></text>
+    <!-- Original Data (Simplified Document icon) -->
+    <g
+       transform="translate(20,72)"
+       id="g14">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#bbdefb"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path13" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path14" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text14">原始資料</text>
+    </g>
+    <!-- Synthetic Data (Simplified Document icon) -->
+    <g
+       transform="translate(200,72)"
+       id="g16">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#ffecb3"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path15" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path16" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text16">合成資料</text>
+    </g>
+    <!-- Train Arrow -->
+    <line
+       x1="260"
+       y1="112"
+       x2="260"
+       y2="142"
+       stroke="#333333"
+       stroke-width="2"
+       id="line16" />
+    <polygon
+       points="265,110 260,120 255,110 "
+       fill="#333333"
+       id="polygon16"
+       transform="translate(0,22)" />
+    <!-- Model (Process icon) -->
+    <g
+       transform="translate(200,142)"
+       id="g17">
+      <rect
+         x="0"
+         y="0"
+         width="120"
+         height="40"
+         rx="5"
+         ry="5"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="rect16" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text17">模型</text>
+    </g>
+    <!-- Test Arrow to Original Data - straight and shorter -->
+    <line
+       x1="220.09697"
+       y1="142.17328"
+       x2="146.15714"
+       y2="102.6628"
+       stroke="#333333"
+       stroke-width="2"
+       id="line17" />
+    <polygon
+       points="139,75 138,64 130,70 "
+       fill="#333333"
+       id="polygon17"
+       transform="rotate(157.40577,137.97012,87.380035)" />
+    <!-- Result (Arrow pointing leftward) -->
+    <line
+       x1="290"
+       y1="208"
+       x2="50"
+       y2="208"
+       stroke="#e65100"
+       stroke-width="2"
+       stroke-dasharray="5, 3"
+       id="line18" />
+    <polygon
+       points="60,245 50,240 60,235 "
+       fill="#e65100"
+       id="polygon18"
+       transform="translate(0,-32)" />
+    <text
+       x="170"
+       y="233"
+       font-family="Arial"
+       font-size="14px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#e65100"
+       id="text18">評估領域遷移性能</text>
+    <text
+       xml:space="preserve"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000"
+       x="159.12262"
+       y="22.68029"
+       id="text44"><tspan
+         sodipodi:role="line"
+         id="tspan44"
+         x="159.12262"
+         y="22.68029" /></text>
+  </g>
+  <!-- Method 3: Representation Fidelity -->
+  <polygon
+     points="280,245 290,240 280,235 "
+     fill="#1b5e20"
+     id="polygon24"
+     transform="translate(80,400)" />
+  <g
+     id="g44">
+    <rect
+       x="80"
+       y="400"
+       width="340"
+       height="280"
+       rx="10"
+       ry="10"
+       fill="#e8f5e9"
+       stroke="#4caf50"
+       stroke-width="2"
+       id="rect18" />
+    <text
+       x="250"
+       y="430"
+       font-family="Arial"
+       font-size="18px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#1b5e20"
+       id="text19">3. 表示保真度評測設計</text>
+    <g
+       transform="translate(100,472)"
+       id="g20">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#bbdefb"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path19" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path20" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text20">原始資料</text>
+    </g>
+    <g
+       transform="translate(280,472)"
+       id="g22">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#ffecb3"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path21" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path22" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text22">合成資料</text>
+    </g>
+    <line
+       x1="160"
+       y1="512"
+       x2="160"
+       y2="542"
+       stroke="#333333"
+       stroke-width="2"
+       id="line22" />
+    <polygon
+       points="85,110 80,120 75,110 "
+       fill="#333333"
+       id="polygon22"
+       transform="translate(80,422)" />
+    <g
+       transform="translate(100,542)"
+       id="g23">
+      <rect
+         x="0"
+         y="0"
+         width="120"
+         height="40"
+         rx="5"
+         ry="5"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="rect22" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text23">模型</text>
+    </g>
+    <line
+       x1="199.87495"
+       y1="542.22412"
+       x2="268.13419"
+       y2="505.48029"
+       stroke="#333333"
+       stroke-width="1.49313"
+       id="line23" />
+    <polygon
+       points="201,75 202,64 210,70 "
+       fill="#333333"
+       id="polygon23"
+       transform="rotate(-156.67016,281.57986,280.26618)" />
+    <line
+       x1="130"
+       y1="610"
+       x2="370"
+       y2="610"
+       stroke="#1b5e20"
+       stroke-width="2"
+       stroke-dasharray="5, 3"
+       id="line24" />
+    <text
+       x="250"
+       y="635"
+       font-family="Arial"
+       font-size="14px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#1b5e20"
+       id="text24">評估表示保真度</text>
+    <polygon
+       points="60,235 60,245 50,240 "
+       fill="#e65100"
+       id="polygon18-7"
+       transform="rotate(-178.06288,213.30016,422.34424)"
+       style="fill:#1b5e20;fill-opacity:1" />
+  </g>
+  <!-- Method 4: Model Ranking Consistency -->
+  <g
+     transform="translate(79.702773,91.49067)"
+     id="g36">
+    <rect
+       x="0"
+       y="0"
+       width="340"
+       height="280"
+       rx="10"
+       ry="10"
+       fill="#f3e5f5"
+       stroke="#9c27b0"
+       stroke-width="2"
+       id="rect24" />
+    <text
+       x="170"
+       y="30"
+       font-family="Arial"
+       font-size="18px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#4a148c"
+       id="text25">1. 模型一致性評測設計</text>
+    <!-- Original Data (Simplified Document icon) -->
+    <g
+       transform="translate(20,70)"
+       id="g26">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#bbdefb"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path25" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="path26" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text26">原始資料</text>
+    </g>
+    <!-- Synthetic Data (Simplified Document icon) -->
+    <g
+       transform="translate(200,70)"
+       id="g28">
+      <path
+         d="m 0,0 h 100 l 20,20 V 40 H 0 Z"
+         fill="#ffecb3"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path27" />
+      <path
+         d="m 100,0 v 20 h 20 z"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="path28" />
+      <text
+         x="60"
+         y="25"
+         font-family="Arial"
+         font-size="14px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text28">合成資料</text>
+    </g>
+    <!-- Multiple Models (Original) -->
+    <g
+       transform="translate(15,130)"
+       id="g30">
+      <rect
+         x="0"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="rect28" />
+      <rect
+         x="45"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="rect29" />
+      <rect
+         x="90"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#90caf9"
+         stroke="#1976d2"
+         stroke-width="1"
+         id="rect30" />
+      <text
+         x="60"
+         y="40"
+         font-family="Arial"
+         font-size="12px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text30">單一／多個模型配置</text>
+    </g>
+    <!-- Multiple Models (Synthetic) -->
+    <g
+       transform="translate(200,130)"
+       id="g33">
+      <rect
+         x="0"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="rect31" />
+      <rect
+         x="45"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="rect32" />
+      <rect
+         x="90"
+         y="0"
+         width="35"
+         height="25"
+         rx="3"
+         ry="3"
+         fill="#ffe082"
+         stroke="#ffa000"
+         stroke-width="1"
+         id="rect33" />
+      <text
+         x="60"
+         y="40"
+         font-family="Arial"
+         font-size="12px"
+         text-anchor="middle"
+         fill="#333333"
+         id="text33">單一／多個模型配置</text>
+    </g>
+    <!-- Training Arrows -->
+    <line
+       x1="80"
+       y1="110"
+       x2="80"
+       y2="130"
+       stroke="#333333"
+       stroke-width="2"
+       id="line33" />
+    <polygon
+       points="75,100 85,100 80,110 "
+       fill="#333333"
+       id="polygon33"
+       transform="translate(0,20)" />
+    <line
+       x1="260"
+       y1="110"
+       x2="260"
+       y2="130"
+       stroke="#333333"
+       stroke-width="2"
+       id="line34" />
+    <polygon
+       points="255,100 265,100 260,110 "
+       fill="#333333"
+       id="polygon34"
+       transform="translate(0,20)" />
+    <!-- Performance Evaluation Process -->
+    <!-- Result (Double-headed arrow) -->
+    <line
+       x1="50"
+       y1="206"
+       x2="290"
+       y2="206"
+       stroke="#9c27b0"
+       stroke-width="2"
+       stroke-dasharray="5, 3"
+       id="line35" />
+    <polygon
+       points="280,245 290,240 280,235 "
+       fill="#9c27b0"
+       id="polygon35"
+       transform="translate(0,-34)" />
+    <polygon
+       points="60,245 50,240 60,235 "
+       fill="#9c27b0"
+       id="polygon36"
+       transform="translate(0,-34)" />
+    <text
+       x="170"
+       y="231"
+       font-family="Arial"
+       font-size="14px"
+       font-weight="bold"
+       text-anchor="middle"
+       fill="#4a148c"
+       id="text36">比較模型一致性</text>
+  </g>
+  <!-- Legend (Unified) -->
+  <rect
+     x="150"
+     y="700"
+     width="600"
+     height="40"
+     rx="5"
+     ry="5"
+     fill="#f5f5f5"
+     stroke="#dddddd"
+     stroke-width="1"
+     id="rect36" />
+  <g
+     transform="translate(170,712)"
+     id="g37">
+    <path
+       d="m 0,0 h 15 l 5,5 V 20 H 0 Z"
+       fill="#bbdefb"
+       stroke="#1976d2"
+       stroke-width="1"
+       id="path36" />
+    <path
+       d="m 15,0 v 5 h 5 z"
+       fill="#90caf9"
+       stroke="#1976d2"
+       stroke-width="1"
+       id="path37" />
+    <text
+       x="30"
+       y="15"
+       font-family="Arial"
+       font-size="12px"
+       fill="#333333"
+       id="text37">原始資料</text>
+  </g>
+  <g
+     transform="translate(270,712)"
+     id="g39">
+    <path
+       d="m 0,0 h 15 l 5,5 V 20 H 0 Z"
+       fill="#ffecb3"
+       stroke="#ffa000"
+       stroke-width="1"
+       id="path38" />
+    <path
+       d="m 15,0 v 5 h 5 z"
+       fill="#ffe082"
+       stroke="#ffa000"
+       stroke-width="1"
+       id="path39" />
+    <text
+       x="30"
+       y="15"
+       font-family="Arial"
+       font-size="12px"
+       fill="#333333"
+       id="text39">合成資料</text>
+  </g>
+  <g
+     transform="translate(370,712)"
+     id="g41">
+    <path
+       d="m 0,0 h 15 l 5,5 V 20 H 0 Z"
+       fill="#c8e6c9"
+       stroke="#388e3c"
+       stroke-width="1"
+       id="path40"
+       style="stroke:#00838f;stroke-opacity:1;fill:#b2ebf2;fill-opacity:1" />
+    <path
+       d="m 15,0 v 5 h 5 z"
+       fill="#a5d6a7"
+       stroke="#388e3c"
+       stroke-width="1"
+       id="path41"
+       style="stroke:#00838f;stroke-opacity:1" />
+    <text
+       x="30"
+       y="15"
+       font-family="Arial"
+       font-size="12px"
+       fill="#333333"
+       id="text41">控制組資料</text>
+  </g>
+  <g
+     transform="translate(490,712)"
+     id="g42">
+    <rect
+       x="0"
+       y="0"
+       width="20"
+       height="20"
+       rx="2"
+       ry="2"
+       fill="#90caf9"
+       stroke="#1976d2"
+       stroke-width="1"
+       id="rect41" />
+    <text
+       x="30"
+       y="15"
+       font-family="Arial"
+       font-size="12px"
+       fill="#333333"
+       id="text42">原始資料模型</text>
+  </g>
+  <g
+     transform="translate(610,712)"
+     id="g43">
+    <rect
+       x="0"
+       y="0"
+       width="20"
+       height="20"
+       rx="2"
+       ry="2"
+       fill="#ffe082"
+       stroke="#ffa000"
+       stroke-width="1"
+       id="rect42" />
+    <text
+       x="30"
+       y="15"
+       font-family="Arial"
+       font-size="12px"
+       fill="#333333"
+       id="text43">合成資料模型</text>
+  </g>
+</svg>

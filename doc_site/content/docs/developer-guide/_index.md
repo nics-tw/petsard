@@ -28,6 +28,9 @@ sidebar:
   - Three dimensions of privacy risk measurement
 
 ## Configuration and Reporting
+- [Logging Configuration](./logging-configuration)
+  - Setting log levels and output destinations
+  - Customizing log formats and file locations
 - [Experiment Names in Reporter](./experiment-naming-in-reporter)
   - Experiment naming conventions
   - Managing experiment configurations

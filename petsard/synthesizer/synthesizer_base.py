@@ -1,84 +1,90 @@
-import time
-import warnings
+import logging
 from abc import ABC, abstractmethod
+from typing import Any
 
 import pandas as pd
 
-from petsard.error import UnfittedError
+from petsard.exceptions import ConfigError, UnfittedError
 from petsard.loader import Metadata
 
 
 class BaseSynthesizer(ABC):
-    def __init__(self, data: pd.DataFrame, metadata: Metadata = None, **kwargs) -> None:
+    """
+    Base class for all synthesizer engine implementations.
+    These engines are used by the main Synthesizer to perform the actual data synthesis.
+    """
+
+    def __init__(self, config: dict, metadata: Metadata = None):
         """
         Args:
-            data (pd.DataFrame): The data to be synthesized.
-            metadata (Metadata, default=None): The metadata class of the data.
-            **kwargs: The other parameters.
+            config (dict): The configuration assign by Synthesizer
+                - syn_method (str): The method of how you synthesize data.
+                - sample_num_rows (int): The number of rows to be synthesized.
+            metadata (Metadata, optional): The metadata object.
 
-        Attr.:
-            data (pd.DataFrame): The data to be synthesized.
-            syn_module (str): The name of the synthesizer module.
-            syn_method (str): The name of the synthesizer method.
-            constant_data (dict): The dict of constant columns.
-            sample_num_rows_as (str): The source of the sample number of rows.
-            sample_num_rows (int): The number of rows to be sampled.
-            reset_sampling (bool): Whether the method should reset the randomisation.
-            output_file_path (str): The location of the output file.
-            _synthesizer (SyntheszierBase): The synthesizer object.
+        Attributes:
+            _logger (logging.Logger): The logger object.
+            config (dict): The configuration of the synthesizer_base.
+            _impl (Any): The synthesizer object.
         """
-        self.data: pd.DataFrame = data
-        self.syn_module: str = "Unknown"
-        self.syn_method: str = "Unknown"
-        self.constant_data: dict = {}
-        self.sample_num_rows_as: str = None
-        self.sample_num_rows: int = None
-        self.reset_sampling: bool = None
-        self.output_file_path: str = None
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
 
-        if metadata is not None:
-            if hasattr(metadata, "metadata") and "global" in metadata.metadata:
-                # 1. if Splitter information exist, use rnum after split
-                if (
-                    "row_num_after_split" in metadata.metadata["global"]
-                    and "train" in metadata.metadata["global"]["row_num_after_split"]
-                ):
-                    self.sample_num_rows_as = "Splitter data"
-                    self.sample_num_rows = metadata.metadata["global"][
-                        "row_num_after_split"
-                    ]["train"]
-                # 2. if Loader only, assume data didn't been split
-                elif "row_num" in metadata.metadata["global"]:
-                    self.sample_num_rows_as = "Loader data"
-                    self.sample_num_rows = metadata.metadata["global"]["row_num"]
-            else:
-                warnings.warn(
-                    "There's no global information in the metadata."
-                    + "No rows number information will be used."
-                )
-        if self.sample_num_rows is None:
-            self.sample_num_rows_as = "input data"
-            self.sample_num_rows = self.data.shape[0]
+        if "syn_method" not in config:
+            error_msg: str = (
+                "The 'syn_method' parameter is required for the synthesizer."
+            )
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+        if "sample_num_rows" not in config:
+            error_msg: str = (
+                "The 'sample_num_rows' parameter is required for the synthesizer."
+            )
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
 
-        self._synthesizer: BaseSynthesizer = None
+        self.config: dict = config
+        self._impl: Any = None
+
+    def update_config(self, config: dict) -> None:
+        """
+        Update the synthesizer configuration.
+
+        Args:
+            config (dict): The new configuration.
+        """
+        self.config.update(config)
 
     @abstractmethod
-    def _fit(self) -> None:
+    def _fit(self, data: pd.DataFrame = None) -> None:
         """
         Fit the synthesizer.
+            _impl should be initialized in this method.
+
+        Args:
+            data (pd.DataFrame, optional): The data to be fitted.
+
+        Raises:
+            NotImplementedError: If the subclass does not implement this method
         """
-        raise NotImplementedError
+        error_msg: str = "The '_fit' method must be implemented in the derived class."
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
-    def fit(self) -> None:
-        time_start = time.time()
+    def fit(self, data: pd.DataFrame = None) -> None:
+        """
+        Fit the synthesizer to the provided data.
 
-        print(f"Synthesizer ({self.syn_module}): Fitting {self.syn_method}.")
-        self._fit()
-        print(
-            f"Synthesizer ({self.syn_module}): "
-            f"Fitting {self.syn_method} spent "
-            f"{round(time.time() - time_start, 4)} sec."
-        )
+        This method calls the implementation-specific _fit method, which should
+        train the synthesizer and prepare it for generating synthetic data.
+
+        Args:
+            data (pd.DataFrame, optional): same as _fit method.
+        """
+        self._logger.info(f"Fitting {self.__class__.__name__}")
+        self._fit(data)
+        self._logger.info(f"Successfully fitting {self.__class__.__name__}")
 
     @abstractmethod
     def _sample(self) -> pd.DataFrame:
@@ -86,89 +92,36 @@ class BaseSynthesizer(ABC):
         Sample from the fitted synthesizer.
 
         Return:
-            data_syn (pd.DataFrame): The synthesized data.
+            (pd.DataFrame): The synthesized data.
+
+        Raises:
+            NotImplementedError: If the subclass does not implement this method
         """
-        raise NotImplementedError
+        error_msg: str = (
+            "The '_sample' method must be implemented in the derived class."
+        )
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
-    def sample(
-        self,
-        sample_num_rows: int = None,
-        reset_sampling: bool = False,
-        output_file_path: str = None,
-    ) -> pd.DataFrame:
+    def sample(self) -> pd.DataFrame:
         """
-        Sample from the fitted synthesizer.
+        Generate synthetic data from the fitted synthesizer.
 
-        Args:
-            sample_num_rows (int, default=None):
-                Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False):
-                Redundant variable.
-            output_file_path (str, default=None):
-                The location of the output file.
+        This method checks if the synthesizer has been properly fitted,
+        then calls the implementation-specific _sample method to generate data.
 
-        Attr:
-            sample_num_rows_as (str): The source of the sample number of rows.
-            sample_num_rows (int): The number of rows to be sampled.
-            reset_sampling (bool):
-                Whether the method should reset the randomisation.
-            output_file_path (str): The location of the output file.
+        Returns:
+            pd.DataFrame: Generated synthetic data
 
-        Return:
-            data_syn (pd.DataFrame): The synthesized data.
+        Raises:
+            UnfittedError: If the synthesizer has not been fitted yet
         """
-        if sample_num_rows is not None:
-            self.sample_num_rows_as = "manual input"
-            self.sample_num_rows = sample_num_rows
-        self.reset_sampling = reset_sampling
-        self.output_file_path = output_file_path
+        if not hasattr(self, "_impl") or self._impl is None:
+            error_msg: str = "The synthesizer has not been fitted."
+            self._logger.error(error_msg)
+            raise UnfittedError(error_msg)
 
-        data_syn: pd.DataFrame = None
-
-        if self._synthesizer is None:
-            raise UnfittedError
-
-        try:
-            time_start = time.time()
-
-            data_syn = self._sample()
-
-            if output_file_path is not None:
-                data_syn.to_csv(output_file_path, index=False)
-
-            str_sample_num_rows_as = (
-                f" (same as {self.sample_num_rows_as})"
-                if self.sample_num_rows_as
-                else ""
-            )
-            print(
-                f"Synthesizer ({self.syn_module}): "
-                f"Sampling {self.syn_method} "
-                f"# {self.sample_num_rows} rows"
-                f"{str_sample_num_rows_as} "
-                f"in {round(time.time() - time_start, 4)} sec."
-            )
-            return data_syn
-        except Exception:
-            raise UnfittedError
-
-    def fit_sample(
-        self,
-        sample_num_rows: int = None,
-        reset_sampling: bool = False,
-        output_file_path: str = None,
-    ) -> pd.DataFrame:
-        """
-        Fit and sample from the synthesizer
-            The combination of the methods `fit()` and `sample()`.
-
-        Args:
-            sample_num_rows (int, default=None): Number of synthesized data will be sampled.
-            reset_sampling (bool, default=False): Whether the method should reset the randomisation.
-            output_file_path (str, default=None): The location of the output file.
-
-        Return:
-            data_syn (pd.DataFrame): The synthesized data.
-        """
-        self.fit()
-        return self.sample(sample_num_rows, reset_sampling, output_file_path)
+        self._logger.info(f"Sampling {self.__class__.__name__}")
+        sampled_data: pd.DataFrame = self._sample()
+        self._logger.info(f"Successfully sampling {self.__class__.__name__}")
+        return sampled_data

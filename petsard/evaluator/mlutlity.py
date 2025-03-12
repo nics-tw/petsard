@@ -1,5 +1,9 @@
+import logging
 import re
-import warnings
+from copy import deepcopy
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,19 +19,20 @@ from sklearn.metrics import f1_score, silhouette_score
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
 
-from petsard.error import ConfigError, UnsupportedMethodError
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.config_base import BaseConfig
+from petsard.evaluator.evaluator_base import BaseEvaluator
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.util import safe_round
 
 
-class MLUtilityMap:
+class MLUtilityMap(Enum):
     """
-    map of MLUtility
+    Enumeration for MLUtility method mapping.
     """
 
-    REGRESSION: int = 1
-    CLASSIFICATION: int = 2
-    CLUSTER: int = 3
+    REGRESSION: int = auto()
+    CLASSIFICATION: int = auto()
+    CLUSTER: int = auto()
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -40,204 +45,278 @@ class MLUtilityMap:
         Return:
             (int): The method code.
         """
+        return cls.__dict__[re.sub(r"^mlutility-", "", method).upper()]
+
+
+@dataclass
+class MLUtilityConfig(BaseConfig):
+    """
+    Configuration for the MLUtility Evaluator.
+
+    Attributes:
+        eval_method: The method name of how you are evaluating data.
+        eval_method_code (Optional[int]): The mapped method code.
+        target (str, optional):
+            The target column for regression/classification.
+            Should be a numerical column for regression.
+        n_clusters (list[int], optional):
+            List of cluster numbers for clustering. Default is [4, 5, 6].
+        REQUIRED_INPUT_KEYS (list[str]): The required keys in the input data.
+        n_rows (dict[str, int]): Number of rows in each data.
+        category_cols (list[str]): List of categorical columns in the data.
+        category_cols_cardinality (dict[str, dict[str, int]]):
+            Cardinality of categorical columns in the data.
+        _logger (logging.Logger): The logger object.
+    """
+
+    eval_method: str
+    eval_method_code: Optional[int] = None
+    target: Optional[str] = None
+    n_clusters: list[int] = field(default_factory=lambda: [4, 5, 6])
+    REQUIRED_INPUT_KEYS: list[str] = field(
+        default_factory=lambda: ["ori", "syn", "control"]
+    )
+    n_rows: dict[str, int] = field(default_factory=dict)
+    category_cols: list[str] = field(default_factory=list)
+    category_cols_cardinality: dict[str, dict[str, int]] = field(default_factory=dict)
+
+    def __post_init__(self):
+        super().__post_init__()
+        error_msg: Optional[str] = None
+
+        # Map and validate method
         try:
-            return cls.__dict__[re.sub(r"^mlutility-", "", method).upper()]
+            self.eval_method_code = MLUtilityMap.map(self.eval_method)
         except KeyError:
-            raise UnsupportedMethodError
+            error_msg = f"Unsupported method: {self.eval_method}"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
 
-
-class MLUtility(EvaluatorBase):
-    """
-    Interface class for MLWorker Models.
-
-    MLWorker is a class that evaluating dataset utility.
-
-    Args:
-        config (dict): A dictionary containing the configuration settings.
-            - method (str): The method name of how you evaluating data, which
-            is downstream task of the data.
-            - target (str): The target column of the data. Required for
-            regression and classification. Ignored for clustering. Should be
-            a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
-            clusters for clustering. Required for clustering.
-            Ignored for regression and classification.
-    """
-
-    def __init__(self, config: dict):
-        if "method" not in config:
-            raise ConfigError
-
-        super().__init__(config=config)
-        self.data: dict = {}
-
-        self.ml = MLWorker(self.config)
-
-    def _create(self, data):
-        """
-        Create a worker and send the data to the worker.
-
-        Args:
-            data (dict): The data to be described. The keys should be 'ori'
-            'syn, and 'control', and the value should be a pandas DataFrame.
-        """
-        if not set(["ori", "syn", "control"]).issubset(set(data.keys())):
-            raise ConfigError
-        data = {
-            key: value
-            for key, value in data.items()
-            if key in ["ori", "syn", "control"]
-        }
-        self.data = data
-
-        self.ml.create(self.data)
-
-    def eval(self):
-        """
-        Evaluate the data with the method given in the config.
-        """
-        self.ml.eval()
-
-        self.result = self.ml.result
-
-    def get_global(self):
-        """
-        Get the global result of the evaluation.
-        """
-        return self.ml.get_global()
-
-    def get_columnwise(self):
-        """
-        Get the column-wise result of the evaluation. Dummy method.
-        """
-        return self.ml.get_columnwise()
-
-    def get_pairwise(self):
-        """
-        Get the pair-wise result of the evaluation. Dummy method.
-        """
-        return self.ml.get_pairwise()
-
-
-class MLWorker:
-    """
-    Train and evaluate the models based on the original data and the synthetic
-    data. The worker of MLUtility.
-
-    Args:
-        config (dict): A dictionary containing the configuration settings.
-            - method (str): The method name of how you evaluating data, which
-            is downstream task of the data.
-            - target (str): The target column of the data. Required for
-            regression and classification. Ignored for clustering. Should be
-            a numerical column for regression.
-            - n_clusters (list, default=[4, 5, 6]): A list of numbers of
-            clusters for clustering. Required for clustering. Ignored for
-            regression and classification.
-    """
-
-    def __init__(self, config: dict):
-        self.config: dict = config
-        self.config["method_code"] = MLUtilityMap.map(config["method"])
-
-        self.result_ori: dict = {}
-        self.result_syn: dict = {}
-
-        # store the aggregated result
-        self.result: dict = {}
-
-        self.n_clusters = self.config.get("n_clusters", [4, 5, 6])
+        # Validate n_clusters
         if not isinstance(self.n_clusters, list):
-            raise ConfigError
+            error_msg = "n_clusters must be a list of integers"
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
         if not all(isinstance(x, int) for x in self.n_clusters):
-            raise ConfigError
+            error_msg = "All elements in n_clusters must be integers"
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
 
-        self.data_content: pd.DataFrame = None
-        self.n_rows: dict[str, int] = {}
-        self.col_cardinality: dict[str, dict[str, int]] = {}
+        # Validate target for specific methods
+        if self.eval_method_code in [
+            MLUtilityMap.REGRESSION,
+            MLUtilityMap.CLASSIFICATION,
+        ]:
+            if not self.target:
+                error_msg = f"Target column is required for {self.eval_method}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
+        elif self.eval_method_code == MLUtilityMap.CLUSTER and self.target is not None:
+            self.target = None
+            error_msg = (
+                "Target column is not required for clustering, input will be ignored"
+            )
+            self._logger.info(error_msg)
 
-    def create(self, data):
+    def update_data(self, data: dict[str, pd.DataFrame]) -> None:
         """
-        Store the data in the instance.
+        Validate input data for MLUtility evaluation.
 
         Args:
-            data (pd.DataFrame): The data to be trained on.
+            data (Dict[str, pd.DataFrame]): Input data dictionary.
+
+        Raises:
+            ConfigError: If data is invalid.
         """
-        self.data_content = data
+        error_msg: Optional[str] = None
 
-    def eval(self):
-        """
-        Data preprocessing and model fitting and evaluation.
+        # Validate required keys
+        if not all(key in data for key in self.REQUIRED_INPUT_KEYS):
+            error_msg = f"Missing required keys. Expected: {self.REQUIRED_INPUT_KEYS}"
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
 
-        Data preprocessing process: remove missing values, one-hot encoding for
-        categorical variables, and normalisation.
-        """
+        # Validate data is not empty after removing NaNs
+        for key in self.REQUIRED_INPUT_KEYS:
+            df = data[key].dropna()
+            if df.empty:
+                error_msg = f"Data for {key} is empty after removing missing values"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
 
-        data_ori = self.data_content["ori"]
-        data_syn = self.data_content["syn"]
-        data_test = self.data_content["control"]
-
-        # Data preprocessing
-        data_ori = data_ori.dropna()
-        data_syn = data_syn.dropna()
-        data_test = data_test.dropna()
-
-        # Check if there is dataframe is not empty
-        if data_ori.shape[0] == 0 or data_syn.shape[0] == 0 or data_test.shape[0] == 0:
-            warnings.warn("The data is empty after removing missing values.")
-            self.result = {"ori": {"error": np.nan}, "syn": {"error": np.nan}}
-            return
-
-        if self.config["method_code"] == MLUtilityMap.CLUSTER:
-            pass
-        elif self.config["method_code"] in [
-            MLUtilityMap.CLASSIFICATION,
+        # Validate target column for regression/classification
+        if self.eval_method_code in [
             MLUtilityMap.REGRESSION,
+            MLUtilityMap.CLASSIFICATION,
         ]:
-            if "target" not in self.config:
-                raise ConfigError
-            target = self.config["target"]
-            target_ori = data_ori[target].values
-            data_ori = data_ori.drop(columns=[target])
-            target_syn = data_syn[target].values
-            data_syn = data_syn.drop(columns=[target])
-            target_test = data_test[target].values
-            data_test = data_test.drop(columns=[target])
-        else:
-            raise ConfigError
+            for key in self.REQUIRED_INPUT_KEYS:
+                if self.target not in data[key].columns:
+                    error_msg = f"Target column '{self.target}' not found in {key} data"
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
 
-        self.n_rows["ori"] = data_ori.shape[0]
-        self.n_rows["syn"] = data_syn.shape[0]
-        self.n_rows["test"] = data_test.shape[0]
+        self.n_rows = {key: data[key].shape[0] for key in self.REQUIRED_INPUT_KEYS}
+        self._logger.debug(f"Number of rows in each data: {self.n_rows}")
 
-        cat_col = (
-            (data_ori.dtypes == "category")
-            .reset_index(name="is_cat")
-            .query("is_cat == True")["index"]
-            .values
+        self.category_cols: list[str] = [
+            col
+            for col in data["ori"].columns
+            if not pd.api.types.is_numeric_dtype(data["ori"][col])
+        ]
+        self._logger.debug(f"Category columns: {self.category_cols}")
+        self.category_cols_cardinality = {
+            key: {col: data[key][col].nunique() for col in self.category_cols}
+            for key in self.REQUIRED_INPUT_KEYS
+        }
+        self._logger.debug(
+            f"Category columns cardinality: {self.category_cols_cardinality}"
         )
-        if len(cat_col) != 0:
-            # Check and remove if too much cardinality in col
-            for col in cat_col:
-                self.col_cardinality[col] = {
-                    "ori": data_ori[col].nunique(),
-                    "syn": data_syn[col].nunique(),
-                    "test": data_test[col].nunique(),
-                }
-                if self.col_cardinality[col]["ori"] >= round(
-                    self.n_rows["ori"] / 10
-                ) or self.col_cardinality[col]["syn"] >= round(self.n_rows["syn"] / 10):
-                    warnings.warn(
-                        f"The cardinality of the column {col} is too high "
-                        + f'(ori: {self.col_cardinality[col]["ori"]},'
-                        + f' syn: {self.col_cardinality[col]["syn"]}). '
-                        + "The column is removed."
-                    )
-                    data_ori = data_ori.drop(columns=col)
-                    data_syn = data_syn.drop(columns=col)
-                    data_test = data_test.drop(columns=col)
 
-                    cat_col = np.delete(cat_col, np.where(cat_col == col))
+
+class MLUtility(BaseEvaluator):
+    """
+    Evaluator for MLUtility method.
+    """
+
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn", "control"]
+    LOWER_BOUND_MAP: dict[int, float] = {
+        MLUtilityMap.CLASSIFICATION: 0.0,
+        MLUtilityMap.CLUSTER: -1.0,
+        MLUtilityMap.REGRESSION: 0.0,
+    }
+    AVAILABLE_SCORES_GRANULARITY: list[str] = ["global", "details"]
+    HIGH_CARDINALITY_THRESHOLD: float = 0.1  # 1/10 of rows
+    RANDOM_STATE_SEED: int = 42
+
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): A dictionary containing the configuration settings.
+
+        Attr:
+            REQUIRED_INPUT_KEYS (list[str]): The required keys in the input data.
+            LOWER_BOUND_MAP (dict[int, float]): The lower bound for the score.
+            AVAILABLE_SCORES_GRANULARITY (list[str]): The available scores granularity.
+            HIGH_CARDINALITY_THRESHOLD (float):
+                The threshold for high cardinality. Represents as percentage of rows.
+            RANDOM_STATE_SEED (int): The random state seed for the models.
+            _logger (logging.Logger): The logger object.
+            config (dict): A dictionary containing the configuration settings.
+            mlutility_config (MLUtilityConfig): The configuration object.
+            _impl (Optional[dict[str, callable]]): The evaluator object.
+                - 'ori': The evaluator object for the original data.
+                - 'syn': The evaluator object for the synthetic data.
+        """
+        super().__init__(config=config)
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
+
+        self.MLUTILITY_CLASS_MAP: dict[int, callable] = {
+            MLUtilityMap.CLASSIFICATION: self._classification,
+            MLUtilityMap.CLUSTER: self._cluster,
+            MLUtilityMap.REGRESSION: self._regression,
+        }
+
+        self._logger.debug(f"Verifying MLUtilityConfig with parameters: {self.config}")
+        self.mlutility_config = MLUtilityConfig(**self.config)
+        self._logger.debug("MLUtilityConfig successfully initialized")
+
+        self._impl: Optional[dict[str, callable]] = None
+
+    def _preprocessing(
+        self, data: dict[str, pd.DataFrame]
+    ) -> tuple[dict[str, pd.DataFrame], str]:
+        """
+        Preprocess the data for the evaluation.
+            1. Remove missing values.
+            2. Remove high cardinality columns.
+            3. One-hot encoding for categorical columns.
+            4. Standardize the data.
+            5. Check if the target column is constant.
+
+        Args:
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+
+        Returns:
+            (tuple[dict[str, pd.DataFrame], str]):
+                The preprocessed data and the status of the preprocessing.
+                - (dict[str, pd.DataFrame]): The preprocessed data.
+                    - (str): key of the data.
+                        - X (pd.DataFrame): The feature columns.
+                        - y (pd.Series): The target column.
+                            Only for regression and classification.
+                - (str): The status of the preprocessing.
+                    - 'success': The preprocessing is successful.
+                    - 'missing_values_cause_empty':
+                        The data is empty after removing missing values.
+                    - 'target_is_constant':
+                        The target column is constant
+        """
+        error_msg: Optional[str] = None
+        inprogress_data: dict[str, pd.DataFrame] = deepcopy(data)
+        data_now: Optional[pd.DataFrame] = None
+        preprocessed_data: dict[str, pd.DataFrame] = {}
+
+        for key in self.REQUIRED_INPUT_KEYS:
+            data_now = inprogress_data[key].copy()
+            preprocessed_data[key] = {}
+
+            data_now.dropna(how="any")
+            self._logger.debug(f"Missing values removed for {key}")
+            if data_now.shape[0] == 0:
+                error_msg = f"The data is empty after removing missing values for {key}"
+                self._logger.warnings(error_msg)
+                return None, "missing_values_cause_empty"
+
+        temp_category_cols: list[str] = (
+            [
+                col
+                for col in self.mlutility_config.category_cols
+                if col != self.mlutility_config.target
+            ]
+            if self.mlutility_config.eval_method_code
+            in [
+                MLUtilityMap.CLASSIFICATION,
+                MLUtilityMap.REGRESSION,
+            ]
+            else self.mlutility_config.category_cols
+        )
+        self._logger.debug(
+            f"Category columns included: {self.mlutility_config.category_cols}"
+        )
+        if len(temp_category_cols) != 0:
+            for col in self.mlutility_config.category_cols:
+                # if the cardinality of the column is too high, remove the column
+                if (
+                    self.mlutility_config.category_cols_cardinality["ori"][col]
+                    >= round(
+                        self.mlutility_config.n_rows["ori"]
+                        * self.HIGH_CARDINALITY_THRESHOLD
+                    )
+                ) or (
+                    self.mlutility_config.category_cols_cardinality["syn"][col]
+                    >= round(
+                        self.mlutility_config.n_rows["syn"]
+                        * self.HIGH_CARDINALITY_THRESHOLD
+                    )
+                ):
+                    error_msg = (
+                        f"The cardinality of the column {col} is too high. "
+                        f"Ori: Over row numbers {self.mlutility_config.n_rows['ori']},"
+                        f" column cardinality {self.mlutility_config.category_cols_cardinality['ori'][col]}. "
+                        f"Syn: Over row numbers {self.mlutility_config.n_rows['syn']},"
+                        f" column cardinality {self.mlutility_config.category_cols_cardinality['syn'][col]}. "
+                        f"The column {col} is removed."
+                    )
+                    self._logger.warning(error_msg)
+                    temp_category_cols.remove(col)
+                    for key in self.REQUIRED_INPUT_KEYS:
+                        inprogress_data[key] = inprogress_data[key].drop(
+                            columns=col, inplace=False
+                        )
+                        self._logger.debug(f"Column {col} removed for {key}")
 
             # One-hot encoding
             ohe = OneHotEncoder(
@@ -246,163 +325,220 @@ class MLWorker:
                 handle_unknown="infrequent_if_exist",
             )
             ohe.fit(
-                np.concatenate(
+                pd.concat(
                     [
-                        data_ori[cat_col],
-                        data_syn[cat_col],
+                        inprogress_data["ori"][temp_category_cols],
+                        inprogress_data["syn"][temp_category_cols],
+                        inprogress_data["control"][temp_category_cols],
+                    ]
+                )
+            )
+            self._logger.debug("One-hot encoding completed")
+            for key in self.REQUIRED_INPUT_KEYS:
+                data_now = inprogress_data[key].copy()
+                data_now = pd.DataFrame(
+                    ohe.transform(data_now[temp_category_cols]),
+                    columns=ohe.get_feature_names_out(temp_category_cols),
+                    index=data_now.index,
+                )
+                inprogress_data[key] = inprogress_data[key].drop(
+                    columns=temp_category_cols,
+                    inplace=False,
+                )
+                inprogress_data[key] = pd.concat(
+                    [inprogress_data[key], data_now], axis=1
+                )
+                self._logger.debug(f"One-hot encoding completed for {key}")
+
+        if self.mlutility_config.eval_method_code in [
+            MLUtilityMap.CLASSIFICATION,
+            MLUtilityMap.REGRESSION,
+        ]:
+            target: str = self.mlutility_config.target
+
+            if self.mlutility_config.eval_method_code == MLUtilityMap.REGRESSION:
+                ss_y = StandardScaler()
+                ss_y.fit(
+                    np.concatenate(
+                        [
+                            inprogress_data["ori"][target].values.reshape(-1, 1),
+                            inprogress_data["syn"][target].values.reshape(-1, 1),
+                            inprogress_data["control"][target].values.reshape(-1, 1),
+                        ]
+                    )
+                )
+            ss_X = StandardScaler()
+            ss_X.fit(
+                pd.concat(
+                    [
+                        inprogress_data["ori"].drop(columns=[target], inplace=False),
+                        inprogress_data["syn"].drop(columns=[target], inplace=False),
+                        inprogress_data["control"].drop(
+                            columns=[target], inplace=False
+                        ),
                     ]
                 )
             )
 
-            data_ori_cat = ohe.transform(data_ori[cat_col])
-            data_syn_cat = ohe.transform(data_syn[cat_col])
-            data_test_cat = ohe.transform(data_test[cat_col])
+            for key in self.REQUIRED_INPUT_KEYS:
+                target_value: np.ndarray = inprogress_data[key][target].values
 
-            data_ori = data_ori.drop(columns=cat_col)
-            data_syn = data_syn.drop(columns=cat_col)
-            data_test = data_test.drop(columns=cat_col)
+                # check if the target is constant
+                if len(np.unique(target_value)) == 1:
+                    error_msg = f"The target column '{target}' is constant."
+                    self._logger.warning(error_msg)
+                    return None, "target_is_constant"
 
-            data_ori = np.concatenate([data_ori, data_ori_cat], axis=1)
-            data_syn = np.concatenate([data_syn, data_syn_cat], axis=1)
-            data_test = np.concatenate([data_test, data_test_cat], axis=1)
+                preprocessed_data[key]["y"] = (
+                    ss_y.transform(target_value.reshape(-1, 1)).ravel()
+                    if self.mlutility_config.eval_method_code == MLUtilityMap.REGRESSION
+                    else target_value.to_numpy()
+                )
+                preprocessed_data[key]["X"] = ss_X.transform(
+                    inprogress_data[key].drop(columns=[target], inplace=False)
+                )
 
-        if self.config["method_code"] == MLUtilityMap.REGRESSION:
-            self.result_ori = self._regression(
-                data_ori, target_ori, data_test, target_test
+        elif self.mlutility_config.eval_method_code == MLUtilityMap.CLUSTER:
+            united_columns = list(
+                set(
+                    inprogress_data["ori"].columns.tolist()
+                    + inprogress_data["syn"].columns.tolist()
+                    + inprogress_data["control"].columns.tolist()
+                )
             )
-            self.result_syn = self._regression(
-                data_syn, target_syn, data_test, target_test
-            )
-        elif self.config["method_code"] == MLUtilityMap.CLASSIFICATION:
-            self.result_ori = self._classification(
-                data_ori, target_ori, data_test, target_test
-            )
-            self.result_syn = self._classification(
-                data_syn, target_syn, data_test, target_test
-            )
-        elif self.config["method_code"] == MLUtilityMap.CLUSTER:
-            self.result_ori = self._cluster(data_ori, data_test, self.n_clusters)
-            self.result_syn = self._cluster(data_syn, data_test, self.n_clusters)
 
-        self.result = {"ori": self.result_ori, "syn": self.result_syn}
+            ss = StandardScaler()
+            ss.fit(
+                pd.concat(
+                    [
+                        inprogress_data["ori"].reindex(
+                            columns=united_columns, fill_value=0.0
+                        ),
+                        inprogress_data["syn"].reindex(
+                            columns=united_columns, fill_value=0.0
+                        ),
+                        inprogress_data["control"].reindex(
+                            columns=united_columns, fill_value=0.0
+                        ),
+                    ],
+                    axis=0,
+                )
+            )
 
-    def _regression(self, X_train, y_train, X_test, y_test):
+            for key in self.REQUIRED_INPUT_KEYS:
+                preprocessed_data[key] = {}
+                preprocessed_data[key]["X"] = ss.transform(
+                    inprogress_data[key].reindex(
+                        columns=united_columns, fill_value=0.0
+                    ),
+                )
+
+        self._logger.debug(
+            f"Encoding and standardization of {self.mlutility_config.eval_method} completed"
+        )
+
+        self._logger.debug(
+            f"Data preprocessing of {self.mlutility_config.eval_method} completed"
+        )
+
+        return preprocessed_data, "success"
+
+    def _adjust_to_lower_bound(self, value: float) -> float:
         """
-        Regression model fitting, evaluation, and testing.
-        The models used are linear regression, random forest,
-        and gradient boosting.
-
-        To prevent the data leakage, the normalisation is done inside the loop.
-
-        The metric used for evaluation is R^2.
+        Check if the score is beyond the lower bound.
+            If the score is less than the lower bound, return the lower bound.
+             Otherwise, return the value.
+            - For regression and classification, the lower bound is 0.
+            - For clustering, the lower bound is -1.
 
         Args:
-            X_train (pd.DataFrame): The data to be fitted.
-            y_train (pd.DataFrame): The target column of the training data.
-            X_test (pd.DataFrame): The data to be tested.
-            y_test (pd.DataFrame): The target column of the testing data.
+            value (float): The value to be checked.
+            type (str): The type of the evaluation.
 
         Returns:
-            result (dict): The result of the evaluation.
+            (float): The value in the range.
         """
-        result = {}
+        error_msg: Optional[str] = None
+        lower_bound: float = self.LOWER_BOUND_MAP[
+            self.mlutility_config.eval_method_code
+        ]
 
-        ssx = StandardScaler()
-        X_train = ssx.fit_transform(X_train)
-        X_test = ssx.transform(X_test)
+        if value < lower_bound:
+            error_msg = (
+                f"The score {value} is less than the lower bound, "
+                "indicating the performance is arbitrarily poor. "
+                "So the score is set to the lower bound."
+            )
+            self._logger.warning(error_msg)
+            value = lower_bound
 
-        ssy = StandardScaler()
-        y_train = ssy.fit_transform(y_train.reshape(-1, 1)).ravel()
-        y_test = ssy.transform(y_test.reshape(-1, 1)).ravel()
+        return value
 
-        lr = LinearRegression()
-        rf = RandomForestRegressor(random_state=42)
-        gb = GradientBoostingRegressor(random_state=42)
-
-        lr.fit(X_train, y_train)
-        rf.fit(X_train, y_train)
-        gb.fit(X_train, y_train)
-
-        result["linear_regression"] = self._lower_bound_check(
-            lr.score(X_test, y_test), "regression"
-        )
-        result["random_forest"] = self._lower_bound_check(
-            rf.score(X_test, y_test), "regression"
-        )
-        result["gradient_boosting"] = self._lower_bound_check(
-            gb.score(X_test, y_test), "regression"
-        )
-
-        return result
-
-    def _classification(self, X_train, y_train, X_test, y_test):
+    def _classification(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+    ) -> dict[str, float]:
         """
         Classification model fitting, evaluation, and testing.
-        The models used are logistic regression, SVC, random forest,
-        and gradient boosting.
-
-        To prevent the data leakage, the normalisation is done inside the loop.
+            The models used are logistic regression, SVC, random forest, and gradient boosting.
 
         The metric used for evaluation is f1 score.
 
         Args:
-            X_train (pd.DataFrame): The data to be fitted.
-            y_train (pd.DataFrame): The target column of the training data.
-            X_test (pd.DataFrame): The data to be tested.
-            y_test (pd.DataFrame): The target column of the testing data.
+            X_train (np.ndarray): The data to be fitted.
+            y_train (np.ndarray): The target column of the training data.
+            X_test (np.ndarray): The data to be tested.
+            y_test (np.ndarray): The target column of the testing data.
 
         Returns:
-            result (dict): The result of the evaluation.
+            (dict[str, float]): The result of the evaluation.
+                - 'logistic_regression': The f1 score of the logistic regression model.
+                - 'svc': The f1 score of the SVC model.
+                - 'random_forest': The f1 score of the random forest model.
+                - 'gradient_boosting': The f1 score of the gradient boosting model
         """
-        result = {}
+        result: dict[str, float] = {}
+        average_method: str = "micro"
 
-        # check if the target is constant
-        if len(np.unique(y_train)) == 1:
-            warnings.warn(
-                "The target column is constant, "
-                + "indicating the performance is not reliable."
+        models_to_evaluate_map: dict[str, callable] = {
+            "logistic_regression": LogisticRegression(
+                random_state=self.RANDOM_STATE_SEED
+            ),
+            "svc": SVC(random_state=self.RANDOM_STATE_SEED),
+            "random_forest": RandomForestClassifier(
+                random_state=self.RANDOM_STATE_SEED
+            ),
+            "gradient_boosting": GradientBoostingClassifier(
+                random_state=self.RANDOM_STATE_SEED
+            ),
+        }
+
+        # train
+        for model in models_to_evaluate_map.values():
+            model.fit(X_train, y_train)
+
+        # evaluate
+        result = {
+            name: f1_score(
+                y_test,
+                model.fit(X_train, y_train).predict(X_test),
+                average=average_method,
             )
-            return {"error": np.nan}
-
-        ss = StandardScaler()
-        X_train = ss.fit_transform(X_train)
-        X_test = ss.transform(X_test)
-
-        lr = LogisticRegression(random_state=42)
-        svc = SVC(random_state=42)
-        rf = RandomForestClassifier(random_state=42)
-        gb = GradientBoostingClassifier(random_state=42)
-
-        lr.fit(X_train, y_train)
-        svc.fit(X_train, y_train)
-        rf.fit(X_train, y_train)
-        gb.fit(X_train, y_train)
-
-        result["logistic_regression"] = self._lower_bound_check(
-            f1_score(y_test, lr.predict(X_test), average="micro"), "classification"
-        )
-        result["svc"] = self._lower_bound_check(
-            f1_score(y_test, svc.predict(X_test), average="micro"), "classification"
-        )
-        result["random_forest"] = self._lower_bound_check(
-            f1_score(y_test, rf.predict(X_test), average="micro"), "classification"
-        )
-        result["gradient_boosting"] = self._lower_bound_check(
-            f1_score(y_test, gb.predict(X_test), average="micro"), "classification"
-        )
+            for name, model in models_to_evaluate_map.items()
+        }
 
         return result
 
-    def _cluster(self, X_train, X_test, n_clusters):
+    def _cluster(self, X_train: np.ndarray, X_test: np.ndarray) -> dict[str, float]:
         """
         Clustering model fitting, evaluation, and testing.
-        The models used are KMeans with different number of clusters.
-
-        For the robustness of the results, the model is trained
-        and evaluated 5 times, and the average of the results
-        is used as the final result.
-
-        To prevent the data leakage, the normalisation is done inside the loop.
+            The models used are KMeans with different number of clusters.
+            For the robustness of the results,
+                the model is trained and evaluated 5 times,
+                and the average of the results is used as the final result.
 
         The metric used for evaluation is silhouette score.
 
@@ -414,82 +550,99 @@ class MLWorker:
         Returns:
             result (dict): The result of the evaluation.
         """
-        result = {}
+        silhouette_score_value: float = None
+        result: dict[str, float] = {}
 
-        ss = StandardScaler()
-        X_train = ss.fit_transform(X_train)
-        X_test = ss.transform(X_test)
-
-        for k in n_clusters:
-            k_model = KMeans(random_state=42, n_clusters=k, n_init="auto")
+        for k in self.mlutility_config.n_clusters:
+            k_model = KMeans(
+                random_state=self.RANDOM_STATE_SEED, n_clusters=k, n_init="auto"
+            )
 
             k_model.fit(X_train)
 
             try:
-                silhouette_score_value: float = silhouette_score(
+                silhouette_score_value = silhouette_score(
                     X_test, k_model.predict(X_test)
                 )
             except ValueError as e:
-                warnings.warn(
+                error_msg: str = (
                     "There is only one cluster in the prediction, "
-                    + "or the valid data samples are too few, "
-                    + "indicating the performance is arbitrarily poor."
-                    + " The score is set to the lower bound."
-                    + " Error message: "
-                    + str(e)
+                    "or the valid data samples are too few, "
+                    "indicating the performance is arbitrarily poor. "
+                    "The score is set to the lower bound."
+                    f"Error message: {str(e)}"
                 )
+                self._logger.warning(error_msg)
                 silhouette_score_value = -1
 
-            result[f"KMeans_cluster{k}"] = self._lower_bound_check(
-                silhouette_score_value, "cluster"
+            result[f"KMeans_cluster{k}"] = self._adjust_to_lower_bound(
+                silhouette_score_value,
             )
 
         return result
 
-    def _lower_bound_check(self, value: float, type: "str") -> float:
+    def _regression(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+    ) -> dict[str, float]:
         """
-        Check if the score is beyond the lower bound.
-        For regression and classification, the lower bound is 0.
-        For clustering, the lower bound is -1.
+        Regression model fitting, evaluation, and testing.
+            The models used are linear regression, random forest, and gradient boosting.
 
-        If the value is less than the lower bound, return the lower bound and
-        raise a warning.
-        Otherwise, return the value.
+        The metric used for evaluation is R^2.
 
         Args:
-            value (float): The value to be checked.
-            type (str): The type of the evaluation.
+            X_train (np.ndarray): The data to be fitted.
+            y_train (np.ndarray): The target column of the training data.
+            X_test (np.ndarray): The data to be tested.
+            y_test (np.ndarray): The target column of the testing data.
 
         Returns:
-            (float): The value in the range.
+            (dict[str, float]): The result of the evaluation.
+                - 'linear_regression': The R^2 score of the linear regression model.
+                - 'random_forest': The R^2 score of the random forest model.
+                - 'gradient_boosting': The R^2 score of the gradient boosting model
         """
-        if type == "cluster":
-            lower_bound = -1
-        else:
-            lower_bound = 0
+        result: dict[str, float] = {}
 
-        if value < lower_bound:
-            warnings.warn(
-                "The score is less than the lower bound,"
-                + " indicating the performance is arbitrarily poor."
-                + " The score is set to the lower bound."
+        models_to_evaluate_map: dict[str, callable] = {
+            "linear_regression": LinearRegression(),
+            "random_forest": RandomForestRegressor(random_state=self.RANDOM_STATE_SEED),
+            "gradient_boosting": GradientBoostingRegressor(
+                random_state=self.RANDOM_STATE_SEED
+            ),
+        }
+
+        result = {
+            name: self._adjust_to_lower_bound(
+                model.fit(X_train, y_train).score(X_test, y_test)
             )
-            return lower_bound
-        else:
-            return value
+            for name, model in models_to_evaluate_map.items()
+        }
 
-    def get_global(self) -> pd.DataFrame:
+        return result
+
+    def _get_global(
+        self, result: dict[str, Optional[dict[str, float]]]
+    ) -> pd.DataFrame:
         """
         Get the global result of the evaluation.
+
+        Args:
+            result (dict[str, Optional[dict[str, float]]]): The evaluation result
+                - 'ori': The evaluation result of the original data.
+                - 'syn': The evaluation result of the synthetic data.
 
         Returns:
             (pd.DataFrame): The global result of the evaluation.
         """
-        syn_value = list(self.result_syn.values())
+        ori_value: list[float] = list(result.get("ori", {}).values() or [0])
+        syn_value: list[float] = list(result.get("syn", {}).values() or [0])
 
-        ori_value = list(self.result_ori.values())
-
-        compare_df = pd.DataFrame(
+        compare_df: pd.DataFrame = pd.DataFrame(
             {
                 "ori_mean": safe_round(np.mean(ori_value)),
                 "ori_std": safe_round(np.std(ori_value)),
@@ -503,20 +656,64 @@ class MLWorker:
 
         return compare_df
 
-    def get_columnwise(self) -> None:
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict:
         """
-        Dummy method for the column-wise result of the evaluation.
+        Evaluate the data with the method given in the config.
+
+        Args:
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
 
         Returns:
-            None: None for ML didn't have columnwise result.
+            (dict) he evaluation result.
         """
-        return None
+        preprocessed_data: dict[str, pd.DataFrame] = {}
+        result_details: dict[str, Optional[dict[str, float]]] = {}
 
-    def get_pairwise(self) -> None:
-        """
-        Dummy method for the pair-wise result of the evaluation.
+        self.mlutility_config.update_data(data)
 
-        Returns:
-            None: None for ML didn't have pairwise result.
-        """
-        return None
+        preprocessed_data, status = self._preprocessing(data)
+        self._logger.debug("Data preprocessing completed")
+        if status in ("missing_values_cause_empty", "target_is_constant"):
+            self._logger.warning(
+                f"Evaluator Preprocessing status: {status}, result will be NaN"
+            )
+            result_details = {
+                "ori": {"error": np.nan},
+                "syn": {"error": np.nan},
+            }
+        else:
+            self._logger.debug(
+                f"Initializing evaluator with method: {self.config['eval_method']}"
+            )
+            evaluator_class: Any = self.MLUTILITY_CLASS_MAP[
+                self.mlutility_config.eval_method_code
+            ]
+            self._logger.debug(
+                f"Mapped method code: {self.mlutility_config.eval_method_code}"
+            )
+            self._impl = {"ori": evaluator_class, "syn": evaluator_class}
+
+            result_details = {
+                data_type: evaluator_class(
+                    **(
+                        dict(
+                            X_train=preprocessed_data[data_type]["X"],
+                            y_train=preprocessed_data[data_type]["y"],
+                            X_test=preprocessed_data["control"]["X"],
+                            y_test=preprocessed_data["control"]["y"],
+                        )
+                        if self.mlutility_config.eval_method_code
+                        in [MLUtilityMap.CLASSIFICATION, MLUtilityMap.REGRESSION]
+                        else dict(
+                            X_train=preprocessed_data[data_type]["X"],
+                            X_test=preprocessed_data["control"]["X"],
+                        )
+                    )
+                )
+                for data_type in ["ori", "syn"]
+            }
+
+        return {
+            "global": self._get_global(result_details),
+            "details": result_details,
+        }

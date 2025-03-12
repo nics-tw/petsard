@@ -2,8 +2,9 @@
 title: Anonymeter 隱私風險評測
 type: docs
 weight: 84
+weight: 84
 prev: docs/developer-guide/uniform-encoder
-next: docs/developer-guide/experiment-name-in-reporter
+next: docs/developer-guide/logging-configuration
 math: true
 ---
 

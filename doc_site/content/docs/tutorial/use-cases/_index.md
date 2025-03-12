@@ -38,6 +38,11 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
   - Use multiple algorithms in a single experiment
   - Includes Gaussian Copula, CTGAN, and TVAE
 
+### **Custom Synthesis: [Custom Synthesis](./custom-synthesis)**
+
+  - Create your own synthesis methods
+  - Integrate into PETsARD's synthesis workflow
+
 ### **Data Plausibility: [Data Constraining](./data-constraining)**
 
   - Ensure synthetic data complies with real business rules
@@ -45,6 +50,12 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
   - Include numeric range limits, category relationships, and null handling strategies
 
 ## **Data Evaluating**
+
+### **Machine Learning-based Data Utility：[ML Utility](./ml-utility)**
+
+  - Evaluate synthetic data utility for classification, regression, and clustering
+  - Uses dual-source control group evaluation by default for fair comparison
+  - Support multiple experimental designs for different use cases
 
 ### **Custom Evaluation: [Custom Evaluation](./custom-evaluation)**
 

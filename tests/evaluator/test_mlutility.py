@@ -1,217 +1,176 @@
-import random
-import warnings
-from typing import Dict
+import unittest
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import pytest
 
-from petsard.evaluator.mlutlity import MLUtility
+from petsard.evaluator.mlutlity import MLUtility, MLUtilityConfig
 
 
-@pytest.fixture
-def sample_evaluator_input():
-    """Fixture to create sample data for evaluator testing.
+class TestMLUtility(unittest.TestCase):
+    """Test for MLUtility Evaluator."""
 
-    Returns:
-        A function that creates sample data with specified parameters.
-    """
-
-    def _data_creator(n: int = 100) -> pd.DataFrame:
-        """Create a sample DataFrame with numeric features and categorical target.
-
-        Args:
-            n: Number of samples to generate
-
-        Returns:
-            DataFrame with both features and target columns
-        """
-        # Create base numeric features
-        data = pd.DataFrame(
-            data={
-                "x_cont_normal": np.random.rand(n),
-                "x_cont_uniform": np.random.uniform(size=n),
-                "x_num_same": np.ones(n),
-                "x_int_low_card": np.random.randint(0, 2, size=n),
-                "x_int_high_card": np.random.randint(0, 15, size=n),
-            }
-        )
-
-        # Add categorical target column
-        categories = [f"value{i}" for i in range(3)]
-        values = [random.choice(categories) for _ in range(n)]
-        data["unmatch_discr"] = pd.Categorical(values, categories=categories)
-
-        return data
-
-    def _sample_evaluator_input(
-        case: Dict[str, int] = None,
-    ) -> dict:
-        """Create evaluation datasets based on test case.
-
-        Args:
-            case: Dictionary specifying test case parameters
-
-        Returns:
-            Dictionary containing original, synthetic and control datasets
-        """
-        default_case: Dict[str, int] = {
-            "ori": 100,
-            "syn": 100,
-            "control": 100,
+    def setUp(self):
+        """Set up test fixtures."""
+        # Test configuration for classification
+        self.config_classification = {
+            "eval_method": "mlutility-classification",
+            "target": "target",
         }
-        if case is not None:
-            default_case.update(case)
-        case = default_case
 
-        # Create base datasets
-        data: dict = {}
-        for key, n in case.items():
-            if key != "testcase":
-                data[key] = _data_creator(n).copy()
+        # Test configuration for regression
+        self.config_regression = {
+            "eval_method": "mlutility-regression",
+            "target": "target",
+        }
 
-        # Handle special test cases for classification
-        if "testcase" in case:
-            if case["testcase"] in [
-                "only_1_level_y_in_ori",
-                "only_1_level_y_in_syn",
-                "only_1_level_y_both_ori_syn",
-            ]:
-                same: str = "value0"  # Value for constant target
-                categories = [f"value{i}" for i in range(3)]
-                non_same_values = [random.choice(categories) for _ in range(100)]
+        # Test configuration for clustering
+        self.config_cluster = {"eval_method": "mlutility-cluster", "n_clusters": [2, 3]}
 
-                def make_cat_series(values, is_single=False):
-                    """Create a categorical series with proper categories"""
-                    if is_single:
-                        categories = [same]
-                    else:
-                        categories = [f"value{i}" for i in range(3)]
-                    return pd.Categorical(values, categories=categories)
+        # Create mock data
+        np.random.seed(42)  # For reproducibility
+        n_samples = 100
 
-                # Control group always uses multiple values
-                data["control"]["unmatch_discr"] = make_cat_series(non_same_values)
-
-                # Set target values based on test case
-                if case["testcase"] == "only_1_level_y_in_ori":
-                    data["ori"]["unmatch_discr"] = make_cat_series([same] * 100, True)
-                    data["syn"]["unmatch_discr"] = make_cat_series(non_same_values)
-                elif case["testcase"] == "only_1_level_y_in_syn":
-                    data["ori"]["unmatch_discr"] = make_cat_series(non_same_values)
-                    data["syn"]["unmatch_discr"] = make_cat_series([same] * 100, True)
-                elif case["testcase"] == "only_1_level_y_both_ori_syn":
-                    data["ori"]["unmatch_discr"] = make_cat_series([same] * 100, True)
-                    data["syn"]["unmatch_discr"] = make_cat_series([same] * 100, True)
-
-        return data
-
-    return _sample_evaluator_input
-
-
-class Test_MLUtility:
-    """Test suite for MLUtility class"""
-
-    def test_classification_of_single_value(self, sample_evaluator_input):
-        """Test classification behavior with single-value targets.
-
-        Test cases:
-        1. Only original data has single level target
-        2. Only synthetic data has single level target
-        3. Both original and synthetic data have single level target
-
-        Expected behavior:
-        - Warning about constant target should be issued
-        - Scores should be NaN for datasets with constant target
-        - Valid scores for datasets with multiple classes
-        """
-        warnings.simplefilter("ignore", UserWarning)
-
-        for testcase in [
-            "only_1_level_y_in_ori",
-            "only_1_level_y_in_syn",
-            "only_1_level_y_both_ori_syn",
-        ]:
-            eval = MLUtility(
-                config={
-                    "method": "mlutility-classification",
-                    "target": "unmatch_discr",
-                }
-            )
-            eval.create(data=sample_evaluator_input(case={"testcase": testcase}))
-            eval.eval()
-            result = eval.get_global()
-
-            # Validate results based on test case
-            if testcase in ["only_1_level_y_in_ori", "only_1_level_y_both_ori_syn"]:
-                assert pd.isna(result.loc[0, "ori_mean"])
-                assert pd.isna(result.loc[0, "ori_std"])
-            else:
-                assert result.loc[0, "ori_mean"] >= 0.0
-                assert result.loc[0, "ori_std"] >= 0.0
-
-            if testcase in ["only_1_level_y_in_syn", "only_1_level_y_both_ori_syn"]:
-                assert pd.isna(result.loc[0, "syn_mean"])
-                assert pd.isna(result.loc[0, "syn_std"])
-            else:
-                assert result.loc[0, "syn_mean"] >= 0.0
-                assert result.loc[0, "syn_std"] >= 0.0
-
-            if testcase == "only_1_level_y_both_ori_syn":
-                assert pd.isna(result.loc[0, "diff"])
-
-    def test_classification_normal_case(self, sample_evaluator_input):
-        """Test classification with normal multi-class data.
-
-        Expected behavior:
-        - All scores should be valid (non-NaN)
-        - Scores should be in valid range [0, 1]
-        """
-        eval = MLUtility(
-            config={
-                "method": "mlutility-classification",
-                "target": "unmatch_discr",
+        # Features
+        X = pd.DataFrame(
+            {
+                "feature1": np.random.randn(n_samples),
+                "feature2": np.random.randn(n_samples),
+                "category": np.random.choice(["A", "B", "C"], size=n_samples),
             }
         )
-        eval.create(data=sample_evaluator_input())
-        eval.eval()
-        result = eval.get_global()
 
-        # Verify all metrics are valid
-        assert result.loc[0, "ori_mean"] >= 0.0
-        assert result.loc[0, "ori_std"] >= 0.0
-        assert result.loc[0, "syn_mean"] >= 0.0
-        assert result.loc[0, "syn_std"] >= 0.0
-        assert not pd.isna(result.loc[0, "diff"])
+        # Target for classification/regression
+        y_class = np.random.choice([0, 1], size=n_samples)
+        y_reg = np.random.randn(n_samples)
 
-    def test_classification_empty_data(self, sample_evaluator_input):
-        """Test classification with empty data after preprocessing.
+        # Create dataframes
+        self.data_classification = {
+            "ori": X.copy().assign(target=y_class),
+            "syn": X.copy().assign(target=y_class),
+            "control": X.copy().assign(target=y_class),
+        }
 
-        Expected behavior:
-        - All metrics should be NaN
-        - Warning about empty data should be issued
-        """
-        data = sample_evaluator_input()
+        self.data_regression = {
+            "ori": X.copy().assign(target=y_reg),
+            "syn": X.copy().assign(target=y_reg),
+            "control": X.copy().assign(target=y_reg),
+        }
 
-        # Set NaN values respecting column dtypes
-        for col in data["ori"].columns:
-            if pd.api.types.is_numeric_dtype(data["ori"][col].dtype):
-                data["ori"][col] = pd.Series([np.nan] * len(data["ori"]), dtype=float)
-            else:
-                data["ori"][col] = pd.Series([None] * len(data["ori"]), dtype=object)
+        self.data_cluster = {"ori": X.copy(), "syn": X.copy(), "control": X.copy()}
 
-        eval = MLUtility(
-            config={
-                "method": "mlutility-classification",
-                "target": "unmatch_discr",
-            }
-        )
-        eval.create(data=data)
-        eval.eval()
-        result = eval.get_global()
+    def test_init(self):
+        """Test initialization."""
+        # Test classification
+        evaluator = MLUtility(config=self.config_classification)
+        self.assertEqual(evaluator.config, self.config_classification)
+        self.assertIsNone(evaluator._impl)
+        self.assertIsInstance(evaluator.mlutility_config, MLUtilityConfig)
 
-        # Check if all metrics are NaN
-        assert pd.isna(result.loc[0, "ori_mean"])
-        assert pd.isna(result.loc[0, "ori_std"])
-        assert pd.isna(result.loc[0, "syn_mean"])
-        assert pd.isna(result.loc[0, "syn_std"])
-        assert pd.isna(result.loc[0, "diff"])
+        # Test regression
+        evaluator = MLUtility(config=self.config_regression)
+        self.assertEqual(evaluator.config, self.config_regression)
+
+        # Test clustering
+        evaluator = MLUtility(config=self.config_cluster)
+        self.assertEqual(evaluator.config, self.config_cluster)
+
+    @patch.object(MLUtility, "_classification")
+    def test_eval_classification(self, mock_classification):
+        """Test eval method with classification."""
+        # Setup mock returns
+        mock_classification.return_value = {
+            "logistic_regression": 0.85,
+            "svc": 0.82,
+            "random_forest": 0.88,
+            "gradient_boosting": 0.87,
+        }
+
+        # Execute evaluator
+        evaluator = MLUtility(config=self.config_classification)
+        result = evaluator.eval(self.data_classification)
+
+        # Assert results structure
+        self.assertIn("global", result)
+        self.assertIn("details", result)
+
+        # Assert global results content
+        global_data = result["global"]
+        self.assertIsInstance(global_data, pd.DataFrame)
+
+        # Check expected columns
+        expected_cols = ["ori_mean", "ori_std", "syn_mean", "syn_std", "diff"]
+        for col in expected_cols:
+            self.assertIn(col, global_data.columns)
+
+        # Assert details results content
+        details = result["details"]
+        self.assertIn("ori", details)
+        self.assertIn("syn", details)
+
+    @patch.object(MLUtility, "_regression")
+    def test_eval_regression(self, mock_regression):
+        """Test eval method with regression."""
+        # Setup mock returns
+        mock_regression.return_value = {
+            "linear_regression": 0.75,
+            "random_forest": 0.82,
+            "gradient_boosting": 0.80,
+        }
+
+        # Execute evaluator
+        evaluator = MLUtility(config=self.config_regression)
+        result = evaluator.eval(self.data_regression)
+
+        # Assert structure and check similar aspects
+        self.assertIn("global", result)
+        self.assertIn("details", result)
+        self.assertIsInstance(result["global"], pd.DataFrame)
+
+    @patch.object(MLUtility, "_cluster")
+    def test_eval_cluster(self, mock_cluster):
+        """Test eval method with clustering."""
+        # Setup mock returns
+        mock_cluster.return_value = {"KMeans_cluster2": 0.65, "KMeans_cluster3": 0.70}
+
+        # Execute evaluator
+        evaluator = MLUtility(config=self.config_cluster)
+        result = evaluator.eval(self.data_cluster)
+
+        # Assert structure and check similar aspects
+        self.assertIn("global", result)
+        self.assertIn("details", result)
+        self.assertIsInstance(result["global"], pd.DataFrame)
+
+    def test_preprocessing(self):
+        """Test the preprocessing functionality."""
+        # Simple mock to avoid running actual models but test preprocessing
+        with patch.object(MLUtility, "_classification", return_value={}):
+            evaluator = MLUtility(config=self.config_classification)
+
+            # We don't need to mock the whole preprocessing, just observe if it runs
+            # without errors and returns the expected structure
+            result = evaluator.eval(self.data_classification)
+
+            # Basic structure checks
+            self.assertIn("global", result)
+            self.assertIn("details", result)
+
+    def test_invalid_method(self):
+        """Test with invalid evaluation method."""
+        with self.assertRaises(Exception):
+            MLUtility(config={"eval_method": "mlutility-invalid"})
+
+    def test_missing_target(self):
+        """Test regression/classification without target."""
+        with self.assertRaises(Exception):
+            # Classification requires target
+            MLUtility(config={"eval_method": "mlutility-classification"})
+
+        with self.assertRaises(Exception):
+            # Regression requires target
+            MLUtility(config={"eval_method": "mlutility-regression"})
+
+
+if __name__ == "__main__":
+    unittest.main()

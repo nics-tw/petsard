@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from petsard.error import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.loader.loader import Loader
 from petsard.loader.metadata import Metadata
 
@@ -21,8 +21,8 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        num_samples: int = 1,
-        train_split_ratio: float = 0.8,
+        num_samples: Optional[int] = 1,
+        train_split_ratio: Optional[float] = 0.8,
         random_state: Optional[Union[int, float, str]] = None,
         **kwargs,
     ):
@@ -129,15 +129,14 @@ class Splitter:
             metadata (Metadata, optional): The metadata class of the data.
         """
         if "method" in self.config:
-            self.loader["ori"].load()
-            self.loader["control"].load()
+            ori_data, ori_metadata = self.loader["ori"].load()
+            ctrl_data, _ = self.loader["control"].load()
             self.data[1] = {
-                "train": self.loader["ori"].data,
-                "validation": self.loader["control"].data,
+                "train": ori_data,
+                "validation": ctrl_data,
             }
             # Setting metadata by train
-            metadata = Metadata()
-            metadata.build_metadata(data=self.loader["ori"].data)
+            metadata = ori_metadata
             if "row_num" in metadata.metadata["global"]:
                 metadata.metadata["global"]["row_num_after_split"] = metadata.metadata[
                     "global"

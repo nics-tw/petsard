@@ -1,8 +1,8 @@
 ---
 title: 自定義評測
 type: docs
-weight: 32
-prev: docs/tutorial/use-cases/data-constraining
+weight: 34
+prev: docs/tutorial/use-cases/ml-utility
 next: docs/tutorial/use-cases/benchmark-datasets
 ---
 
@@ -18,6 +18,10 @@ next: docs/tutorial/use-cases/benchmark-datasets
 Loader:
   data:
     filepath: 'benchmark/adult-income.csv'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
 Preprocessor:
   demo:
     method: 'default'
@@ -30,9 +34,8 @@ Postprocessor:
 Evaluator:
   custom:
     method: 'custom_method'
-    custom_method:
-      filepath: 'custom-evaluation.py'  # Path to your custom evaluator
-      method: 'MyEvaluator'        # Evaluator class name
+    module_path: 'custom-evaluation.py'  # Path to your custom synthesizer
+    class_name: 'MyEvaluator_Pushover'  # Synthesizer class name
 Reporter:
   save_report_global:
     method: 'save_report'
@@ -48,65 +51,83 @@ Reporter:
 
 ## 建立自定義評測
 
-建立評測類別，繼承 `EvaluatorBase`：
+實現自訂評測時，你可以自由選擇是否要繼承 `BaseEvaluator`，但評測程式跟 `PETsARD` 的整合主要基於以下兩個關鍵常數：
+
+- `self.REQUIRED_INPUT_KEYS` (`list[str]`)：定義輸入資料必須包含的字典鍵值。標準鍵值包含 `ori`（原始資料）、`syn`（合成資料）和 `control`（控制資料）。提供 `control` 參數與否決定了您的自訂評測是否能在不進行資料分割的情況下進行評估。
+- `self.AVAILABLE_SCORES_GRANULARITY` (`list[str]`)：定義評估結果的顆粒度選項。可選值包括 `global`（全域評測）、`columnwise`（逐欄位評測）、`pairwise`（逐欄位對評測）以及 `details`（自訂細節評測）。
 
 ```python
 import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
 
+class MyEvaluator_Pushover:
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn", "control"]
+    AVAILABLE_SCORES_GRANULARITY: list[str] = [
+        "global",
+        "columnwise",
+        "pairwise",
+        "details",
+    ]
 
-class MyEvaluator(EvaluatorBase):
     def __init__(self, config: dict):
-        super().__init__(config=config)
-        self.result = None
-        self.columns = None
+        """
+        Args:
+            config (dict): The configuration assign by Synthesizer
+        """
+        self.config: dict = config
 
-    def _create(self, data: dict) -> None:
-        # Get column names for columnwise and pairwise analysis
-        self.columns = data["ori"].columns
-
-    def eval(self) -> None:
+    def eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         # Implement your evaluation logic
-        self.result = {"score": 100}
-
-    def get_global(self) -> pd.DataFrame:
-        # Return overall evaluation results
-        return pd.DataFrame(self.result, index=["result"])
-
-    def get_columnwise(self) -> pd.DataFrame:
-        # Return per-column evaluation results
-        # Must use original column names
-        return pd.DataFrame(self.result, index=self.columns)
-
-    def get_pairwise(self) -> pd.DataFrame:
-        # Return column relationship evaluation results
-        # Generate all possible column pairs
-        pairs = [
+        eval_result: dict[str, int] = {"score": 100}
+        colnames: list[str] = data["ori"].columns
+        pairs: list[tuple[str, str]] = [
             (col1, col2)
-            for i, col1 in enumerate(self.columns)
-            for j, col2 in enumerate(self.columns)
+            for i, col1 in enumerate(colnames)
+            for j, col2 in enumerate(colnames)
             if j <= i
         ]
-        return pd.DataFrame(self.result, index=pd.MultiIndex.from_tuples(pairs))
+        lorem_text: str = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+            "Ut enim ad minim veniam, "
+            "quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. "
+            "Excepteur sint occaecat cupidatat non proident, "
+            "sunt in culpa qui officia deserunt mollit anim id est laborum."
+        )
+
+        return {
+            # Return overall evaluation results
+            "global": pd.DataFrame(eval_result, index=["result"]),
+            # Return per-column evaluation results. Must contains all column names
+            "columnwise": pd.DataFrame(eval_result, index=colnames),
+            # Return column relationship evaluation results. Must contains all column pairs
+            "pairwise": pd.DataFrame(
+                eval_result, index=pd.MultiIndex.from_tuples(pairs)
+            ),
+            # Return detailed evaluation results, not specified the format
+            "details": pd.DataFrame({"lorem_text": lorem_text.split(". ")}),
+        }
 ```
 
 ## 必要實作方法
 
-您的評測類別必須實作以下所有方法：
+您的評測類別需要實作一個 `eval()` 方法，該方法返回一個字典，其中包含不同顆粒度的評估結果。該字典的鍵必須與 `AVAILABLE_SCORES_GRANULARITY` 中定義的一致，而每個值都必須是符合特定格式的 `pandas.DataFrame`。主要如下：
 
-1. `get_global()`：回傳整體評估結果
+### 字典鍵值對應的格式要求
 
-    - 一列資料顯示整體評分
+1. `global`：全域評估結果
 
-2. `get_columnwise()`：回傳各欄位的評估結果
+    - 單行的 DataFrame，顯示整體評分或評估摘要
 
-    - 每個欄位一列資料
-    - 使用原始資料的欄位名稱作為索引
+2. `columnwise`：欄位級評估結果
 
-3. `get_pairwise()`：回傳欄位間關係的評估結果
+    - 每個原始資料欄位一行的 DataFrame，使用欄位名稱作為索引
 
-    - 每對欄位組合一列資料
-    - 使用欄位配對作為索引
+3. `pairwise`：欄位對評估結果
 
-這三個方法都必須實作，以確保評測結果能在不同的顆粒度下呈現。每個方法都應該回傳一個包含您評測指標的 DataFrame。
+    - 每對欄位組合一行的 DataFrame，使用 `MultiIndex` 表示欄位對
+
+4. `details`：自定義細節
+
+    - 自定義格式的 DataFrame，可包含任何類型的詳細評估資訊

@@ -1,38 +1,51 @@
 import pandas as pd
 
-from petsard.evaluator.evaluator_base import EvaluatorBase
 
+class MyEvaluator_Pushover:
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn", "control"]
+    AVAILABLE_SCORES_GRANULARITY: list[str] = [
+        "global",
+        "columnwise",
+        "pairwise",
+        "details",
+    ]
 
-class MyEvaluator(EvaluatorBase):
     def __init__(self, config: dict):
-        super().__init__(config=config)
-        self.result = None
-        self.columns = None
+        """
+        Args:
+            config (dict): The configuration assign by Synthesizer
+        """
+        self.config: dict = config
 
-    def _create(self, data: dict) -> None:
-        # Get column names for columnwise and pairwise analysis
-        self.columns = data["ori"].columns
-
-    def eval(self) -> None:
+    def eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         # Implement your evaluation logic
-        self.result = {"score": 100}
-
-    def get_global(self) -> pd.DataFrame:
-        # Return overall evaluation results
-        return pd.DataFrame(self.result, index=["result"])
-
-    def get_columnwise(self) -> pd.DataFrame:
-        # Return per-column evaluation results
-        # Must use original column names
-        return pd.DataFrame(self.result, index=self.columns)
-
-    def get_pairwise(self) -> pd.DataFrame:
-        # Return column relationship evaluation results
-        # Generate all possible column pairs
-        pairs = [
+        eval_result: dict[str, int] = {"score": 100}
+        colnames: list[str] = data["ori"].columns
+        pairs: list[tuple[str, str]] = [
             (col1, col2)
-            for i, col1 in enumerate(self.columns)
-            for j, col2 in enumerate(self.columns)
+            for i, col1 in enumerate(colnames)
+            for j, col2 in enumerate(colnames)
             if j <= i
         ]
-        return pd.DataFrame(self.result, index=pd.MultiIndex.from_tuples(pairs))
+        lorem_text: str = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+            "Ut enim ad minim veniam, "
+            "quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. "
+            "Excepteur sint occaecat cupidatat non proident, "
+            "sunt in culpa qui officia deserunt mollit anim id est laborum."
+        )
+
+        return {
+            # Return overall evaluation results
+            "global": pd.DataFrame(eval_result, index=["result"]),
+            # Return per-column evaluation results. Must contains all column names
+            "columnwise": pd.DataFrame(eval_result, index=colnames),
+            # Return column relationship evaluation results. Must contains all column pairs
+            "pairwise": pd.DataFrame(
+                eval_result, index=pd.MultiIndex.from_tuples(pairs)
+            ),
+            # Return detailed evaluation results, not specified the format
+            "details": pd.DataFrame({"lorem_text": lorem_text.split(". ")}),
+        }

@@ -2,6 +2,10 @@
 Loader:
   data:
     filepath: 'benchmark/adult-income.csv'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
 Preprocessor:
   demo:
     method: 'default'
@@ -14,9 +18,8 @@ Postprocessor:
 Evaluator:
   custom:
     method: 'custom_method'
-    custom_method:
-      filepath: 'custom-evaluation.py'  # Path to your custom evaluator
-      method: 'MyEvaluator'        # Evaluator class name
+    module_path: 'custom-evaluation.py'  # Path to your custom synthesizer
+    class_name: 'MyEvaluator_Pushover'  # Synthesizer class name
 Reporter:
   save_report_global:
     method: 'save_report'

@@ -1,17 +1,189 @@
-import itertools
-import warnings
+import logging
 from abc import ABC, abstractmethod
-from typing import Union
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
-from scipy.spatial.distance import jensenshannon
+from pandas.api.types import (
+    is_bool_dtype,
+    is_datetime64_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+    is_string_dtype,
+)
 
-from petsard.error import ConfigError, UnsupportedMethodError
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.config_base import BaseConfig
+from petsard.evaluator.evaluator_base import BaseEvaluator
+from petsard.exceptions import ConfigError, UnsupportedMethodError
 from petsard.loader import Metadata
 from petsard.util import safe_round
+
+
+class StatsMap(Enum):
+    """
+    Mapping of the statistics method to the corresponding code.
+    """
+
+    MEAN = auto()
+    STD = auto()
+    MEDIAN = auto()
+    MIN = auto()
+    MAX = auto()
+    NUNIQUE = auto()
+    JSDIVERGENCE = auto()
+
+    @classmethod
+    def map(cls, method: str) -> int:
+        """
+        Get suffixes mapping int value
+            Accept both of "sdmetrics-" or "sdmetrics-single_table-" prefix
+
+        Args:
+            method (str): evaluating method
+
+        Return:
+            (int): The method code.
+        """
+        return cls.__dict__[method.upper()]
+
+
+@dataclass
+class StatsConfig(BaseConfig):
+    """
+    Configuration for the Stats Evaluator.
+
+    Attributes:
+        eval_method (str): The evaluation method.
+        eval_method_code (int): The evaluation method code.
+        AVALIABLE_STATS_METHODS (list[str]): The available statistics methods.
+        AVAILABLE_COMPARE_METHODS (list[str]): The available compare methods.
+        AVAILABLE_AGGREGATED_METHODS (list[str]): The available aggregated methods.
+        AVAILABLE_SUMMARY_METHODS (list[str]): The available summary methods.
+        REQUIRED_INPUT_KEYS (list[str]): The required input keys.
+        stats_method (list[str]): The statistics methods.
+        compare_method (str): The compare method.
+        aggregated_method (str): The aggregated method.
+        summary_method (str): The summary method.
+        columns_info (dict): The columns information.
+            - ori/syn_dtype (str): The data type of the column.
+            - ori/syn_infer_dtype (str): The inferred data type of the column.
+            - dtype_match (bool): Whether the data type matches.
+            - infer_dtype_match (bool): Whether the inferred data type matches.
+
+    """
+
+    eval_method: str
+    eval_method_code: Optional[int] = None
+    AVAILABLE_STATS_METHODS: list[str] = field(
+        default_factory=lambda: [
+            "mean",
+            "std",
+            "median",
+            "min",
+            "max",
+            "nunique",
+            "jsdivergence",
+        ]
+    )
+    AVAILABLE_COMPARE_METHODS: list[str] = field(
+        default_factory=lambda: ["diff", "pct_change"]
+    )
+    AVAILABLE_AGGREGATED_METHODS: list[str] = field(default_factory=lambda: ["mean"])
+    AVAILABLE_SUMMARY_METHODS: list[str] = field(default_factory=lambda: ["mean"])
+    REQUIRED_INPUT_KEYS: list[str] = field(default_factory=lambda: ["ori", "syn"])
+    stats_method: list[str] = field(
+        default_factory=lambda: [
+            "mean",
+            "std",
+            "median",
+            "min",
+            "max",
+            "nunique",
+            "jsdivergence",
+        ]
+    )
+    compare_method: str = "pct_change"
+    aggregated_method: str = "mean"
+    summary_method: str = "mean"
+    columns_info: Optional[dict[str, dict[str, str]]] = field(default_factory=dict)
+
+    def __post_init__(self):
+        super().__post_init__()
+        error_msg: Optional[str] = None
+
+        invalid_methods: list[str] = [
+            method
+            for method in self.stats_method
+            if method not in self.AVAILABLE_STATS_METHODS
+        ]
+        if invalid_methods:
+            error_msg = (
+                f"Invalid stats method: {invalid_methods}. "
+                f"Available methods are: {self.AVAILABLE_STATS_METHODS}"
+            )
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        if self.compare_method not in self.AVAILABLE_COMPARE_METHODS:
+            error_msg = f"Invalid compare method: {self.compare_method}."
+            self._looger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        if self.aggregated_method not in self.AVAILABLE_AGGREGATED_METHODS:
+            error_msg = f"Invalid aggregated method: {self.aggregated_method}."
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        if self.summary_method not in self.AVAILABLE_SUMMARY_METHODS:
+            error_msg = f"Invalid summary method: {self.summary_method}."
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+    def update_data(self, data: dict[str, pd.DataFrame]) -> None:
+        error_msg: Optional[str] = None
+
+        self._logger.info(
+            f"Updating data with {len(self.REQUIRED_INPUT_KEYS)} required keys"
+        )
+
+        # Validate required keys
+        if not all(key in data for key in self.REQUIRED_INPUT_KEYS):
+            error_msg = f"Missing required keys. Expected: {self.REQUIRED_INPUT_KEYS}"
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        ori_colnames: list[str] = data["ori"].columns
+        syn_colnames: list[str] = data["syn"].columns
+        colnames = list(set(ori_colnames) & set(syn_colnames))
+        self._logger.debug(
+            f"Found {len(colnames)} common columns between original and synthetic data"
+        )
+
+        self.columns_info = {}
+        temp: dict[str, str] = None
+        dtype = None
+        for colname in colnames:
+            temp = {}
+
+            for source in ["ori", "syn"]:
+                if colname in data[source].columns:
+                    dtype = data[source][colname].dtype
+                    temp.update(
+                        {
+                            f"{source}_dtype": dtype,
+                            f"{source}_infer_dtype": Metadata._convert_dtypes(dtype),
+                        }
+                    )
+            temp["dtype_match"] = temp.get("ori_dtype") == temp.get("syn_dtype")
+            temp["infer_dtype_match"] = temp.get("ori_infer_dtype") == temp.get(
+                "syn_infer_dtype"
+            )
+            self.columns_info[colname] = temp
+        self._logger.debug(
+            f"Column information updated for {len(self.columns_info)} columns"
+        )
 
 
 class StatsBase(ABC):
@@ -21,22 +193,12 @@ class StatsBase(ABC):
 
     def __init__(self):
         """
-        Attr:
-            data (dict[str, pd.Series]): The data to be evaluated.
-        """
-        self.data: dict[str, pd.Series] = None
-
-    def create(self, data: dict[str, pd.Series]):
-        """
         Args:
             data (dict[str, pd.Series]): The data to be evaluated.
-
-        Raises:
-            TypeError: If the data type verification fails.
         """
-        self.data = data
-        if not self._verify_dtype():
-            raise TypeError
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
 
     @abstractmethod
     def _verify_dtype(self) -> bool:
@@ -49,23 +211,43 @@ class StatsBase(ABC):
         Raises:
             NotImplementedError: If the method is not implemented.
         """
-        raise NotImplementedError
+        error_msg: str = (
+            f"Method _verify_dtype is not implemented for {self.__class__.__name__}."
+        )
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
-    def eval(self) -> int | float:
+    def eval(self, data: dict[str, pd.Series]) -> int | float:
         """
         Evaluates the statistics and returns the result.
             safe_round is used to round 6 digits the result if it is a float.
 
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (int | float): The result of the statistics evaluation.
         """
-        result: int | float = self._eval()
+        self._logger.debug(f"Evaluating statistics with {self.__class__.__name__}")
+
+        if not self._verify_dtype(data):
+            error_msg: str = (
+                f"Data type verification failed for {self.__class__.__name__}."
+            )
+            self._logger.error(error_msg)
+            raise TypeError(error_msg)
+
+        result: int | float = self._eval(data=data)
+        self._logger.debug(f"Statistics result: {result}")
         return safe_round(result) if isinstance(result, float) else result
 
     @abstractmethod
-    def _eval(self) -> int | float:
+    def _eval(self, data: pd.DataFrame) -> int | float:
         """
         Performs the evaluation of the statistics.
+
+        Args:
+            data (pd.DataFrame): The data to be evaluated.
 
         Returns:
             (int | float): The result of the statistics evaluation.
@@ -73,7 +255,11 @@ class StatsBase(ABC):
         Raises:
             NotImplementedError: If the method is not implemented.
         """
-        raise NotImplementedError
+        error_msg: str = (
+            f"Method _eval is not implemented for {self.__class__.__name__}."
+        )
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
 
 
 class StatsMean(StatsBase):
@@ -82,19 +268,25 @@ class StatsMean(StatsBase):
         Inherits from StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the column's data type is numeric, False otherwise.
-        """
-        return is_numeric_dtype(self.data["col"])
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> float:
+        Returns:
+            (bool): True if the data type is numeric/datetime64, False otherwise.
         """
+        return is_numeric_dtype(data.get("col")) or is_datetime64_dtype(data.get("col"))
+
+    def _eval(self, data: dict[str, pd.Series]) -> float:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (float): The mean value of the column.
         """
-        return self.data["col"].mean()
+        return data.get("col").mean()
 
 
 class StatsStd(StatsBase):
@@ -103,19 +295,25 @@ class StatsStd(StatsBase):
         Inherits from StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the column's data type is numeric, False otherwise.
-        """
-        return is_numeric_dtype(self.data["col"])
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> float:
+        Returns:
+            (bool): True if the data type is numeric/datetime64, False otherwise.
         """
+        return is_numeric_dtype(data.get("col")) or is_datetime64_dtype(data.get("col"))
+
+    def _eval(self, data: dict[str, pd.Series]) -> float:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (float): The standard deviation of the column.
         """
-        return self.data["col"].std()
+        return data.get("col").std()
 
 
 class StatsMedian(StatsBase):
@@ -124,19 +322,25 @@ class StatsMedian(StatsBase):
         Inherits from StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the column's data type is numeric, False otherwise.
-        """
-        return is_numeric_dtype(self.data["col"])
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> int | float:
+        Returns:
+            (bool): True if the data type is numeric/datetime64, False otherwise.
         """
+        return is_numeric_dtype(data.get("col")) or is_datetime64_dtype(data.get("col"))
+
+    def _eval(self, data: dict[str, pd.Series]) -> int | float:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (int | float): The median of the column.
         """
-        return self.data["col"].median()
+        return data.get("col").median()
 
 
 class StatsMin(StatsBase):
@@ -145,19 +349,25 @@ class StatsMin(StatsBase):
         Inherits from StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the column's data type is numeric, False otherwise.
-        """
-        return is_numeric_dtype(self.data["col"])
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> int | float:
+        Returns:
+            (bool): True if the data type is numeric/datetime64, False otherwise.
         """
+        return is_numeric_dtype(data.get("col")) or is_datetime64_dtype(data.get("col"))
+
+    def _eval(self, data: dict[str, pd.Series]) -> int | float:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (int | float): The min of the column.
         """
-        return self.data["col"].min()
+        return data.get("col").min()
 
 
 class StatsMax(StatsBase):
@@ -166,19 +376,25 @@ class StatsMax(StatsBase):
         Inherits from StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the column's data type is numeric, False otherwise.
-        """
-        return is_numeric_dtype(self.data["col"])
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> int | float:
+        Returns:
+            (bool): True if the data type is numeric/datetime64, False otherwise.
         """
+        return is_numeric_dtype(data.get("col")) or is_datetime64_dtype(data.get("col"))
+
+    def _eval(self, data: dict[str, pd.Series]) -> int | float:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (int | float): The max of the column.
         """
-        return self.data["col"].max()
+        return data.get("col").max()
 
 
 class StatsNUnique(StatsBase):
@@ -187,21 +403,30 @@ class StatsNUnique(StatsBase):
         Inherits from the StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
-        Returns:
-            (bool): True if the data type is 'category', False otherwise.
-        """
-        return isinstance(self.data["col"].dtype, pd.CategoricalDtype) or self.data[
-            "col"
-        ].dtype == np.dtype("bool")
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
 
-    def _eval(self) -> int:
+        Returns:
+            (bool): True if the data type is bool/string/category/object, False otherwise.
         """
+        return (
+            is_bool_dtype(data.get("col"))
+            or is_string_dtype(data.get("col"))
+            or isinstance(data.get("col"), pd.CategoricalDtype)
+            or is_object_dtype(data.get("col"))
+        )
+
+    def _eval(self, data: dict[str, pd.Series]) -> int:
+        """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (int): The number of unique values in the column.
         """
-        return self.data["col"].nunique(dropna=True)
+        return data.get("col").nunique(dropna=True)
 
 
 class StatsJSDivergence(StatsBase):
@@ -210,610 +435,412 @@ class StatsJSDivergence(StatsBase):
         Inherits from the StatsBase.
     """
 
-    def _verify_dtype(self) -> bool:
+    def _verify_dtype(self, data: dict[str, pd.Series]) -> bool:
         """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
-            (bool): True if the data type is 'category', False otherwise.
+            (bool): True if the both data type is bool/string/category/object,
+                False otherwise.
         """
         return (
-            isinstance(self.data["col_ori"].dtype, pd.CategoricalDtype)
-            and isinstance(self.data["col_syn"].dtype, pd.CategoricalDtype)
-        ) or (
-            (self.data["col_ori"].dtype == np.dtype("bool"))
-            and (self.data["col_syn"].dtype == np.dtype("bool"))
+            (is_bool_dtype(data.get("col_ori")) and is_bool_dtype(data.get("col_syn")))
+            or (
+                is_string_dtype(data.get("col_ori"))
+                and is_string_dtype(data.get("col_syn"))
+            )
+            or (
+                isinstance(data.get("col_ori"), pd.CategoricalDtype)
+                and isinstance(data.get("col_syn"), pd.CategoricalDtype)
+            )
+            or (
+                is_object_dtype(data.get("col_ori"))
+                and is_object_dtype(data.get("col_syn"))
+            )
         )
 
-    def _eval(self) -> int:
+    def _eval(self, data: dict[str, pd.Series]) -> int:
         """
+        Args:
+            data (dict[str, pd.Series]): The data to be evaluated.
+
         Returns:
             (float): The Jensen-Shannon divergence of column pair.
         """
-        value_cnts_ori = self.data["col_ori"].value_counts(normalize=True)
-        value_cnts_syn = self.data["col_syn"].value_counts(normalize=True)
+        from scipy.spatial.distance import jensenshannon
 
-        # Get the set of unique categories from both columns
+        value_cnts_ori = data.get("col_ori").value_counts(normalize=True)
+        value_cnts_syn = data.get("col_syn").value_counts(normalize=True)
+
         all_categories = set(value_cnts_ori.index) | set(value_cnts_syn.index)
 
-        # Fill in missing categories with 0 probability
         p = np.array([value_cnts_ori.get(cat, 0) for cat in all_categories])
         q = np.array([value_cnts_syn.get(cat, 0) for cat in all_categories])
 
         return jensenshannon(p, q) ** 2
 
 
-class Stats(EvaluatorBase):
+class Stats(BaseEvaluator):
     """
-    The "Stats" statistics Evaluator.
-        This class is responsible for computing various statistical measures
-        on the input data.
-
-    Attr:
-        STATS_METHODS (dict):
-            A dictionary mapping each statistics method to its corresponding
-        COMPARE_METHODS (list[str]):
-            A list of supported comparison methods.
-        AGGREGATED_METHODS (list[str]):
-            A list of supported aggregated methods.
-        DEFAULT_METHODS (dict):
-            A dictionary containing the default statistics methods.
+    Evaluator for Statistics method.
     """
 
-    STATS_METHODS: dict[str, dict[str, Union[str, StatsBase]]] = {
-        "mean": {
-            "infer_dtype": ["numerical"],
-            "exec_granularity": "columnwise",
-            "module": StatsMean,
+    REQUIRED_INPUT_KEYS: list[str] = ["ori", "syn"]
+    INFER_DTYPE_MAP: dict[str, str] = {
+        method: dtype
+        for dtype, methods in {
+            "numerical": [
+                "mean",
+                "std",
+                "median",
+                "min",
+                "max",
+            ],
+            "categorical": ["nunique", "jsdivergence"],
+        }.items()
+        for method in methods
+    }
+    EXEC_GRANULARITY_MAP: dict[str, str] = {
+        method: granularity
+        for granularity, methods in {
+            "columnwise": [
+                "mean",
+                "std",
+                "median",
+                "min",
+                "max",
+                "nunique",
+            ],
+            "percolumn": [
+                "jsdivergence",
+            ],
+        }.items()
+        for method in methods
+    }
+    MODULE_MAP: dict[str, callable] = {
+        "mean": StatsMean,
+        "std": StatsStd,
+        "median": StatsMedian,
+        "min": StatsMin,
+        "max": StatsMax,
+        "nunique": StatsNUnique,
+        "jsdivergence": StatsJSDivergence,
+    }
+    COMPARE_METHOD_MAP: dict[str, dict[str, callable]] = {
+        "diff": {
+            "func": lambda syn, ori: syn - ori,
+            "handle_zero": lambda syn, ori: syn - ori,
         },
-        "std": {
-            "infer_dtype": ["numerical"],
-            "exec_granularity": "columnwise",
-            "module": StatsStd,
-        },
-        "median": {
-            "infer_dtype": ["numerical"],
-            "exec_granularity": "columnwise",
-            "module": StatsMedian,
-        },
-        "min": {
-            "infer_dtype": ["numerical"],
-            "exec_granularity": "columnwise",
-            "module": StatsMin,
-        },
-        "max": {
-            "infer_dtype": ["numerical"],
-            "exec_granularity": "columnwise",
-            "module": StatsMax,
-        },
-        "nunique": {
-            "infer_dtype": ["categorical"],
-            "exec_granularity": "columnwise",
-            "module": StatsNUnique,
-        },
-        "jsdivergence": {
-            "infer_dtype": ["categorical"],
-            "exec_granularity": "percolumn",
-            "module": StatsJSDivergence,
+        "pct_change": {
+            "func": lambda syn, ori: (syn - ori) / abs(ori),
+            "handle_zero": lambda syn, ori: np.nan,
         },
     }
-    COMPARE_METHODS: list[str] = ["diff", "pct_change"]
-    AGGREGATED_METHODS: list[str] = ["mean"]
-    SUMMARY_METHODS: list[str] = ["mean"]
-    DEFAULT_METHODS: dict[str, str] = {
-        "stats_method": [
-            "mean",
-            "std",
-            "median",
-            "min",
-            "max",
-            "nunique",
-            "jsdivergence",
-        ],
-        "compare_method": "pct_change",
-        "aggregated_method": "mean",
-        "summary_method": "mean",
+    AGGREGATED_METHOD_MAP: dict[str, callable] = {
+        "mean": lambda df: {k: safe_round(v) for k, v in df.mean().to_dict().items()}
     }
+    SUMMARY_METHOD_MAP: dict[str, callable] = {
+        "mean": lambda values: safe_round(np.mean(list(values)))
+    }
+    AVAILABLE_SCORES_GRANULARITY: list[str] = ["global", "columnwise"]  # "pairwise"
 
     def __init__(self, config: dict):
         """
         Args:
-            config (dict): The configuration for the statistics evaluation.
-                stats_method (list[str], optional):
-                    The list of statistics methods to be computed.
-                    Default is ['mean', 'std', 'median', 'min', 'max',
-                        'nunique', 'jsdivergence',].
-                compare_method (str, optional):
-                    The method to compare the original and synthetic data.
-                    Default is 'pct_change'.
-                aggregated_method (str, optional):
-                    The method to aggregate the statistics to global levels
-                    Default is 'mean'.
-                summary_method (str, optional):
-                    The method to finally summarize the global statistics
-                    Default is 'mean'.
-
-        Attr.
-            columns_info (dict):
-                A dictionary containing information
-                about the columns in the input data.
-            aggregated_percolumn_method (list[str]):
-                A list of statistics methods that are aggregated per column.
-            result  (dict):
-                A dictionary to store the result of the statistics evaluation.
-                - global (pd.DataFrame | None):
-                    The global statistics dataframe or None if not available.
-                - columnwise (pd.DataFrame | None):
-                    The column-wise statistics dataframe or None if not available.
-                - pairwise (pd.DataFrame | None):
-                    The pairwise statistics dataframe or None if not available.
+            config (dict): The configuration assign by Evaluator.
         """
         super().__init__(config=config)
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
 
-        self._init_config_method("stats_method", self.STATS_METHODS)
-        self._init_config_method("compare_method", self.COMPARE_METHODS)
-        self._init_config_method("aggregated_method", self.AGGREGATED_METHODS)
-        self._init_config_method("summary_method", self.SUMMARY_METHODS)
+        self._logger.debug(f"Verifying StatsConfig with parameters: {self.config}")
+        self.stats_config = StatsConfig(**self.config)
+        self._logger.debug("StatsConfig successfully initialized")
 
-        self.columns_info: dict = {}
-        self.aggregated_percolumn_method: list = [
-            stats_method
-            for stats_method in self.config["stats_method"]
-            if self.STATS_METHODS[stats_method]["exec_granularity"] == "percolumn"
-        ]
-        self.result["global"] = None
-        self.result["columnwise"] = None
-        self.result["pairwise"] = None
+        self._impl: Optional[dict[str, callable]] = None
 
-    def _init_config_method(self, method_name, valid_methods):
+    def _process_columnwise(
+        self, data: dict[str, pd.DataFrame], col: str, info: dict[str, Any], method: str
+    ) -> dict[str, float]:
         """
-        Initializes the configuration method for the given method name.
+        Process column-wise statistics and return updated result
 
         Args:
-            method_name (str):
-                The name of the method to initialize the configuration for.
-            valid_methods (list): A list of valid method names.
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+            col (str): Column name
+            info (dict[str, Any]): Column information
+            method (str): Statistical method name
 
-        Raises:
-            UnsupportedMethodError:
-                If the configured method is not in the list of valid methods.
-
+        Returns:
+            (dict[str, float]) Updated column result
         """
-        if method_name in self.config:
-            if isinstance(self.config[method_name], str):
-                self.config[method_name] = [self.config[method_name]]
+        infer_type: list[str] = self.INFER_DTYPE_MAP[method]
+        module: callable = self.MODULE_MAP[method]
 
-            if isinstance(self.config[method_name], list):
-                new_method_name: list[str] = []
-
-                for name in self.config[method_name]:
-                    name = name.lower()
-                    if name not in valid_methods:
-                        raise UnsupportedMethodError
-
-                    new_method_name.append(name)
-
-                if method_name == "stats_method":
-                    self.config[method_name] = new_method_name
-                else:
-                    if len(new_method_name) >= 2:
-                        warnings.warn(
-                            f"{method_name} only accept one method,"
-                            + "methods after the first one will be ignored",
-                            Warning,
-                        )
-                    self.config[method_name] = new_method_name[0]
-            else:
-                raise ConfigError
+        result: dict[str, float] = {}
+        if info["infer_dtype_match"] and info["ori_infer_dtype"] in infer_type:
+            self._logger.debug(
+                f"Column '{col}' data type matches required type for method '{method}'"
+            )
+            for source in ["ori", "syn"]:
+                result[f"{method}_{source}"] = module().eval(
+                    data={"col": data[source][col]}
+                )
         else:
-            self.config[method_name] = self.DEFAULT_METHODS[method_name]
-
-    def _create(self, data: dict) -> None:
-        """
-        Args:
-            data (dict): The input data dictionary containing 'ori' and 'syn' data.
-
-        Raises:
-            ConfigError:
-                If 'ori' or 'syn' data is missing in the input data dictionary.
-            UnsupportedMethodError:
-                If an unsupported statistics method is encountered.
-        """
-        if not set(["ori", "syn"]).issubset(set(data.keys())):
-            raise ConfigError
-        data = {key: value for key, value in data.items() if key in ["ori", "syn"]}
-        self.data = data
-        self.columns_info = self._create_columns_info()
-
-        config_method: dict = None
-        infer_dtype: str = None
-        exec_granularity: str = None
-        module: StatsBase = None
-        col_result: dict = {}
-        pair_result: dict = {}
-
-        for method in self.config["stats_method"]:
-            config_method = self.STATS_METHODS[method]
-            infer_dtype, exec_granularity, module = (
-                config_method["infer_dtype"],
-                config_method["exec_granularity"],
-                config_method["module"],
+            self._logger.debug(
+                f"Column '{col}' data type does not match required type for method '{method}', returning NaN"
             )
+            result[f"{method}_ori"] = np.nan
+            result[f"{method}_syn"] = np.nan
 
-            # Check if the column's data type matches the inferred data type
-            # and the inferred data type is in the list of supported data types
-            if exec_granularity == "columnwise":
-                for col, value in self.columns_info.items():
-                    if col not in col_result:
-                        col_result[col] = {}
-                    if (
-                        value["infer_dtype_match"]
-                        and value["ori_infer_dtype"] in infer_dtype
-                    ):
-                        col_result = self._create_columnwise_method(
-                            col_result, col, method, "ori", module
-                        )
-                        col_result = self._create_columnwise_method(
-                            col_result, col, method, "syn", module
-                        )
-                    # avoid no infer_dtype match in whole dataset
-                    #   e.g. no category column in data
-                    else:
-                        col_result[col][f"{method}_ori"] = np.nan
-                        col_result[col][f"{method}_syn"] = np.nan
-            elif exec_granularity == "percolumn":
-                for col, value in self.columns_info.items():
-                    if col not in col_result:
-                        col_result[col] = {}
-                    if (
-                        value["infer_dtype_match"]
-                        and value["ori_infer_dtype"] in infer_dtype
-                    ):
-                        col_result = self._create_percolumn_method(
-                            col_result, col, method, module
-                        )
-                    else:
-                        col_result[col][method] = np.nan
-            elif exec_granularity == "pairwise":
-                for (col1, value1), (col2, value2) in itertools.combinations(
-                    self.columns_info.items(), 2
-                ):
-                    if (col1, col2) not in pair_result:
-                        pair_result[(col1, col2)] = {
-                            f"{method}_ori": np.nan,
-                            f"{method}_syn": np.nan,
-                        }
-                    if (
-                        value1["ori_infer_dtype"] in infer_dtype
-                        and value2["ori_infer_dtype"] in infer_dtype
-                    ):
-                        pair_result = self._create_pairwise_method(
-                            pair_result, col1, col2, method, "ori", module
-                        )
+        return result
 
-                    if (
-                        value1["syn_infer_dtype"] in infer_dtype
-                        and value2["syn_infer_dtype"] in infer_dtype
-                    ):
-                        pair_result = self._create_pairwise_method(
-                            pair_result, col1, col2, method, "syn", module
-                        )
-            else:
-                raise UnsupportedMethodError
-
-        if col_result != {}:
-            self.result["columnwise"] = pd.DataFrame.from_dict(
-                col_result, orient="index"
-            )
-        if pair_result != {}:
-            self.result["pairwise"] = pd.DataFrame.from_dict(
-                pair_result, orient="index"
-            )
-
-    def _create_columns_info(self) -> dict:
+    def _process_percolumn(
+        self, data: dict[str, pd.DataFrame], col: str, info: dict[str, Any], method: str
+    ) -> dict[str, float]:
         """
-        Creates the columns information dictionary.
-
-        Returns:
-            columns_info (dict): The dictionary containing information
-                about the columns in the input data.
-        """
-        columns_info: dict = {}
-        ori_colnames: list = self.data["ori"].columns
-        syn_colnames: list = self.data["syn"].columns
-        colnames = list(set(ori_colnames) & set(syn_colnames))
-
-        temp: dict = {}
-        for col in colnames:
-            if col in ori_colnames:
-                temp.update(self._extract_columns_info("ori", self.data["ori"][col]))
-            if col in syn_colnames:
-                temp.update(self._extract_columns_info("syn", self.data["syn"][col]))
-            temp["dtype_match"] = temp["ori_dtype"] == temp["syn_dtype"]
-            temp["infer_dtype_match"] = (
-                temp["ori_infer_dtype"] == temp["syn_infer_dtype"]
-            )
-
-            columns_info[col] = temp
-            temp = {}
-        return columns_info
-
-    @staticmethod
-    def _extract_columns_info(data_source: str, col: pd.Series) -> dict:
-        """
-        Extracts the columns information.
+        Process per-column statistics and return updated result
 
         Args:
-            data_source (str): The type of data ('ori' or 'syn').
-            col (pd.Series): The column data.
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+            col (str): Column name
+            info (dict[str, Any]): Column information
+            method (str): Statistical method name
 
         Returns:
-            (dict): The dictionary containing the extracted column information.
+            (dict[str, float]) Updated column result
         """
-        temp: dict = {}
-        dtype: type = col.dtype
-        temp["dtype"] = dtype
-        temp["infer_dtype"] = Metadata._convert_dtypes(dtype)
-
-        temp = {f"{data_source}_{key}": value for key, value in temp.items()}
-        return temp
-
-    def _create_columnwise_method(
-        self,
-        col_result: dict,
-        col: str,
-        method: str,
-        data_source: str,
-        module: StatsBase,
-    ) -> dict:
-        """
-        Creates the column-wise method for a specific column.
-
-        Args:
-            col_result (dict): The dictionary containing the computed statistics.
-            col (str): The column name.
-            method (str): The statistics method.
-            data_source (str): The source of data ('ori' or 'syn').
-            module (StatsBase): The statistics module.
-
-        Returns:
-            col_result (dict): The dictionary containing the computed statistics.
-        """
-        method_data_source: str = f"{method}_{data_source}"
-
-        temp_module: StatsBase = module()
-        temp_module.create({"col": self.data[data_source][col]})
-
-        col_result[col][method_data_source] = temp_module.eval()
-        return col_result
-
-    def _create_percolumn_method(
-        self,
-        col_result: dict,
-        col: str,
-        method: str,
-        module: StatsBase,
-    ) -> dict:
-        """
-        Creates the per-column method for a specific column.
-
-        Args:
-            col_result (dict): The dictionary containing the computed statistics.
-            col (str): The column name.
-            method (str): The statistics method.
-            module (StatsBase): The statistics module.
-
-        Returns:
-            col_result (dict): The dictionary containing the computed statistics.
-        """
-        temp_module: StatsBase = module()
-        temp_module.create(
-            {
-                "col_ori": self.data["ori"][col],
-                "col_syn": self.data["syn"][col],
-            }
+        self._logger.debug(
+            f"Processing per-column statistics for column '{col}' using method '{method}'"
         )
 
-        col_result[col][method] = temp_module.eval()
-        return col_result
+        infer_type: list[str] = self.INFER_DTYPE_MAP[method]
+        module: callable = self.MODULE_MAP[method]
 
-    def _create_pairwise_method(
+        result: dict[str, float] = {}
+        if info["infer_dtype_match"] and info["ori_infer_dtype"] in infer_type:
+            result[method] = module().eval(
+                {
+                    "col_ori": data["ori"][col],
+                    "col_syn": data["syn"][col],
+                }
+            )
+        else:
+            result[method] = np.nan
+
+        return result
+
+    def process_pairwise(
         self,
-        pair_result: dict,
+        data: dict[str, pd.DataFrame],
         col1: str,
+        info1: dict[str, Any],
         col2: str,
+        info2: dict[str, Any],
         method: str,
-        data_source: str,
-        module: StatsBase,
-    ) -> dict:
+    ) -> dict[str, float]:
         """
-        Creates the pair-wise method for a specific column.
+        Process pairwise statistics and return updated result
 
         Args:
-            pair_result (dict): The dictionary containing the computed statistics.
-            col1 (str): The column 1 name.
-            col2 (str): The column 2 name.
-            method (str): The statistics method.
-            data_source (str): The type of data ('ori' or 'syn').
-            module (StatsBase): The statistics module.
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+            col1 (str): First column name
+            info1 (dict[str, Any]: First column information
+            col2 (str): Second column name
+            info2 (dict[str, Any]): Second column information
+            method (str): Statistical method name
 
         Returns:
-            pair_result (dict): The dictionary containing the computed statistics.
+            (dict[str, float]): Updated pair result
         """
-        method_data_source: str = f"{method}_{data_source}"
+        infer_type = self.INFER_DTYPE_MAP[method]
+        module = self.MODULE_MAP[method]
 
-        temp_module: StatsBase = module()
-        temp_module.create(
-            {
-                "col1": self.data[data_source][col1],
-                "col2": self.data[data_source][col2],
-            }
+        result = {}
+        # Process original data
+        if (
+            info1["ori_infer_dtype"] in infer_type
+            and info2["ori_infer_dtype"] in infer_type
+        ):
+            result[f"{method}_ori"] = module().eval(
+                {
+                    "col1": data["ori"][col1],
+                    "col2": data["ori"][col2],
+                }
+            )
+        else:
+            result[f"{method}_ori"] = np.nan
+
+        # Process synthetic data
+        if (
+            info1["syn_infer_dtype"] in infer_type
+            and info2["syn_infer_dtype"] in infer_type
+        ):
+            result[f"{method}_syn"] = module().eval(
+                {
+                    "col1": data["syn"][col1],
+                    "col2": data["syn"][col2],
+                }
+            )
+        else:
+            result[f"{method}_syn"] = np.nan
+
+        return result
+
+    def _apply_comparison(self, df: pd.DataFrame, compare_method: str) -> pd.DataFrame:
+        """
+        Apply comparison method to DataFrame
+
+        Args:
+            df (pd.DataFrame): The DataFrame to be compared
+            compare_method (str): The comparison method
+        """
+        self._logger.debug(
+            f"Applying comparison method '{compare_method}' to DataFrame"
         )
+        error_msg: Optional[list[str]] = None
 
-        pair_result[(col1, col2)][method_data_source] = temp_module.eval()
-        return pair_result
+        method_info = self.COMPARE_METHOD_MAP.get(compare_method)
+        if not method_info:
+            error_msg = f"Unsupported comparison method: {compare_method}"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
 
-    def eval(self):
+        ori_cols: list[str] = [col for col in df.columns if col.endswith("_ori")]
+        syn_cols: list[str] = [col.replace("_ori", "_syn") for col in ori_cols]
+        self._logger.debug(f"Found {len(ori_cols)} original columns for comparison")
+
+        if not all(col in df.columns for col in syn_cols):
+            error_msg = "Missing synthetic columns"
+            self._logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        result = df.copy()
+        for ori_col, syn_col in zip(ori_cols, syn_cols):
+            eval_col = f"{ori_col.replace('_ori', f'_{compare_method}')}"
+
+            if eval_col in result.columns:
+                result.drop(columns=[eval_col], inplace=True)
+
+            result.insert(result.columns.get_loc(syn_col) + 1, eval_col, np.nan)
+
+            # Apply appropriate function based on whether original value is zero
+            func = method_info["func"]
+            handle_zero = method_info["handle_zero"]
+            result[eval_col] = np.where(
+                result[ori_col].astype(float) == 0.0,
+                handle_zero(result[syn_col], result[ori_col]),
+                safe_round(func(result[syn_col], result[ori_col])),
+            )
+
+        self._logger.debug(f"Comparison method '{compare_method}' applied successfully")
+        return result
+
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         """
-        Evaluates the computed statistics.
-        """
-        compare_method: str = self.config["compare_method"]
-        aggregated_method: str = self.config["aggregated_method"]
-        summary_method: str = self.config["summary_method"]
+        Evaluating the evaluator.
+            _impl should be initialized in this method.
 
-        compare_col: list[str] = None
-        global_result: dict = {}
+        Args:
+            data (dict[str, pd.DataFrame]): The data to be evaluated.
+
+        Return:
+            (dict[str, pd.DataFrame]): The evaluation result
+        """
+        self._logger.info(
+            f"Starting evaluation with {len(self.stats_config.stats_method)} statistical methods"
+        )
+        self.stats_config.update_data(data)
+
+        columns_results: dict[str, dict[str, float]] = {}
+        pairs_results: dict[str, dict[str, float]] = {}
+        # Process each column
+        for col1, info1 in self.stats_config.columns_info.items():
+            columns_results[col1] = {}
+
+            # Process each statistical method
+            for method in self.stats_config.stats_method:
+                exec_granularity = self.EXEC_GRANULARITY_MAP[method]
+
+                # Update results based on granularity
+                if exec_granularity == "columnwise":
+                    columns_results[col1].update(
+                        self._process_columnwise(data, col1, info1, method)
+                    )
+                elif exec_granularity == "percolumn":
+                    columns_results[col1].update(
+                        self._process_percolumn(data, col1, info1, method)
+                    )
+        self._logger.debug(f"Processed statistics for {len(columns_results)} columns")
+
+        # Process pairwise statistics separately to avoid duplication
+        for method in self.stats_config.stats_method:
+            if self.EXEC_GRANULARITY_MAP[method] == "pairwise":
+                column_items = list(self.stats_config.columns_info.items())
+                for i in range(len(column_items)):
+                    col1, info1 = column_items[i]
+                    for j in range(i + 1, len(column_items)):
+                        col2, info2 = column_items[j]
+                        pairs_key = (col1, col2)
+                        if pairs_key not in pairs_results:
+                            pairs_results[pairs_key] = {}
+                        pairs_results[pairs_key].update(
+                            self._process_pairwise(
+                                data, col1, info1, col2, info2, method
+                            )
+                        )
+        if pairs_results:
+            self._logger.debug(
+                f"Processed pair-wise statistics for {len(pairs_results)} column pairs"
+            )
+
+        stats_result: dict[str, pd.DataFrame] = {}
+        if columns_results:
+            stats_result["columnwise"] = pd.DataFrame(columns_results).T
+        if pairs_results:
+            stats_result["pairwise"] = pd.DataFrame(pairs_results).T
+
+        # Compare, Aggregated, and Summary results
+        compare_method: str = self.stats_config.compare_method
+        aggregated_method: str = self.stats_config.aggregated_method
+        summary_method: str = self.stats_config.summary_method
+
+        compare_col: list[str] = []
+        global_result: dict[str, float] = {}
         for granularity in ["columnwise", "pairwise"]:
-            if granularity in self.result and self.result[granularity] is not None:
-                if compare_method == "diff":
-                    self.result[granularity] = self._compare_diff(
-                        self.result[granularity]
-                    )
-                elif compare_method == "pct_change":
-                    self.result[granularity] = self._compare_pct_change(
-                        self.result[granularity]
-                    )
+            if granularity in stats_result and stats_result is not None:
+                # Apply comparison method
+                stats_result[granularity] = self._apply_comparison(
+                    stats_result[granularity], compare_method
+                )
+                self._logger.debug(
+                    f"Applied comparison method '{compare_method}' to results"
+                )
 
                 compare_col = [
                     col
-                    for col in self.result[granularity]
+                    for col in stats_result[granularity]
                     if col.endswith(f"_{compare_method}")
                 ]
-                compare_col += self.aggregated_percolumn_method
-                if aggregated_method == "mean":
-                    global_result.update(
-                        self._aggregated_mean(self.result[granularity][compare_col])
+                # add aggregated percolumn method
+                compare_col += [
+                    stats_method
+                    for stats_method in self.stats_config.stats_method
+                    if self.EXEC_GRANULARITY_MAP[stats_method] == "percolumn"
+                ]
+
+                # Apply aggregated method
+                global_result.update(
+                    self.AGGREGATED_METHOD_MAP[aggregated_method](
+                        stats_result[granularity][compare_col]
                     )
+                )
 
-        if summary_method == "mean":
-            global_result = {
-                "Score": self._summary_mean(global_result),
-                **global_result,
-            }
-
-        self.result["global"] = pd.DataFrame.from_dict(global_result, orient="index").T
-
-    @staticmethod
-    def _compare_diff(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate the difference
-            between original and synthetic columns in a DataFrame.
-
-        Args:
-            df (pd.DataFrame):
-                The DataFrame containing the original and synthetic columns.
-
-        Returns:
-            (pd.DataFrame): The DataFrame with the percentage change columns added.
-
-        Raises:
-            ValueError: If any of the synthetic columns are missing in the DataFrame.
-        """
-        ori_cols: list[str] = [col for col in df.columns if col.endswith("_ori")]
-        syn_cols: list[str] = [col.replace("_ori", "_syn") for col in ori_cols]
-        if not all(col in df.columns for col in syn_cols):
-            raise ValueError
-
-        eval_col: str = ""
-        for ori_col, syn_col in zip(ori_cols, syn_cols):
-            eval_col = f'{ori_col.replace("_ori", "_diff")}'
-            if eval_col in df.columns:
-                df.drop(columns=[eval_col], inplace=True)
-            df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
-
-            df[eval_col] = safe_round(df[syn_col] - df[ori_col])
-        return df
-
-    @staticmethod
-    def _compare_pct_change(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate the absolute percentage change
-            between original and synthetic columns in a DataFrame.
-            If original value is 0, return np.nan.
-            Add the absolute to avoid the situation that
-                original value is negative but synthetic value is positive.
-
-        Args:
-            df (pd.DataFrame):
-                The DataFrame containing the original and synthetic columns.
-
-        Returns:
-            (pd.DataFrame): The DataFrame with the percentage change columns added.
-
-        Raises:
-            ValueError: If any of the synthetic columns are missing in the DataFrame.
-        """
-        ori_cols: list[str] = [col for col in df.columns if col.endswith("_ori")]
-        syn_cols: list[str] = [col.replace("_ori", "_syn") for col in ori_cols]
-        if not all(col in df.columns for col in syn_cols):
-            raise ValueError
-
-        eval_col: str = ""
-        for ori_col, syn_col in zip(ori_cols, syn_cols):
-            eval_col = f'{ori_col.replace("_ori", "_pct_change")}'
-            if eval_col in df.columns:
-                df.drop(columns=[eval_col], inplace=True)
-            df.insert(df.columns.get_loc(syn_col) + 1, eval_col, np.nan)
-
-            df[eval_col] = np.where(
-                df[ori_col].astype(float) == 0.0,
-                np.nan,
-                safe_round((df[syn_col] - df[ori_col]) / abs(df[ori_col])),
-            )
-        return df
-
-    @staticmethod
-    def _aggregated_mean(df: pd.DataFrame) -> dict:
-        """
-        Calculate the aggregated mean of a DataFrame.
-
-        Args:
-            df (pd.DataFrame): The DataFrame to calculate the mean.
-
-        Returns:
-            (dict): A dictionary containing
-                the column names as keys
-                and the aggregated mean values as values.
-        """
-        return {k: safe_round(v) for k, v in df.mean().to_dict().items()}
-
-    @staticmethod
-    def _summary_mean(global_result: dict) -> float:
-        """
-        Calculate the mean of the values in the given dictionary.
-
-        Args:
-            global_result (dict): A dictionary containing the values.
-
-        Returns:
-            (float): The mean of the values in the dictionary.
-        """
-        return safe_round(np.mean(list(global_result.values())))
-
-    def get_global(self) -> pd.DataFrame | None:
-        """
-        Returns the global statistics.
-
-        Returns:
-            (pd.DataFrame | None):
-                The global statistics dataframe or None if not available.
-        """
-        return self.result["global"]
-
-    def get_columnwise(self) -> pd.DataFrame | None:
-        """
-        Returns the column-wise statistics.
-
-        Returns:
-            (pd.DataFrame | None):
-                The column-wise statistics dataframe or None if not available.
-        """
-        return self.result["columnwise"]
-
-    def get_pairwise(self) -> pd.DataFrame | None:
-        """
-        Returns the pairwise statistics.
-
-        Returns:
-            (pd.DataFrame | None):
-                The pairwise statistics dataframe or None if not available.
-        """
-        return self.result["pairwise"]
+        # Apply summary method
+        score: float = self.SUMMARY_METHOD_MAP[summary_method](global_result.values())
+        global_result = {"Score": score, **global_result}
+        stats_result["global"] = pd.DataFrame.from_dict(global_result, orient="index").T
+        self._logger.info(f"Evaluation completed with global score: {score:.4f}")
+        return stats_result

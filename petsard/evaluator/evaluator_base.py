@@ -1,125 +1,288 @@
+import logging
 from abc import ABC, abstractmethod
-from typing import Union
+from dataclasses import dataclass
+from typing import Any
 
 import pandas as pd
 
-from petsard.error import ConfigError
-from petsard.loader import Metadata
-from petsard.util import safe_astype
+from petsard.config_base import BaseConfig
+from petsard.exceptions import ConfigError
+from petsard.util import EvaluationScoreGranularityMap, align_dtypes
 
 
-class EvaluatorBase(ABC):
+@dataclass
+class EvaluatorInputConfig(BaseConfig):
     """
-    Base class for Describers/Evaluators.
+    Configuration for the input data of evaluator.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+        data (pd.DataFrame, optional): The data used for evaluation.
+        ori (pd.DataFrame, optional): The original data.
+        syn (pd.DataFrame, optional): The synthetic data.
+        control (pd.DataFrame, optional): The control data.
+        major_key (str, optional): The major key of the data.
     """
+
+    data: pd.DataFrame = None
+    ori: pd.DataFrame = None
+    syn: pd.DataFrame = None
+    control: pd.DataFrame = None
+    major_key: str = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._logger.debug("Initializing EvaluatorInputDataConfig")
+
+    def verify_required_inputs(self, required_input_keys: str | list[str]) -> None:
+        """
+        Verify if the required inputs are provided.
+
+        Args:
+            required_input_keys (str | list[str]): The required input keys.
+
+        Raises:
+            ConfigError: If the required inputs are not provided.
+        """
+        error_msg: str = None
+
+        # 1. Check input keys type
+        if isinstance(required_input_keys, str):
+            required_input_keys = [required_input_keys]
+
+        if "Undefined" in required_input_keys:
+            error_msg = "The required inputs are not defined."
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        # 2. Check if no major_key been given
+        if self.major_key is None:
+            if not set(required_input_keys).intersection({"ori", "data"}):
+                error_msg = (
+                    "There's mulitple keys in input, but no 'ori' or 'data' for aligning dtypes. "
+                    f"Got keys: {required_input_keys}"
+                )
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
+            self.major_key = "ori" if "ori" in required_input_keys else "data"
+
+        # 3. Verify input keys
+        missing: list[str] = []
+        invalid: list[str] = []
+
+        for key in required_input_keys:
+            if key not in self.__dict__ or self.__dict__[key] is None:
+                missing.append(key)
+            elif not isinstance(self.__dict__[key], pd.DataFrame):
+                invalid.append(key)
+
+        if missing or invalid:
+            error_parts = []
+            if missing:
+                error_parts.append(f"Missing required inputs: {missing}")
+            if invalid:
+                error_parts.append(f"Invalid inputs (not DataFrame): {invalid}")
+
+            error_msg = ". ".join(error_parts)
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        if len(required_input_keys) > 1:
+            from petsard.loader import Metadata
+
+            reference_data: pd.DataFrame = getattr(self, self.major_key)
+            reference_columns: set = set(reference_data.columns)
+
+            metadata: Metadata = Metadata()
+            metadata.build_metadata(data=reference_data)
+
+            other_keys: list[str] = [
+                key for key in required_input_keys if key != self.major_key
+            ]
+
+            # 4. Check column difference
+            column_mismatches: dict[str, list[str]] = {}
+            other_key_columns: list[str] = []
+            for other_key in other_keys:
+                other_key_columns = set(getattr(self, key).columns)
+
+                # Find differences
+                missing_cols = reference_columns - other_key_columns
+                extra_cols = other_key_columns - reference_columns
+
+                if missing_cols or extra_cols:
+                    column_mismatches[key] = {
+                        "missing": list(missing_cols),
+                        "extra": list(extra_cols),
+                    }
+
+            if column_mismatches:
+                error_msg = (
+                    f"Column name mismatch between dataframes: {column_mismatches}"
+                )
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
+
+            # 5. align dtypes
+            for other_key in other_keys:
+                setattr(
+                    self,
+                    other_key,
+                    align_dtypes(
+                        getattr(self, other_key),
+                        metadata,
+                    ),
+                )
+
+
+@dataclass
+class EvaluatorScoreConfig(BaseConfig):
+    """
+    Configuration for the scoring result of evaluator.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+    """
+
+    available_scores_granularity: list[str]
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        # Check the granularity validity
+        for granularity in self.available_scores_granularity:
+            try:
+                _ = EvaluationScoreGranularityMap.map(granularity)
+            except KeyError:
+                error_msg: str = f"Non-default granularity '{granularity}' is used."
+                self._logger.info(error_msg)
+
+    def _verify_scores_granularity(self, scores: dict[str, Any]) -> None:
+        """
+        Verify the granularity of the scores.
+
+        Args:
+            scores (dict[str, Any]): The scores to be verified.
+
+        Raises:
+            ConfigError: If the granularity is not valid.
+        """
+        error_msg: str = None
+
+        if not isinstance(scores, dict):
+            error_msg = "Scores should be a dictionary."
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        # find out key in scores but not in available_scores_granularity
+        unexpected_keys: set = set(scores.keys()) - set(
+            self.available_scores_granularity
+        )
+        # find out key in available_scores_granularity but not in scores
+        missing_keys = set(self.available_scores_granularity) - set(scores.keys())
+
+        if unexpected_keys or missing_keys:
+            if unexpected_keys:
+                error_msg += f"Unexpected granularity levels in scores: {', '.join(unexpected_keys)}. "
+            if missing_keys:
+                error_msg += (
+                    f"Missing granularity levels in scores: {', '.join(missing_keys)}."
+                )
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+
+class BaseEvaluator(ABC):
+    """
+    Base class for all evaluator/describer engine implementations.
+    These engines are used by the main Evaluator/Describer to perform the actual data evaluating.
+    """
+
+    REQUIRED_INPUT_KEYS: list[str] = ["Undefined"]
 
     def __init__(self, config: dict):
         """
         Args:
             config (dict): A dictionary containing the configuration settings.
-                - method (str): The method of how you evaluating data.
-                - other parameters should be defined in the module class (Describer/Evaluator)
+                - eval_method (str): The method of how you evaluating data.
 
         Attributes:
-            config (dict):
-                A dictionary containing the configuration settings.
-            data (dict[str, pd.DataFrame]):
-                A dictionary to store evaluation data. Default is an empty.
-            result (dict):
-                A dictionary to store the result of the description/evaluation. Default is an empty.
+            _logger (logging.Logger): The logger object.
+            config (dict): A dictionary containing the configuration settings.
+            _impl (Any): The evaluator object.
         """
-        if "method" not in config:
-            raise ConfigError
+        self._logger: logging.Logger = logging.getLogger(
+            f"PETsARD.{self.__class__.__name__}"
+        )
+
+        if not isinstance(config, dict):
+            error_msg: str = "The config parameter must be a dictionary."
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        if "eval_method" not in config:
+            error_msg: str = (
+                "The 'eval_method' parameter is required for the synthesizer."
+            )
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
 
         self.config: dict = config
-        self.data: dict[str, pd.DataFrame] = {}
-        self.result: dict = {}
+        self._impl: Any = None
 
-    def create(self, data: dict) -> None:
+    @abstractmethod
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+        """
+        Evaluating the evaluator.
+            _impl should be initialized in this method.
+
+        Args:
+            data (dict[str, pd.DataFrame])
+                The dictionary contains necessary information.
+
+                data = {
+                    'ori': pd.DataFrame    # Original data used for synthesis
+                    'syn': pd.DataFrame    # Synthetic data generated from 'ori'
+                    'control: pd.DataFrame # Original data but NOT used for synthesis
+                }
+
+                Note:
+                    1. Control is required in Anonymeter and MLUtility.
+                    2. So it is recommended to split your original data before synthesizing it.
+                        (We recommend to use our Splitter!)
+
+        Returns:
+            (dict[str, pd.DataFrame]): The evaluated report.
+        """
+        error_msg: str = "The '_eval' method must be implemented in the derived class."
+        self._logger.error(error_msg)
+        raise NotImplementedError(error_msg)
+
+    def eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         """
         Create the Describer/Evaluator.
 
         Args:
-            data (dict): The data required for description/evaluation.
-        """
-        if not all(key == "data" for key in data):
-            if "ori" not in data:
-                raise ConfigError
-
-            metadata: Metadata = Metadata()
-            metadata.build_metadata(data=data["ori"])
-            other_keys: list[str] = [key for key in data.keys() if key != "ori"]
-            for other_key in other_keys:
-                data[other_key] = self._align_dtypes(
-                    data[other_key],
-                    metadata,
-                )
-        self._create(data)
-
-    def _align_dtypes(
-        self,
-        data: pd.DataFrame,
-        metadata: Metadata,
-    ) -> pd.DataFrame:
-        """
-        Align the data types between the metadata from ori data
-            and the data to be aligned.
-
-        Args:
-            data (pd.DataFrame): The data to be aligned.
-            metadata (Metadata): The metadata of ori data.
-
-        Return:
-            (pd.DataFrame): The aligned data.
-        """
-        for col, val in metadata.metadata["col"].items():
-            data[col] = safe_astype(data[col], val["dtype"])
-
-        return data
-
-    @abstractmethod
-    def _create(self, data: dict) -> None:
-        """
-        Create the Describer/Evaluator. This method should be implemented by subclasses.
-
-        Args:
-            data (dict): The data required for description/evaluation.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def eval(self) -> None:
-        """
-        Describes/Evaluates the data. This method should be implemented by subclasses.
-        """
-        raise NotImplementedError
-
-    def get_global(self) -> Union[pd.DataFrame, None]:
-        """
-        Get the global result of the description/evaluation.
-            Only one row, and every property/metrics is columns.
+            data (dict): same as _eval() method.
 
         Returns:
-            (pd.DataFrame): The global result of the description/evaluation.
+            (dict[str, pd.DataFrame]): same as _eval() method.
         """
-        raise NotImplementedError
+        data_params: EvaluatorInputConfig = EvaluatorInputConfig.from_dict(data)
 
-    def get_columnwise(self) -> Union[pd.DataFrame, None]:
-        """
-        Get the column-wise result of the description/evaluation.
-            Each column is a row, and every property/metrics is columns.
+        # Verify the required inputs
+        data_params.verify_required_inputs(self.REQUIRED_INPUT_KEYS)
 
-        Returns:
-            (pd.DataFrame): The global result of the description/evaluation.
-        """
-        raise NotImplementedError
+        merged_config: dict = data_params.get_params(
+            param_configs=[
+                {attr: {"action": "INCLUDE"}} for attr in self.REQUIRED_INPUT_KEYS
+            ]
+        )
+        self._logger.debug(f"Merged config keys: {list(merged_config.keys())}")
 
-    def get_pairwise(self) -> Union[pd.DataFrame, None]:
-        """
-        Get the pair-wise result of the description/evaluation.
-            Each column x column is a row, and every property/metrics is columns.
+        # Evaluate the data
+        self._logger.info(f"Evaluating {self.__class__.__name__}")
+        evaluated_report: dict[str, pd.DataFrame] = self._eval(merged_config)
+        self._logger.info(f"Successfully evaluating {self.__class__.__name__}")
 
-        Returns:
-            (pd.DataFrame): The global result of the description/evaluation.
-        """
-        raise NotImplementedError
+        return evaluated_report

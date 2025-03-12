@@ -8,8 +8,7 @@ from typing import (
 
 import pandas as pd
 
-import yaml
-from petsard.error import ConfigError, UnexecutedError
+from petsard.exceptions import ConfigError, UnexecutedError
 from petsard.loader import Metadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
     BaseOperator,
@@ -40,22 +39,21 @@ class Config:
     task name is assigned by user.
     """
 
-    def __init__(self, filename: str):
+    def __init__(self, config: dict):
         """
         Args:
-            filename (str)
-                The filename of config file.
+            config (dict): The configuration dictionary.
         """
         self.config: queue.Queue = queue.Queue()
         self.module_flow: queue.Queue = queue.Queue()
         self.expt_flow: queue.Queue = queue.Queue()
-        self.filename: str = filename
         self.sequence: list = []
         self.yaml: dict = {}
 
-        with open(self.filename, "r") as yaml_file:
-            self.yaml = yaml.safe_load(yaml_file)
+        # Set executor configuration
+        self.yaml = config
 
+        # Set sequence
         self.sequence = list(self.yaml.keys())
 
         # Config check

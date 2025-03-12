@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 
-from petsard.error import ConfigError
-from petsard.evaluator.evaluator_base import EvaluatorBase
+from petsard.evaluator.evaluator_base import BaseEvaluator
+from petsard.exceptions import ConfigError
 from petsard.util import safe_round
 
 
-class Describer(EvaluatorBase):
+class Describer(BaseEvaluator):
     """
     Interface class for Describers.
 
