@@ -12,6 +12,7 @@ from petsard.evaluator import (
     Evaluator,
 )
 from petsard.exceptions import ConfigError
+from petsard.exceptions import ConfigError
 from petsard.loader import (
     Loader,
     Metadata,
@@ -46,10 +47,13 @@ class BaseOperator:
         """
         self.module_name: str = self.__class__.__name__.replace("Operator", "Op")
         self._logger = logging.getLogger(f"PETsARD.{self.module_name}")
+        self._logger = logging.getLogger(f"PETsARD.{self.module_name}")
 
         self.config = config
         self.input: dict = {}
         if config is None:
+            self._logger.error("Configuration is None")
+            self._logger.debug("Error details: ", exc_info=True)
             self._logger.error("Configuration is None")
             self._logger.debug("Error details: ", exc_info=True)
             raise ConfigError
@@ -64,11 +68,13 @@ class BaseOperator:
         """
         start_time: time = time.time()
         self._logger.info(f"Starting {self.module_name} execution")
+        self._logger.info(f"Starting {self.module_name} execution")
 
         self._run(input)
 
         elapsed_time: time = time.time() - start_time
         formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
+        self._logger.info(
         self._logger.info(
             f"Completed {self.module_name} execution "
             f"(elapsed: {formatted_elapsed_time})"
@@ -81,6 +87,8 @@ class BaseOperator:
             try:
                 return func(self, *args, **kwargs)
             except Exception as e:
+                self._logger.error(f"Configuration error in {func.__name__}: {str(e)}")
+                self._logger.debug("Error details: ", exc_info=True)
                 self._logger.error(f"Configuration error in {func.__name__}: {str(e)}")
                 self._logger.debug("Error details: ", exc_info=True)
                 raise ConfigError(f"Config error in {func.__name__}: {str(e)}")
@@ -96,6 +104,7 @@ class BaseOperator:
             try:
                 return func(self, *args, **kwargs)
             except NotImplementedError:
+                self._logger.error(
                 self._logger.error(
                     f"Method {func.__name__} not implemented in {self.module_name}"
                 )
@@ -176,6 +185,9 @@ class LoaderOperator(BaseOperator):
         self._logger.debug("Starting data loading process")
         self.data, self.metadata = self.loader.load()
         self._logger.debug("Data loading completed")
+        self._logger.debug("Starting data loading process")
+        self.data, self.metadata = self.loader.load()
+        self._logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
         """
@@ -194,6 +206,7 @@ class LoaderOperator(BaseOperator):
         Retrieve the loading result.
         """
         return self.data
+        return self.data
 
     def get_metadata(self) -> Metadata:
         """
@@ -202,6 +215,7 @@ class LoaderOperator(BaseOperator):
         Returns:
             (Metadata): The metadata of the loaded data.
         """
+        return self.metadata
         return self.metadata
 
 
@@ -239,7 +253,9 @@ class SplitterOperator(BaseOperator):
                     key as str: 'train' and 'validation', value as pd.DataFrame.
         """
         self._logger.debug("Starting data splitting process")
+        self._logger.debug("Starting data splitting process")
         self.splitter.split(**input)
+        self._logger.debug("Data splitting completed")
         self._logger.debug("Data splitting completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -321,15 +337,19 @@ class PreprocessorOperator(BaseOperator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self._logger.debug("Initializing processor")
+        self._logger.debug("Initializing processor")
         self.processor = Processor(metadata=input["metadata"], config=self._config)
 
         if self._sequence is None:
             self._logger.debug("Using default processing sequence")
+            self._logger.debug("Using default processing sequence")
             self.processor.fit(data=input["data"])
         else:
             self._logger.debug(f"Using custom sequence: {self._sequence}")
+            self._logger.debug(f"Using custom sequence: {self._sequence}")
             self.processor.fit(data=input["data"], sequence=self._sequence)
 
+        self._logger.debug("Transforming data")
         self._logger.debug("Transforming data")
         self.data_preproc = self.processor.transform(data=input["data"])
 
@@ -398,6 +418,9 @@ class SynthesizerOperator(BaseOperator):
         self.synthesizer: SyntaxError = Synthesizer(**config)
         self.data_syn: pd.DataFrame = None
 
+        self.synthesizer: SyntaxError = Synthesizer(**config)
+        self.data_syn: pd.DataFrame = None
+
     def _run(self, input: dict):
         """
         Executes the data synthesizing using the Synthesizer instance.
@@ -410,10 +433,15 @@ class SynthesizerOperator(BaseOperator):
                 An synthesizing result data.
         """
         self._logger.debug("Starting data synthesizing process")
+        self._logger.debug("Starting data synthesizing process")
 
         self.synthesizer.create(metadata=input["metadata"])
         self._logger.debug("Synthesizing model initialization completed")
+        self.synthesizer.create(metadata=input["metadata"])
+        self._logger.debug("Synthesizing model initialization completed")
 
+        self.data_syn = self.synthesizer.fit_sample(data=input["data"])
+        self._logger.debug("Train and sampling Synthesizing model completed")
         self.data_syn = self.synthesizer.fit_sample(data=input["data"])
         self._logger.debug("Train and sampling Synthesizing model completed")
 
@@ -449,6 +477,7 @@ class SynthesizerOperator(BaseOperator):
         Retrieve the synthesizing result.
         """
         return deepcopy(self.data_syn)
+        return deepcopy(self.data_syn)
 
 
 class PostprocessorOperator(BaseOperator):
@@ -483,11 +512,14 @@ class PostprocessorOperator(BaseOperator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self._logger.debug("Starting data postprocessing process")
+        self._logger.debug("Starting data postprocessing process")
 
         self.processor = input["preprocessor"]
         self._logger.debug("Processor configuration loading completed")
+        self._logger.debug("Processor configuration loading completed")
 
         self.data_postproc = self.processor.inverse_transform(data=input["data"])
+        self._logger.debug("Data postprocessing completed")
         self._logger.debug("Data postprocessing completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -566,12 +598,18 @@ class ConstrainerOperator(BaseOperator):
             constrained_data (pd.DataFrame): The constrained result data.
         """
         self._logger.debug("Starting data constraining process")
+        self._logger.debug("Starting data constraining process")
 
         if "target_rows" not in self.sample_dict:
             self.sample_dict["target_rows"] = len(input["data"])
 
         if "synthesizer" in input:
+        if "target_rows" not in self.sample_dict:
+            self.sample_dict["target_rows"] = len(input["data"])
+
+        if "synthesizer" in input:
             # Use resample_until_satisfy if sampling parameters and synthesizer are provided
+            self._logger.debug("Using resample_until_satisfy method")
             self._logger.debug("Using resample_until_satisfy method")
             self.constrained_data = self.constrainer.resample_until_satisfy(
                 data=input["data"],
@@ -582,8 +620,10 @@ class ConstrainerOperator(BaseOperator):
         else:
             # Use simple apply method
             self._logger.debug("Using apply method")
+            self._logger.debug("Using apply method")
             self.constrained_data = self.constrainer.apply(input["data"])
 
+        self._logger.debug("Data constraining completed")
         self._logger.debug("Data constraining completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -661,6 +701,7 @@ class EvaluatorOperator(BaseOperator):
         super().__init__(config)
         self.evaluator = Evaluator(**config)
         self.evaluations: dict[str, pd.DataFrame] = None
+        self.evaluations: dict[str, pd.DataFrame] = None
 
     def _run(self, input: dict):
         """
@@ -673,10 +714,15 @@ class EvaluatorOperator(BaseOperator):
             evaluator.result (dict): An evaluating result data.
         """
         self._logger.debug("Starting data evaluating process")
+        self._logger.debug("Starting data evaluating process")
 
         self.evaluator.create()
         self._logger.debug("Evaluation model initialization completed")
+        self.evaluator.create()
+        self._logger.debug("Evaluation model initialization completed")
 
+        self.evaluations = self.evaluator.eval(**input)
+        self._logger.debug("Data evaluating completed")
         self.evaluations = self.evaluator.eval(**input)
         self._logger.debug("Data evaluating completed")
 
@@ -707,8 +753,14 @@ class EvaluatorOperator(BaseOperator):
         return self.input
 
     def get_result(self) -> dict[str, pd.DataFrame]:
+    def get_result(self) -> dict[str, pd.DataFrame]:
         """
         Retrieve the pre-processing result.
+
+        Returns:
+            (dict[str, pd.DataFrame]): The evaluation results.
+        """
+        return deepcopy(self.evaluations)
 
         Returns:
             (dict[str, pd.DataFrame]): The evaluation results.
@@ -750,6 +802,7 @@ class DescriberOperator(BaseOperator):
         Attributes:
             describer.result (dict): An describing result data.
         """
+        self._logger.debug("Starting data describing process")
         self._logger.debug("Starting data describing process")
 
         self.describer.create()
@@ -824,11 +877,13 @@ class ReporterOperator(BaseOperator):
                 - data (dict): The data to be reported.
         """
         self._logger.debug("Starting data reporting process")
+        self._logger.debug("Starting data reporting process")
 
         temp: dict = None
         eval_expt_name: str = None
         report: pd.DataFrame = None
         self.reporter.create(data=input["data"])
+        self._logger.debug("Reporting configuration initialization completed")
         self._logger.debug("Reporting configuration initialization completed")
 
         self.reporter.report()
@@ -847,6 +902,7 @@ class ReporterOperator(BaseOperator):
         else:
             # ReporterSaveData
             self.report = self.reporter.result
+        self._logger.debug("Data reporting completed")
         self._logger.debug("Data reporting completed")
 
     def set_input(self, status) -> dict:
