@@ -9,7 +9,7 @@ toc: false
   Privacy Enhancing Technologies Analysis, Research, and Development
 </p>
 
-<p align="center"><img src="../images/PETsARD-logo.png"></p>
+<p align="center"><img src="/petsard/images/PETsARD-logo.png"></p>
 
 ## Explore
 
