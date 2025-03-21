@@ -10,8 +10,9 @@ from petsard.exceptions import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
 from petsard.processor.discretizing import DiscretizingKBins
 from petsard.processor.encoder import (
-    EncoderDate,
+    EncoderDateDiff,
     EncoderLabel,
+    EncoderMinguoDate,
     EncoderOneHot,
     EncoderUniform,
 )
@@ -106,10 +107,11 @@ class ProcessorClassMap:
 
     CLASS_MAP: dict[str, str] = {
         # encoder
-        "encoder_date": EncoderDate,
         "encoder_label": EncoderLabel,
         "encoder_onehot": EncoderOneHot,
         "encoder_uniform": EncoderUniform,
+        "encoder_minguodate": EncoderMinguoDate,
+        "encoder_datediff": EncoderDateDiff,
         # missing
         "missing_drop": MissingDrop,
         "missing_mean": MissingMean,
@@ -568,10 +570,11 @@ class Processor:
                         if isinstance(
                             obj,
                             (
-                                EncoderDate,
                                 EncoderLabel,
                                 EncoderOneHot,
                                 EncoderUniform,
+                                EncoderMinguoDate,
+                                EncoderDateDiff,
                                 ScalerLog,
                                 ScalerMinMax,
                                 ScalerStandard,

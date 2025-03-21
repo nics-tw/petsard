@@ -1,5 +1,10 @@
 import logging
+import logging
 import re
+import time
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -8,29 +13,40 @@ from typing import Any
 import pandas as pd
 
 from petsard.config_base import BaseConfig
+from petsard.config_base import BaseConfig
 from petsard.evaluator.anonymeter import Anonymeter
 from petsard.evaluator.customer_evaluator import CustomEvaluator
+from petsard.evaluator.data_describer import DataDescriber
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.evaluator.mlutlity import MLUtility
 from petsard.evaluator.sdmetrics import SDMetricsSingleTable
+from petsard.evaluator.sdmetrics import SDMetricsSingleTable
 from petsard.evaluator.stats import Stats
+from petsard.exceptions import UncreatedError, UnsupportedMethodError
 from petsard.exceptions import UncreatedError, UnsupportedMethodError
 
 
+class EvaluatorMap(Enum):
 class EvaluatorMap(Enum):
     """
     Mapping of Evaluator.
     """
 
     DEFAULT: int = auto()
-    CUSTOM_METHOD: int = auto()
     # Protection
+    ANONYMETER: int = auto()
     ANONYMETER: int = auto()
     # Fidelity
     SDMETRICS: int = auto()
     STATS: int = auto()
+    SDMETRICS: int = auto()
+    STATS: int = auto()
     # Utility
     MLUTILITY: int = auto()
+    # Describer
+    DESCRIBE: int = auto()
+    # Other
+    CUSTOM_METHOD: int = auto()
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -53,6 +69,7 @@ class EvaluatorConfig(BaseConfig):
 
     Attributes:
         _logger (logging.Logger): The logger object.
+        DEFAULT_EVALUATING_METHOD (str): The default method for evaluating the data.
         method (str): The method to be used for evaluating the data.
         method_code (int): The code of the evaluator method.
         eval_method (str): The name of the evaluator method.
@@ -71,14 +88,36 @@ class EvaluatorConfig(BaseConfig):
 
     def __post_init__(self):
         super().__post_init__()
-        self._logger.debug("Initializing EvaluatorConfig")
+        class_name: str = self.__class__.__name__
+        self._logger.debug(f"Initializing {class_name}")
 
+        self._init_eval_method()
+
+    def _init_eval_method(self) -> None:
+        """
+        Initialize the eval_method attribute based on the method_code.
+
+        Designed to be overridden by subclasses to customize initialization logic.
+        """
         try:
             self.method_code: int = EvaluatorMap.map(self.method.lower())
             self._logger.debug(
                 f"Mapped evaluating method '{self.method}' to code {self.method_code}"
             )
         except KeyError:
+            error_msg: str = f"Unsupported evaluator method: {self.method}"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        # Set the default
+        self.eval_method: str = (
+            self.DEFAULT_EVALUATING_METHOD
+            if self.method_code == EvaluatorMap.DEFAULT
+            else self.method
+        )
+        self._logger.info(
+            f"EvaluatorConfig initialized with method: {self.method}, eval_method: {self.eval_method}"
+        )
             error_msg: str = f"Unsupported evaluator method: {self.method}"
             self._logger.error(error_msg)
             raise UnsupportedMethodError(error_msg)
@@ -102,16 +141,20 @@ class Evaluator:
 
     EVALUATOR_MAP: dict[int, BaseEvaluator] = {
         EvaluatorMap.DEFAULT: SDMetricsSingleTable,
-        EvaluatorMap.CUSTOM_METHOD: CustomEvaluator,
         EvaluatorMap.ANONYMETER: Anonymeter,
         EvaluatorMap.SDMETRICS: SDMetricsSingleTable,
         EvaluatorMap.STATS: Stats,
         EvaluatorMap.MLUTILITY: MLUtility,
+        EvaluatorMap.DESCRIBE: DataDescriber,
+        EvaluatorMap.CUSTOM_METHOD: CustomEvaluator,
     }
 
     def __init__(self, method: str, **kwargs):
+    def __init__(self, method: str, **kwargs):
         """
         Args:
+            method (str): The method to be used for evaluating the data.
+            **kwargs: Any additional parameters to be stored in custom_params.
             method (str): The method to be used for evaluating the data.
             **kwargs: Any additional parameters to be stored in custom_params.
 
@@ -123,8 +166,27 @@ class Evaluator:
         self._logger: logging.Logger = logging.getLogger(
             f"PETsARD.{self.__class__.__name__}"
         )
-        self._logger.info(f"Initializing Evaluator with method: {method}")
+        self._logger.info(
+            f"Initializing {self.__class__.__name__} with method: {method}"
+        )
 
+        self._configure_implementation(method=method, **kwargs)
+
+        self._impl: BaseEvaluator = None
+        self._logger.info("≈ initialization completed")
+
+    def _configure_implementation(self, method: str, **kwargs) -> None:
+        """
+        Configure the evaluator's implementation based on the specified method.
+            This method handles the initialization
+            of both configuration parameters and the implementation object
+            according to the evaluation method provided.
+            Designed to be overridden by subclasses to customize initialization logic.
+
+        Args:
+            method (str): The method to be used for evaluating the data.
+            **kwargs: Any additional parameters to be stored in custom_params.
+        """
         # Initialize the EvaluatorConfig object
         self.config: EvaluatorConfig = EvaluatorConfig(method=method)
         self._logger.debug("EvaluatorConfig successfully initialized")
@@ -135,23 +197,31 @@ class Evaluator:
                 f"Additional keyword arguments provided: {list(kwargs.keys())}"
             )
             self.config.update({"custom_params": kwargs})
-            self._logger.debug(
-                "SynthesizerConfig successfully updated with custom parameters"
-            )
+            self._logger.debug("Config successfully updated with custom parameters")
         else:
             self._logger.debug("No additional parameters provided")
 
-        self._impl: BaseEvaluator = None
-        self._logger.info("Synthesizer initialization completed")
+    def _create_evaluator_class(self) -> BaseEvaluator:
+        """
+        Create a Evaluator object with the configuration parameters.
+
+        Designed to be overridden by subclasses to customize initialization logic.
+
+        Returns:
+            BaseEvaluator: The evaluator object.
+        """
+        return self.EVALUATOR_MAP[self.config.method_code]
 
     def create(self) -> None:
         """
         Create a Evaluator object with the given data.
         """
-        self._logger.info("Creating evaluator instance")
+        self._logger.info("Creating {self.__class__.__name__} instance")
 
-        evaluator_class = self.EVALUATOR_MAP[self.config.method_code]
-        self._logger.debug(f"Using evaluator class: {evaluator_class.__name__}")
+        evaluator_class = self._create_evaluator_class()
+        self._logger.debug(
+            f"Using {self.__class__.__name__} class: {evaluator_class.__name__}"
+        )
 
         merged_config: dict = self.config.get_params(
             param_configs=[

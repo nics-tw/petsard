@@ -6,7 +6,10 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
 from petsard.exceptions import UnfittedError
-from petsard.processor.encoder import EncoderOneHot
+from petsard.processor.encoder import (
+    EncoderDateDiff,
+    EncoderOneHot,
+)
 from petsard.processor.missing import MissingDrop
 from petsard.processor.outlier import (
     OutlierIQR,
@@ -331,7 +334,7 @@ class MediatorEncoder(Mediator):
             data: Redundant input.
         """
         for col, obj in self._config.items():
-            if isinstance(obj, EncoderOneHot):
+            if isinstance(obj, (EncoderOneHot, EncoderDateDiff)):
                 self._process_col.append(col)
 
         self._colname = data.columns
