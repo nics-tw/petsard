@@ -1,0 +1,57 @@
+name: SYFT SBOM OSV Scanning
+
+on:
+  push:
+    branches: ["main", "dev"]
+  release:
+    types:
+      - created
+      - edited
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write # for sbom-action artifact uploads
+  actions: read # to find workflow artifacts when attaching release assets
+
+jobs:
+  build-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: syft-dir-action
+        uses: anchore/sbom-action@v0
+        id: dirscan
+        with:
+          artifact-name: dirscan-sbom.spdx.json
+          output-file: dirscan-sbom.spdx.json
+          format: spdx-json
+      - run: |
+          echo DIR SCAN SBOM:
+          cat dirscan-sbom.spdx.json
+
+      # - name: syft-image-action
+      #   uses: anchore/sbom-action@v0
+      #   id: imagescan
+      #   with:
+      #     image: alpine:latest
+      #     artifact-name: imagescan-sbom.spdx
+      #     output-file: image.sbom
+      # - run: |
+      #     echo IMAGE SCAN SBOM:
+      #     cat image.sbom
+
+      # - uses: anchore/sbom-action/publish-sbom@v0
+      #   with:
+      #     sbom-artifact-match: imagescan-sbom.spdx
+
+      # - uses: anchore/sbom-action/publish-sbom@v0
+      #   with:
+      #     sbom-artifact-match: "^dont-match-anything$"
