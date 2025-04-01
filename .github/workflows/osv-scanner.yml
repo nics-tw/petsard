@@ -27,7 +27,6 @@ jobs:
       scan-args: |-
         --include-git-root
         --recursive
-        --fail-on-vuln=false
         --format=gh-annotations
         ./
   scan-pr:
