@@ -18,7 +18,7 @@ permissions:
   actions: read # to find workflow artifacts when attaching release assets
 
 jobs:
-  Anchore-Build-Scan:
+  Syft-Scan:
     permissions:
       contents: write # required to upload to the Dependency submission API
     runs-on: ubuntu-latest
