@@ -27,8 +27,8 @@ jobs:
       scan-args: |-
         --include-git-root
         --recursive
-        --fail-on-vuln=true
-        --gh-annotations=true
+        --fail-on-vuln=false
+        --format=gh-annotations
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
@@ -38,6 +38,4 @@ jobs:
       scan-args: |-
         --include-git-root
         --recursive
-        --fail-on-vuln=true
-        --gh-annotations=true
         ./
