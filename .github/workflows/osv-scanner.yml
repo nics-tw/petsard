@@ -27,7 +27,6 @@ jobs:
       scan-args: |-
         --include-git-root
         --recursive
-        --format=gh-annotations
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
