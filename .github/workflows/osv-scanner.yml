@@ -1,4 +1,4 @@
-name: \[SBOM-OSV\] OSV-Scanner
+name: SBOM-OSV - OSV-Scanner
 
 on:
   pull_request:
