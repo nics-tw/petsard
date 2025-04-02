@@ -21,11 +21,12 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.0"
     with:
+      gh-annotations: true
+      fail-on-vuln: false
       # Example of specifying custom arguments
       scan-args: |-
         --recursive
-        --gh-annotations=true
-        --fail-on-vuln=false
+        --skip-git
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
@@ -34,4 +35,5 @@ jobs:
       # Example of specifying custom arguments
       scan-args: |-
         --recursive
+        --skip-git
         ./
