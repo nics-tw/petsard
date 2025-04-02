@@ -23,6 +23,10 @@ jobs:
           scan-ref: "."
           format: "table"
           exit-code: "1"
-          ignore-unfixed: true
+          ignore-unfixed: false
           vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+          scanners: "vuln,secret,misconfig,license"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          list-all-pkgs: true
+          version: "latest"
