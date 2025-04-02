@@ -1,9 +1,13 @@
 name: trivy-vuln-scan
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    branches: ["main", "dev", "feat/sbom-ci"]
+  release:
+    types:
+      - created
+      - edited
+  workflow_dispatch:
+
 jobs:
   build:
     name: Build
