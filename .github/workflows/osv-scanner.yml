@@ -23,8 +23,7 @@ jobs:
     with:
       # Example of specifying custom arguments
       scan-args: |-
-        -r
-        --skip-git
+        --recursive
         --gh-annotations=true
         --fail-on-vuln=false
         ./
@@ -34,6 +33,5 @@ jobs:
     with:
       # Example of specifying custom arguments
       scan-args: |-
-        -r
-        --skip-git
+        --recursive
         ./
