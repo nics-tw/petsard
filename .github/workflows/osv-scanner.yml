@@ -26,6 +26,16 @@ jobs:
         --recursive
         --include-git-root
         ./
+  scan-scheduled-gh-annotation:
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.0"
+    with:
+      fail-on-vuln: true
+      scan-args: |-
+        --recursive
+        --include-git-root
+        --format=gh-annotations
+        ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.0.0"
@@ -34,4 +44,14 @@ jobs:
       scan-args: |-
         --recursive
         --include-git-root
+        ./
+  scan-pr-gh-annotation:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.0.0"
+    with:
+      fail-on-vuln: true
+      scan-args: |-
+        --recursive
+        --include-git-root
+        --format=gh-annotations
         ./
