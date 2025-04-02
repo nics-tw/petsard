@@ -25,6 +25,8 @@ jobs:
       # Example of specifying custom arguments
       scan-args: |-
         --recursive
+        --include-git-root
+        --format=gh-annotations
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
@@ -33,4 +35,6 @@ jobs:
       # Example of specifying custom arguments
       scan-args: |-
         --recursive
+        --include-git-root
+        --format=gh-annotations
         ./
