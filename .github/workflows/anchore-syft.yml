@@ -6,7 +6,7 @@ name: SBOM-OSV - Anchore Syft SBOM scan
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev", "feat/sbom-ci"]
   release:
     types:
       - created
