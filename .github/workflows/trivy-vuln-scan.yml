@@ -11,13 +11,13 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@v0
+        uses: aquasecurity/trivy-action@v0.30.0
         with:
           scan-type: "fs"
           scan-ref: "."
