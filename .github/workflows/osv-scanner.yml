@@ -1,4 +1,4 @@
-name: SBOM-OSV - OSV-Scanner
+name: SBOM-OSV - OSV scan
 
 on:
   pull_request:
