@@ -29,3 +29,4 @@ jobs:
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
           list-all-pkgs: true
+          version: "latest"
