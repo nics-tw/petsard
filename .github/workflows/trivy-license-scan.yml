@@ -24,13 +24,14 @@ jobs:
           pyproject-file: "./pyproject.toml"
 
       - name: Install the project
-        run: uv sync --all-extras --dev
+        run: uv sync --all-extras --dev && source .venv/bin/activate
 
       - name: Run Trivy license scanner in fs mode
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "repo"
-          format: "table"
+          scan-ref: "."
+          format: "github"
           exit-code: "1"
           scanners: "license"
           hide-progress: true
