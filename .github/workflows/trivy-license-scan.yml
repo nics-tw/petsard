@@ -29,12 +29,9 @@ jobs:
       - name: Run Trivy license scanner in fs mode
         uses: aquasecurity/trivy-action@0.30.0
         with:
-          scan-type: "fs"
-          scan-ref: "."
+          scan-type: "repo"
           format: "table"
           exit-code: "1"
-          ignore-unfixed: false
           scanners: "license"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
           list-all-pkgs: true
