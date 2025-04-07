@@ -23,6 +23,9 @@ jobs:
           enable-cache: true
           pyproject-file: "./pyproject.toml"
 
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
       - name: Activate uv env
         run: source .venv/bin/activate
 
