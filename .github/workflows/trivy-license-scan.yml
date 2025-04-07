@@ -31,7 +31,7 @@ jobs:
         with:
           scan-type: "repo"
           scan-ref: "."
-          format: "table"
+          # format: "table"
           output: trivy.txt
           exit-code: "1"
           scanners: "license"
