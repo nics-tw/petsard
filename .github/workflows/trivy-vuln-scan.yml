@@ -57,7 +57,53 @@ jobs:
           exit-code: "1"
           ignore-unfixed: false
           vuln-type: "os,library"
-          scanners: "vuln,secret,misconfig,license"
+          scanners: "vuln"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
           list-all-pkgs: true
+          skip-setup-trivy: true
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: false
+          vuln-type: "os,library"
+          scanners: "secret"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          list-all-pkgs: true
+          skip-setup-trivy: true
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: false
+          vuln-type: "os,library"
+          scanners: "license"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          list-all-pkgs: true
+          skip-setup-trivy: true
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: false
+          vuln-type: "os,library"
+          scanners: "misconfig"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          list-all-pkgs: true
+          skip-setup-trivy: true
