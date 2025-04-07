@@ -23,31 +23,31 @@ jobs:
           enable-cache: true
           pyproject-file: "./pyproject.toml"
 
-      - name: Install the project
-        run: uv sync --all-extras --dev && source .venv/bin/activate
+      - name: Activate uv env
+        run: source .venv/bin/activate
 
       - name: Run Trivy license scanner in fs mode
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "repo"
           scan-ref: "."
-          # format: "table"
-          output: trivy.txt
+          format: "table"
+          # output: trivy.txt
           exit-code: "1"
           scanners: "license"
           hide-progress: true
           list-all-pkgs: true
 
-      - name: Publish Trivy Output to Summary
-        run: |
-          if [[ -s trivy.txt ]]; then
-            {
-              echo "### Security Output"
-              echo "<details><summary>Click to expand</summary>"
-              echo ""
-              echo '```terraform'
-              cat trivy.txt
-              echo '```'
-              echo "</details>"
-            } >> $GITHUB_STEP_SUMMARY
-          fi
+      # - name: Publish Trivy Output to Summary
+      #   run: |
+      #     if [[ -s trivy.txt ]]; then
+      #       {
+      #         echo "### Security Output"
+      #         echo "<details><summary>Click to expand</summary>"
+      #         echo ""
+      #         echo '```terraform'
+      #         cat trivy.txt
+      #         echo '```'
+      #         echo "</details>"
+      #       } >> $GITHUB_STEP_SUMMARY
+      #     fi
