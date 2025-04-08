@@ -1,7 +1,5 @@
 name: Generate SBOM
 on:
-  push:
-    branches: ["main", "dev"]
   release:
     types: ["published", "created", "edited", "released"]
   workflow_dispatch:
