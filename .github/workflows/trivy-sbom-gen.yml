@@ -55,7 +55,7 @@ jobs:
               echo "<details><summary>Click to expand</summary>"
               echo ""
               echo '```terraform'
-              cat trivy.txt
+              cat trivy-vuln.txt
               echo '```'
               echo "</details>"
             } >> $GITHUB_STEP_SUMMARY
