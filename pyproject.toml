@@ -1,6 +1,6 @@
 [project]
 name = "petsard"
-version = "1.1.1"
+version = "1.2.1"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     { name = "alexchen830", email = "alexchen830@gmail.com" },
@@ -12,7 +12,7 @@ requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
 # dateutil for DateEncoder
 dependencies = [
     "anonymeter>=1.0.0,<2",
-    "python-dateutil>=2.9.0.post0",
+    "jinja2>=3.1.6",
     "python-dateutil>=2.9.0.post0",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",

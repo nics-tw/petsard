@@ -14,7 +14,7 @@ The main functionalities include dataset description, various dataset generation
 
 The following outlines the design of the experiment workflow and the package structure of `PETsARD`:
 
-<p align="center"><img src="../../images/PETsARD_design_en.png"></p>
+<p align="center"><img src="/petsard/images/PETsARD_design_en.png"></p>
 
 ## Release History
 

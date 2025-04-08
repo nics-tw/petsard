@@ -1,0 +1,41 @@
+name: Generate SBOM
+on:
+  release:
+    types: ["published", "created", "edited", "released"]
+  workflow_dispatch:
+
+## GITHUB_TOKEN authentication, add only if you're not going to use a PAT
+permissions:
+  contents: write
+
+jobs:
+  generate-sbom:
+    name: Generating SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          format: "github"
+          output: "dependency.sbom.json"
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+          hide-progress: true
+
+      - name: Upload trivy sbom report as a Github artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-sbom
+          path: "${{ github.workspace }}/dependency.sbom.json"
+          # retention-days: 20 # 90 is the default
+
+      - name: Upload trivy sbom report to release
+        run: |
+          cd ${{github.workspace}}
+          gh release upload "${{github.event.release.tag_name}}" dependency.sbom.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
