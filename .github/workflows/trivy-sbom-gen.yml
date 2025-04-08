@@ -1,7 +1,7 @@
 name: Generate SBOM
 on:
   release:
-    types: ["published", "created", "edited", "released"]
+    types: ["published"]
   workflow_dispatch:
 
 ## GITHUB_TOKEN authentication, add only if you're not going to use a PAT
