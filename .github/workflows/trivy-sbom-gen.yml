@@ -35,7 +35,7 @@ jobs:
       - name: Upload trivy sbom report to release
         run: |
           cd ${{github.workspace}}
-          gh release upload ${{github.event.release.tag_name}} dependency.sbom.json
+          gh release upload "${{github.event.release.tag_name}}" dependency.sbom.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
