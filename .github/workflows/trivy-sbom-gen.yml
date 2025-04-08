@@ -25,7 +25,6 @@ jobs:
           scan-type: "fs"
           format: "github"
           output: "dependency.sbom.json"
-          image-ref: "."
           github-pat: ${{ secrets.GITHUB_TOKEN }}
           hide-progress: true
 
@@ -40,6 +39,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
+          scanners: "vuln"
           format: "table"
           output: "trivy-vuln.txt"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
