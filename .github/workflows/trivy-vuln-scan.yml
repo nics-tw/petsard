@@ -1,42 +1,57 @@
-name: trivy-vuln-scan
+name: Scan Vulnerabilities
 on:
   push:
-    branches: ["main", "dev", "feat/sbom-ci"]
-  release:
-    types:
-      - created
-      - edited
+  pull_request:
+    types: ["ready_for_review", "edited", "reopened", "unlocked"]
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
+  vuln-scan:
+    name: Scan vulnerabilities
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
-          enable-cache: true
-          pyproject-file: "./pyproject.toml"
-
-      - name: Install the project
-        run: uv sync --all-extras --dev
-
-      - name: Generate Trivy Vulnerability Report
-        uses: aquasecurity/trivy-action@master
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
-          scan-ref: .
-          format: table
-          exit-code: 0
-          output: trivy-report.json
-          ignore-unfixed: false
+          format: "table"
           vuln-type: "os,library"
-          scanners: vuln
+          scanners: "vuln"
+          output: "trivy-vuln.txt"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
-          list-all-pkgs: true
+          ignore-unfixed: true
+          list-all-pkgs: false
+        env:
+          TRIVY_FORMAT: table # sometime the `with: format:` does not work, use env var to force asign
+          TRIVY_DISABLE_VEX_NOTICE: true
+
+      - name: Publish Trivy Output to Summary
+        run: |
+          cat trivy-vuln.txt && if [[ -s trivy-vuln.txt ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```'
+              cat trivy-vuln.txt
+              echo '```'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Block Pull Repuests if there are any vuln issues
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          vuln-type: "os,library"
+          scanners: "vuln"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          ignore-unfixed: true
+          list-all-pkgs: false
+          skip-setup-trivy: true
+          exit-code: 1

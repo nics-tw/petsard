@@ -1,11 +1,9 @@
 name: Generate SBOM
 on:
   push:
-    branches: ["main", "dev", "feat/sbom-ci"]
+    branches: ["main", "dev"]
   release:
-    types:
-      - created
-      - edited
+    types: ["published", "created", "edited", "released"]
   workflow_dispatch:
 
 ## GITHUB_TOKEN authentication, add only if you're not going to use a PAT
@@ -13,7 +11,8 @@ permissions:
   contents: write
 
 jobs:
-  generate-sbom-and-scan-oss_vuln:
+  generate-sbom:
+    name: Generating SBOM
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,33 +34,10 @@ jobs:
           path: "${{ github.workspace }}/dependency.sbom.json"
           # retention-days: 20 # 90 is the default
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "table"
-          vuln-type: "library"
-          ignore-unfixed: true
-          list-all-pkgs: false
-          scanners: "vuln"
-          output: "trivy-vuln.txt"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
-          hide-progress: true
-          skip-setup-trivy: true
-        env:
-          TRIVY_FORMAT: table
-
-      - name: Publish Trivy Output to Summary
+      - name: Upload trivy sbom report to release
         run: |
-          cat trivy-vuln.txt && if [[ -s trivy-vuln.txt ]]; then
-            {
-              echo "### Security Output"
-              echo "<details><summary>Click to expand</summary>"
-              echo ""
-              echo '```'
-              cat trivy-vuln.txt
-              echo '```'
-              echo "</details>"
-            } >> $GITHUB_STEP_SUMMARY
-          fi
+          cd ${{github.workspace}}
+          gh release upload ${{github.event.release.tag_name}} dependency.sbom.json
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
