@@ -38,12 +38,12 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.30.0
         with:
-          scan-type: "fs"
+          scan-type: fs
           scan-ref: .
           vuln-type: "os,library"
-          list-all-pkgs: true
-          scanners: "vuln"
-          format: "table"
+          list-all-pkgs: false
+          scanners: vuln
+          format: table
           output: "trivy-vuln.txt"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           ignore-unfixed: true
