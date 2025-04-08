@@ -40,25 +40,3 @@ jobs:
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
           list-all-pkgs: true
-
-      - name: Upload Vulnerability Scan Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: trivy-report.json
-          retention-days: 30
-
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "table"
-          exit-code: "1"
-          ignore-unfixed: false
-          vuln-type: "os,library"
-          scanners: "vuln"
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
-          hide-progress: true
-          list-all-pkgs: true
-          skip-setup-trivy: true

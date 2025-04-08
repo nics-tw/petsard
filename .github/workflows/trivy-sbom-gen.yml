@@ -39,6 +39,9 @@ jobs:
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
+          scan-ref: .
+          vuln-type: "os,library"
+          list-all-pkgs: true
           scanners: "vuln"
           format: "table"
           output: "trivy-vuln.txt"
