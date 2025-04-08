@@ -45,6 +45,7 @@ jobs:
           ignore-unfixed: true
           list-all-pkgs: false
           scanners: "vuln"
+          output: "trivy-vuln.txt"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           hide-progress: true
           skip-setup-trivy: true
