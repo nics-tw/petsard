@@ -52,9 +52,14 @@ jobs:
 
       - name: Publish Trivy Output to Summary
         run: |
-          if [[ -s trivy-vuln.txt ]]; then
+          cat trivy-vuln.txt && if [[ -s trivy-vuln.txt ]]; then
             {
               echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```'
               cat trivy-vuln.txt
+              echo '```'
+              echo "</details>"
             } >> $GITHUB_STEP_SUMMARY
           fi
