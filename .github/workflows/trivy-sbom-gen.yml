@@ -13,20 +13,21 @@ permissions:
   contents: write
 
 jobs:
-  generate-sbom:
+  generate-sbom-and-scan-oss_vuln:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
           format: "github"
           output: "dependency-results.sbom.json"
           image-ref: "."
           github-pat: ${{ secrets.GITHUB_TOKEN }}
+          hide-progress: true
 
       - name: Upload trivy report as a Github artifact
         uses: actions/upload-artifact@v4
@@ -36,7 +37,7 @@ jobs:
           retention-days: 20 # 90 is the default
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
           format: "sarif"
