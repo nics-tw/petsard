@@ -26,7 +26,7 @@ jobs:
           ignore-unfixed: true
           list-all-pkgs: false
         env:
-          TRIVY_FORMAT: table # sometime the `with: format:` does not work, use env var to force asign
+          TRIVY_FORMAT: table # sometime the `with: format:` does not work, use env var to force assign
           TRIVY_DISABLE_VEX_NOTICE: true
 
       - name: Publish Trivy Output to Summary
@@ -43,7 +43,7 @@ jobs:
             } >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Block Pull Repuests if there are any vuln issues
+      - name: Block Pull Requests if there are any vuln issues
         uses: aquasecurity/trivy-action@0.30.0
         with:
           scan-type: "fs"
