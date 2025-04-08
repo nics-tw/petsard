@@ -38,12 +38,12 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.30.0
         with:
-          scan-type: config
+          scan-type: "fs"
           scan-ref: .
           vuln-type: "os,library"
           list-all-pkgs: false
-          scanners: vuln
-          format: table
+          scanners: "vuln"
+          format: "table"
           output: "trivy-vuln.txt"
           severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
           ignore-unfixed: true
@@ -57,7 +57,7 @@ jobs:
               echo "### Security Output"
               echo "<details><summary>Click to expand</summary>"
               echo ""
-              echo '```terraform'
+              echo '```'
               cat trivy-vuln.txt
               echo '```'
               echo "</details>"
