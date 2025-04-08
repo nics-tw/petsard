@@ -1,0 +1,59 @@
+name: Scan Vulnerabilities
+on:
+  push:
+  pull_request:
+    types: ["ready_for_review", "edited", "reopened", "unlocked"]
+  schedule:
+    - cron: "0 21 * * 0"
+  workflow_dispatch:
+
+jobs:
+  vuln-scan:
+    name: Scan vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          format: "table"
+          vuln-type: "os,library"
+          scanners: "vuln"
+          output: "trivy-vuln.txt"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          ignore-unfixed: true
+          list-all-pkgs: false
+        env:
+          TRIVY_FORMAT: table # sometime the `with: format:` does not work, use env var to force assign
+          TRIVY_DISABLE_VEX_NOTICE: true
+
+      - name: Publish Trivy Output to Summary
+        run: |
+          cat trivy-vuln.txt && if [[ -s trivy-vuln.txt ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```'
+              cat trivy-vuln.txt
+              echo '```'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Block Pull Requests if there are any vuln issues
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: "fs"
+          vuln-type: "os,library"
+          scanners: "vuln"
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+          hide-progress: true
+          ignore-unfixed: true
+          list-all-pkgs: false
+          skip-setup-trivy: true
+          exit-code: 1
