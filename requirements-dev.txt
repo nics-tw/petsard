@@ -405,7 +405,7 @@ python-semantic-release==9.19.1 \
 pytz==2025.1 \
     --hash=sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57 \
     --hash=sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e
-pywin32==308 ; platform_python_implementation != 'PyPy' and sys_platform == 'win32' \
+pywin32==310 ; platform_python_implementation != 'PyPy' and sys_platform == 'win32' \
     --hash=sha256:100a5442b7332070983c4cd03f2e906a5648a5104b8a7f50175f7906efd16bb6 \
     --hash=sha256:4fc888c59b3c0bef905ce7eb7e2106a07712015ea1c8234b703a088d46110e8e \
     --hash=sha256:575621b90f0dc2695fec346b2d6302faebd4f0f45c05ea29404cefe35d89442b \
