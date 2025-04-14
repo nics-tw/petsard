@@ -1,0 +1,76 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    #NOTE: no need to specify `/.github/workflows` for `directory`. use `directory: "/"`
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      time: "07:00"
+      timezone: Asia/Taipei
+    reviewers:
+      - "CharlesChiuGit"
+    target-branch: "dev"
+    commit-message:
+      prefix: "chore(ci.deps)"
+    groups:
+      actions-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "ci"
+      - "dependencies"
+
+  - package-ecosystem: "gomod"
+    directory: "/doc_site"
+    schedule:
+      interval: "weekly"
+      time: "07:00"
+      timezone: Asia/Taipei
+    reviewers:
+      - "CharlesChiuGit"
+    target-branch: "dev"
+    commit-message:
+      prefix: "chore(doc.deps)"
+    groups:
+      doc_site-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "golang"
+      - "dependencies"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    insecure-external-code-execution: deny # [deny, allow]
+    # set to 0 to disable dependabot version updates
+    open-pull-requests-limit: 10
+    schedule:
+      interval: "weekly"
+      time: "07:00"
+      timezone: Asia/Taipei
+    reviewers:
+      - "matheme-justyn"
+    target-branch: "dev"
+    commit-message:
+      prefix: "chore(pip.deps)"
+      prefix-development: "chore(pip-dev.deps)"
+    groups:
+      pip-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "pip"
+      - "python"
+      - "dependencies"
