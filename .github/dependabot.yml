@@ -10,7 +10,7 @@ updates:
       interval: "weekly"
       time: "07:00"
       timezone: Asia/Taipei
-    reviewers::
+    reviewers:
       - "CharlesChiuGit"
     target-branch: "dev"
     commit-message:
@@ -32,7 +32,7 @@ updates:
       interval: "weekly"
       time: "07:00"
       timezone: Asia/Taipei
-    reviewers::
+    reviewers:
       - "CharlesChiuGit"
     target-branch: "dev"
     commit-message:
@@ -57,7 +57,7 @@ updates:
       interval: "weekly"
       time: "07:00"
       timezone: Asia/Taipei
-    reviewers::
+    reviewers:
       - "matheme-justyn"
     target-branch: "dev"
     commit-message:
