@@ -41,7 +41,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version-file: ./doc_site/go.mod
+          cache-dependency-path: ./doc_site/go.sum
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
