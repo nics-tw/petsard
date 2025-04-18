@@ -578,9 +578,9 @@ python-dateutil==2.9.0.post0 \
     #   jupyter-client
     #   pandas
     #   petsard
-python-gitlab==4.13.0 \
-    --hash=sha256:576bfb0901faca0c6b2d1ff2592e02944a6ec3e086c3129fb43c2a0df56a1c67 \
-    --hash=sha256:8299a054fb571da16e1a8c1868fff01f34ac41ea1410c713a4647b3bbb2aa279
+python-gitlab==5.6.0 \
+    --hash=sha256:68980cd70929fc7f8f06d8a7b09bd046a6b79e1995c19d61249f046005099100 \
+    --hash=sha256:bc531e8ba3e5641b60409445d4919ace68a2c18cb0ec6d48fbced6616b954166
     # via python-semantic-release
 python-semantic-release==9.21.0 \
     --hash=sha256:1ecf9753283835f1c6cda4702e419d9702863a51b03fa11955429139234f063c \
