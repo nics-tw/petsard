@@ -16,15 +16,15 @@ asttokens==3.0.0 \
     --hash=sha256:0dcd8baa8d62b0c1d118b399b2ddba3c4aff271d0d7a9e0d4c1681c79035bbc7 \
     --hash=sha256:e3078351a059199dd5138cb1c706e6430c05eff2ff136af5eb4790f9d28932e2
     # via stack-data
-boto3==1.37.35 \
-    --hash=sha256:5a90d674830adbaf86456d6b27a18f5f11378277da5286511fa860d2e7b14261 \
-    --hash=sha256:751ed599c8fd9ca24896edcd6620e8a32b3db1b68efea3a90126312240e668a2
+boto3==1.37.36 \
+    --hash=sha256:1ff9a15413b9a07d147ac143ad5eb7d1935ea0db96757211b5e6e148b1399850 \
+    --hash=sha256:3012bb083a7d7653f117a1d53bdd8a4185b59afed74422eaa32d06f55bd411ee
     # via
     #   petsard
     #   sdv
-botocore==1.37.35 \
-    --hash=sha256:197a9bf8251c45b9d882c405ec0d0ab40c10e2d2a55ee66960185daec4beb6ec \
-    --hash=sha256:50839212e90650d0b0fa6b8f7514876bf802f6164f2775f3abcd4d53c98bb73c
+botocore==1.37.36 \
+    --hash=sha256:3dcc41a40a868f599bd9ea64f78c6640025df7810c939505d859979e4688b1ae \
+    --hash=sha256:89cf1ca101432adc391e5604ab45851346b8f3a72e5a468fa0ec7a99a5ea3efc
     # via
     #   boto3
     #   s3transfer
@@ -482,9 +482,9 @@ pluggy==1.5.0 \
     # via
     #   hatchling
     #   pytest
-prompt-toolkit==3.0.50 \
-    --hash=sha256:544748f3860a2623ca5cd6d2795e7a14f3d0e1c3c9728359013f79877fc89bab \
-    --hash=sha256:9b6427eb19e479d98acff65196a307c555eb567989e6d88ebbb1b509d9779198
+prompt-toolkit==3.0.51 \
+    --hash=sha256:52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07 \
+    --hash=sha256:931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed
     # via ipython
 psutil==7.0.0 \
     --hash=sha256:101d71dc322e3cffd7cea0650b09b3d08b8e7c4109dd6809fe452dfd00e58b25 \
@@ -858,11 +858,12 @@ trove-classifiers==2025.4.11.15 \
     --hash=sha256:634728aa6698dc1ae3db161da94d9e4c7597a9a5da2c4410211b36f15fed60fc \
     --hash=sha256:e7d98983f004df35293caf954bdfe944b139eb402677a97115450e320f0bd855
     # via hatchling
-typing-extensions==4.12.2 \
-    --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
-    --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
+typing-extensions==4.13.2 \
+    --hash=sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c \
+    --hash=sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef
     # via
     #   ipython
+    #   petsard
     #   pydantic
     #   pydantic-core
     #   rich
