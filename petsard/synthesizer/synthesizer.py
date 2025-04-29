@@ -349,7 +349,7 @@ class Synthesizer:
                 f"Sampled data shape: {data.shape}, dtypes: {data.dtypes.value_counts().to_dict()}"
             )
 
-            return data
+            return data.reset_index(drop=True)
         except Exception as e:
             self._logger.error(f"Error during sampling: {str(e)}")
             raise

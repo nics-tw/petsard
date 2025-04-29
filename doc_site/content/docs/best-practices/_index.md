@@ -17,6 +17,13 @@ In light of this, since 2024, the CAPE team has been assisting Taiwan's public e
 
 ## Best Practices
 
+### **[Multi-table](./multi-table) and [Multi-timestamp](./multi-timestamp) Data Synthesis: A Corporate Data Case Study**
+
+- Collaborated with a policy-based financial institution to synthesize corporate customer data (including basic information, financing applications, and financial tracking), enabling them to host datathon competitions that invite external vendors to tackle business challenges.
+- The dataset spans multiple business tables with complex relationships, containing multiple key timestamps from company establishment through financing applications to financial tracking, exhibiting clear temporal characteristics and business logic relationships
+- The case study demonstrates how to effectively handle multi-table and multi-timestamp data through [denormalization](./multi-table) and [time anchoring](./multi-timestamp) methods, ensuring synthetic data preserves the business logic and temporal relationships of the original data
+- This best practice is applicable to processing data in similar scenarios such as corporate financing, loan applications and tracking, especially when dealing with business data that has complex table structures and involves multiple time nodes
+
 ### **Synthesizing Low-Cardinality Data: Social Services Data Case Study (WIP)**
 
 - Collaborating with a municipal social protection service agency to synthesize cross-institutional (social affairs, police, medical) assessment and intervention questionnaires, covering initial evaluations and follow-up visits

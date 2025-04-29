@@ -319,6 +319,10 @@ def safe_astype(
     elif declared_dtype_name.startswith("category"):
         is_change_dtype = True
 
+        # 保存 NaN 值的位置
+        na_mask = col.isna()
+
+        # 處理非 NaN 值部分
         col_cardinality: list = col.unique().tolist()
         declared_cardinality: list = declared_dtype.categories.values.tolist()
         for cat_dtype in ["str", "float", "int"]:
@@ -335,6 +339,13 @@ def safe_astype(
                 else:
                     col = col.astype(cat_dtype)
                 col_cardinality = col.unique().tolist()
+
+        # 將資料轉換為 category
+        col = col.astype("category")
+
+        # 恢復 NaN 值
+        if na_mask.any():
+            col.loc[na_mask] = pd.NA
     elif declared_dtype_name.startswith("datetime") and (
         is_float_dtype(data_dtype_name) or is_integer_dtype(data_dtype_name)
     ):

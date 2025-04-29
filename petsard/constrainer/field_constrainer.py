@@ -139,47 +139,31 @@ class FieldConstrainer(BaseConstrainer):
         # Remove DATE function calls to avoid treating dates as field names
         constraint = re.sub(r"DATE\(\d{4}-\d{2}-\d{2}\)", "", constraint)
 
-        # Clean special syntax elements
-        constraint = (
-            constraint.replace("(", " ")
-            .replace(")", " ")
-            .replace("IS pd.NA", "")
-            .replace("IS NOT pd.NA", "")
-        )
-
-        # Extract and validate field names
-        parts = constraint.split()
+        # Extract potential field names - looking for words not inside quotes
+        # and not immediately next to operators
         fields = []
-        i = 0
-        while i < len(parts):
-            part = parts[i].strip()
+        # Match words not in quotes that are part of comparisons
+        field_pattern = r"\b(\w+)\s*(?:[=!<>]+|IS(?:\s+NOT)?)\s*|(?:[=!<>]+|IS(?:\s+NOT)?)\s*\b(\w+)\b"
+        matches = re.finditer(field_pattern, constraint)
 
-            # Skip operators
-            if part in ["&", "|", ">", "<", ">=", "<=", "==", "!=", "IS", "NOT"]:
-                i += 1
-                continue
+        for match in matches:
+            if match.group(1):  # Field before operator
+                fields.append(match.group(1))
+            if match.group(2):  # Field after operator
+                fields.append(match.group(2))
 
-            # Skip literals
-            if part == "pd.NA" or part.replace(".", "").isdigit():
-                i += 1
-                continue
+        # Add fields involved in addition operations
+        addition_pattern = r"\b(\w+)\s*\+\s*(\w+)\b"
+        for match in re.finditer(addition_pattern, constraint):
+            fields.append(match.group(1))
+            fields.append(match.group(2))
 
-            # Handle field addition expressions
-            if i + 2 < len(parts) and parts[i + 1] == "+":
-                if not any(
-                    op in part for op in [">", "<", ">=", "<=", "==", "!=", "&", "|"]
-                ):
-                    fields.append(part)
-                    fields.append(parts[i + 2])
-                i += 3
-                continue
-
-            # Process potential field names
-            if not any(
-                op in part for op in [">", "<", ">=", "<=", "==", "!=", "&", "|"]
-            ):
-                fields.append(part)
-            i += 1
+        # Filter out obvious non-fields
+        fields = [
+            field
+            for field in fields
+            if field not in ["pd", "NA", "IS", "NOT", "AND", "OR", "TRUE", "FALSE"]
+        ]
 
         return list(set(fields))
 
@@ -232,6 +216,27 @@ class FieldConstrainer(BaseConstrainer):
         i = 0
 
         while i < len(condition):
+            # Handle quotes - match entire string literals
+            if condition[i] in "\"'":
+                quote_char = condition[i]
+                start = i
+                i += 1  # Move past the opening quote
+
+                # Find closing quote
+                while i < len(condition) and condition[i] != quote_char:
+                    i += 1
+
+                if i < len(condition):  # Found closing quote
+                    i += 1  # Move past the closing quote
+                    tokens.append(
+                        condition[start:i]
+                    )  # Include the entire quoted string
+                    continue
+                else:
+                    # No closing quote found - treat as error
+                    tokens.append(condition[start:])
+                    break
+
             # Handle DATE() function
             if condition[i : i + 5] == "DATE(":
                 end = condition.find(")", i)
@@ -282,7 +287,7 @@ class FieldConstrainer(BaseConstrainer):
 
     def _get_value(
         self, expr: str, df: pd.DataFrame, involved_columns: list[str]
-    ) -> tuple[pd.Series | float | None, list[str]]:
+    ) -> tuple[pd.Series | float | str | None, list[str]]:
         """
         Get value from expression. Handles fields, literals, and date functions.
 
@@ -308,6 +313,12 @@ class FieldConstrainer(BaseConstrainer):
             except Exception as e:
                 print(f"Date parsing error: {e}")
                 return None, involved_columns
+
+        # Handle string literals (text within quotes)
+        string_match = re.match(r"^['\"](.+)['\"]$", expr)
+        if string_match:
+            # Return the string literal without quotes
+            return string_match.group(1), involved_columns
 
         if "+" in expr:
             col1, col2 = map(str.strip, expr.split("+"))

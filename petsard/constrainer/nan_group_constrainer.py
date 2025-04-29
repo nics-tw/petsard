@@ -44,7 +44,7 @@ class NaNGroupConstrainer(BaseConstrainer):
         if not isinstance(constraints, dict):
             raise ConfigError("Constraints must be a dictionary")
 
-        valid_actions = ["erase", "copy", "delete"]
+        valid_actions = ["erase", "copy", "delete", "nan_if_condition"]
 
         for main_field, actions in constraints.items():
             # Handle case where action is directly a string 'delete'
@@ -74,17 +74,37 @@ class NaNGroupConstrainer(BaseConstrainer):
                         f"Related field cannot be None for field '{main_field}'"
                     )
 
-                # For erase and copy actions, related must be string or list of strings
-                if not isinstance(related, (str, list)):
-                    raise ConfigError(
-                        f"For {action} action, related field must be a string or list of strings"
-                    )
-                if isinstance(related, list) and not all(
-                    isinstance(r, str) for r in related
-                ):
-                    raise ConfigError(
-                        f"For {action} action, all related fields must be strings"
-                    )
+                # 特殊處理 nan_if_condition 動作
+                if action == "nan_if_condition":
+                    if not isinstance(related, dict):
+                        raise ConfigError(
+                            f"For {action} action, related field must be a dict of dictionaries"
+                        )
+
+                    for target_col, expected_values in related.items():
+                        if not isinstance(expected_values, (str, list)):
+                            raise ConfigError(
+                                f"For {action} action, expected values must be a string or list of strings"
+                            )
+
+                        if isinstance(expected_values, list) and not all(
+                            isinstance(val, str) for val in expected_values
+                        ):
+                            raise ConfigError(
+                                f"For {action} action, all expected values must be strings"
+                            )
+                else:
+                    # For erase and copy actions, related must be string or list of strings
+                    if not isinstance(related, (str, list)):
+                        raise ConfigError(
+                            f"For {action} action, related field must be a string or list of strings"
+                        )
+                    if isinstance(related, list) and not all(
+                        isinstance(r, str) for r in related
+                    ):
+                        raise ConfigError(
+                            f"For {action} action, all related fields must be strings"
+                        )
 
     def validate_config(self, df: pd.DataFrame) -> None:
         """
@@ -109,12 +129,21 @@ class NaNGroupConstrainer(BaseConstrainer):
 
             # Check related fields
             for action, related in actions.items():
-                related_cols = [related] if isinstance(related, str) else related
-                for col in related_cols:
-                    if col not in df.columns:
-                        raise ConfigError(
-                            f"Related field '{col}' does not exist in the DataFrame"
-                        )
+                # 特殊處理 nan_if_condition 動作
+                if action == "nan_if_condition":
+                    for target_col in related.keys():
+                        if target_col not in df.columns:
+                            raise ConfigError(
+                                f"Target field '{target_col}' does not exist in the DataFrame"
+                            )
+                else:
+                    # 處理其他動作類型
+                    related_cols = [related] if isinstance(related, str) else related
+                    for col in related_cols:
+                        if col not in df.columns:
+                            raise ConfigError(
+                                f"Related field '{col}' does not exist in the DataFrame"
+                            )
 
     def apply(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply NaN group constraints to DataFrame"""
@@ -134,6 +163,18 @@ class NaNGroupConstrainer(BaseConstrainer):
             for action, related in actions.items():
                 if action == "delete":
                     continue  # Already handled
+
+                if action == "nan_if_condition":
+                    for target_col, expected_value in related.items():
+                        expected_value = (
+                            [expected_value]
+                            if isinstance(expected_value, str)
+                            else expected_value
+                        )
+
+                        mask = result[target_col].isin(expected_value)
+                        result.loc[mask, main_field] = pd.NA
+                    continue
 
                 related_cols = [related] if isinstance(related, str) else related
                 for col in related_cols:
