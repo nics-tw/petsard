@@ -124,3 +124,5 @@ class Describer(Evaluator):
             BaseEvaluator: The evaluator object.
         """
         return self.DESCIRBER_MAP[self.config.method_code]
+        return self.DESCIRBER_MAP[self.config.method_code]
+        return self.DESCIRBER_MAP[self.config.method_code]
