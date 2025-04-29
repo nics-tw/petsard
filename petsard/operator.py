@@ -7,17 +7,9 @@ from datetime import timedelta
 import pandas as pd
 
 from petsard.constrainer import Constrainer
-from petsard.evaluator import (
-    Describer,
-    Evaluator,
-)
+from petsard.evaluator import Describer, Evaluator
 from petsard.exceptions import ConfigError
-from petsard.exceptions import ConfigError
-from petsard.loader import (
-    Loader,
-    Metadata,
-    Splitter,
-)
+from petsard.loader import Loader, Metadata, Splitter
 from petsard.processor import Processor
 from petsard.processor.encoder import EncoderUniform
 from petsard.reporter import Reporter
@@ -68,13 +60,11 @@ class BaseOperator:
         """
         start_time: time = time.time()
         self._logger.info(f"Starting {self.module_name} execution")
-        self._logger.info(f"Starting {self.module_name} execution")
 
         self._run(input)
 
         elapsed_time: time = time.time() - start_time
         formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
-        self._logger.info(
         self._logger.info(
             f"Completed {self.module_name} execution "
             f"(elapsed: {formatted_elapsed_time})"
@@ -104,7 +94,6 @@ class BaseOperator:
             try:
                 return func(self, *args, **kwargs)
             except NotImplementedError:
-                self._logger.error(
                 self._logger.error(
                     f"Method {func.__name__} not implemented in {self.module_name}"
                 )
@@ -477,7 +466,6 @@ class SynthesizerOperator(BaseOperator):
         Retrieve the synthesizing result.
         """
         return deepcopy(self.data_syn)
-        return deepcopy(self.data_syn)
 
 
 class PostprocessorOperator(BaseOperator):
@@ -600,10 +588,6 @@ class ConstrainerOperator(BaseOperator):
         self._logger.debug("Starting data constraining process")
         self._logger.debug("Starting data constraining process")
 
-        if "target_rows" not in self.sample_dict:
-            self.sample_dict["target_rows"] = len(input["data"])
-
-        if "synthesizer" in input:
         if "target_rows" not in self.sample_dict:
             self.sample_dict["target_rows"] = len(input["data"])
 
@@ -753,14 +737,8 @@ class EvaluatorOperator(BaseOperator):
         return self.input
 
     def get_result(self) -> dict[str, pd.DataFrame]:
-    def get_result(self) -> dict[str, pd.DataFrame]:
         """
         Retrieve the pre-processing result.
-
-        Returns:
-            (dict[str, pd.DataFrame]): The evaluation results.
-        """
-        return deepcopy(self.evaluations)
 
         Returns:
             (dict[str, pd.DataFrame]): The evaluation results.
@@ -824,7 +802,7 @@ class DescriberOperator(BaseOperator):
                 Describer input should contains data (dict).
         """
 
-        self.input["data"]: dict[str, pd.DataFrame] = None
+        self.input["data"] = None
         for module in self.INPUT_PRIORITY:
             if module in status.status:
                 self.input["data"] = {
