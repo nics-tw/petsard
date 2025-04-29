@@ -135,8 +135,14 @@ class Constrainer:
                 break
 
             # Generate new samples
-            synthesizer.sample(sample_num_rows=int(target_rows * sampling_ratio))
-            new_samples = synthesizer.data_syn.reset_index(drop=True)
+            synthesizer.config.update(
+                {
+                    "sample_from": "Constrainter",
+                    "sample_num_rows": int(target_rows * sampling_ratio),
+                }
+            )
+
+            new_samples = synthesizer.sample()
 
             # Apply postprocessor if provided
             if postprocessor is not None:

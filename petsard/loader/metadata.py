@@ -71,6 +71,7 @@ class Metadata:
         Args:
             data (pd.DataFrame): The dataframe to be checked.
         """
+
         if not isinstance(data, pd.DataFrame):
             raise TypeError("Data should be a pd.DataFrame.")
 
