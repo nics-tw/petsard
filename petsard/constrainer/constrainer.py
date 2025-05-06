@@ -135,8 +135,14 @@ class Constrainer:
                 break
 
             # Generate new samples
-            synthesizer.sample(sample_num_rows=int(target_rows * sampling_ratio))
-            new_samples = synthesizer.data_syn.reset_index(drop=True)
+            synthesizer.config.update(
+                {
+                    "sample_from": "Constrainter",
+                    "sample_num_rows": int(target_rows * sampling_ratio),
+                }
+            )
+
+            new_samples = synthesizer.sample()
 
             # Apply postprocessor if provided
             if postprocessor is not None:
@@ -149,11 +155,22 @@ class Constrainer:
             if result_df is None:
                 result_df = filtered_samples
             else:
-                result_df = (
-                    pd.concat([result_df, filtered_samples], axis=0, ignore_index=True)
-                    .drop_duplicates()
-                    .reset_index(drop=True)
-                )
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        category=FutureWarning,
+                        message=".*behavior of DataFrame concatenation with empty or all-NA entries.*",
+                    )
+
+                    result_df = (
+                        pd.concat(
+                            [result_df, filtered_samples],
+                            axis=0,
+                            ignore_index=True,
+                        )
+                        .drop_duplicates()
+                        .reset_index(drop=True)
+                    )
 
             # Check if we have enough rows
             if result_df.shape[0] >= target_rows:
