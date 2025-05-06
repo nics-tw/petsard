@@ -18,11 +18,7 @@ from petsard.exceptions import (
 )
 from petsard.loader.benchmarker import BenchmarkerRequests
 from petsard.loader.metadata import Metadata
-from petsard.util import (
-    ALLOWED_COLUMN_TYPES,
-    casting_dataframe,
-    optimize_dtypes,
-)
+from petsard.util import ALLOWED_COLUMN_TYPES, casting_dataframe, optimize_dtypes
 
 
 class LoaderFileExt:
@@ -361,24 +357,32 @@ class Loader:
             LoaderFileExt.EXCELTYPE: pd.read_excel,
         }
 
+        # 2.5 準備數據類型字典，將 category 類型欄位設為 str
+        dtype_dict = {}
+        if self.config.column_types and "category" in self.config.column_types:
+            category_columns = self.config.column_types["category"]
+            if isinstance(category_columns, list) and category_columns:
+                self._logger.debug(
+                    f"Setting category columns to string type: {category_columns}"
+                )
+                for col in category_columns:
+                    dtype_dict[col] = str
+
         try:
             if self.config.header_names:
                 self._logger.debug(
                     f"Using custom header names: {self.config.header_names}"
                 )
-                data: pd.DataFrame = loaders_map[self.config.file_ext_code](
-                    self.config.filepath,
-                    header=0,
-                    names=self.config.header_names,
-                    na_values=self.config.na_values,
-                )
             else:
                 self._logger.debug("Using inferred headers")
-                data: pd.DataFrame = loaders_map[self.config.file_ext_code](
-                    self.config.filepath,
-                    header="infer",
-                    na_values=self.config.na_values,
-                )
+
+            data: pd.DataFrame = loaders_map[self.config.file_ext_code](
+                self.config.filepath,
+                header=0 if self.config.header_names else "infer",
+                names=self.config.header_names,
+                na_values=self.config.na_values,
+                dtype=dtype_dict if dtype_dict else None,
+            )
 
             self._logger.info(f"Successfully loaded data with shape: {data.shape}")
         except Exception as e:
