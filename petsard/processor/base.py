@@ -43,12 +43,7 @@ from petsard.processor.scaler import (
     ScalerTimeAnchor,
     ScalerZeroCenter,
 )
-from petsard.util import (
-    optimize_dtype,
-    safe_astype,
-    safe_dtype,
-    safe_infer_dtype,
-)
+from petsard.util import optimize_dtype, safe_astype, safe_dtype, safe_infer_dtype
 
 
 class DefaultProcessorMap:
