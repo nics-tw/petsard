@@ -23,6 +23,11 @@ Constrainer(config)
     - 值對於 'erase' 和 'copy' 動作：包含動作和目標欄位的字典
       - 'erase'：`{'erase': target_field}`，其中 target_field 可以是字串或字串列表
       - 'copy'：`{'copy': target_field}`，其中 target_field 是字串
+    - 值對於 'nan_if_condition' 動作：`{'nan_if_condition': condition_dict}`
+      - condition_dict 是一個字典，其中：
+        - 鍵：要檢查條件的目標欄位名稱
+        - 值：該欄位中符合條件的值（可以是單一值或值列表）
+      - 當目標欄位的值符合指定條件時，主欄位的值將被設為 pd.NA
 
   - `field_constraints` (List[str])：以字串表示的欄位約束條件
     - 支援運算子：>、>=、==、!=、<、<=、IS、IS NOT

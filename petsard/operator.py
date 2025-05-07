@@ -174,9 +174,6 @@ class LoaderOperator(BaseOperator):
         self._logger.debug("Starting data loading process")
         self.data, self.metadata = self.loader.load()
         self._logger.debug("Data loading completed")
-        self._logger.debug("Starting data loading process")
-        self.data, self.metadata = self.loader.load()
-        self._logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
         """
@@ -195,7 +192,6 @@ class LoaderOperator(BaseOperator):
         Retrieve the loading result.
         """
         return self.data
-        return self.data
 
     def get_metadata(self) -> Metadata:
         """
@@ -204,7 +200,6 @@ class LoaderOperator(BaseOperator):
         Returns:
             (Metadata): The metadata of the loaded data.
         """
-        return self.metadata
         return self.metadata
 
 
@@ -242,9 +237,7 @@ class SplitterOperator(BaseOperator):
                     key as str: 'train' and 'validation', value as pd.DataFrame.
         """
         self._logger.debug("Starting data splitting process")
-        self._logger.debug("Starting data splitting process")
         self.splitter.split(**input)
-        self._logger.debug("Data splitting completed")
         self._logger.debug("Data splitting completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -325,20 +318,17 @@ class PreprocessorOperator(BaseOperator):
             processor (Processor):
                 An instance of the Processor class initialized with the provided configuration.
         """
-        self._logger.debug("Initializing processor")
+
         self._logger.debug("Initializing processor")
         self.processor = Processor(metadata=input["metadata"], config=self._config)
 
         if self._sequence is None:
             self._logger.debug("Using default processing sequence")
-            self._logger.debug("Using default processing sequence")
             self.processor.fit(data=input["data"])
         else:
             self._logger.debug(f"Using custom sequence: {self._sequence}")
-            self._logger.debug(f"Using custom sequence: {self._sequence}")
             self.processor.fit(data=input["data"], sequence=self._sequence)
 
-        self._logger.debug("Transforming data")
         self._logger.debug("Transforming data")
         self.data_preproc = self.processor.transform(data=input["data"])
 
@@ -555,13 +545,12 @@ class ConstrainerOperator(BaseOperator):
         # Transform field combinations before initializing
         config = self._transform_field_combinations(config)
         super().__init__(config)
-        self.constrainer = Constrainer(config)
 
         # Store sampling configuration if provided
         self.sample_dict = {}
         self.sample_dict.update(
             {
-                key: config[key]
+                key: config.pop(key)
                 for key in [
                     "target_rows",
                     "sampling_ratio",
@@ -571,6 +560,8 @@ class ConstrainerOperator(BaseOperator):
                 if key in config
             }
         )
+
+        self.constrainer = Constrainer(config)
 
     def _run(self, input: dict):
         """
@@ -586,14 +577,12 @@ class ConstrainerOperator(BaseOperator):
             constrained_data (pd.DataFrame): The constrained result data.
         """
         self._logger.debug("Starting data constraining process")
-        self._logger.debug("Starting data constraining process")
 
         if "target_rows" not in self.sample_dict:
             self.sample_dict["target_rows"] = len(input["data"])
 
         if "synthesizer" in input:
             # Use resample_until_satisfy if sampling parameters and synthesizer are provided
-            self._logger.debug("Using resample_until_satisfy method")
             self._logger.debug("Using resample_until_satisfy method")
             self.constrained_data = self.constrainer.resample_until_satisfy(
                 data=input["data"],
@@ -604,10 +593,8 @@ class ConstrainerOperator(BaseOperator):
         else:
             # Use simple apply method
             self._logger.debug("Using apply method")
-            self._logger.debug("Using apply method")
             self.constrained_data = self.constrainer.apply(input["data"])
 
-        self._logger.debug("Data constraining completed")
         self._logger.debug("Data constraining completed")
 
     @BaseOperator.log_and_raise_config_error
