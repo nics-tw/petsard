@@ -1,6 +1,8 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 import requests
 
@@ -10,6 +12,7 @@ def setup_environment(
     branch: str = "main",
     benchmark_data: list[str] = None,
     example_files: list[str] = None,
+    subfolder: Optional[str] = None,
 ) -> None:
     """
     Setup the environment for both Colab and local development
@@ -21,6 +24,8 @@ def setup_environment(
             The dataset list of benchmark data to load by PETsARD Loader
         example_files (list[str], optional):
             List of example files to download from GitHub
+        subfolder (str, optional):
+            The subfolder in the demo directory. Defaults to None
     """
     # Check Python version
     if sys.version_info < (3, 10):
@@ -31,6 +36,8 @@ def setup_environment(
 
     # Ensure pip is installed
     subprocess.run([sys.executable, "-m", "ensurepip"], check=True)
+    # avoid pip version warning
+    os.environ["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     if is_colab:
         # Install petsard directly from GitHub
@@ -50,7 +57,7 @@ def setup_environment(
     else:
         # Find the project root directory
         demo_dir = Path.cwd()
-        project_root = demo_dir.parent
+        project_root = demo_dir.parent.parent if subfolder else demo_dir.parent
 
         # Local installation
         subprocess.run(
@@ -96,6 +103,7 @@ def get_yaml_path(
     is_colab: bool,
     yaml_file: str,
     branch: str = "main",
+    subfolder: Optional[str] = None,
 ) -> Path:
     """
     Get the YAML file path and display its content,
@@ -106,6 +114,8 @@ def get_yaml_path(
         yaml_file (str): Name of the YAML file
         branch (str, optional):
             The branch name to fetch YAML from GitHub. Defaults to "main"
+        subfolder (str, optional):
+            The subfolder in the demo directory. Defaults to None
 
     Returns:
         Path: Path to the YAML file
@@ -138,9 +148,12 @@ def get_yaml_path(
             print(response.text)
             return Path(tmp_file.name)
     else:
-        demo_dir = Path().absolute()
-        project_root = demo_dir.parent
-        yaml_path = project_root / "yaml" / yaml_file
+        demo_dir = Path.cwd()
+        project_root = demo_dir.parent.parent if subfolder else demo_dir.parent
+        if subfolder:
+            yaml_path = project_root / "demo" / subfolder / yaml_file
+        else:
+            yaml_path = project_root / "demo" / yaml_file
 
         if not yaml_path.exists():
             raise FileNotFoundError(

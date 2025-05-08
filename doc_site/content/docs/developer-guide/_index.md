@@ -19,8 +19,6 @@ sidebar:
   - Maintaining and extending benchmark datasets
 
 ## Data Generating
-- [Uniform Encoder](./uniform-encoder)
-  - Converting categorical variables to continuous values
 
 ## Data Evaluating
 - [Anonymeter Privacy Risk Assessment](./anonymeter)

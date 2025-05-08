@@ -1,0 +1,197 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/best-practices_categorical_high-cardinality.csv'
+    column_types:
+      category:
+        - university_code
+        - college_code
+        - department_code
+Preprocessor:
+  encoding_uniform:
+    sequence:
+      - 'encoder'
+    encoder:
+      birth_year: 'encoding_uniform'
+      birth_month: 'encoding_uniform'
+      birth_day: 'encoding_uniform'
+      zodiac: 'encoding_uniform'
+      university_code: 'encoding_uniform'
+      university: 'encoding_uniform'
+      college_code: 'encoding_uniform'
+      college: 'encoding_uniform'
+      deparment_code: 'encoding_uniform'
+      department_name: 'encoding_uniform'
+      admission_type_code: 'encoding_uniform'
+      admission_type: 'encoding_uniform'
+      disabled_code: 'encoding_uniform'
+      disabled_type: 'encoding_uniform'
+      nationality_code: 'encoding_uniform'
+      nationality: 'encoding_uniform'
+      identity_code: 'encoding_uniform'
+      identity: 'encoding_uniform'
+      sex: 'encoding_uniform'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Constrainer:
+  demo:
+    max_trials: 500
+    field_constraints:
+      # 出生年限制 Birth year restriction
+      - (birth_year >= 1990) & (birth_year <= 2020)
+      # 出生日限制 Birth day minimum restriction
+      - birth_day >= 1
+      # 出生月日限制：包含 1990-2020 的閏年列表
+      # Birth month and day restrictions, including list of leap years between 1990-2020
+      - |
+        (((birth_month == 1) | (birth_month ==  3) | (birth_month ==  5) | (birth_month == 7) |
+          (birth_month == 8) | (birth_month == 10) | (birth_month == 12)
+         ) & (birth_day <= 31)
+        ) |
+        (((birth_month == 4) | (birth_month == 6) | (birth_month == 9) | (birth_month == 11)
+         ) & (birth_day <= 30)
+        ) |
+        ((birth_month == 2) & (
+          (((birth_year == 1992) | (birth_year == 1996) | (birth_year == 2000) |
+            (birth_year == 2004) | (birth_year == 2008) | (birth_year == 2012) |
+            (birth_year == 2016) | (birth_year == 2020)
+           ) & (birth_day <= 29) |
+          (birth_day <= 28)
+          )
+         )
+        )
+      # 星座與出生日期的對應關係 Zodiac Sign and Birth Date Correspondence
+      - |
+        ((zodiac == '摩羯座') &
+        (((birth_month == 12) & (birth_day >= 22)) |
+        ((birth_month == 1) & (birth_day <= 19)))) |
+
+        ((zodiac == '水瓶座') &
+        (((birth_month == 1) & (birth_day >= 20)) |
+        ((birth_month == 2) & (birth_day <= 18)))) |
+
+        ((zodiac == '雙魚座') &
+        (((birth_month == 2) & (birth_day >= 19)) |
+        ((birth_month == 3) & (birth_day <= 20)))) |
+
+        ((zodiac == '牡羊座') &
+        (((birth_month == 3) & (birth_day >= 21)) |
+        ((birth_month == 4) & (birth_day <= 19)))) |
+
+        ((zodiac == '金牛座') &
+        (((birth_month == 4) & (birth_day >= 20)) |
+        ((birth_month == 5) & (birth_day <= 20)))) |
+
+        ((zodiac == '雙子座') &
+        (((birth_month == 5) & (birth_day >= 21)) |
+        ((birth_month == 6) & (birth_day <= 21)))) |
+
+        ((zodiac == '巨蟹座') &
+        (((birth_month == 6) & (birth_day >= 22)) |
+        ((birth_month == 7) & (birth_day <= 22)))) |
+
+        ((zodiac == '獅子座') &
+        (((birth_month == 7) & (birth_day >= 23)) |
+        ((birth_month == 8) & (birth_day <= 22)))) |
+
+        ((zodiac == '處女座') &
+        (((birth_month == 8) & (birth_day >= 23)) |
+        ((birth_month == 9) & (birth_day <= 22)))) |
+
+        ((zodiac == '天秤座') &
+        (((birth_month == 9) & (birth_day >= 23)) |
+        ((birth_month == 10) & (birth_day <= 23)))) |
+
+        ((zodiac == '天蠍座') &
+        (((birth_month == 10) & (birth_day >= 24)) |
+        ((birth_month == 11) & (birth_day <= 22)))) |
+
+        ((zodiac == '射手座') &
+        (((birth_month == 11) & (birth_day >= 23)) |
+        ((birth_month == 12) & (birth_day <= 21))))
+    field_combinations:
+      # 大學代碼與大學名稱的對應關係 University code and university name mapping
+      -
+        - {'university_code': 'university'}
+        - {
+            '001': ['國立臺灣大學'],
+            '002': ['國立政治大學'],
+          }
+      # 學院代碼與學院名稱的對應關係 College code and college name mapping
+      -
+        - {'college_code': 'college'}
+        - {
+            # 臺大 NTU
+            '1000': ['文學院'],
+            '2000': ['理學院'],
+            '9000': ['電機資訊學院'],
+            # 政大 NCCU
+            '100': ['文學院'],
+            '700': ['理學院'],
+            'ZA0': ['資訊學院']
+          }
+      # 大學代碼與學院代碼的對應關係 University code and college code mapping
+      -
+        - {'university_code': 'college_code'}
+        - {
+            '001': ['1000', '2000', '9000'],
+            '002': ['100', '700', 'ZA0']
+          }
+      # 系所代碼與系所名稱的對應關係 Department code and department name mapping
+      -
+        - {'department_code': 'department_name'}
+        - {
+            # 臺大 NTU
+            '1010': ['中國文學系'],
+            '1020': ['外國語文學系'],
+            '1030': ['歷史學系'],
+            '1040': ['哲學系'],
+            '1050': ['人類學系'],
+            '1060': ['圖書資訊學系'],
+            '1070': ['日本語文學系'],
+            '1090': ['戲劇學系'],
+            '2010': ['數學系'],
+            '2020': ['物理學系'],
+            '2030': ['化學系'],
+            '2040': ['地質科學系'],
+            '2070': ['心理學系'],
+            '2080': ['地理環境資源學系'],
+            '2090': ['大氣科學系'],
+            '9010': ['電機工程學系'],
+            '9020': ['資訊工程學系'],
+            # 政大 NCCU
+            '101': ['中國文學系'],
+            '102': ['教育學系'],
+            '103': ['歷史學系'],
+            '104': ['哲學系'],
+            '701': ['應用數學系'],
+            '702': ['心理學系'],
+            '703': ['資訊科學系']
+          }
+      # 學院代碼與系所代碼的對應關係 College code and department code mapping
+      -
+        - {'college_code': 'department_code'}
+        - {
+            # 臺大 NTU
+            '1000': ['1010', '1020', '1030', '1040', '1050', '1060', '1070', '1090'],
+            '2000': ['2010', '2020', '2030', '2040', '2070', '2080', '2090'],
+            '9000': ['9010', '9020'],
+            # 政大 NCCU
+            '100': ['101', '102', '103', '104'],
+            '700': ['701', '702'],
+            'ZA0': ['703']
+          }
+    nan_groups:
+      nationality_code:
+        nan_if_condition:
+          nationality:
+            - '中華民國' # ROC (Taiwan)
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Constrainer'
+...

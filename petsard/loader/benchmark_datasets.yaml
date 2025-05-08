@@ -23,3 +23,28 @@ datasets:
     filename: adult-income_syn.csv
     access: public
     sha256: 87df8e267710d83874d5ea07fc8d9fb7873ae461b00d04be0308536c04c806c3
+
+# Best practices
+  # multi-table
+  best-practices_multi-table_companies:
+    filename: best-practices_multi-table_companies.csv
+    access: public
+    sha256: 7d70873994e51963216cd0b62f515085353cbc31b88f4a2c692429e88aeee99c
+  best-practices_multi-table_applications:
+    filename: best-practices_multi-table_applications.csv
+    access: public
+    sha256: 431c6886689ed88a742ccdeee9ef7bd2985954b2dcde3525b10d8f70714cd5e9
+  best-practices_multi-table_tracking:
+    filename: best-practices_multi-table_tracking.csv
+    access: public
+    sha256: be08af7eba9a74963bba798be1cb0b2db2a2462bb101f11f2824e0112fce7a8d
+  # multi-timestamp
+  best-practices_multi-table:
+    filename: best-practices_multi-table.csv
+    access: public
+    sha256: 53fed33b052ae1aa71014b1f345dae3bc2aea82ee9d839f418f417600ec40dca
+  # categorical and high-cardinality
+  best-practices_categorical_high-cardinality:
+    filename: best-practices_categorical_high-cardinality.csv
+    access: public
+    sha256: 5635a07a252f833e785bb26b3d8cc47b6eaffc08d2ca86d77aacf49079b6259e

@@ -19,8 +19,6 @@ sidebar:
   - 維護與擴充基準資料集
 
 ## 資料生成
-- [均勻編碼](./uniform-encoder)
-  - 類別變數轉換為連續值
 
 ## 資料評測
 - [Anonymeter 隱私風險評測](./anonymeter)
