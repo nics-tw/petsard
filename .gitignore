@@ -1,46 +1,59 @@
-###### PETsARD
-###### ###### ###### ###### ###### ######
+###### 專案特定檔案 PETsARD-specific files ######
 
-# Benchmark datasets
+# 基準測試資料集 Benchmark datasets
 **/benchmark/
 
-# Execution results
+# 執行結果 Execution results
 **/*.csv
 **/*.log
-
-# 3rd-party Execution results: SDV
+# 第三方執行結果：SDV Third-party execution results: SDV
 **/.sample.csv.temp*
 
-# development
+# 開發目錄 Development directories
 **/dev/
 
-# development: hugo local test
+# Hugo本地測試 Hugo local test
 /doc_site/public/*
 /doc_site/.hugo_build.lock
 
-###### Enviroment related
-###### ###### ###### ###### ###### ######
+###### Python 相關 Python related ######
 
-# Python
-## Byte-compiled
-**/__pycache__
-## Distribution
+# 位元組編譯檔案 Byte-compiled files
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# 發布與分發 Distribution and packaging
+dist/
+
+# 環境與虛擬環境 Environment and virtual environments
 **/*{env,venv}
 **/.python-version
+
+# 套件管理 Package management
 ## Poetry
 **/poetry.lock
 ## uv
 **/uv.lock
 
-**/__pycache__
 
-# Jupyter
+###### Jupyter 相關 Jupyter related ######
+# Jupyter檔案 Jupyter files
 **/.ipynb_checkpoints
 **/*.ipynb*.tmp
 
-# OS: MacOS
+###### 作業系統相關 OS related ######
+
+# macOS
 **/.DS_Store
 
-# IDE: VSCode
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+###### IDE 與編輯器相關 IDE and editors related ######
+
+# VSCode
 **/.vscode
 **/*.code-workspace
