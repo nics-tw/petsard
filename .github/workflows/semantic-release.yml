@@ -77,6 +77,8 @@ jobs:
       - name: Publish | Build package with Hatch
         if: steps.release.outputs.released == 'true'
         run: |
+          mkdir -p dist
+          chmod 777 dist
           python -m pip install --upgrade pip
           pip install hatch
           hatch build
