@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 permissions:
   contents: write
@@ -72,9 +73,28 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
 
-      # - name: Publish | Upload package to PyPI
-      #   uses: pypa/gh-action-pypi-publish@v1
-      #   if: steps.release.outputs.released == 'true'
+      # 使用 hatch 構建而非 python -m build
+      - name: Publish | Build package with Hatch
+        if: steps.release.outputs.released == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatch
+          hatch build
+
+      - name: Publish | Upload package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
+          skip-existing: true
+
+      - name: Publish | Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
 
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v9
