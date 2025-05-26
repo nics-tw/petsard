@@ -218,82 +218,101 @@ numpy==1.26.4 \
     #   scipy
     #   sdmetrics
     #   sdv
-nvidia-cublas-cu12==12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:08ed2686e9875d01b58e3cb379c6896df8e76c75e0d4a7f7dace3d7b6d9ef8eb
+nvidia-cublas-cu12==12.9.0.13 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:1a2ca56324acaccb0c9ca8fb40647f04a8c4defd076c6230182805324204765c \
+    --hash=sha256:752ba5830d4cad93ba49dfe9a5c724cfd864c23073bc5139f56b4d8b44cb82ee \
+    --hash=sha256:a525014e22b8adb79d04b70f69fd53d09c7b851002b3d332cd601da3a37276fd
     # via
     #   nvidia-cudnn-cu12
     #   nvidia-cusolver-cu12
     #   petsard
     #   torch
-nvidia-cuda-cupti-cu12==12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:6768bad6cab4f19e8292125e5f1ac8aa7d1718704012a0e3272a6f61c4bce132 \
-    --hash=sha256:a3eff6cdfcc6a4c35db968a06fcadb061cbc7d6dde548609a941ff8701b98b73
+nvidia-cuda-cupti-cu12==12.9.19 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:300a5087166edc80693ce4291b44dbd03cbf3bbabfeee3456bfb79b355456ad1 \
+    --hash=sha256:811ec3a3d7013c72b0a490c9ba48cfc67603a5ffb16a3364aa0c1e12e2d2114f \
+    --hash=sha256:d33728fccca0f3425e8c5eebdb58aa2e9b447f599f27b5ccbb126a92fcb25680
     # via torch
-nvidia-cuda-nvrtc-cu12==12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:35b0cc6ee3a9636d5409133e79273ce1f3fd087abb0532d2d2e8fff1fe9efc53
+nvidia-cuda-nvrtc-cu12==12.9.41 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:02d34dc088dab9ed7c4e65d3a21297585817faad52885391cb32de22b7cc55d4 \
+    --hash=sha256:4b9ae8f5cbdbc35b2f90b0493fe4e03163be8f95cbcfb976d4ea5ee7dd097220 \
+    --hash=sha256:c5b97b986b08bddb91bbf347ab02e26c3f9ccd83e41ee80768fc4862331400a8
     # via
     #   petsard
     #   torch
-nvidia-cuda-runtime-cu12==12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:a84d15d5e1da416dd4774cb42edf5e954a3e60cc945698dc1d5be02321c44dc8 \
-    --hash=sha256:ba3b56a4f896141e25e19ab287cd71e52a6a0f4b29d0d31609f60e3b4d5219b7
+nvidia-cuda-runtime-cu12==12.9.37 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:4f981cb23568cb26063cfacd4291bf65f5fbd75ac9abe98ba846aa212ecd59c4 \
+    --hash=sha256:60a3ee8b71b2bf8af594e67d2e8e3b0228713cd99be77209a662f1f35c08f105 \
+    --hash=sha256:84a750e4d46a32e0b8adc4efdd4021fe49741b1cbbee72421c5400ff9865dd83
     # via
     #   petsard
     #   torch
-nvidia-cudnn-cu12==9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:30ac3869f6db17d170e0e556dd6cc5eee02647abc31ca856634d5a40f82c15b2
+nvidia-cudnn-cu12==9.10.1.4 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:3dc46792fad3d76705a50b0747cd4fb026b78bdfbe0ef18a95b53442e2a765f4 \
+    --hash=sha256:5b68945b89195c9eee91d812c375e9db784265b95635d173d695bb85e920e0d3 \
+    --hash=sha256:df73c4dab84df2c54f0a40e6427cde26e8d80feeffef02d749ee42d7da3c8204
     # via
     #   petsard
     #   torch
-nvidia-cufft-cu12==11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:768160ac89f6f7b459bee747e8d175dbf53619cfe74b2a5636264163138013ca \
-    --hash=sha256:ccba62eb9cef5559abd5e0d54ceed2d9934030f51163df018532142a8ec533e5
+nvidia-cufft-cu12==11.4.0.6 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:0edd879bf82d587f24f9e282735fbfbf101335c085f30d7613b032f3325e8abb \
+    --hash=sha256:26cd694ef8472efac5e73466d05d5b356f80eafe849095eb6bf4d7f93390557d \
+    --hash=sha256:4836f5a8fb3d94dc8d7daa8fcec8414a3ffed28ab588ce3bdacc319fdfd95f02
     # via
     #   petsard
     #   torch
-nvidia-cufile-cu12==1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:cc23469d1c7e52ce6c1d55253273d32c565dd22068647f3aa59b3c6b005bf159
+nvidia-cufile-cu12==1.14.0.30 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:76f42fcd461c773cf87c0cd9b944c23db9a3c284213f59b6c1b130c6c382ccc1 \
+    --hash=sha256:a12aa9a70b1aa6d1cb2f96bc13c69a81317d4556ab677a78525beaa8b948a00d
     # via torch
-nvidia-curand-cu12==10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:99f1a32f1ac2bd134897fc7a203f779303261268a65762a623bf30cc9fe79117 \
-    --hash=sha256:a42cd1344297f70b9e39a1e4f467a4e1c10f1da54ff7a85c12197f6c652c8bdf
+nvidia-curand-cu12==10.3.10.19 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:49b274db4780d421bd2ccd362e1415c13887c53c214f0d4b761752b8f9f6aa1e \
+    --hash=sha256:de663377feb1697e1d30ed587b07d5721fdd6d2015c738d7528a6002a6134d37 \
+    --hash=sha256:e8129e6ac40dc123bd948e33d3e11b4aa617d87a583fa2f21b3210e90c743cde
     # via
     #   petsard
     #   torch
-nvidia-cusolver-cu12==11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:6cf28f17f64107a0c4d7802be5ff5537b2130bfc112f25d5a30df227058ca0e6 \
-    --hash=sha256:e9e49843a7707e42022babb9bcfa33c29857a93b88020c4e4434656a655b698c
+nvidia-cusolver-cu12==11.7.4.40 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:288993d2c3bd8167baa3f7b581e219175db576a54d2c36ad62b163a07de923c5 \
+    --hash=sha256:75e64d827e391a4e0c75832c7c35ca24fdcadcd048b3de18dcc639a783187a7f \
+    --hash=sha256:7fb531b95d46f71ca9c296d49a59212ded0a8349560e1664e1b3ce4b35ec0bd7
     # via
     #   petsard
     #   torch
-nvidia-cusparse-cu12==12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:23749a6571191a215cb74d1cdbff4a86e7b19f1200c071b3fcf844a5bea23a2f \
-    --hash=sha256:7556d9eca156e18184b94947ade0fba5bb47d69cec46bf8660fd2c71a4b48b73
+nvidia-cusparse-cu12==12.5.9.5 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:228d7ee34c8e3622fa58aa7a53c6f5d05f5d0c6980173c46e308129b66910c88 \
+    --hash=sha256:248d302dba92860b85bc81aa43b7ed5726f1d63466c73d55bf764945514ddd94 \
+    --hash=sha256:b2f816d34a7bceab4cb00f0eaadb6a99fc9c285204da6401b42b952e4d61b77b
     # via
     #   nvidia-cusolver-cu12
     #   petsard
     #   torch
-nvidia-cusparselt-cu12==0.6.3 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:e5c8a26c36445dd2e6812f1177978a24e2d37cacce7e090f297a688d1ec44f46
+nvidia-cusparselt-cu12==0.7.1 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:8878dce784d0fac90131b6817b607e803c36e629ba34dc5b433471382196b6a5 \
+    --hash=sha256:f1bb701d6b930d5a7cea44c19ceb973311500847f81b634d802b7b539dc55623 \
+    --hash=sha256:f67fbb5831940ec829c9117b7f33807db9f9678dc2a617fbe781cac17b4e1075
     # via
     #   petsard
     #   torch
-nvidia-nccl-cu12==2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:694cf3879a206553cc9d7dbda76b13efaf610fdb70a50cba303de1b0d1530ac6
+nvidia-nccl-cu12==2.26.5 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:adb1bf4adcc5a47f597738a0700da6aef61f8ea4251b375540ae138c7d239588 \
+    --hash=sha256:ea5ed3e053c735f16809bee7111deac62ac35b10128a8c102960a0462ce16cbe
     # via
     #   petsard
     #   torch
-nvidia-nvjitlink-cu12==12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:eedc36df9e88b682efe4309aa16b5b4e78c2407eac59e8c10a6a47535164369a
+nvidia-nvjitlink-cu12==12.9.41 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:631270891e78de08ebc669bb9ba4418b7899da9efb927fcf6fdff85c9507f54f \
+    --hash=sha256:c3a2cd87cecf3f0ca5e5df97115ede3a81efec1d4b7e2ec89d13f66834042930 \
+    --hash=sha256:d7980883fddf331adb635be475b9d7f07272273cd51f6da8adf487571f17da9e
     # via
     #   nvidia-cufft-cu12
     #   nvidia-cusolver-cu12
     #   nvidia-cusparse-cu12
     #   petsard
     #   torch
-nvidia-nvtx-cu12==12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:6574241a3ec5fdc9334353ab8c479fe75841dbe8f4532a8fc97ce63503330ba1 \
-    --hash=sha256:b90bed3df379fa79afbd21be8e04a0314336b8ae16768b58f2d34cb1d04cd7d2
+nvidia-nvtx-cu12==12.9.19 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:4747571a0acfa5ca794894c66787cecc5c20eb53ff8b63de46c01daba0b640ba \
+    --hash=sha256:b8cc79cbc6be66f29b187151c4d67e0e8481eca993cbc82ad785f9b2ca72d8b8 \
+    --hash=sha256:c0a29ed9c3a2cd09d6f82cba0dac030e67cde3d65738ab12671cb8676f0ed83b
     # via
     #   petsard
     #   torch
@@ -443,9 +462,9 @@ sdv==1.21.0 \
     --hash=sha256:0a3aed58417e9614a59a9feb7843c99efbf83d2fdb394da65bd9ecb7e5aea423 \
     --hash=sha256:d3f970e8671fea11ddbabb701398351effc637095f768524d0769acaea412e1a
     # via petsard
-setuptools==80.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:31e2c58dbb67c99c289f51c16d899afedae292b978f8051efaf6262d8212f927 \
-    --hash=sha256:ea8e00d7992054c4c592aeb892f6ad51fe1b4d90cc6947cc45c45717c40ec537
+setuptools==80.8.0 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
+    --hash=sha256:49f7af965996f26d43c8ae34539c8d99c5042fbff34302ea151eaa9c207cd257 \
+    --hash=sha256:95a60484590d24103af13b686121328cc2736bee85de8936383111e421b9edc0
     # via triton
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
