@@ -54,7 +54,7 @@ dependencies = [
     # SBOM dependency related
     ###### ###### ######
     # #739
-    "boto3>=1.38.23",
+    "boto3>=1.38.23,<2",
     "botocore>=1.38.23",
     "certifi>=2025.4.26",
     "charset-normalizer>=3.4.2",
@@ -75,11 +75,13 @@ dependencies = [
     "typing-extensions>=4.13.2",
     "tzdata>=2025.2",
     "urllib3>=2.4.0",
-    "nvidia-cublas-cu12>=12.5.0.7 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cuda-runtime-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cudnn-cu12>=9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cufft-cu12>=11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cufile-cu12>=1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-curand-cu12>=10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cusolver-cu12>=11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cusparse-cu12>=12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -88,6 +90,9 @@ dependencies = [
     "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "triton>=3.3.0 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    ###### ###### ######
+    # #775
+    "setuptools>=80.8.0",
 ]
 
 [project.urls]
@@ -99,7 +104,7 @@ Documentation = "https://nics-tw.github.io/petsard/"
 dev = [
     "ipykernel>=6.29.5",
     "pytest>=8.3.5",
-    "python-semantic-release>=9.21.0",
+    "python-semantic-release>=10.0.0", # 770, 771
     "ruff>=0.11.8",
     ###### ###### ######
     # SBOM dependency related
