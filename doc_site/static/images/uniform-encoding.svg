@@ -1,0 +1,72 @@
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background and Title -->
+  <rect width="800" height="400" fill="#f9f9f9"/>
+  <text x="580" y="40" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" font-weight="bold">Uniform Encoding Principle</text>
+  
+  <!-- Original Categorical Data -->
+  <g transform="translate(100, 100)">
+    <text x="0" y="-20" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Original Categorical Variable Data</text>
+    <rect x="0" y="0" width="100" height="50" fill="#FF9F80" stroke="#000" stroke-width="1"/>
+    <rect x="100" y="0" width="300" height="50" fill="#80B1D3" stroke="#000" stroke-width="1"/>
+    <rect x="400" y="0" width="100" height="50" fill="#B3DE69" stroke="#000" stroke-width="1"/>
+    
+    <text x="50" y="30" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">'a'</text>
+    <text x="250" y="30" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">'b'</text>
+    <text x="450" y="30" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">'c'</text>
+    
+    <text x="-30" y="25" font-family="Arial, sans-serif" font-size="14" text-anchor="end">Frequency</text>
+    <text x="50" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">20%</text>
+    <text x="250" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">60%</text>
+    <text x="450" y="75" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">20%</text>
+  </g>
+  
+  <!-- Down Arrow -->
+  <path d="M300,170 L300,210 L290,200 M300,210 L310,200" stroke="#333" stroke-width="2" fill="none"/>
+  <text x="320" y="195" font-family="Arial, sans-serif" font-size="14">Encoding</text>
+  
+  <!-- Uniform Encoding Result -->
+  <g transform="translate(100, 240)">
+    <text x="0" y="-20" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Uniform Encoding: Interval Mapping</text>
+    <rect x="0" y="0" width="100" height="50" fill="#FF9F80" stroke="#000" stroke-width="1"/>
+    <rect x="100" y="0" width="300" height="50" fill="#80B1D3" stroke="#000" stroke-width="1"/>
+    <rect x="400" y="0" width="100" height="50" fill="#B3DE69" stroke="#000" stroke-width="1"/>
+    
+    <text x="50" y="30" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">[0.0, 0.2)</text>
+    <text x="250" y="30" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">[0.2, 0.8)</text>
+    <text x="450" y="30" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">[0.8, 1.0]</text>
+    
+    <!-- 0-1 Scale -->
+    <line x1="0" y1="65" x2="500" y2="65" stroke="#333" stroke-width="1"/>
+    <line x1="0" y1="60" x2="0" y2="70" stroke="#333" stroke-width="1"/>
+    <line x1="100" y1="60" x2="100" y2="70" stroke="#333" stroke-width="1"/>
+    <line x1="400" y1="60" x2="400" y2="70" stroke="#333" stroke-width="1"/>
+    <line x1="500" y1="60" x2="500" y2="70" stroke="#333" stroke-width="1"/>
+    
+    <text x="0" y="85" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">0.0</text>
+    <text x="100" y="85" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">0.2</text>
+    <text x="400" y="85" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">0.8</text>
+    <text x="500" y="85" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">1.0</text>
+  </g>
+  
+  <!-- Encoding Examples -->
+  <g transform="translate(650, 170)">
+    <text x="0" y="-50" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Encoding Examples</text>
+    <text x="0" y="-15" font-family="Arial, sans-serif" font-size="14">'a' → 0.13</text>
+    <text x="0" y="5" font-family="Arial, sans-serif" font-size="14">'b' → 0.57</text>
+    <text x="0" y="25" font-family="Arial, sans-serif" font-size="14">'c' → 0.92</text>
+  </g>
+  
+  <!-- Decoding Examples -->
+  <g transform="translate(650, 280)">
+    <text x="0" y="-20" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Decoding Examples</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="14">0.13 → 'a'</text>
+    <text x="0" y="35" font-family="Arial, sans-serif" font-size="14">0.57 → 'b'</text>
+    <text x="0" y="55" font-family="Arial, sans-serif" font-size="14">0.92 → 'c'</text>
+  </g>
+  
+  <!-- Explanation Text -->
+  <g transform="translate(100, 360)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-style="italic">Note: Interval size is proportional to category frequency, giving common</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="14" font-style="italic">categories larger encoding space and recovery probability</text>
+  </g>
+</svg>

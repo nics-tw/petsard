@@ -17,17 +17,25 @@ In light of this, since 2024, the CAPE team has been assisting Taiwan's public e
 
 ## Best Practices
 
+### **[Multi-table](./multi-table) and [Multi-timestamp](./multi-timestamp) Data Synthesis: A Corporate Data Case Study**
+
+- Collaborated with a policy-based financial institution to synthesize corporate customer data (including basic information, financing applications, and financial tracking), enabling them to host datathon competitions that invite external vendors to tackle business challenges.
+- The dataset spans multiple business tables with complex relationships, containing multiple key timestamps from company establishment through financing applications to financial tracking, exhibiting clear temporal characteristics and business logic relationships
+- The case study demonstrates how to effectively handle multi-table and multi-timestamp data through [denormalization](./multi-table) and [time anchoring](./multi-timestamp) methods, ensuring synthetic data preserves the business logic and temporal relationships of the original data
+- This best practice is applicable to processing data in similar scenarios such as corporate financing, loan applications and tracking, especially when dealing with business data that has complex table structures and involves multiple time nodes
+
+### **[Categorical Variables](./categorical) and [High-Cardinality Variables](./high-cardinality) Synthesis: A Higher Education Case Study**
+
+- Collaborated with a public university to synthesize student enrollment and academic performance data (including schools/departments, admission channels, course selections, etc.) to support educational policy and socioeconomic research, promoting fair academic resource access while addressing privacy concerns
+- The dataset contains highly sensitive personal information such as students' socioeconomic background, ethnicity, and disabilities, with these privacy attributes exhibiting complex and intricate potential logical relationships with students' admission status, academic choices, and learning performance
+- The case demonstrates how two methods—[Uniform Encoding](./categorical) and [Constraint Conditions](./high-cardinality)—effectively process high-dimensional discrete attributes and categorical combinations, ensuring synthetic data preserves the distribution of sensitive characteristics and complex logical relationships of the original data
+- This best practice is applicable to similar scenarios such as census data, social attitude surveys, consumer behavior and product portfolio research, behavioral and traffic trajectory data, especially when maintaining complex dependencies between high-dimensional categorical variables is essential
+
 ### **Synthesizing Low-Cardinality Data: Social Services Data Case Study (WIP)**
 
 - Collaborating with a municipal social protection service agency to synthesize cross-institutional (social affairs, police, medical) assessment and intervention questionnaires, covering initial evaluations and follow-up visits
 - The dataset primarily consists of yes/no questions, single-choice, and multiple-choice questions, characterized by few options and uneven response distributions
 - This best practice applies to similar low-cardinality data scenarios, such as market research surveys, user experience studies, public opinion polls, and socioeconomic statistics, particularly when dealing with structured questionnaires with standardized options
-
-### **[Synthesizing High-Cardinality and Multi-Table Data](./high-cardinality-multi-table): Enterprise Data Case Study**
-
-- Collaborating with a policy-oriented financial institution to synthesize enterprise client data (including basic information, financing applications, and financial tracking)
-- The dataset spans multiple business tables with complex relationships, and due to diverse industry categories and numerous financing programs, exhibits high cardinality (numerous unique values) in many fields, along with longitudinal tracking characteristics
-- This best practice applies to similar high-cardinality and multi-table data scenarios, such as enterprise credit databases, industry research data, and longitudinal records, particularly when handling business data with complex table structures
 
 ### **Synthesizing Imbalanced Data: Insurance Data Case Study (WIP)**
 
