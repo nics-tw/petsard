@@ -228,7 +228,9 @@ nvidia-cublas-cu12==12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 
 nvidia-cuda-cupti-cu12==12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
     --hash=sha256:6768bad6cab4f19e8292125e5f1ac8aa7d1718704012a0e3272a6f61c4bce132 \
     --hash=sha256:a3eff6cdfcc6a4c35db968a06fcadb061cbc7d6dde548609a941ff8701b98b73
-    # via torch
+    # via
+    #   petsard
+    #   torch
 nvidia-cuda-nvrtc-cu12==12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
     --hash=sha256:35b0cc6ee3a9636d5409133e79273ce1f3fd087abb0532d2d2e8fff1fe9efc53
     # via
@@ -253,7 +255,9 @@ nvidia-cufft-cu12==11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == '
     #   torch
 nvidia-cufile-cu12==1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
     --hash=sha256:cc23469d1c7e52ce6c1d55253273d32c565dd22068647f3aa59b3c6b005bf159
-    # via torch
+    # via
+    #   petsard
+    #   torch
 nvidia-curand-cu12==10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
     --hash=sha256:99f1a32f1ac2bd134897fc7a203f779303261268a65762a623bf30cc9fe79117 \
     --hash=sha256:a42cd1344297f70b9e39a1e4f467a4e1c10f1da54ff7a85c12197f6c652c8bdf
@@ -443,10 +447,12 @@ sdv==1.21.0 \
     --hash=sha256:0a3aed58417e9614a59a9feb7843c99efbf83d2fdb394da65bd9ecb7e5aea423 \
     --hash=sha256:d3f970e8671fea11ddbabb701398351effc637095f768524d0769acaea412e1a
     # via petsard
-setuptools==80.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux' \
-    --hash=sha256:31e2c58dbb67c99c289f51c16d899afedae292b978f8051efaf6262d8212f927 \
-    --hash=sha256:ea8e00d7992054c4c592aeb892f6ad51fe1b4d90cc6947cc45c45717c40ec537
-    # via triton
+setuptools==80.8.0 \
+    --hash=sha256:49f7af965996f26d43c8ae34539c8d99c5042fbff34302ea151eaa9c207cd257 \
+    --hash=sha256:95a60484590d24103af13b686121328cc2736bee85de8936383111e421b9edc0
+    # via
+    #   petsard
+    #   triton
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
