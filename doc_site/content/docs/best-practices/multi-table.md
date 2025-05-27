@@ -118,7 +118,7 @@ All of the above limitations are listed in SDV's documentation. But our team wen
 - Insufficient association between categorical variables (e.g., similarity between city and rating only 0.20)
 - Some data items could not be correctly associated (e.g., amenities fee and check-in date)
 
-Upon observation, the main cause was that the original data had many bimodal distributions, with a large portion of people not giving tips (= 0). These parametric statistical limitations, coupled with the constraint limitations after categorical field encoding, made us understand that HMA is not suitable for use as a product or service.
+Upon observation, the main cause was that the original data had many bimodal distributions, with a large portion of people not giving tips (amenities_fee = 0). These parametric statistical limitations, coupled with the constraint limitations after categorical field encoding, made us understand that HMA is not suitable for use as a product or service.
 
 ## The Necessity of Database Denormalization
 
