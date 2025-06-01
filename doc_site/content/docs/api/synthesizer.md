@@ -40,8 +40,8 @@ syn = Synthesizer(method='sdv-single_table-gaussiancopula')
 syn = Synthesizer(method='default')
 
 # Synthesizng
-syn.create(data=df, metadata=metadata)
-syn.fit_sample()
+syn.create(metadata=metadata)
+syn.fit_sample(data=df)
 synthetic_data = syn.data_syn
 ```
 
@@ -57,7 +57,6 @@ Initialize synthesizer.
 
 **Parameters**
 
-- `data` (pd.DataFrame): Training dataset
 - `metadata` (Metadata, optional): Dataset's Metadata object
   - Default: None
 
@@ -69,9 +68,13 @@ None. Initializes the synthesizer object
 
 Train synthesis model.
 
+```python
+syn.fit(data=data)
+```
+
 **Parameters**
 
-None
+- `data` (pd.DataFrame): Training dataset
 
 **Returns**
 
@@ -105,7 +108,7 @@ None. Generated data is stored in `data_syn` attribute
 ### `fit_sample()`
 
 ```python
-syn.fit_sample(**kwargs)
+syn.fit_sample(data, **kwargs)
 ```
 
 依序執行訓練與生成。整合 `fit()` 和 `sample()` 的功能。

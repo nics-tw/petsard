@@ -382,7 +382,7 @@ class Loader:
                 names=self.config.header_names,
                 na_values=self.config.na_values,
                 dtype=dtype_dict if dtype_dict else None,
-            )
+            ).fillna(pd.NA)
 
             self._logger.info(f"Successfully loaded data with shape: {data.shape}")
         except Exception as e:

@@ -322,7 +322,11 @@ class Processor:
         for processor, val in config.items():
             for col, processor_spec in val.items():
                 # convert sub-processor name to class
-                if isinstance(processor_spec, str):
+                if processor_spec is None or (
+                    isinstance(processor_spec, str) and processor_spec.lower() == "none"
+                ):
+                    obj = None
+                elif isinstance(processor_spec, str):
                     processor_code = processor_spec
                     obj = ProcessorClassMap.get_class(processor_code)()
                 elif isinstance(processor_spec, dict):
@@ -757,7 +761,7 @@ class Processor:
                 )
                 self.logger.info(f"{type(processor).__name__} transformation done.")
 
-        return self._align_dtypes(transformed)
+        return transformed  # self._align_dtypes(transformed)
 
     # determine whether the processors are not default settings
     def get_changes(self) -> dict:
