@@ -44,35 +44,35 @@ requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
 
 dependencies = [
     "anonymeter>=1.0.0,<2",
-    "jinja2>=3.1.6",
-    "python-dateutil>=2.9.0.post0",
-    "pyyaml>=6.0.2",
-    "requests>=2.32.3",
-    "sdmetrics>=0.20.1,<1",
-    "sdv>=1.21.0,<2",
+    "jinja2>=3.1.6,<4",
+    "python-dateutil>=2.9.0.post0,<3",
+    "pyyaml>=6.0.2,<7",
+    "requests>=2.32.3,<3",
+    "sdmetrics>=0.21.0,<1",
+    "sdv>=1.22.1,<2",
     ###### ###### ######
     # SBOM dependency related
     ###### ###### ######
     # #739
-    "boto3>=1.38.23,<2",
-    "botocore>=1.38.23",
+    "boto3>=1.38.30",
+    "botocore>=1.38.30",
     "certifi>=2025.4.26",
     "charset-normalizer>=3.4.2",
     "faker>=37.3.0",
     "filelock>=3.18.0",
     "fsspec>=2025.5.1",
     "joblib>=1.5.1",
-    "narwhals>=1.40.0",
+    "narwhals>=1.41.0",
     "numba>=0.61.2",
     "platformdirs>=4.3.8",
-    "plotly>=6.1.1",
+    "plotly>=6.1.2",
     "pytz>=2025.2",
     "s3transfer>=0.13.0",
     "scipy>=1.15.3",
     "sympy>=1.13.3",
     "threadpoolctl>=3.6.0",
-    "torch>=2.7.0",
-    "typing-extensions>=4.13.2",
+    "torch>=2.7.1",
+    "typing-extensions>=4.14.0",
     "tzdata>=2025.2",
     "urllib3>=2.4.0",
     "nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -89,10 +89,12 @@ dependencies = [
     "nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "triton>=3.3.0 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     ###### ###### ######
     # #775
-    "setuptools>=80.8.0",
+    "setuptools>=80.9.0",
+    ###### ###### ######
+    "numpy>=1.26.4", # block by Anonymeter, but already alert
 ]
 
 [project.urls]
@@ -102,10 +104,10 @@ Documentation = "https://nics-tw.github.io/petsard/"
 
 [dependency-groups]
 dev = [
-    "ipykernel>=6.29.5",
-    "pytest>=8.3.5",
-    "python-semantic-release>=10.0.0", # 770, 771
-    "ruff>=0.11.8",
+    "ipykernel>=6.29.5,<7",
+    "pytest>=8.4.0,<9",
+    "python-semantic-release>=10.0.2,<11", # 770, 771
+    "ruff>=0.11.12,<1",
     ###### ###### ######
     # SBOM dependency related
     ###### ###### ######
@@ -114,11 +116,11 @@ dev = [
     "debugpy>=1.8.14",
     "decorator>=5.2.1",
     "iniconfig>=2.1.0",
-    "ipython>=8.35.0",
+    "ipython>=8.3.0", # block by Python==3.10
     "prompt-toolkit>=3.0.51",
     "psutil>=7.0",
-    "pydantic>=2.11.4",
-    "python-gitlab>=5.6.0",
+    "pydantic>=2.11.5",
+    "python-gitlab>=5.6.0", # block by python-semantic-release<=10.0.2
     "pyzmq>=26.4.0",
     "rich>=14.0.0",
     "trove-classifiers>=2025.5.1.12",
