@@ -1,9 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import (
-    List,
-)
+from typing import List
 
 import pandas as pd
 
@@ -175,6 +173,7 @@ class BaseReporter(ABC):
         Verify the input data for the create method.
 
         Validates the structure and type of input data intended for creating a report.
+        Invalid entries will be removed and logged.
 
         Args:
             data (dict): Input data for report creation, where:
@@ -197,31 +196,89 @@ class BaseReporter(ABC):
         Raises:
             ConfigError: If any validation check fails.
         """
+        import logging
+
+        logger = logging.getLogger(f"PETsARD.{__name__}")
+
+        keys_to_remove = []
+
         for idx, value in data.items():
             # 1. The 'exist_report' must be a dict with pd.DataFrame values.
             if idx == "exist_report":
-                if not isinstance(value, dict) or not all(
-                    isinstance(v, pd.DataFrame) for v in value.values()
-                ):
-                    raise ConfigError
+                if not isinstance(value, dict):
+                    logger.info(
+                        f"Removing 'exist_report': Expected dict, got {type(value).__name__}"
+                    )
+                    keys_to_remove.append(idx)
+                    continue
+
+                # Clean exist_report entries
+                exist_report_keys_to_remove = []
+                for exist_key, exist_value in value.items():
+                    if exist_value is not None and not isinstance(
+                        exist_value, pd.DataFrame
+                    ):
+                        logger.info(
+                            f"Removing exist_report['{exist_key}']: "
+                            f"Expected pd.DataFrame or None, got {type(exist_value).__name__}"
+                        )
+                        exist_report_keys_to_remove.append(exist_key)
+
+                # Remove invalid entries from exist_report
+                for key in exist_report_keys_to_remove:
+                    del value[key]
+
+                # If exist_report is now empty, remove it entirely
+                if not value:
+                    logger.info("Removing 'exist_report': All entries were invalid")
+                    keys_to_remove.append(idx)
                 continue
 
             # 2. Index must have an even number of elements.
             if len(idx) % 2 != 0:
-                raise ConfigError
+                logger.info(
+                    f"Removing key {idx}: Index must have even number of elements"
+                )
+                keys_to_remove.append(idx)
+                continue
+
             module_names = idx[::2]  # experiment_names = idx[1::2]
 
             # 3. Every module names should be in ALLOWED_IDX_MODULE.
             if not all(module in cls.ALLOWED_IDX_MODULE for module in module_names):
-                raise ConfigError
+                invalid_modules = [
+                    m for m in module_names if m not in cls.ALLOWED_IDX_MODULE
+                ]
+                logger.info(
+                    f"Removing key {idx}: Invalid module names: {invalid_modules}"
+                )
+                keys_to_remove.append(idx)
+                continue
 
             # 4. Module names in the index must be unique.
             if len(module_names) != len(set(module_names)):
-                raise ConfigError
+                logger.info(f"Removing key {idx}: Duplicate module names found")
+                keys_to_remove.append(idx)
+                continue
 
             # 5. Each value must be a pd.DataFrame or None.
             if value is not None and not isinstance(value, pd.DataFrame):
-                raise ConfigError
+                logger.info(
+                    f"Removing key {idx}: "
+                    f"Expected pd.DataFrame or None, got {type(value).__name__}"
+                )
+                keys_to_remove.append(idx)
+                continue
+
+        # Remove invalid keys
+        for key in keys_to_remove:
+            del data[key]
+
+        # Log summary if any keys were removed
+        if keys_to_remove:
+            logger.info(
+                f"Removed {len(keys_to_remove)} invalid entries from input data"
+            )
 
     @abstractmethod
     def report(self) -> None:
