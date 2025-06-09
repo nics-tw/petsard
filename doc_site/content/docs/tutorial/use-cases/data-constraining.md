@@ -12,7 +12,7 @@ Current implementation supports three types of constraints: field constraints, f
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/data-constraining.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/data-constraining.ipynb)
 
 ```yaml
 ---

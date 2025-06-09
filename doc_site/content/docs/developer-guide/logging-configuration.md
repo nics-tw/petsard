@@ -12,7 +12,7 @@ The logging configuration is specified in the `Executor` section of your YAML co
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/logging-configuration.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/developer-guide/logging-configuration.ipynb)
 
 ```yaml
 ---
