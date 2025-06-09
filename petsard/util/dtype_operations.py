@@ -319,14 +319,24 @@ def safe_astype(
     elif declared_dtype_name.startswith("category"):
         is_change_dtype = True
 
-        # 保存 NaN 值的位置
-        na_mask = col.isna()
-
-        # 處理非 NaN 值部分
-        col_cardinality: list = col.unique().tolist()
+        # Get unique values and declared categories
+        col_unique = col.unique()
         declared_cardinality: list = declared_dtype.categories.values.tolist()
+
+        # Separate NA and non-NA values
+        col_cardinality_no_na: list = []
+        has_na: bool = False
+
+        for item in col_unique:
+            if pd.isna(item):
+                has_na = True
+            else:
+                col_cardinality_no_na.append(item)
+
+        # Check if type conversion is needed for non-NA values
         for cat_dtype in ["str", "float", "int"]:
-            if all(item in declared_cardinality for item in col_cardinality):
+            # Only check non-NA values
+            if all(item in declared_cardinality for item in col_cardinality_no_na):
                 break
 
             declared_cat_dtypes = list(
@@ -334,18 +344,34 @@ def safe_astype(
             )
 
             if cat_dtype in declared_cat_dtypes:
+                # Create a copy to avoid modifying original data during conversion
+                col_copy = col.copy()
+
+                # Convert non-NA values
                 if cat_dtype == "int":
-                    col = col.round().astype(cat_dtype)
+                    # For int conversion, we need to handle NA values specially
+                    if has_na:
+                        # Temporarily fill NA for conversion
+                        temp_col = col_copy.fillna(0)
+                        temp_col = temp_col.round().astype(cat_dtype)
+                        # Restore NA values
+                        temp_col[col.isna()] = pd.NA
+                        col = temp_col
+                    else:
+                        col = col_copy.round().astype(cat_dtype)
                 else:
-                    col = col.astype(cat_dtype)
-                col_cardinality = col.unique().tolist()
+                    # For str and float, pandas handles NA better
+                    col = col_copy.astype(cat_dtype)
 
-        # 將資料轉換為 category
-        col = col.astype("category")
+                # Update col_cardinality_no_na for next iteration
+                col_unique_new = col.unique()
+                col_cardinality_no_na = [
+                    item for item in col_unique_new if pd.notna(item)
+                ]
 
-        # 恢復 NaN 值
-        if na_mask.any():
-            col.loc[na_mask] = pd.NA
+        # Convert to categorical with the specified categories
+        col = pd.Categorical(col, categories=declared_dtype.categories)
+
     elif declared_dtype_name.startswith("datetime") and (
         is_float_dtype(data_dtype_name) or is_integer_dtype(data_dtype_name)
     ):
@@ -373,7 +399,8 @@ def safe_astype(
 
     if is_change_dtype:
         if declared_dtype_name.startswith("category"):
-            col = col.astype("category")
+            # Already handled above
+            pass
         else:
             col = col.astype(declared_dtype_name)
 
