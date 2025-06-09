@@ -15,7 +15,7 @@ Most synthetic data algorithms are probabilistic models, and CAPE team research 
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/handling-missing-values.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/preproc/handling-missing-values.ipynb)
 
 ```yaml
 ---

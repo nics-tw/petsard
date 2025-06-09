@@ -12,7 +12,7 @@ Most synthetic data algorithms only support numerical field synthesis. Even when
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/encoding-category.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/preproc/encoding-category.ipynb)
 
 ```yaml
 ---
