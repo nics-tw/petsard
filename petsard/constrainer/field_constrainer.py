@@ -8,6 +8,15 @@ from petsard.exceptions import ConfigError
 
 
 class FieldConstrainer(BaseConstrainer):
+    # Operator patterns
+    COMPARISON_OPS = ["<=", ">=", "==", "!=", "<", ">"]
+    LOGICAL_OPS = ["&", "|"]
+    SPECIAL_OPS = ["IS", "IS NOT"]
+    ALL_OPERATORS = COMPARISON_OPS + LOGICAL_OPS + SPECIAL_OPS
+
+    # Regex pattern for operators
+    OPERATOR_PATTERN = r"(?:<=|>=|==|!=|<|>|&|\||IS(?:\s+NOT)?)"
+
     def __init__(self, config):
         super().__init__(config)
         self._validate_config_structure()  # Perform basic structure validation during initialization
@@ -142,8 +151,11 @@ class FieldConstrainer(BaseConstrainer):
         # Extract potential field names - looking for words not inside quotes
         # and not immediately next to operators
         fields = []
-        # Match words not in quotes that are part of comparisons
-        field_pattern = r"\b(\w+)\s*(?:[=!<>]+|IS(?:\s+NOT)?)\s*|(?:[=!<>]+|IS(?:\s+NOT)?)\s*\b(\w+)\b"
+
+        # Updated pattern to include hyphens in field names
+        # Match field names that can contain letters, numbers, underscores, and hyphens
+        # Hyphen placed at the end to avoid unintended range definitions
+        field_pattern = r"\b([\w-]+)\s*(?:[=!<>]+|IS(?:\s+NOT)?)\s*|(?:[=!<>]+|IS(?:\s+NOT)?)\s*\b([\w-]+)\b"
         matches = re.finditer(field_pattern, constraint)
 
         for match in matches:
@@ -153,7 +165,7 @@ class FieldConstrainer(BaseConstrainer):
                 fields.append(match.group(2))
 
         # Add fields involved in addition operations
-        addition_pattern = r"\b(\w+)\s*\+\s*(\w+)\b"
+        addition_pattern = r"\b([\w-]+)\s*\+\s*([\w-]+)\b"
         for match in re.finditer(addition_pattern, constraint):
             fields.append(match.group(1))
             fields.append(match.group(2))
@@ -251,28 +263,39 @@ class FieldConstrainer(BaseConstrainer):
                 i += 1
                 continue
 
-            # Handle operators
-            if condition[i : i + 2] in ["IS", "<=", ">=", "==", "!="]:
-                if condition[i : i + 7] == "IS NOT ":
-                    tokens.append(condition[i : i + 7])
-                    i += 7
-                    continue
+            # Handle operators using predefined patterns
+            # Check for IS NOT first (longer match)
+            if condition[i : i + 7] == "IS NOT ":
+                tokens.append("IS NOT ")
+                i += 7
+                continue
+
+            # Check for two-character operators
+            if condition[i : i + 2] in self.COMPARISON_OPS + ["IS"]:
                 tokens.append(condition[i : i + 2])
                 i += 2
                 continue
 
-            if condition[i] in ["<", ">", "&", "|"]:
+            # Check for single-character operators
+            if condition[i] in self.LOGICAL_OPS + ["<", ">"]:
                 tokens.append(condition[i])
                 i += 1
                 continue
 
-            # Handle expressions
-            if condition[i].isalnum() or condition[i] in "_.":
+            # Handle expressions (field names can contain hyphens)
+            if condition[i].isalnum() or condition[i] in "_-.":
                 expr_end = i
-                while expr_end < len(condition) and (
-                    condition[expr_end].isalnum() or condition[expr_end] in "_. +-"
-                ):
-                    if condition[expr_end : expr_end + 4] == " IS ":
+                # Use regex to find the end of the field name
+                # Stop when we hit an operator or whitespace followed by operator
+                while expr_end < len(condition):
+                    if condition[expr_end] in " ":
+                        # Check if next token is an operator
+                        remaining = condition[expr_end + 1 :]
+                        if re.match(self.OPERATOR_PATTERN, remaining):
+                            break
+                    elif not (
+                        condition[expr_end].isalnum() or condition[expr_end] in "_-.+"
+                    ):
                         break
                     expr_end += 1
 
