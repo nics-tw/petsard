@@ -63,6 +63,8 @@ class Metadata:
             raise ValueError(f"{dtype} is invalid.")
 
         self.metadata["col"][col]["infer_dtype"] = dtype
+        if "col_after_preproc" in self.metadata:
+            self.metadata["col_after_preproc"][col]["infer_dtype"] = dtype
 
     def _check_dataframe_valid(self, data: pd.DataFrame) -> None:
         """

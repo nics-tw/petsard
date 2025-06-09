@@ -5,6 +5,7 @@ from types import NoneType
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype
 
 from petsard.exceptions import ConfigError, UnfittedError
 from petsard.loader.metadata import Metadata
@@ -741,7 +742,18 @@ class Processor:
                         and safe_dtype(transformed[col].dtype).startswith("float")
                     ):
                         transformed[col] = transformed[col].round().astype(int)
+
                     transformed[col] = obj.inverse_transform(transformed[col])
+
+                    # For Datetime after Scaler but not the target of ScalerAnchor (even reference will be affect)
+                    if (
+                        not is_datetime64_any_dtype(transformed[col])
+                        and self._metadata.metadata["col"][col]["infer_dtype"]
+                        == "datetime"
+                    ):
+                        # TODO: here we assume every datetime should output as date...
+                        # It should be control on meteadata level
+                        transformed[col] = pd.to_datetime(transformed[col]).dt.date
 
                 self.logger.info(
                     f"{type(processor).__name__} inverse transformation done."
