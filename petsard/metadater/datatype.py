@@ -98,3 +98,8 @@ class LogicalType(Enum):
     HASH_SHA256 = "hash_sha256"
     FILE_PATH = "file_path"
     DATETIME_ISO = "datetime_iso"
+
+
+def legacy_safe_round(value: float, decimals: int = 4) -> float:
+    """Safe round function"""
+    return round(value, decimals)
