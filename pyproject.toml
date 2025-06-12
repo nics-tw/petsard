@@ -131,6 +131,34 @@ dev = [
 requires = ["hatchling"]           # 指定 Hatchling 作為建置工具 Specifies Hatchling as the build tool
 build-backend = "hatchling.build"  # 使用 Hatchling 的後端建置套件 Uses Hatchling's build backend
 
+[tool.ruff]
+# 基本設定
+line-length = 88
+target-version = "py38"
+
+# 選擇要檢查的規則
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+
+# 忽略的規則
+ignore = [
+    "E501",  # 行長度限制（已在 line-length 設定）
+]
+
+[tool.ruff.format]
+# 格式化設定
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 [tool.semantic_release]
 tag_format = "v{version}"                  # 版本標籤格式 Version tag format
 major_on_zero = false                      # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
