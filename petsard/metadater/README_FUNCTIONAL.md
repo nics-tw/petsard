@@ -224,9 +224,9 @@ def test_calculate_field_stats():
     # 純函數測試
     data = pd.Series([1, 2, 3])
     metadata = FieldMetadata(name="test", data_type=DataType.INT64)
-    
+
     stats = calculate_field_stats(data, metadata)
-    
+
     assert stats.row_count == 3
     assert stats.na_count == 0
 ```

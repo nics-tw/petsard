@@ -50,6 +50,7 @@ def build_schema_metadata(
     schema_stats = None
     if config.compute_stats:
         schema_stats = calculate_schema_stats(data, fields)
+
     # Create schema metadata
     schema = SchemaMetadata(
         schema_id=config.schema_id,
@@ -59,6 +60,7 @@ def build_schema_metadata(
         stats=schema_stats,
         properties=config.properties.copy(),
     )
+
     return schema
 
 
@@ -77,10 +79,12 @@ def calculate_schema_stats(
     """
     row_count = len(data)
     field_count = len(fields)
+
     # Calculate total null count across all fields
     total_na_count = int(data.isna().sum().sum())
     total_cells = row_count * field_count
     na_percentage = (total_na_count / total_cells * 100) if total_cells > 0 else 0.0
+
     return SchemaStats(
         row_count=row_count,
         field_count=field_count,
@@ -96,10 +100,12 @@ def validate_schema_data(
 ) -> Dict[str, Any]:
     """
     Pure function to validate DataFrame against schema
+
     Args:
         data: DataFrame to validate
         schema: Schema metadata to validate against
         strict: Whether to use strict validation
+
     Returns:
         Validation report dictionary
     """
@@ -128,6 +134,7 @@ def validate_schema_data(
             "message": f"Extra fields not in schema: {extra_fields}",
         }
         warnings.append(warning)
+
     # Validate each field
     for field_metadata in schema.fields:
         if field_metadata.name not in data.columns:
@@ -144,6 +151,7 @@ def validate_schema_data(
                 "message": f"Field '{field_metadata.name}' contains null values but nullable=False",
             }
             violations.append(violation)
+
         # Check data type compatibility (if strict)
         if strict and field_metadata.source_dtype:
             expected_dtype = field_metadata.source_dtype
@@ -157,6 +165,7 @@ def validate_schema_data(
                     "message": f"Data type mismatch in '{field_metadata.name}': expected {expected_dtype}, got {actual_dtype}",
                 }
                 violations.append(violation)
+
     return {
         "valid": len(violations) == 0,
         "violations": violations,
@@ -180,15 +189,18 @@ def apply_schema_transformations(
 ) -> pd.DataFrame:
     """
     Pure function to apply schema transformations to DataFrame
+
     Args:
         data: DataFrame to transform
         schema: Schema metadata with transformation rules
         include_fields: Optional list of fields to include
         exclude_fields: Optional list of fields to exclude
+
     Returns:
         Transformed DataFrame
     """
     result = data.copy()
+
     # Determine which fields to process
     fields_to_process = []
     for field_metadata in schema.fields:
