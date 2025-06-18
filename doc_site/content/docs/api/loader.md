@@ -69,7 +69,7 @@ None.
 **Return**
 
 - `data` (`pd.DataFrame`): Loaded DataFrame
-- `metadata` (`Metadata`): Dataset metadata
+- `metadata` (`SchemaMetadata`): Dataset schema metadata with field information and statistics
 
 ```python
 loader = Loader('data.csv')
