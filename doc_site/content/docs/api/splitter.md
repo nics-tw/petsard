@@ -16,7 +16,9 @@ Splitter(
 )
 ```
 
-For experimental purposes, splits data into training and validation sets. Designed to support privacy evaluation tasks like Anonymeter, where multiple splits can reduce bias in synthetic data assessment. For imbalanced datasets, larger `num_samples` is recommended.
+For experimental purposes, splits data into training and validation sets using functional programming patterns. Designed to support privacy evaluation tasks like Anonymeter, where multiple splits can reduce bias in synthetic data assessment. For imbalanced datasets, larger `num_samples` is recommended.
+
+The module uses a functional approach with pure functions and immutable data structures, returning `(data, metadata)` tuples for consistency with other PETsARD modules.
 
 ## Parameters
 
@@ -37,10 +39,19 @@ For experimental purposes, splits data into training and validation sets. Design
 from petsard import Splitter
 
 
-# Basic usage
-split = Splitter(num_samples=5, train_split_ratio=0.8)
-split.split(data=df)
-train_df = split.data[1]['train'] # first split's training set
+# Basic usage with functional API
+splitter = Splitter(num_samples=5, train_split_ratio=0.8)
+split_data, split_metadata = splitter.split(data=df, metadata=metadata)
+
+# Access split results
+train_df = split_data[1]['train']  # First split's training set
+val_df = split_data[1]['validation']  # First split's validation set
+
+# Multiple samples for bias reduction
+for sample_num in range(1, 6):  # 5 samples
+    train_set = split_data[sample_num]['train']
+    val_set = split_data[sample_num]['validation']
+    # Use for privacy evaluation...
 ```
 
 ## Methods
@@ -48,10 +59,10 @@ train_df = split.data[1]['train'] # first split's training set
 ### `split()`
 
 ```python
-split.split(data, exclude_index=None, metadata=None)
+data, metadata = split.split(data, exclude_index=None, metadata=None)
 ```
 
-Perform data splitting.
+Perform data splitting using functional programming patterns.
 
 **Parameters**
 
@@ -59,25 +70,26 @@ Perform data splitting.
   - Not required if `method='custom_data'`
 - `exclude_index` (list[int], optional): List of indices to exclude from sampling
   - Default: None
-- `metadata` (Metadata, optional): Metadata object of the dataset
+- `metadata` (SchemaMetadata, optional): Schema metadata object of the dataset
   - Default: None
 
 **Returns**
 
-None.
+- `data` (dict): Dictionary containing all split results
+  - Format: `{sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}`
+- `metadata` (SchemaMetadata): Updated schema metadata with split information
 
-- Split results are stored in:
-  - `Splitter.data`: Dictionary containing all split results
-  - `Splitter.metadata`: Dataset metadata
-- Access split data via:
-  - `Splitter.data[sample_num]['train']`: Training set for specific sample
-  - `Splitter.data[sample_num]['validation']`: Validation set for specific sample
+```python
+splitter = Splitter(num_samples=3, train_split_ratio=0.8)
+split_data, split_metadata = splitter.split(data=df, metadata=metadata)
+
+# Access split data
+train_df = split_data[1]['train']  # First split's training set
+val_df = split_data[1]['validation']  # First split's validation set
+```
 
 ## Attributes
 
-- `data`: Split datasets dictionary
-  - Format: `{sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}`
-- `metadata`: Dataset metadata (Metadata object)
 - `config`: Configuration dictionary containing:
   - If `method=None`:
     - `num_samples` (int): Resample times
@@ -87,3 +99,5 @@ None.
     - `method` (str): Loading method
     - `filepath` (dict): Data file paths
     - Additional Loader configurations
+
+**Note**: The new functional API returns data and metadata directly from the `split()` method rather than storing them as instance attributes. This approach follows functional programming principles with immutable data structures.
