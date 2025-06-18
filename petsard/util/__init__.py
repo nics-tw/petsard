@@ -1,5 +1,4 @@
 from petsard.util.casting_dataframe import casting_dataframe
-from petsard.util.digest_sha256 import digest_sha256
 from petsard.util.dtype_operations import (
     align_dtypes,
     optimize_dtype,
@@ -20,7 +19,6 @@ from petsard.util.params import (
 __all__ = [
     align_dtypes,
     casting_dataframe,
-    digest_sha256,
     optimize_dtype,
     optimize_dtypes,
     safe_astype,
