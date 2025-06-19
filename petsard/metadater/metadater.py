@@ -1,102 +1,167 @@
 import logging
-from typing import Any, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
-from petsard.metadater.field_ops import FieldOperations
-from petsard.metadater.metadata import Metadata
-from petsard.metadater.metadata_ops import MetadataOperations
-from petsard.metadater.schema_meta import SchemaMetadata
-from petsard.metadater.schema_ops import SchemaOperations
+from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
+from petsard.metadater.metadata.metadata_types import Metadata, MetadataConfig
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
 
 class Metadater:
     """
-    Main class for metadata management
+    統一的元資料管理介面
+
+    提供三層架構的清晰介面：
+    - Metadata 層: 多表格資料集管理
+    - Schema 層: 單表格結構管理
+    - Field 層: 單欄位分析管理
 
     Usage:
-        meta = Metadater()
-        metadata = meta.build_metadata_from_datasets(datasets, config)
-        aligned_data = meta.apply_field_config(data, schema)
-    """
+        # Schema 層 (最常用)
+        schema = Metadater.create_schema(dataframe, "my_schema")
+        schema = Metadater.analyze_dataframe(dataframe, "my_schema")
 
-    CONFIG_KEYS: list[str] = [
-        "column_types",
-        "cast_errors",
-        "descriptions",
-    ]
+        # Field 層
+        field = Metadater.create_field(series, "my_field")
+        field = Metadater.analyze_series(series, "my_field")
+
+        # Metadata 層 (多表格)
+        metadata = Metadater.create_metadata("my_dataset")
+        metadata = Metadater.analyze_dataset(tables, "my_dataset")
+    """
 
     def __init__(self):
         """Initialize the Metadater"""
         self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
-        self.field_ops = FieldOperations()
-        self.schema_ops = SchemaOperations()
-        self.metadata_ops = MetadataOperations()
 
-    # Delegation methods for backward compatibility
+    # Metadata 層 (多表格資料集)
     @classmethod
-    def build_field_from_series(cls, *args, **kwargs):
-        """Delegate to FieldOperations"""
-        field_ops = FieldOperations()
-        return field_ops.build_field_from_series(*args, **kwargs)
+    def create_metadata(
+        cls, metadata_id: str, config: Optional[MetadataConfig] = None
+    ) -> Metadata:
+        """
+        建立多表格元資料容器
 
-    @classmethod
-    def build_schema_from_dataframe(cls, *args, **kwargs):
-        """Delegate to SchemaOperations"""
-        schema_ops = SchemaOperations()
-        return schema_ops.build_schema_from_dataframe(*args, **kwargs)
+        Args:
+            metadata_id: 元資料識別碼
+            config: 可選的元資料配置
 
-    @classmethod
-    def build_metadata_from_datasets(cls, *args, **kwargs):
-        """Delegate to MetadataOperations"""
-        metadata_ops = MetadataOperations()
-        return metadata_ops.build_metadata_from_datasets(*args, **kwargs)
+        Returns:
+            Metadata 物件
+        """
+        from petsard.metadater.metadata.metadata_ops import MetadataOperations
 
-    @classmethod
-    def apply_field_config(cls, *args, **kwargs):
-        """Delegate to SchemaOperations"""
-        return SchemaOperations.apply_field_config(*args, **kwargs)
+        if config is None:
+            config = MetadataConfig(metadata_id=metadata_id)
+
+        return MetadataOperations.create_metadata(config)
 
     @classmethod
-    def validate_against_schema(cls, *args, **kwargs):
-        """Delegate to SchemaOperations"""
-        return SchemaOperations.validate_against_schema(*args, **kwargs)
+    def analyze_dataset(
+        cls,
+        tables: Dict[str, pd.DataFrame],
+        metadata_id: str,
+        config: Optional[MetadataConfig] = None,
+    ) -> Metadata:
+        """
+        分析多表格資料集
 
-    # Static utility methods
-    @staticmethod
-    def create_schema_config(
-        column_types: Optional[dict[str, str]] = None,
-        cast_errors: Optional[dict[str, str]] = None,
-        descriptions: Optional[dict[str, str]] = None,
-    ) -> dict[str, Any]:
-        """Create a configuration dictionary for schema metadata"""
-        config: dict[str, Any] = {}
+        Args:
+            tables: 表格字典 {table_name: dataframe}
+            metadata_id: 元資料識別碼
+            config: 可選的元資料配置
 
-        fields_config: dict[str, Any] = {}
-        for param_dict, param_key in [
-            (column_types, "type_hint"),
-            (cast_errors, "cast_error"),
-            (descriptions, "description"),
-        ]:
-            if param_dict:
-                for field_name, value in param_dict.items():
-                    fields_config.setdefault(field_name, {})[param_key] = value
-        config["fields"] = fields_config
+        Returns:
+            完整的 Metadata 物件
+        """
+        from petsard.metadater.metadata.metadata_ops import MetadataOperations
 
-        return config
+        if config is None:
+            config = MetadataConfig(metadata_id=metadata_id)
 
-    # Convenience class methods
+        return MetadataOperations.analyze_dataset(tables, config)
+
+    # Schema 層 (單表格結構)
     @classmethod
-    def get_metadata_to_dataframe(cls, metadata: Metadata) -> pd.DataFrame:
-        """Convert Metadata to DataFrame"""
-        return MetadataOperations.get_metadata_to_dataframe(metadata)
+    def create_schema(
+        cls,
+        dataframe: pd.DataFrame,
+        schema_id: str,
+        config: Optional[SchemaConfig] = None,
+    ) -> SchemaMetadata:
+        """
+        建立單表格結構描述
+
+        Args:
+            dataframe: 要分析的 DataFrame
+            schema_id: 結構描述識別碼
+            config: 可選的結構描述配置
+
+        Returns:
+            SchemaMetadata 物件
+        """
+        from petsard.metadater.schema.schema_functions import build_schema_metadata
+        from petsard.metadater.schema.schema_types import SchemaConfig
+
+        if config is None:
+            config = SchemaConfig(schema_id=schema_id)
+
+        return build_schema_metadata(dataframe, config)
 
     @classmethod
-    def get_schema_to_dataframe(cls, schema: SchemaMetadata) -> pd.DataFrame:
-        """Convert SchemaMetadata to DataFrame"""
-        return MetadataOperations.get_schema_to_dataframe(schema)
+    def analyze_dataframe(
+        cls,
+        dataframe: pd.DataFrame,
+        schema_id: str,
+        config: Optional[SchemaConfig] = None,
+    ) -> SchemaMetadata:
+        """
+        分析單表格結構 (create_schema 的別名，語意更清楚)
+
+        Args:
+            dataframe: 要分析的 DataFrame
+            schema_id: 結構描述識別碼
+            config: 可選的結構描述配置
+
+        Returns:
+            SchemaMetadata 物件
+        """
+        return cls.create_schema(dataframe, schema_id, config)
+
+    # Field 層 (單欄位分析)
+    @classmethod
+    def create_field(
+        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+    ) -> FieldMetadata:
+        """
+        建立單欄位元資料
+
+        Args:
+            series: 要分析的 Series
+            field_name: 欄位名稱
+            config: 可選的欄位配置
+
+        Returns:
+            FieldMetadata 物件
+        """
+        from petsard.metadater.field.field_functions import build_field_metadata
+
+        return build_field_metadata(series, field_name, config)
 
     @classmethod
-    def get_fields_to_dataframe(cls, schema: SchemaMetadata) -> pd.DataFrame:
-        """Convert fields to DataFrame"""
-        return MetadataOperations.get_fields_to_dataframe(schema)
+    def analyze_series(
+        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+    ) -> FieldMetadata:
+        """
+        分析單欄位資料 (create_field 的別名，語意更清楚)
+
+        Args:
+            series: 要分析的 Series
+            field_name: 欄位名稱
+            config: 可選的欄位配置
+
+        Returns:
+            FieldMetadata 物件
+        """
+        return cls.create_field(series, field_name, config)

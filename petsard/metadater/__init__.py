@@ -1,80 +1,47 @@
-# New functional programming interface (recommended)
-from petsard.metadater.api import (
-    FieldPipeline,
-    analyze_dataframe_fields,
-    analyze_field,
-    compose,
-    create_field_analyzer,
-    create_schema_from_dataframe,
-    pipe,
-    validate_field_data,
-)
+"""
+PETsARD Metadater Module - 元資料管理模組
 
-# Core functional operations
-from petsard.metadater.core.field_functions import (
-    build_field_metadata,
-    calculate_field_stats,
-    infer_field_logical_type,
-    optimize_field_dtype,
-)
+提供統一的三層架構元資料管理介面：
+- Metadata 層: 多表格資料集管理 (datasets)
+- Schema 層: 單表格結構管理 (dataframe)
+- Field 層: 單欄位分析管理 (column)
 
-# Legacy compatibility (deprecated)
-from petsard.metadater.field_meta import FieldConfig as LegacyFieldConfig
-from petsard.metadater.field_meta import FieldMetadata as LegacyFieldMetadata
-from petsard.metadater.field_ops import FieldOperations
-from petsard.metadater.metadata import Metadata as LegacyMetadata
+主要使用方式：
+    from petsard.metadater import Metadater
+
+    # 最常用：分析單表格
+    schema = Metadater.create_schema(dataframe, "my_schema")
+
+    # 分析單欄位
+    field = Metadater.create_field(series, "my_field")
+
+    # 分析多表格資料集
+    metadata = Metadater.analyze_dataset(tables, "my_dataset")
+"""
+
+# 主要介面
+from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
+
+# 核心類型 (使用者需要的)
+from petsard.metadater.metadata.metadata_types import Metadata, MetadataConfig
 from petsard.metadater.metadater import Metadater
-from petsard.metadater.schema_meta import SchemaConfig as LegacySchemaConfig
-from petsard.metadater.schema_meta import SchemaMetadata as LegacySchemaMetadata
-from petsard.metadater.schema_ops import SchemaOperations
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
+from petsard.metadater.types.data_types import safe_round
 
-# Type definitions
-from petsard.metadater.types import (
-    DataType,
-    FieldConfig,
-    FieldMetadata,
-    FieldStats,
-    LogicalType,
-    Metadata,
-    MetadataConfig,
-    SchemaConfig,
-    SchemaMetadata,
-    SchemaStats,
-)
+# 工具函數 (必要的)
+from petsard.metadater.utils import load_external_module
 
 __all__ = [
-    # Functional API (recommended)
-    "analyze_field",
-    "analyze_dataframe_fields",
-    "create_field_analyzer",
-    "create_schema_from_dataframe",
-    "compose",
-    "pipe",
-    "FieldPipeline",
-    "validate_field_data",
-    # Type definitions
-    "DataType",
-    "LogicalType",
-    "FieldConfig",
-    "FieldMetadata",
-    "FieldStats",
-    "SchemaConfig",
-    "SchemaMetadata",
-    "SchemaStats",
+    # 主要介面
+    "Metadater",
+    # 核心類型
     "Metadata",
     "MetadataConfig",
-    # Core functions
-    "build_field_metadata",
-    "calculate_field_stats",
-    "infer_field_logical_type",
-    "optimize_field_dtype",
-    # Legacy compatibility (deprecated)
-    "Metadater",
-    "FieldOperations",
-    "SchemaOperations",
-    "LegacyMetadata",
-    "LegacySchemaMetadata",
-    "LegacyFieldMetadata",
-    "LegacySchemaConfig",
-    "LegacyFieldConfig",
+    "SchemaMetadata",
+    "SchemaConfig",
+    "FieldMetadata",
+    "FieldConfig",
+    # 工具函數
+    "load_external_module",
+    "safe_round",
 ]

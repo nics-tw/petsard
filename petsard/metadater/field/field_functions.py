@@ -12,8 +12,8 @@ from pandas.api.types import (
     is_object_dtype,
 )
 
+from petsard.metadater.field.field_types import FieldConfig, FieldMetadata, FieldStats
 from petsard.metadater.types.data_types import DataType, LogicalType
-from petsard.metadater.types.field_types import FieldConfig, FieldMetadata, FieldStats
 
 
 def build_field_metadata(

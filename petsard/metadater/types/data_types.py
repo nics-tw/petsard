@@ -1,102 +1,99 @@
-"""Basic data type definitions for the metadater module"""
+"""Core data type definitions and utilities"""
 
 from enum import Enum
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 
 class DataType(Enum):
-    """Basic data types supported by the metadater"""
+    """Basic data types for field metadata"""
 
-    # Numeric types
+    BOOLEAN = "boolean"
     INT8 = "int8"
     INT16 = "int16"
     INT32 = "int32"
     INT64 = "int64"
     FLOAT32 = "float32"
     FLOAT64 = "float64"
-    DECIMAL = "decimal"
-
-    # Text types
     STRING = "string"
     BINARY = "binary"
-
-    # Boolean type
-    BOOLEAN = "boolean"
-
-    # Date/Time types
     DATE = "date"
     TIME = "time"
     TIMESTAMP = "timestamp"
     TIMESTAMP_TZ = "timestamp_tz"
 
-    # Complex types
-    JSON = "json"
-    ARRAY = "array"
-    OBJECT = "object"
-
-    # Unknown type
-    UNKNOWN = "unknown"
-
 
 class LogicalType(Enum):
-    """Logical types that provide semantic meaning to data"""
+    """Logical/semantic types for field metadata"""
 
-    # Identifiers
-    UUID = "uuid"
-    ID = "id"
+    # Numeric types
+    INTEGER = "integer"
+    DECIMAL = "decimal"
+    PERCENTAGE = "percentage"
+    CURRENCY = "currency"
 
-    # Contact information
+    # Text types
+    TEXT = "text"
+    CATEGORICAL = "categorical"
     EMAIL = "email"
-    PHONE = "phone"
     URL = "url"
+    UUID = "uuid"
 
-    # Geographic
+    # Geographic types
     LATITUDE = "latitude"
     LONGITUDE = "longitude"
     IP_ADDRESS = "ip_address"
-    POSTAL_CODE = "postal_code"
-    COUNTRY_CODE = "country_code"
 
-    # Financial
-    CURRENCY = "currency"
-    PERCENTAGE = "percentage"
+    # Temporal types
+    DATETIME = "datetime"
+    DATE = "date"
+    TIME = "time"
+    DURATION = "duration"
 
-    # Categorical
-    CATEGORICAL = "categorical"
-    ORDINAL = "ordinal"
-
-    # Text patterns
-    REGEX_PATTERN = "regex_pattern"
-
-    # Other
-    HASH = "hash"
-    ENCODED = "encoded"
+    # Identifiers
+    PRIMARY_KEY = "primary_key"
+    FOREIGN_KEY = "foreign_key"
 
 
-# Type aliases for better readability
-DataTypeValue = Union[DataType, str]
-LogicalTypeValue = Union[LogicalType, str, None]
-AnyValue = Any
-
-
-def safe_round(value: float, decimals: int = 4) -> float:
+def safe_round(value: Any, decimals: int = 2) -> Optional[Union[int, float]]:
     """
-    Safely round a float value to specified decimal places.
-
-    This is a legacy compatibility function.
+    安全的四捨五入函數，處理 None 和非數值類型
 
     Args:
-        value: The value to round
-        decimals: Number of decimal places
+        value: 要四捨五入的值
+        decimals: 小數位數
 
     Returns:
-        Rounded value
+        四捨五入後的值，如果輸入無效則返回 None
     """
+    if value is None:
+        return None
+
     try:
-        return round(float(value), decimals)
-    except (ValueError, TypeError):
-        return 0.0
+        if isinstance(value, (int, float)):
+            rounded = round(float(value), decimals)
+            # 如果小數位數為 0 且結果是整數，返回 int
+            if decimals == 0:
+                return int(rounded)
+            return rounded
+        else:
+            # 嘗試轉換為數值
+            numeric_value = float(value)
+            rounded = round(numeric_value, decimals)
+            if decimals == 0:
+                return int(rounded)
+            return rounded
+    except (ValueError, TypeError, OverflowError):
+        return None
 
 
-# Legacy compatibility
-legacy_safe_round = safe_round
+# 評估分數粒度對應表
+EvaluationScoreGranularityMap = {
+    "high": 0.01,
+    "medium": 0.1,
+    "low": 1.0,
+}
+
+
+# Type aliases
+DataTypeValue = Union[DataType, str]
+LogicalTypeValue = Union[LogicalType, str]

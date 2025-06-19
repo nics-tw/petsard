@@ -5,15 +5,14 @@ from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
-from petsard.metadater.core.field_functions import (
+from petsard.metadater.field.field_functions import (
     build_field_metadata,
     calculate_field_stats,
-    infer_field_logical_type,
-    optimize_field_dtype,
 )
+from petsard.metadater.field.field_ops import optimize_field_dtype
+from petsard.metadater.field.type_inference import infer_field_logical_type
 from petsard.metadater.types.data_types import LogicalType
 from petsard.metadater.types.field_types import FieldConfig, FieldMetadata, FieldStats
-from petsard.metadater.types.schema_types import SchemaConfig, SchemaMetadata
 
 
 # Functional composition utilities
@@ -191,52 +190,6 @@ def analyze_dataframe_fields(
     return results
 
 
-def create_schema_from_dataframe(
-    data: pd.DataFrame,
-    schema_id: str,
-    config: Optional[SchemaConfig] = None,
-) -> SchemaMetadata:
-    """
-    Create schema metadata from DataFrame using functional approach
-
-    Args:
-        data: DataFrame to analyze
-        schema_id: Schema identifier
-        config: Optional schema configuration
-
-    Returns:
-        SchemaMetadata object
-    """
-    if config is None:
-        config = SchemaConfig(schema_id=schema_id)
-
-    # Create analyzer with config settings
-    analyzer = create_field_analyzer(
-        compute_stats=config.compute_stats,
-        infer_logical_type=config.infer_logical_types,
-        optimize_dtype=config.optimize_dtypes,
-        sample_size=config.sample_size,
-    )
-
-    # Analyze all fields
-    field_metadata_dict = analyze_dataframe_fields(
-        data=data,
-        field_configs=config.fields,
-        analyzer=analyzer,
-    )
-
-    # Build schema
-    schema = SchemaMetadata(
-        schema_id=schema_id,
-        name=config.name,
-        description=config.description,
-        fields=list(field_metadata_dict.values()),
-        properties=config.properties,
-    )
-
-    return schema
-
-
 # Functional validation
 def validate_field_data(
     field_data: pd.Series,
@@ -303,7 +256,6 @@ __all__ = [
     "FieldPipeline",
     # Schema operations
     "analyze_dataframe_fields",
-    "create_schema_from_dataframe",
     # Validation
     "validate_field_data",
 ]

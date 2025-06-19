@@ -2,8 +2,8 @@
 
 import pandas as pd
 
+from petsard.metadater.field.field_types import FieldMetadata
 from petsard.metadater.types.data_types import DataType, LogicalType
-from petsard.metadater.types.field_types import FieldMetadata
 
 
 def transform_field_data(

@@ -8,9 +8,9 @@ from typing import Any, Optional, Union
 import pandas as pd
 
 from petsard.metadater.datatype import DataType, LogicalType, legacy_safe_round
-from petsard.metadater.field_meta import FieldMetadata
-from petsard.metadater.field_ops import FieldOperations
-from petsard.metadater.schema_meta import SchemaConfig, SchemaMetadata
+from petsard.metadater.field.field_ops import FieldOperations
+from petsard.metadater.field.field_types import FieldMetadata
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
 
 class SchemaOperations:

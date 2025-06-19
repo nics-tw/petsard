@@ -4,9 +4,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
+from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 from petsard.metadater.types.data_types import DataType, LogicalType
-from petsard.metadater.types.field_types import FieldConfig, FieldMetadata
-from petsard.metadater.types.schema_types import SchemaConfig, SchemaMetadata
 
 
 def validate_field_config(config: FieldConfig) -> Dict[str, Any]:

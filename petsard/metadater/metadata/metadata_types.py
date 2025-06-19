@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from petsard.metadater.types.schema_types import SchemaConfig, SchemaMetadata
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
 
 @dataclass(frozen=True)

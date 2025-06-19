@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from petsard.metadater.core.field_functions import build_field_metadata
-from petsard.metadater.types.field_types import FieldMetadata
-from petsard.metadater.types.schema_types import (
+from petsard.metadater.field.field_functions import build_field_metadata
+from petsard.metadater.field.field_types import FieldMetadata
+from petsard.metadater.schema.schema_types import (
     SchemaConfig,
     SchemaMetadata,
     SchemaStats,
