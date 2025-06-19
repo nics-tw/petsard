@@ -11,65 +11,142 @@ next: docs/api/metadata
 Metadater()
 ```
 
-Advanced metadata management system that provides comprehensive field analysis, schema operations, and metadata transformations. The system operates on a three-tier hierarchy: **Metadata** (top-level container for multiple datasets) → **Schema** (structure definition for individual datasets) → **Field** (column-level metadata with statistics and type information). Supports functional programming patterns and pipeline-based processing for complex data workflows.
+Advanced metadata management system that provides comprehensive field analysis, schema operations, and metadata transformations. The system operates on a three-tier hierarchy: **Metadata** (multi-table datasets) → **Schema** (single table structure) → **Field** (column-level metadata with statistics and type information). Supports functional programming patterns and pipeline-based processing for complex data workflows.
+
+## Design Overview
+
+Metadater adopts a four-tier architecture design combined with functional programming principles, providing a clear, composable, and easy-to-use metadata management interface. We have simplified the complex 23 public interfaces to 9 core interfaces, significantly reducing usage complexity.
+
+**Four-tier Architecture**: `Metadata → Schema → Field → Types`
+
+### Three-Tier Architecture
+
+#### 📊 Metadata Layer (Multi-table Datasets)
+```
+Responsibility: Managing datasets composed of multiple tables
+Use Cases: Relational databases, multi-table analysis
+Main Types: Metadata, MetadataConfig
+```
+
+#### 📋 Schema Layer (Single Table Structure) - Most Common
+```
+Responsibility: Managing structure description of individual DataFrames
+Use Cases: Single table analysis, data preprocessing
+Main Types: SchemaMetadata, SchemaConfig
+```
+
+#### 🔍 Field Layer (Single Column Analysis)
+```
+Responsibility: Managing detailed analysis of individual columns
+Use Cases: Column-level deep analysis
+Main Types: FieldMetadata, FieldConfig
+```
+
+## Core Design Principles
+
+### 1. Immutable Data Structures
+- All data types use `@dataclass(frozen=True)`
+- Update operations return new object instances
+- Support functional data transformations
+
+```python
+# Old way (mutable)
+field_metadata.stats = new_stats
+
+# New way (immutable)
+field_metadata = field_metadata.with_stats(new_stats)
+```
+
+### 2. Pure Functions
+- All core business logic consists of pure functions
+- Same input always produces same output
+- No side effects, easy to test and reason about
+
+### 3. Unified Naming Convention
+| Verb | Purpose | Examples |
+|------|---------|----------|
+| **create** | Create new objects | `create_metadata`, `create_schema`, `create_field` |
+| **analyze** | Analyze and infer | `analyze_dataset`, `analyze_dataframe`, `analyze_series` |
+| **validate** | Validate and check | `validate_metadata`, `validate_schema`, `validate_field` |
 
 ## Parameters
 
 None
 
-## Examples
+## Basic Usage
 
+### Most Common Usage
 ```python
-from petsard import Metadater
-import pandas as pd
+from petsard.metadater import Metadater
 
-# Initialize Metadater
-metadater = Metadater()
+# Schema Layer: Analyze single table (most common)
+schema = Metadater.create_schema(df, "my_data")
+schema = Metadater.analyze_dataframe(df, "my_data")  # Clearer semantics
 
-# Build metadata from multiple datasets
-datasets = {
-    'users': pd.DataFrame({'id': [1, 2, 3], 'name': ['Alice', 'Bob', 'Charlie']}),
-    'orders': pd.DataFrame({'order_id': [101, 102], 'user_id': [1, 2]})
-}
+# Field Layer: Analyze single column
+field = Metadater.create_field(df['age'], "age")
+field = Metadater.analyze_series(df['email'], "email")  # Clearer semantics
+```
 
-metadata = metadater.build_metadata_from_datasets(datasets)
+### Advanced Usage
+```python
+# Metadata Layer: Analyze multi-table datasets
+tables = {"users": user_df, "orders": order_df}
+metadata = Metadater.analyze_dataset(tables, "ecommerce")
 
-# Create schema configuration
-config = metadater.create_schema_config(
-    column_types={'id': 'int', 'name': 'str'},
-    descriptions={'id': 'User identifier', 'name': 'User full name'}
+# Configured analysis
+from petsard.metadater import SchemaConfig, FieldConfig
+
+config = SchemaConfig(
+    schema_id="my_schema",
+    compute_stats=True,
+    infer_logical_types=True
 )
-
-# Apply field configuration
-aligned_data = metadater.apply_field_config(df, schema)
-
-# Convert metadata to DataFrame for analysis
-metadata_df = metadater.get_metadata_to_dataframe(metadata)
+schema = Metadater.create_schema(df, "my_data", config)
 ```
 
 ## Methods
 
-### `build_metadata_from_datasets()`
+### `create_schema()`
 
 ```python
-metadater.build_metadata_from_datasets(datasets, config=None)
+Metadater.create_schema(dataframe, schema_id, config=None)
 ```
 
-Build comprehensive metadata from multiple DataFrames with optional configuration.
+Create schema metadata from DataFrame with automatic field analysis.
 
 **Parameters**
 
-- `datasets` (dict[str, pd.DataFrame]): Dictionary mapping schema names to DataFrames
-- `config` (MetadataConfig | dict, optional): Configuration for metadata generation
+- `dataframe` (pd.DataFrame): Input DataFrame
+- `schema_id` (str): Schema identifier
+- `config` (SchemaConfig, optional): Schema configuration settings
 
 **Returns**
 
-- `Metadata`: Complete metadata object containing all schema information
+- `SchemaMetadata`: Complete schema with field metadata and relationships
 
-### `build_field_from_series()`
+### `analyze_dataframe()`
 
 ```python
-metadater.build_field_from_series(series, field_name, config=None)
+Metadater.analyze_dataframe(dataframe, schema_id, config=None)
+```
+
+Analyze DataFrame structure and generate comprehensive schema metadata.
+
+**Parameters**
+
+- `dataframe` (pd.DataFrame): Input DataFrame to analyze
+- `schema_id` (str): Schema identifier
+- `config` (SchemaConfig, optional): Analysis configuration
+
+**Returns**
+
+- `SchemaMetadata`: Complete schema analysis with field metadata
+
+### `create_field()`
+
+```python
+Metadater.create_field(series, field_name, config=None)
 ```
 
 Create detailed field metadata from a pandas Series.
@@ -84,180 +161,220 @@ Create detailed field metadata from a pandas Series.
 
 - `FieldMetadata`: Comprehensive field metadata including statistics and type information
 
-### `build_schema_from_dataframe()`
+### `analyze_series()`
 
 ```python
-metadater.build_schema_from_dataframe(data, config=None)
+Metadater.analyze_series(series, field_name, config=None)
 ```
 
-Generate schema metadata from DataFrame with automatic field analysis.
+Analyze series data and generate comprehensive field metadata.
 
 **Parameters**
 
-- `data` (pd.DataFrame): Input DataFrame
-- `config` (SchemaConfig, optional): Schema configuration settings
+- `series` (pd.Series): Input data series to analyze
+- `field_name` (str): Name for the field
+- `config` (FieldConfig, optional): Analysis configuration
 
 **Returns**
 
-- `SchemaMetadata`: Complete schema with field metadata and relationships
+- `FieldMetadata`: Detailed field analysis with statistics and type information
 
-### `apply_field_config()`
+### `analyze_dataset()`
 
 ```python
-metadater.apply_field_config(data, schema)
+Metadater.analyze_dataset(tables, metadata_id, config=None)
 ```
 
-Apply field configurations to align data with schema requirements.
+Analyze multiple tables and generate comprehensive metadata.
 
 **Parameters**
 
-- `data` (pd.DataFrame): Input DataFrame to transform
-- `schema` (SchemaMetadata): Target schema configuration
+- `tables` (dict[str, pd.DataFrame]): Dictionary mapping table names to DataFrames
+- `metadata_id` (str): Metadata identifier
+- `config` (MetadataConfig, optional): Metadata configuration
 
 **Returns**
 
-- `pd.DataFrame`: Transformed DataFrame aligned with schema
+- `Metadata`: Complete metadata object containing all schema information
 
-### `validate_against_schema()`
+### Removed Legacy Methods
 
+The following methods have been removed from Metadater. Please use the new unified API:
+
+- ~~`create_schema_from_dataframe()`~~ → Use `create_schema()`
+- ~~`build_field_metadata()`~~ → Use `create_field()`
+
+**Migration Example**:
 ```python
-metadater.validate_against_schema(data, schema)
+# Legacy (removed)
+# schema = Metadater.create_schema_from_dataframe(df, "my_schema")
+# field = Metadater.build_field_metadata(series, "field_name")
+
+# New (recommended)
+schema = Metadater.create_schema(df, "my_schema")
+field = Metadater.create_field(series, "field_name")
 ```
 
-Validate DataFrame against schema requirements and return validation results.
+## Functional Programming Features
 
-**Parameters**
-
-- `data` (pd.DataFrame): DataFrame to validate
-- `schema` (SchemaMetadata): Schema to validate against
-
-**Returns**
-
-- `dict`: Validation results with violations and warnings
-
-### `create_schema_config()`
-
+### Function Composition
 ```python
-metadater.create_schema_config(column_types=None, cast_errors=None, descriptions=None)
+from petsard.metadater import compose, pipe
+
+# Define processing steps
+def step1(data): return process_data_1(data)
+def step2(data): return process_data_2(data)
+def step3(data): return process_data_3(data)
+
+# Compose functions
+process_pipeline = compose(step3, step2, step1)
+result = process_pipeline(input_data)
+
+# Or use pipeline style
+result = pipe(input_data, step1, step2, step3)
 ```
 
-Create configuration dictionary for schema metadata generation.
-
-**Parameters**
-
-- `column_types` (dict[str, str], optional): Column name to type mappings
-- `cast_errors` (dict[str, str], optional): Error handling strategies per column
-- `descriptions` (dict[str, str], optional): Column descriptions
-
-**Returns**
-
-- `dict`: Configuration dictionary for schema operations
-
-### `get_metadata_to_dataframe()`
-
+### Pipeline Processing
 ```python
-metadater.get_metadata_to_dataframe(metadata)
-```
+from petsard.metadater import FieldPipeline
 
-Convert Metadata object to DataFrame for analysis and visualization.
-
-**Parameters**
-
-- `metadata` (Metadata): Metadata object to convert
-
-**Returns**
-
-- `pd.DataFrame`: Tabular representation of metadata
-
-### `get_schema_to_dataframe()`
-
-```python
-metadater.get_schema_to_dataframe(schema)
-```
-
-Convert SchemaMetadata to DataFrame format.
-
-**Parameters**
-
-- `schema` (SchemaMetadata): Schema metadata to convert
-
-**Returns**
-
-- `pd.DataFrame`: Schema information in tabular format
-
-### `get_fields_to_dataframe()`
-
-```python
-metadater.get_fields_to_dataframe(schema)
-```
-
-Extract field information from schema as DataFrame with detailed statistics.
-
-**Parameters**
-
-- `schema` (SchemaMetadata): Schema containing field metadata
-
-**Returns**
-
-- `pd.DataFrame`: Comprehensive field analysis with statistics and properties
-
-## Attributes
-
-- `field_ops`: FieldOperations instance for field-level operations
-- `schema_ops`: SchemaOperations instance for schema-level operations  
-- `metadata_ops`: MetadataOperations instance for metadata-level operations
-- `CONFIG_KEYS`: List of supported configuration keys ['column_types', 'cast_errors', 'descriptions']
-
-## Advanced Processing Features
-
-Metadater provides advanced field processing capabilities through functional APIs and pipeline-based workflows:
-
-### FieldPipeline
-
-`FieldPipeline` enables chaining multiple field processing steps in a configurable pipeline:
-
-```python
-from petsard.metadater import FieldPipeline, analyze_field
-
-# Create a processing pipeline
+# Create processing pipeline
 pipeline = (FieldPipeline()
-    .with_stats(enabled=True)                    # Calculate field statistics
-    .with_logical_type_inference(enabled=True)   # Infer logical types (email, phone, etc.)
-    .with_dtype_optimization(enabled=True))      # Optimize pandas dtypes
+           .with_stats(enabled=True)
+           .with_logical_type_inference(enabled=True)
+           .with_dtype_optimization(enabled=True))
 
-# Create initial metadata
-initial_metadata = analyze_field(data, "field_name", compute_stats=False)
-
-# Process through pipeline
-final_metadata = pipeline.process(data, initial_metadata)
+# Process field
+result = pipeline.process(field_data, initial_metadata)
 ```
 
-### Functional Field Analysis
+## Design Benefits
+
+### 1. Significantly Reduced API Complexity
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Public Interface Count | 23 | 9 | -61% |
+| Cognitive Load | High (exceeds 7±2) | Medium (follows principle) | ✅ |
+| Learning Curve | Steep | Gentle | ✅ |
+
+### 2. Enhanced Architecture Clarity
+| Layer | Before | After | Improvement |
+|-------|--------|-------|-------------|
+| **Metadata** | Unclear responsibility | Multi-table management | ✅ Clear responsibility |
+| **Schema** | Confused with Field | Single table management | ✅ Clear boundaries |
+| **Field** | Overlapping functions | Single column management | ✅ Focused functionality |
+
+### 3. Functional Programming Benefits
+- **Testability**: Pure functions are easy to unit test, no complex mock setup needed
+- **Composability**: Small functions can be composed into complex functionality, flexible configuration and customization
+- **Maintainability**: Clear separation of concerns, immutable data structures prevent accidental modifications
+- **Performance**: Immutable data structures support caching, pure functions support memoization
+- **Type Safety**: Strong type checking, compile-time error detection
+
+## Backward Compatibility
 
 ```python
-from petsard.metadater import (
-    analyze_field, 
-    analyze_dataframe_fields,
-    create_field_analyzer,
-    compose
+# Use the new unified API
+schema = Metadater.create_schema(df, "my_schema")
+field = Metadater.create_field(series, "field_name")
+```
+
+## Available Tools in `__init__.py`
+
+The Metadater module provides a comprehensive set of tools organized into different categories:
+
+### Core Interface (9 interfaces)
+
+- **`Metadater`**: Primary class providing unified metadata operations
+- **`Metadata`**, **`SchemaMetadata`**, **`FieldMetadata`**: Core types
+- **`MetadataConfig`**, **`SchemaConfig`**, **`FieldConfig`**: Configuration types
+- **`load_external_module`**, **`safe_round`**: Utility functions
+
+### Functional API Tools
+
+- **`analyze_field()`**: Analyze individual field data with comprehensive metadata generation
+- **`analyze_dataframe_fields()`**: Analyze all fields in a DataFrame with optional field configurations
+- **`create_field_analyzer()`**: Create custom field analyzer with specific settings using partial application
+- **`compose()`**: Function composition utility for creating complex processing pipelines
+- **`pipe()`**: Pipeline utility for chaining operations
+- **`FieldPipeline`**: Configurable pipeline for field processing with method chaining
+
+## Examples
+
+### Basic Field Analysis
+
+```python
+from petsard.metadater import Metadater
+import pandas as pd
+
+# Create sample data
+data = pd.Series([1, 2, 3, 4, 5, None, 7, 8, 9, 10], name="numbers")
+
+# Analyze field using new interface
+field_metadata = Metadater.analyze_series(
+    series=data,
+    field_name="numbers"
 )
 
-# Direct field analysis
-field_metadata = analyze_field(
-    field_data=series,
-    field_name="column_name",
-    compute_stats=True,
-    infer_logical_type=True
+print(f"Field: {field_metadata.name}")
+print(f"Data Type: {field_metadata.data_type}")
+print(f"Nullable: {field_metadata.nullable}")
+if field_metadata.stats:
+    print(f"Stats: {field_metadata.stats.row_count} rows, {field_metadata.stats.na_count} nulls")
+```
+
+### Schema Analysis
+
+```python
+from petsard.metadater import Metadater, SchemaConfig
+import pandas as pd
+
+# Create sample DataFrame
+df = pd.DataFrame({
+    'id': [1, 2, 3, 4, 5],
+    'name': ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'],
+    'email': ['alice@test.com', 'bob@test.com', 'charlie@test.com', 'diana@test.com', 'eve@test.com'],
+    'age': [25, 30, 35, 28, 32],
+})
+
+# Analyze DataFrame
+schema = Metadater.analyze_dataframe(
+    dataframe=df,
+    schema_id="user_data"
 )
 
-# Custom analyzer with specific settings
-fast_analyzer = create_field_analyzer(
-    compute_stats=False,
-    sample_size=100
+print(f"Schema: {schema.name}")
+print(f"Fields: {len(schema.fields)}")
+for field_name, field_metadata in schema.fields.items():
+    print(f"  {field_name}: {field_metadata.data_type.value}")
+```
+
+### Multi-table Analysis
+
+```python
+from petsard.metadater import Metadater
+import pandas as pd
+
+# Create multiple tables
+tables = {
+    'users': pd.DataFrame({
+        'id': [1, 2, 3], 
+        'name': ['Alice', 'Bob', 'Charlie']
+    }),
+    'orders': pd.DataFrame({
+        'order_id': [101, 102], 
+        'user_id': [1, 2]
+    })
+}
+
+# Analyze dataset
+metadata = Metadater.analyze_dataset(
+    tables=tables,
+    metadata_id="ecommerce"
 )
 
-# Analyze entire DataFrame
-field_metadata_dict = analyze_dataframe_fields(
-    data=df, 
-    field_configs=field_configs
-)
+print(f"Metadata: {metadata.metadata_id}")
+print(f"Schemas: {len(metadata.schemas)}")
+```
+
+This redesigned Metadater provides a clear, composable, and easy-to-use metadata management solution while maintaining functional completeness and extensibility.
