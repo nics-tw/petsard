@@ -28,7 +28,7 @@ from petsard.evaluator.data_describer_base import (
 )
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.util import safe_round
+from petsard.metadater import safe_round
 
 
 class DataDescriberMap(Enum):

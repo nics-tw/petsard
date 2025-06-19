@@ -18,8 +18,7 @@ from petsard.evaluator.stats_base import (
     StatsStd,
 )
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.loader import Metadata
-from petsard.util import safe_round
+from petsard.metadater import Metadater, safe_round
 
 
 class StatsMap(Enum):
@@ -171,10 +170,19 @@ class StatsConfig(BaseConfig):
             for source in ["ori", "syn"]:
                 if colname in data[source].columns:
                     dtype = data[source][colname].dtype
+                    # Create a temporary series to analyze the data type
+                    temp_series = data[source][colname]
+                    field_metadata = Metadater.create_field(
+                        series=temp_series,
+                        field_name=colname,
+                        compute_stats=False,
+                        infer_logical_type=False,
+                        optimize_dtype=False,
+                    )
                     temp.update(
                         {
                             f"{source}_dtype": dtype,
-                            f"{source}_infer_dtype": Metadata._convert_dtypes(dtype),
+                            f"{source}_infer_dtype": field_metadata.data_type.value.lower(),
                         }
                     )
             temp["dtype_match"] = temp.get("ori_dtype") == temp.get("syn_dtype")

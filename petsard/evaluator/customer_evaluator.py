@@ -2,7 +2,7 @@ import pandas as pd
 
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError
-from petsard.util import load_external_module
+from petsard.metadater import Metadater
 
 
 class CustomEvaluator(BaseEvaluator):
@@ -44,7 +44,7 @@ class CustomEvaluator(BaseEvaluator):
             raise ConfigError(error_msg)
 
         evaluator_class: callable = None
-        _, evaluator_class = load_external_module(
+        _, evaluator_class = Metadater.load_external_module(
             module_path=self.config["module_path"],
             class_name=self.config["class_name"],
             logger=self._logger,
