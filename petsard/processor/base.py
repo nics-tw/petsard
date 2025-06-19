@@ -1,6 +1,7 @@
 import logging
 import warnings
 from copy import deepcopy
+from datetime import datetime
 from types import NoneType
 
 import numpy as np
@@ -8,7 +9,7 @@ import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype
 
 from petsard.exceptions import ConfigError, UnfittedError
-from petsard.loader.metadata import Metadata
+from petsard.metadater import FieldConfig, Metadater, SchemaMetadata
 from petsard.processor.discretizing import DiscretizingKBins
 from petsard.processor.encoder import (
     EncoderDateDiff,
@@ -44,7 +45,6 @@ from petsard.processor.scaler import (
     ScalerTimeAnchor,
     ScalerZeroCenter,
 )
-from petsard.util import optimize_dtype, safe_astype, safe_dtype, safe_infer_dtype
 
 
 class DefaultProcessorMap:
@@ -169,11 +169,11 @@ class Processor:
     MAX_SEQUENCE_LENGTH: int = 4  # Maximum number of procedures allowed in sequence
     DEFAULT_SEQUENCE: list[str] = ["missing", "outlier", "encoder", "scaler"]
 
-    def __init__(self, metadata: Metadata, config: dict = None) -> None:
+    def __init__(self, metadata: SchemaMetadata, config: dict = None) -> None:
         """
         Args:
-            metadata (Metadata):
-                The metadata class to provide the metadata of the data,
+            metadata (SchemaMetadata):
+                The schema metadata class to provide the metadata of the data,
                 which contains the properties of the data,
                 including column names, column types, inferred column types,
                 NA percentage per column, total number of rows and columns, NA percentage in the data.
@@ -197,7 +197,7 @@ class Processor:
 
         Attr.
             logger (logging.Logger): The logger for the processor.
-            _metadata (Metadata): The metadata of the data.
+            _metadata (SchemaMetadata): The schema metadata of the data.
             _is_fitted (bool): Whether the processor is fitted.
             _config (dict): The config of the processor.
             _working_config (dict): The temporary config for in-process columns.
@@ -211,17 +211,14 @@ class Processor:
         # Setup logging
         self.logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
         self.logger.debug("Initializing Processor")
-        self.logger.debug(
-            f"Loaded metadata contains {len(metadata.metadata['col'])} columns, "
-            f"with {metadata.metadata['global']['row_num']} rows"
-        )
+        self.logger.debug(f"Loaded metadata contains {len(metadata.fields)} fields")
 
         self.logger.debug("config is provided:")
         self.logger.debug(f"config is provided: {config}")
 
         # Initialize metadata
-        self._metadata: Metadata = metadata
-        self.logger.debug("Metadata loaded.")
+        self._metadata: SchemaMetadata = metadata
+        self.logger.debug("Schema metadata loaded.")
 
         # Initialize processing state
         self._is_fitted: bool = False
@@ -237,9 +234,7 @@ class Processor:
         self._mediator: dict[str, Mediator] = {}
 
         # Setup NA handling
-        self._na_percentage_global: float = self._metadata.metadata["global"].get(
-            "na_percentage", 0.0
-        )
+        self._na_percentage_global: float = self._get_global_na_percentage()
         self._rng = np.random.default_rng()  # Random number generator for NA imputation
 
         self._generate_config()
@@ -248,6 +243,73 @@ class Processor:
             self.update_config(config=config)
 
         self.logger.debug("Config loaded.")
+
+    def _get_field_names(self) -> list[str]:
+        """Get all field names from schema metadata"""
+        return [field.name for field in self._metadata.fields]
+
+    def _get_field_infer_dtype(self, field_name: str) -> str:
+        """Get inferred data type for a field"""
+        field = self._metadata.get_field(field_name)
+        if not field:
+            raise ValueError(f"Field {field_name} not found in metadata")
+
+        # Map DataType to legacy string format
+        if hasattr(field.data_type, "value"):
+            data_type_str = field.data_type.value.lower()
+        else:
+            data_type_str = str(field.data_type).lower()
+
+        # Map specific DataType values to legacy categories
+        if data_type_str in [
+            "int8",
+            "int16",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "decimal",
+        ]:
+            return "numerical"
+        elif data_type_str in ["string", "binary"]:
+            return "categorical"
+        elif data_type_str == "boolean":
+            return "categorical"
+        elif data_type_str in ["date", "time", "timestamp", "timestamp_tz"]:
+            return "datetime"
+        else:
+            return "object"
+
+    def _get_field_dtype(self, field_name: str) -> str:
+        """Get source dtype for a field"""
+        field = self._metadata.get_field(field_name)
+        if not field:
+            raise ValueError(f"Field {field_name} not found in metadata")
+        return field.source_dtype
+
+    def _get_field_na_percentage(self, field_name: str) -> float:
+        """Get NA percentage for a field"""
+        field = self._metadata.get_field(field_name)
+        if not field or not field.stats:
+            return 0.0
+        return field.stats.na_percentage
+
+    def _get_global_na_percentage(self) -> float:
+        """Calculate global NA percentage from all fields"""
+        if not self._metadata.fields:
+            return 0.0
+
+        total_na = sum(
+            field.stats.na_count if field.stats else 0
+            for field in self._metadata.fields
+        )
+        total_rows = max(
+            field.stats.row_count if field.stats else 0
+            for field in self._metadata.fields
+        )
+        total_cells = total_rows * len(self._metadata.fields)
+
+        return (total_na / total_cells) if total_cells > 0 else 0.0
 
     def _generate_config(self) -> None:
         """
@@ -266,17 +328,17 @@ class Processor:
         """
         self.logger.debug("Starting config generation")
 
+        field_names = self._get_field_names()
         self._config: dict = {
-            processor: dict.fromkeys(self._metadata.metadata["col"].keys())
+            processor: dict.fromkeys(field_names)
             for processor in DefaultProcessorMap.VALID_TYPES
         }
 
-        for col, val in self._metadata.metadata["col"].items():
-            self.logger.debug(
-                f"Processing column '{col}': inferred type {val['infer_dtype']}"
-            )
+        for col in field_names:
+            infer_dtype = self._get_field_infer_dtype(col)
+            self.logger.debug(f"Processing column '{col}': inferred type {infer_dtype}")
             for processor, obj in DefaultProcessorMap.PROCESSOR_MAP.items():
-                processor_class = obj[val["infer_dtype"]]
+                processor_class = obj[infer_dtype]
                 self.logger.debug(
                     f"  > Setting {processor} processor: {processor_class.__name__}"
                 )
@@ -304,7 +366,7 @@ class Processor:
         if col:
             get_col_list = col
         else:
-            get_col_list = list(self._metadata.metadata["col"].keys())
+            get_col_list = self._get_field_names()
 
         for processor in self._config.keys():
             for colname in get_col_list:
@@ -406,10 +468,10 @@ class Processor:
                 # Skip fit() for MediatorScaler
                 if not isinstance(processor, MediatorScaler):
                     self.logger.debug(
-                        f"mediator: {type(obj).__name__} start processing."
+                        f"mediator: {type(processor).__name__} start processing."
                     )
                     processor.fit(data)
-                    self.logger.info(f"{type(obj).__name__} fitting done.")
+                    self.logger.info(f"{type(processor).__name__} fitting done.")
 
         # it is a shallow copy
         self._working_config = self._config.copy()
@@ -562,8 +624,8 @@ class Processor:
 
                     self.transformed[col] = obj.transform(self.transformed[col])
 
-                    col_metadata: dict = self._metadata.metadata["col"][col]
-                    if col_metadata["infer_dtype"] == "datetime":
+                    infer_dtype = self._get_field_infer_dtype(col)
+                    if infer_dtype == "datetime":
                         # it is fine to re-adjust mulitple times
                         #   for get the final dtype,
                         # and it is impossible for re-adjust under current logic
@@ -627,9 +689,10 @@ class Processor:
                 )
                 self.logger.info(f"{type(processor).__name__} transformation done.")
 
-        self._metadata.metadata["global"]["row_num_after_preproc"] = (
-            self.transformed.shape[0]
-        )
+        # Update global row count after preprocessing
+        # Note: SchemaMetadata doesn't have mutable global stats like old Metadata
+        # This information can be tracked separately if needed
+        pass
 
         transformed: pd.DataFrame = self.transformed.copy()
         delattr(self, "transformed")
@@ -670,9 +733,9 @@ class Processor:
                     warnings.simplefilter("ignore")
                     # the NA percentage taking global NA percentage
                     # into consideration
+                    field_na_percentage = self._get_field_na_percentage(col)
                     adjusted_na_percentage: float = (
-                        self._metadata.metadata["col"][col].get("na_percentage", 0.0)
-                        / self._na_percentage_global
+                        field_na_percentage / self._na_percentage_global
                     )
             # if there is no NA in the original data
             except ZeroDivisionError:
@@ -739,7 +802,7 @@ class Processor:
                     ) or (
                         processor == "encoder"
                         and isinstance(obj, EncoderLabel)
-                        and safe_dtype(transformed[col].dtype).startswith("float")
+                        and str(transformed[col].dtype).startswith("float")
                     ):
                         transformed[col] = transformed[col].round().astype(int)
 
@@ -748,8 +811,7 @@ class Processor:
                     # For Datetime after Scaler but not the target of ScalerAnchor (even reference will be affect)
                     if (
                         not is_datetime64_any_dtype(transformed[col])
-                        and self._metadata.metadata["col"][col]["infer_dtype"]
-                        == "datetime"
+                        and self._get_field_infer_dtype(col) == "datetime"
                     ):
                         # TODO: here we assume every datetime should output as date...
                         # It should be control on meteadata level
@@ -788,11 +850,10 @@ class Processor:
         changes_dict: dict = {"processor": [], "col": [], "current": [], "default": []}
 
         for processor, default_class in DefaultProcessorMap.PROCESSOR_MAP.items():
-            for col in self._metadata.metadata["col"].keys():
+            for col in self._get_field_names():
                 obj = self._config[processor][col]
-                default_obj = default_class[
-                    self._metadata.metadata["col"][col]["infer_dtype"]
-                ]
+                infer_dtype = self._get_field_infer_dtype(col)
+                default_obj = default_class[infer_dtype]
 
                 if default_obj() is None:
                     default_obj = NoneType
@@ -857,8 +918,11 @@ class Processor:
         Return:
             (pd.DataFrame): The aligned data.
         """
-        for col, val in self._metadata.metadata["col"].items():
-            data[col] = safe_astype(data[col], val["dtype"])
+        for col in self._get_field_names():
+            dtype = self._get_field_dtype(col)
+            data[col] = Metadater.apply_dtype_conversion(
+                data[col], dtype, cast_error="coerce"
+            )
 
         return data
 
@@ -897,39 +961,77 @@ class Processor:
                 if col is None:
                     self.logger.warning("Column name not specified")
                     raise ConfigError("col is not specified.")
-                if col not in self._metadata.metadata["col"]:
+                if not self._metadata.get_field(col):
                     raise ConfigError(f"{col} is not in the metadata.")
 
                 self.logger.debug(f"Adjusting metadata for column '{col}'")
 
-                dtype_after_preproc: str = optimize_dtype(data)
-                infer_dtype_after_preproc: str = safe_infer_dtype(
-                    safe_dtype(dtype_after_preproc)
+                # Calculate optimized dtype information
+                # Use Metadater's public API to analyze the field
+                temp_field_config = FieldConfig()
+                temp_field_metadata = Metadater.create_field(
+                    series=data,
+                    field_name=col,
+                    config=temp_field_config,
+                    compute_stats=False,
+                    infer_logical_type=False,
+                    optimize_dtype=True,
                 )
-                self._metadata.metadata["col"][col]["dtype_after_preproc"] = (
-                    dtype_after_preproc
-                )
-                self._metadata.metadata["col"][col]["infer_dtype_after_preproc"] = (
-                    infer_dtype_after_preproc
+                dtype_after_preproc: str = temp_field_metadata.target_dtype or str(
+                    data.dtype
                 )
 
-                if "col_after_preproc" in self._metadata.metadata:
-                    self._metadata.metadata["col_after_preproc"][col][
-                        "dtype_after_preproc"
-                    ] = dtype_after_preproc
-                    self._metadata.metadata["col_after_preproc"][col][
-                        "infer_dtype_after_preproc"
-                    ] = infer_dtype_after_preproc
+                # Map data type to legacy categories using the field metadata
+                data_type = temp_field_metadata.data_type
+                if hasattr(data_type, "value"):
+                    data_type_str = data_type.value.lower()
+                else:
+                    data_type_str = str(data_type).lower()
+
+                # Map to legacy categories
+                if data_type_str in [
+                    "int8",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "float32",
+                    "float64",
+                    "decimal",
+                ]:
+                    infer_dtype_after_preproc = "numerical"
+                elif data_type_str in ["string", "binary"]:
+                    infer_dtype_after_preproc = "categorical"
+                elif data_type_str == "boolean":
+                    infer_dtype_after_preproc = "categorical"
+                elif data_type_str in ["date", "time", "timestamp", "timestamp_tz"]:
+                    infer_dtype_after_preproc = "datetime"
+                else:
+                    infer_dtype_after_preproc = "object"
+
+                # Note: SchemaMetadata is immutable, so we can't directly update it
+                # In a full refactor, we might want to create a new SchemaMetadata
+                # or track these changes separately. For now, we'll log the information.
+                self.logger.debug(
+                    f"Column '{col}' dtype after preprocessing: {dtype_after_preproc}, "
+                    f"inferred type: {infer_dtype_after_preproc}"
+                )
             elif mode == "global":
                 if not isinstance(data, pd.DataFrame):
                     raise ConfigError("data should be pd.DataFrame in global mode.")
 
                 self.logger.debug("Performing global metadata adjustment")
 
-                new_metadata = Metadata()
-                new_metadata.build_metadata(data=data)
-                self._metadata.metadata["col_after_preproc"] = deepcopy(
-                    new_metadata.metadata["col"]
+                # Create new schema metadata for the transformed data
+                new_schema_metadata = Metadater.create_schema(
+                    dataframe=data,
+                    schema_id=f"processor_adjusted_{datetime.now().isoformat()}",
+                )
+
+                # Note: In the original design, this would update col_after_preproc
+                # Since SchemaMetadata is immutable, we log this information instead
+                self.logger.debug(
+                    f"Created new schema metadata for transformed data with "
+                    f"{len(new_schema_metadata.fields)} fields"
                 )
             else:
                 raise ConfigError("Invalid mode.")
