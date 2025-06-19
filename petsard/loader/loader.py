@@ -17,9 +17,7 @@ from petsard.exceptions import (
     UnsupportedMethodError,
 )
 from petsard.loader.benchmarker import BenchmarkerRequests
-from petsard.metadater import FieldConfig, SchemaConfig, SchemaMetadata
-from petsard.metadater.api import create_schema_from_dataframe
-from petsard.metadater.core.schema_functions import apply_schema_transformations
+from petsard.metadater import FieldConfig, Metadater, SchemaConfig, SchemaMetadata
 
 
 class LoaderFileExt:
@@ -381,11 +379,11 @@ class Loader:
             optimize_dtypes=True,
         )
 
-        # 4. Build schema metadata using new functional API
+        # 4. Build schema metadata using Metadater public API
         self._logger.info("Building schema metadata from dataframe")
         try:
-            schema: SchemaMetadata = create_schema_from_dataframe(
-                data=data, schema_id=schema_config.schema_id, config=schema_config
+            schema: SchemaMetadata = Metadater.create_schema(
+                dataframe=data, schema_id=schema_config.schema_id, config=schema_config
             )
             self._logger.debug(f"Built schema with {len(schema.fields)} fields")
         except Exception as e:
@@ -393,9 +391,13 @@ class Loader:
             self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg) from e
 
-        # 5. Apply schema transformations using functional API
+        # 5. Apply schema transformations using schema functions
         self._logger.info("Applying schema transformations to optimize data")
         try:
+            from petsard.metadater.schema.schema_functions import (
+                apply_schema_transformations,
+            )
+
             data = apply_schema_transformations(
                 data=data, schema=schema, include_fields=None, exclude_fields=None
             )
