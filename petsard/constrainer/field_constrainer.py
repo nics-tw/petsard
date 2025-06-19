@@ -205,7 +205,9 @@ class FieldConstrainer(BaseConstrainer):
                 tokens.copy(), result, involved_columns
             )
             if mask is None:
-                warnings.warn(f"Warning: Constraint '{constraint}' parsing failed")
+                warnings.warn(
+                    f"Warning: Constraint '{constraint}' parsing failed", stacklevel=2
+                )
                 continue
 
             # Apply the constraint
@@ -350,6 +352,7 @@ class FieldConstrainer(BaseConstrainer):
                 warnings.warn(
                     f"Warning: Column '{col1}' or '{col2}' does not exist",
                     UserWarning,
+                    stacklevel=2,
                 )
                 return None, involved_columns
             involved_columns = list(set(involved_columns + [col1, col2]))
@@ -377,7 +380,9 @@ class FieldConstrainer(BaseConstrainer):
                 return pd.Series(result, index=df.index), involved_columns
 
             except Exception as e:
-                warnings.warn(f"Warning: Operation failed '{str(e)}'", UserWarning)
+                warnings.warn(
+                    f"Warning: Operation failed '{str(e)}'", UserWarning, stacklevel=2
+                )
                 return None, involved_columns
 
         if expr in df.columns:
@@ -393,7 +398,9 @@ class FieldConstrainer(BaseConstrainer):
             return float(expr), involved_columns
         except Exception:
             if expr != "pd.NA":
-                warnings.warn(f"Warning: Cannot parse value '{expr}'", UserWarning)
+                warnings.warn(
+                    f"Warning: Cannot parse value '{expr}'", UserWarning, stacklevel=2
+                )
             return None, involved_columns
 
     def _process_comparison(
@@ -440,13 +447,15 @@ class FieldConstrainer(BaseConstrainer):
             elif op == "!=":
                 result = left != right
             else:
-                warnings.warn(f"Warning: Unsupported operator '{op}'")
+                warnings.warn(f"Warning: Unsupported operator '{op}'", stacklevel=2)
                 return pd.Series(False, index=df.index)
 
             return result
         except Exception as e:
             print(f"Comparison failed: {e}")
-            warnings.warn(f"Warning: Comparison operation failed '{str(e)}'")
+            warnings.warn(
+                f"Warning: Comparison operation failed '{str(e)}'", stacklevel=2
+            )
             return pd.Series(False, index=df.index)
 
     def _parse_expression(

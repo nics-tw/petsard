@@ -81,7 +81,7 @@ class NaNGroupConstrainer(BaseConstrainer):
                             f"For {action} action, related field must be a dict of dictionaries"
                         )
 
-                    for target_col, expected_values in related.items():
+                    for _target_col, expected_values in related.items():
                         if not isinstance(expected_values, (str, list)):
                             raise ConfigError(
                                 f"For {action} action, expected values must be a string or list of strings"
@@ -180,7 +180,8 @@ class NaNGroupConstrainer(BaseConstrainer):
                 for col in related_cols:
                     if col == main_field:
                         warnings.warn(
-                            f"Warning: Related field '{col}' cannot be the same as main field"
+                            f"Warning: Related field '{col}' cannot be the same as main field",
+                            stacklevel=2,
                         )
                         continue
 
@@ -189,7 +190,8 @@ class NaNGroupConstrainer(BaseConstrainer):
                     elif action == "copy":
                         if result[col].dtype != result[main_field].dtype:
                             warnings.warn(
-                                f"Warning: Cannot copy values from '{main_field}' ({result[main_field].dtype}) to '{col}' ({result[col].dtype})"
+                                f"Warning: Cannot copy values from '{main_field}' ({result[main_field].dtype}) to '{col}' ({result[col].dtype})",
+                                stacklevel=2,
                             )
                             continue
                         mask = result[main_field].notna() & result[col].isna()

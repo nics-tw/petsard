@@ -48,7 +48,10 @@ class Constrainer:
         """Initialize all constraint instances"""
         for constraint_type, config in self.config.items():
             if constraint_type not in self._constraints:
-                warnings.warn(f"Warning: Unknown constraint type '{constraint_type}'")
+                warnings.warn(
+                    f"Warning: Unknown constraint type '{constraint_type}'",
+                    stacklevel=2,
+                )
                 continue
             else:
                 self._constrainers[constraint_type] = self._constraints[
@@ -66,7 +69,7 @@ class Constrainer:
             DataFrame after applying all constraints
         """
         result = df.copy()
-        for constraint_type, constrainer in self._constrainers.items():
+        for _constraint_type, constrainer in self._constrainers.items():
             result = constrainer.apply(result)
         return result
 
@@ -130,7 +133,8 @@ class Constrainer:
             self.resample_trails += 1
             if self.resample_trails >= max_trials:
                 warnings.warn(
-                    f"Maximum trials ({max_trials}) reached but only got {result_df.shape[0] if result_df is not None else 0} rows"
+                    f"Maximum trials ({max_trials}) reached but only got {result_df.shape[0] if result_df is not None else 0} rows",
+                    stacklevel=2,
                 )
                 break
 
