@@ -152,10 +152,10 @@ class TestSplitter:
         """
         with (
             patch(
-                "petsard.loader.loader.create_schema_from_dataframe"
+                "petsard.metadater.metadater.Metadater.create_schema"
             ) as mock_create_schema,
             patch(
-                "petsard.loader.loader.apply_schema_transformations"
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
             ) as mock_apply_transformations,
             patch("pandas.read_csv") as mock_read_csv,
         ):
