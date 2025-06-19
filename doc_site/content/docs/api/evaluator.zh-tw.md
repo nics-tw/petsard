@@ -1,7 +1,7 @@
 ---
 title: Evaluator
 type: docs
-weight: 57
+weight: 58
 prev: docs/api/constrainer
 next: docs/api/reporter
 ---

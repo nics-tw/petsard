@@ -1,7 +1,7 @@
 ---
 title: Loader
 type: docs
-weight: 52
+weight: 53
 prev: docs/api/executor
 next: docs/api/splitter
 ---

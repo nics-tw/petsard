@@ -13,6 +13,10 @@ sidebar:
 - [Executor](./executor)
   - The main interface for experiment pipeline
 
+## Data Management
+- [Metadater](./metadater)
+  - Dataset schema and metadata management
+
 ## Pipeline Components
 - [Loader](./loader)
   - Data loading and handling
@@ -28,11 +32,7 @@ sidebar:
 - [Evaluator](./evaluator)
   - Privacy, fidelity, and utility assessment
   - Appx.: Available Evaluation Methods.
-- [Reporter](./reporter)
-  - Results export and reporting
-
-## Data Management
-- [Metadata](./metadata)
-  - Dataset schema and properties
 - [Describer](./describer)
   - Descriptive data summary
+- [Reporter](./reporter)
+  - Results export and reporting

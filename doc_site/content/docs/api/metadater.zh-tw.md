@@ -1,7 +1,7 @@
 ---
 title: Metadater
 type: docs
-weight: 58
+weight: 52
 prev: docs/api/loader
 next: docs/api/metadata
 ---
@@ -197,23 +197,6 @@ Metadater.analyze_dataset(tables, metadata_id, config=None)
 
 - `Metadata`：包含所有架構資訊的完整詮釋資料物件
 
-### 已移除的舊版方法
-
-以下方法已從 Metadater 中移除，請使用新的統一 API：
-
-- ~~`create_schema_from_dataframe()`~~ → 使用 `create_schema()`
-- ~~`build_field_metadata()`~~ → 使用 `create_field()`
-
-**遷移範例**：
-```python
-# 舊版 (已移除)
-# schema = Metadater.create_schema_from_dataframe(df, "my_schema")
-# field = Metadater.build_field_metadata(series, "field_name")
-
-# 新版 (推薦)
-schema = Metadater.create_schema(df, "my_schema")
-field = Metadater.create_field(series, "field_name")
-```
 
 ## 函數式程式設計功能
 

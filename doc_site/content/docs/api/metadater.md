@@ -1,7 +1,7 @@
 ---
 title: Metadater
 type: docs
-weight: 58
+weight: 52
 prev: docs/api/loader
 next: docs/api/metadata
 ---
@@ -197,23 +197,6 @@ Analyze multiple tables and generate comprehensive metadata.
 
 - `Metadata`: Complete metadata object containing all schema information
 
-### Removed Legacy Methods
-
-The following methods have been removed from Metadater. Please use the new unified API:
-
-- ~~`create_schema_from_dataframe()`~~ → Use `create_schema()`
-- ~~`build_field_metadata()`~~ → Use `create_field()`
-
-**Migration Example**:
-```python
-# Legacy (removed)
-# schema = Metadater.create_schema_from_dataframe(df, "my_schema")
-# field = Metadater.build_field_metadata(series, "field_name")
-
-# New (recommended)
-schema = Metadater.create_schema(df, "my_schema")
-field = Metadater.create_field(series, "field_name")
-```
 
 ## Functional Programming Features
 
