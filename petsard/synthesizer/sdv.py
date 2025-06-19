@@ -19,7 +19,7 @@ from petsard.exceptions import (
     UnableToSynthesizeError,
     UnsupportedMethodError,
 )
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 from petsard.synthesizer.synthesizer_base import BaseSynthesizer
 
 
@@ -60,11 +60,11 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         SDVSingleTableMap.TVAE: TVAESynthesizer,
     }
 
-    def __init__(self, config: dict, metadata: Metadata = None):
+    def __init__(self, config: dict, metadata: SchemaMetadata = None):
         """
         Args:
             config (dict): The configuration assign by Synthesizer
-            metadata (Metadata, optional): The metadata object.
+            metadata (SchemaMetadata, optional): The metadata object.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -122,7 +122,7 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
                 f"Unsupported synthesizer method: {self.config['syn_method']}"
             )
             self._logger.error(error_msg)
-            raise UnsupportedMethodError(error_msg)
+            raise UnsupportedMethodError(error_msg) from None
 
         # catch warnings during synthesizer initialization:
         # "We strongly recommend saving the metadata using 'save_to_json' for replicability in future SDV versions."
@@ -140,12 +140,14 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         )
         return synthesizer
 
-    def _convert_metadata_from_petsard_to_sdv_dict(self, metadata: Metadata) -> dict:
+    def _convert_metadata_from_petsard_to_sdv_dict(
+        self, metadata: SchemaMetadata
+    ) -> dict:
         """
         Transform the metadata to meet the format of SDV.
 
         Args:
-            metadata (Metadata): The PETsARD metadata of the data.
+            metadata (SchemaMetadata): The PETsARD metadata of the data.
 
         Return:
             (dict): The metadata in SDV metadata format.
@@ -157,45 +159,64 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
 
         sdv_metadata: dict[str, Any] = {"columns": {}}
 
-        # Determine the appropriate column metadata key
-        col_name: str = (
-            "col_after_preproc" if "col_after_preproc" in metadata.metadata else "col"
-        )
-        self._logger.debug(f"Using '{col_name}' as column metadata source")
-
-        # Check if the column metadata exists
-        if col_name not in metadata.metadata:
-            error_msg: str = f"Column metadata key '{col_name}' not found in metadata"
+        # Check if fields exist
+        if not metadata.fields:
+            error_msg: str = "No fields found in SchemaMetadata"
             self._logger.error(error_msg)
             raise MetadataError(error_msg)
 
         # Track conversion statistics
-        total_columns = len(metadata.metadata[col_name])
+        total_columns = len(metadata.fields)
         processed_columns = 0
 
         self._logger.debug(f"Processing {total_columns} columns from metadata")
 
-        for col, val in metadata.metadata[col_name].items():
-            # Determine the data type for SDV
-            sdtype = val.get("infer_dtype")
-            if "infer_dtype_after_preproc" in val:
-                sdtype = val.get("infer_dtype_after_preproc")
-                self._logger.debug(
-                    f"Column '{col}': Using post-processing data type: {sdtype}"
-                )
-            else:
-                self._logger.debug(
-                    f"Column '{col}': Using original data type: {sdtype}"
-                )
+        for field_metadata in metadata.fields:
+            # Convert DataType enum to SDV sdtype
+            from petsard.metadater.datatype import DataType, LogicalType
 
-            # Validate the data type
-            if sdtype is None or sdtype == "object":
-                error_msg: str = f"Column '{col}' has invalid data type"
-                self._logger.error(error_msg)
-                raise MetadataError(error_msg)
+            data_type = field_metadata.data_type
+
+            # Map DataType to SDV sdtype
+            if data_type in [
+                DataType.INT8,
+                DataType.INT16,
+                DataType.INT32,
+                DataType.INT64,
+                DataType.FLOAT32,
+                DataType.FLOAT64,
+                DataType.DECIMAL,
+            ]:
+                sdtype = "numerical"
+            elif data_type == DataType.BOOLEAN:
+                sdtype = "categorical"  # SDV treats boolean as categorical
+            elif data_type in [
+                DataType.DATE,
+                DataType.TIME,
+                DataType.TIMESTAMP,
+                DataType.TIMESTAMP_TZ,
+            ]:
+                sdtype = "datetime"
+            elif data_type in [DataType.STRING, DataType.BINARY]:
+                # Check logical type for better classification
+                if (
+                    field_metadata.logical_type
+                    and field_metadata.logical_type == LogicalType.CATEGORICAL
+                ):
+                    sdtype = "categorical"
+                else:
+                    sdtype = (
+                        "categorical"  # Default string/object to categorical for SDV
+                    )
+            else:
+                sdtype = "categorical"  # Fallback to categorical
+
+            self._logger.debug(
+                f"Column '{field_metadata.name}': DataType {data_type} -> SDV sdtype: {sdtype}"
+            )
 
             # Add to SDV metadata
-            sdv_metadata["columns"][col] = {"sdtype": sdtype}
+            sdv_metadata["columns"][field_metadata.name] = {"sdtype": sdtype}
             processed_columns += 1
 
         self._logger.info(
@@ -208,7 +229,7 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         return sdv_metadata
 
     def _create_sdv_metadata(
-        self, metadata: Metadata = None, data: pd.DataFrame = None
+        self, metadata: SchemaMetadata = None, data: pd.DataFrame = None
     ) -> SDV_Metadata:
         """
         Create or convert metadata for SDV compatibility.
@@ -216,7 +237,7 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
             generates new SDV metadata by detecting it from the provided dataframe.
 
         Args:
-            metadata (Metadata, optional): The metadata of the data.
+            metadata (SchemaMetadata, optional): The metadata of the data.
             data (pd.DataFrame, optional): The data to be fitted.
 
         Returns:
@@ -240,8 +261,9 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
             return sdv_metadata_result
         else:
             self._logger.info("Converting existing metadata to SDV format")
+            # Use SchemaMetadata's to_sdv() method instead of custom conversion
             sdv_metadata = sdv_metadata.load_from_dict(
-                metadata_dict=self._convert_metadata_from_petsard_to_sdv_dict(metadata),
+                metadata_dict=metadata.to_sdv(),
                 single_table_name="table",
             )
             self._logger.debug("Successfully converted metadata to SDV format")
@@ -280,7 +302,7 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         except FitError as ex:
             error_msg: str = f"The synthesizer couldn't fit the data. FitError: {ex}."
             self._logger.error(error_msg)
-            raise UnableToSynthesizeError(error_msg)
+            raise UnableToSynthesizeError(error_msg) from ex
 
     def _sample(self) -> pd.DataFrame:
         """
@@ -311,4 +333,4 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         except Exception as ex:
             error_msg: str = f"SDV synthesizer couldn't sample the data: {ex}"
             self._logger.error(error_msg)
-            raise UnableToSynthesizeError(error_msg)
+            raise UnableToSynthesizeError(error_msg) from ex

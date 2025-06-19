@@ -4,7 +4,8 @@ from typing import Any
 import pandas as pd
 
 from petsard.exceptions import ConfigError
-from petsard.loader import Loader, Metadata
+from petsard.loader import Loader
+from petsard.metadater import SchemaMetadata
 from petsard.synthesizer.synthesizer_base import BaseSynthesizer
 
 
@@ -19,11 +20,11 @@ class CustomDataSynthesizer(BaseSynthesizer):
         "sample_num_rows",
     ]
 
-    def __init__(self, config: dict, metadata: Metadata = None):
+    def __init__(self, config: dict, metadata: SchemaMetadata = None):
         """
         Args:
             config (dict): The configuration assign by Synthesizer
-            metadata (Metadata, optional): The metadata object.
+            metadata (SchemaMetadata, optional): The schema metadata object.
 
         Attributes:
             _logger (logging.Logger): The logger object.
