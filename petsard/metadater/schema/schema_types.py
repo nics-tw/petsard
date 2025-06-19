@@ -203,51 +203,9 @@ class SchemaMetadata:
         Returns:
             dict: Metadata in SDV format
         """
-        if not self.fields:
-            raise ValueError("No fields found in SchemaMetadata")
+        from petsard.metadater.adapters.sdv_adapter import convert_petsard_to_sdv_dict
 
-        sdv_metadata = {"columns": {}}
-
-        for field_metadata in self.fields:
-            data_type = field_metadata.data_type
-
-            # Map DataType to SDV sdtype
-            if hasattr(data_type, "value"):
-                data_type_str = data_type.value.lower()
-            else:
-                data_type_str = str(data_type).lower()
-
-            # Map specific DataType values to SDV categories
-            if data_type_str in [
-                "int8",
-                "int16",
-                "int32",
-                "int64",
-                "float32",
-                "float64",
-                "decimal",
-            ]:
-                sdtype = "numerical"
-            elif data_type_str == "boolean":
-                sdtype = "categorical"  # SDV treats boolean as categorical
-            elif data_type_str in ["date", "time", "timestamp", "timestamp_tz"]:
-                sdtype = "datetime"
-            elif data_type_str in ["string", "binary"]:
-                # Check logical type for better classification
-                if (
-                    field_metadata.logical_type
-                    and hasattr(field_metadata.logical_type, "value")
-                    and field_metadata.logical_type.value.lower() == "categorical"
-                ):
-                    sdtype = "categorical"
-                else:
-                    sdtype = "categorical"  # Default string to categorical for SDV
-            else:
-                sdtype = "categorical"  # Fallback to categorical
-
-            sdv_metadata["columns"][field_metadata.name] = {"sdtype": sdtype}
-
-        return sdv_metadata
+        return convert_petsard_to_sdv_dict(self)
 
 
 # Type aliases
