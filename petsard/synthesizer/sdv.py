@@ -14,11 +14,7 @@ from sdv.single_table import (
 )
 from sdv.single_table.base import BaseSingleTableSynthesizer
 
-from petsard.exceptions import (
-    MetadataError,
-    UnableToSynthesizeError,
-    UnsupportedMethodError,
-)
+from petsard.exceptions import UnableToSynthesizeError, UnsupportedMethodError
 from petsard.metadater import SchemaMetadata
 from petsard.synthesizer.synthesizer_base import BaseSynthesizer
 
@@ -139,94 +135,6 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
             f"Successfully created {synthesizer_class.__name__} instance"
         )
         return synthesizer
-
-    def _convert_metadata_from_petsard_to_sdv_dict(
-        self, metadata: SchemaMetadata
-    ) -> dict:
-        """
-        Transform the metadata to meet the format of SDV.
-
-        Args:
-            metadata (SchemaMetadata): The PETsARD metadata of the data.
-
-        Return:
-            (dict): The metadata in SDV metadata format.
-
-        Raises:
-            MetadataError: If the metadata is invalid.
-        """
-        self._logger.debug("Starting conversion of PETsARD metadata to SDV format")
-
-        sdv_metadata: dict[str, Any] = {"columns": {}}
-
-        # Check if fields exist
-        if not metadata.fields:
-            error_msg: str = "No fields found in SchemaMetadata"
-            self._logger.error(error_msg)
-            raise MetadataError(error_msg)
-
-        # Track conversion statistics
-        total_columns = len(metadata.fields)
-        processed_columns = 0
-
-        self._logger.debug(f"Processing {total_columns} columns from metadata")
-
-        for field_metadata in metadata.fields:
-            # Convert DataType enum to SDV sdtype
-            from petsard.metadater.datatype import DataType, LogicalType
-
-            data_type = field_metadata.data_type
-
-            # Map DataType to SDV sdtype
-            if data_type in [
-                DataType.INT8,
-                DataType.INT16,
-                DataType.INT32,
-                DataType.INT64,
-                DataType.FLOAT32,
-                DataType.FLOAT64,
-                DataType.DECIMAL,
-            ]:
-                sdtype = "numerical"
-            elif data_type == DataType.BOOLEAN:
-                sdtype = "categorical"  # SDV treats boolean as categorical
-            elif data_type in [
-                DataType.DATE,
-                DataType.TIME,
-                DataType.TIMESTAMP,
-                DataType.TIMESTAMP_TZ,
-            ]:
-                sdtype = "datetime"
-            elif data_type in [DataType.STRING, DataType.BINARY]:
-                # Check logical type for better classification
-                if (
-                    field_metadata.logical_type
-                    and field_metadata.logical_type == LogicalType.CATEGORICAL
-                ):
-                    sdtype = "categorical"
-                else:
-                    sdtype = (
-                        "categorical"  # Default string/object to categorical for SDV
-                    )
-            else:
-                sdtype = "categorical"  # Fallback to categorical
-
-            self._logger.debug(
-                f"Column '{field_metadata.name}': DataType {data_type} -> SDV sdtype: {sdtype}"
-            )
-
-            # Add to SDV metadata
-            sdv_metadata["columns"][field_metadata.name] = {"sdtype": sdtype}
-            processed_columns += 1
-
-        self._logger.info(
-            f"Successfully converted {processed_columns}/{total_columns} columns to SDV metadata format"
-        )
-        self._logger.debug(
-            f"SDV metadata contains {len(sdv_metadata['columns'])} columns"
-        )
-
-        return sdv_metadata
 
     def _create_sdv_metadata(
         self, metadata: SchemaMetadata = None, data: pd.DataFrame = None
