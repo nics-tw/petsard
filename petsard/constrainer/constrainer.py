@@ -127,7 +127,14 @@ class Constrainer:
 
         self.resample_trails = 0
         result_df = None
-        remain_rows = target_rows
+        remain_rows = target_rows - data.shape[0]
+
+        if remain_rows <= 0:
+            if remain_rows < 0:
+                data.sample(n=target_rows, random_state=42, inplace=True)
+                data.reset_index(drop=True, inplace=True)
+
+            return data
 
         while remain_rows > 0:
             self.resample_trails += 1
