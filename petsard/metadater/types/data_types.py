@@ -78,8 +78,20 @@ def safe_round(value: Any, decimals: int = 2) -> Optional[Union[int, float]]:
                 return int(rounded)
             return rounded
         else:
-            # 嘗試轉換為數值
-            numeric_value = float(value)
+            # 處理 pandas Series 的情況
+            import pandas as pd
+
+            if isinstance(value, pd.Series):
+                if len(value) == 1:
+                    # 使用 .iloc[0] 來避免 FutureWarning
+                    numeric_value = float(value.iloc[0])
+                else:
+                    # 多元素 Series 無法轉換為單一數值
+                    return None
+            else:
+                # 嘗試轉換為數值
+                numeric_value = float(value)
+
             rounded = round(numeric_value, decimals)
             if decimals == 0:
                 return int(rounded)

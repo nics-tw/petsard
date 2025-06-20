@@ -165,3 +165,151 @@ class Metadater:
             FieldMetadata 物件
         """
         return cls.create_field(series, field_name, config)
+
+    # 處理器相關的元資料調整方法
+    @classmethod
+    def adjust_metadata_after_processing(
+        cls,
+        mode: str,
+        data: pd.Series | pd.DataFrame,
+        original_metadata: "SchemaMetadata",
+        col: str = None,
+    ) -> Optional["SchemaMetadata"]:
+        """
+        在資料處理後調整元資料
+
+        Args:
+            mode (str): 調整模式
+                'columnwise': 基於單欄位調整元資料
+                'global': 基於整個資料框調整元資料
+            data (pd.Series | pd.DataFrame): 處理後的資料
+            original_metadata (SchemaMetadata): 原始元資料
+            col (str): 欄位名稱 (columnwise 模式需要)
+
+        Returns:
+            Optional[SchemaMetadata]: 調整後的元資料 (如果適用)
+
+        Raises:
+            ValueError: 如果參數無效
+        """
+        from datetime import datetime
+
+        logger = logging.getLogger(f"PETsARD.{cls.__name__}")
+        logger.debug(f"Starting metadata adjustment, mode: {mode}")
+
+        try:
+            if mode == "columnwise":
+                if not isinstance(data, pd.Series):
+                    logger.warning("Input data must be pd.Series for columnwise mode")
+                    raise ValueError("data should be pd.Series in columnwise mode.")
+                if col is None:
+                    logger.warning("Column name not specified")
+                    raise ValueError("col is not specified.")
+                if not original_metadata.get_field(col):
+                    raise ValueError(f"{col} is not in the metadata.")
+
+                logger.debug(f"Adjusting metadata for column '{col}'")
+
+                # Calculate optimized dtype information
+                # Use Metadater's public API to analyze the field
+                temp_field_config = FieldConfig()
+                temp_field_metadata = cls.create_field(
+                    series=data,
+                    field_name=col,
+                    config=temp_field_config,
+                )
+                dtype_after_preproc: str = temp_field_metadata.target_dtype or str(
+                    data.dtype
+                )
+
+                # Map data type to legacy categories using the field metadata
+                data_type = temp_field_metadata.data_type
+                if hasattr(data_type, "value"):
+                    data_type_str = data_type.value.lower()
+                else:
+                    data_type_str = str(data_type).lower()
+
+                # Map to legacy categories
+                if data_type_str in [
+                    "int8",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "float32",
+                    "float64",
+                    "decimal",
+                ]:
+                    infer_dtype_after_preproc = "numerical"
+                elif data_type_str in ["string", "binary"]:
+                    infer_dtype_after_preproc = "categorical"
+                elif data_type_str == "boolean":
+                    infer_dtype_after_preproc = "categorical"
+                elif data_type_str in ["date", "time", "timestamp", "timestamp_tz"]:
+                    infer_dtype_after_preproc = "datetime"
+                else:
+                    infer_dtype_after_preproc = "object"
+
+                # Note: SchemaMetadata is immutable, so we can't directly update it
+                # In a full refactor, we might want to create a new SchemaMetadata
+                # or track these changes separately. For now, we'll log the information.
+                logger.debug(
+                    f"Column '{col}' dtype after preprocessing: {dtype_after_preproc}, "
+                    f"inferred type: {infer_dtype_after_preproc}"
+                )
+                return None  # No new metadata returned for columnwise mode
+
+            elif mode == "global":
+                if not isinstance(data, pd.DataFrame):
+                    raise ValueError("data should be pd.DataFrame in global mode.")
+
+                logger.debug("Performing global metadata adjustment")
+
+                # Create new schema metadata for the transformed data
+                new_schema_metadata = cls.create_schema(
+                    dataframe=data,
+                    schema_id=f"processor_adjusted_{datetime.now().isoformat()}",
+                )
+
+                # Note: In the original design, this would update col_after_preproc
+                # Since SchemaMetadata is immutable, we log this information instead
+                logger.debug(
+                    f"Created new schema metadata for transformed data with "
+                    f"{len(new_schema_metadata.fields)} fields"
+                )
+                return new_schema_metadata
+
+            else:
+                raise ValueError("Invalid mode. Must be 'columnwise' or 'global'.")
+
+        except Exception as e:
+            logger.error(f"Metadata adjustment failed: {str(e)}")
+            raise
+
+    @staticmethod
+    def apply_dtype_conversion(
+        series: pd.Series, target_dtype: str, cast_error: str = "raise"
+    ) -> pd.Series:
+        """
+        應用資料類型轉換
+
+        Args:
+            series: 要轉換的 Series
+            target_dtype: 目標資料類型
+            cast_error: 錯誤處理方式 ('raise', 'coerce', 'ignore')
+
+        Returns:
+            轉換後的 Series
+        """
+        try:
+            if cast_error == "coerce":
+                return pd.to_numeric(series, errors="coerce").astype(
+                    target_dtype, errors="ignore"
+                )
+            elif cast_error == "ignore":
+                return series.astype(target_dtype, errors="ignore")
+            else:
+                return series.astype(target_dtype)
+        except Exception:
+            if cast_error == "raise":
+                raise
+            return series

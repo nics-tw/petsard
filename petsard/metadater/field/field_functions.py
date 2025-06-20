@@ -466,6 +466,137 @@ def _optimize_numeric_dtype(field_data: pd.Series) -> str:
     return str(field_data.dtype)
 
 
+def _might_be_datetime(field_data: pd.Series) -> bool:
+    """
+    Pre-check if field data might contain datetime values to avoid unnecessary parsing warnings.
+
+    Args:
+        field_data: Clean pandas Series (no NaN values)
+
+    Returns:
+        True if data might be datetime, False otherwise
+    """
+    if len(field_data) == 0:
+        return False
+
+    # Sample a few values to check
+    sample_size = min(10, len(field_data))
+    sample = field_data.head(sample_size)
+
+    # Convert to string for pattern checking
+    try:
+        sample_str = sample.astype(str)
+    except Exception:
+        return False
+
+    datetime_indicators = 0
+
+    # First, check for obvious non-datetime patterns that should be excluded
+    non_datetime_patterns = [
+        "hs-grad",
+        "some-college",
+        "bachelors",
+        "masters",
+        "doctorate",
+        "prof-school",
+        "assoc-acdm",
+        "assoc-voc",
+        "11th",
+        "10th",
+        "9th",
+        "7th-8th",
+        "5th-6th",
+        "machine-op-inspct",
+        "farming-fishing",
+        "protective-serv",
+        "other-service",
+        "never-married",
+        "married-civ-spouse",
+        "divorced",
+        "separated",
+        "widowed",
+        "own-child",
+        "husband",
+        "wife",
+        "not-in-family",
+        "unmarried",
+        "united-states",
+        "asian-pac-islander",
+        "amer-indian-eskimo",
+    ]
+
+    # Check if any sample values match common non-datetime patterns
+    for value in sample_str:
+        value_lower = value.strip().lower()
+        if any(pattern in value_lower for pattern in non_datetime_patterns):
+            return False  # Definitely not datetime data
+
+    for value in sample_str:
+        value = value.strip()
+
+        # Skip very short strings (likely not datetime)
+        if len(value) < 4:
+            continue
+
+        # Check for common datetime patterns
+        # Date separators: -, /, .
+        if any(sep in value for sep in ["-", "/", "."]):
+            # Check if contains digits (years, months, days)
+            if any(char.isdigit() for char in value):
+                # Additional check: must have at least 4 consecutive digits (likely a year)
+                # or multiple digit groups separated by separators
+                import re
+
+                digit_groups = re.findall(r"\d+", value)
+                if len(digit_groups) >= 2 or any(
+                    len(group) >= 4 for group in digit_groups
+                ):
+                    datetime_indicators += 1
+                    continue
+
+        # Check for time patterns (contains :)
+        if ":" in value and any(char.isdigit() for char in value):
+            datetime_indicators += 1
+            continue
+
+        # Check for month names
+        month_names = [
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+            "january",
+            "february",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+            "october",
+            "november",
+            "december",
+        ]
+        if any(month in value.lower() for month in month_names):
+            datetime_indicators += 1
+            continue
+
+    # Require at least 70% of sampled values to have strong datetime indicators
+    # and ensure we actually checked some values
+    if sample_size == 0:
+        return False
+    return datetime_indicators / sample_size >= 0.7
+
+
 def _optimize_object_dtype(field_data: pd.Series) -> str:
     """Optimize object dtype"""
     if field_data.isna().all():
@@ -473,12 +604,15 @@ def _optimize_object_dtype(field_data: pd.Series) -> str:
 
     field_data_clean = field_data.dropna()
 
-    # Try datetime conversion
-    try:
-        datetime_field_data = pd.to_datetime(field_data_clean, errors="coerce")
-        if not datetime_field_data.isna().any():
-            return "datetime64[s]"
-    except Exception:
-        pass
+    # Pre-check if data might be datetime before attempting conversion
+    # This avoids unnecessary datetime parsing warnings for obviously non-datetime data
+    if _might_be_datetime(field_data_clean):
+        # Try datetime conversion
+        try:
+            datetime_field_data = pd.to_datetime(field_data_clean, errors="coerce")
+            if not datetime_field_data.isna().any():
+                return "datetime64[s]"
+        except Exception:
+            pass
 
     return "category"

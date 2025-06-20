@@ -1,7 +1,6 @@
 import logging
 import warnings
 from copy import deepcopy
-from datetime import datetime
 from types import NoneType
 
 import numpy as np
@@ -9,7 +8,7 @@ import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype
 
 from petsard.exceptions import ConfigError, UnfittedError
-from petsard.metadater import FieldConfig, Metadater, SchemaMetadata
+from petsard.metadater import Metadater, SchemaMetadata
 from petsard.processor.discretizing import DiscretizingKBins
 from petsard.processor.encoder import (
     EncoderDateDiff,
@@ -643,9 +642,10 @@ class Processor:
                                 ScalerZeroCenter,
                             ),
                         ):
-                            self._adjust_metadata(
+                            Metadater.adjust_metadata_after_processing(
                                 mode="columnwise",
                                 data=self.transformed[col],
+                                original_metadata=self._metadata,
                                 col=col,
                             )
 
@@ -678,9 +678,10 @@ class Processor:
                 if isinstance(processor, MediatorEncoder) or isinstance(
                     processor, MediatorScaler
                 ):
-                    self._adjust_metadata(
+                    Metadater.adjust_metadata_after_processing(
                         mode="global",
                         data=self.transformed,
+                        original_metadata=self._metadata,
                     )
                 self._adjust_working_config(processor, self._fitting_sequence)
 
@@ -925,117 +926,3 @@ class Processor:
             )
 
         return data
-
-    def _adjust_metadata(
-        self,
-        mode: str,
-        data: pd.Series | pd.DataFrame,
-        col: str = None,
-    ) -> None:
-        """
-        Adjusts the metadata for a given column based on the processed data.
-
-        Args:
-            mode (str): The mode of adjustment.
-                'columnwise': Adjust the metadata based on the column.
-                'global': Adjust the metadata based on the whole data.
-            data (pd.Series | pd.DataFrame): The processed data for the column.
-            col (str): The name of the column. Default is None.
-                No need to specifiy when mode is 'global'.
-
-        Raises:
-            ConfigError: If the specified column is not found in the metadata.
-
-        Returns:
-            None
-        """
-        self.logger.debug(f"Starting metadata adjustment, mode: {mode}")
-
-        try:
-            if mode == "columnwise":
-                if not isinstance(data, pd.Series):
-                    self.logger.warning(
-                        "Input data must be pd.Series for columnwise mode"
-                    )
-                    raise ConfigError("data should be pd.Series in columnwise mode.")
-                if col is None:
-                    self.logger.warning("Column name not specified")
-                    raise ConfigError("col is not specified.")
-                if not self._metadata.get_field(col):
-                    raise ConfigError(f"{col} is not in the metadata.")
-
-                self.logger.debug(f"Adjusting metadata for column '{col}'")
-
-                # Calculate optimized dtype information
-                # Use Metadater's public API to analyze the field
-                temp_field_config = FieldConfig()
-                temp_field_metadata = Metadater.create_field(
-                    series=data,
-                    field_name=col,
-                    config=temp_field_config,
-                    compute_stats=False,
-                    infer_logical_type=False,
-                    optimize_dtype=True,
-                )
-                dtype_after_preproc: str = temp_field_metadata.target_dtype or str(
-                    data.dtype
-                )
-
-                # Map data type to legacy categories using the field metadata
-                data_type = temp_field_metadata.data_type
-                if hasattr(data_type, "value"):
-                    data_type_str = data_type.value.lower()
-                else:
-                    data_type_str = str(data_type).lower()
-
-                # Map to legacy categories
-                if data_type_str in [
-                    "int8",
-                    "int16",
-                    "int32",
-                    "int64",
-                    "float32",
-                    "float64",
-                    "decimal",
-                ]:
-                    infer_dtype_after_preproc = "numerical"
-                elif data_type_str in ["string", "binary"]:
-                    infer_dtype_after_preproc = "categorical"
-                elif data_type_str == "boolean":
-                    infer_dtype_after_preproc = "categorical"
-                elif data_type_str in ["date", "time", "timestamp", "timestamp_tz"]:
-                    infer_dtype_after_preproc = "datetime"
-                else:
-                    infer_dtype_after_preproc = "object"
-
-                # Note: SchemaMetadata is immutable, so we can't directly update it
-                # In a full refactor, we might want to create a new SchemaMetadata
-                # or track these changes separately. For now, we'll log the information.
-                self.logger.debug(
-                    f"Column '{col}' dtype after preprocessing: {dtype_after_preproc}, "
-                    f"inferred type: {infer_dtype_after_preproc}"
-                )
-            elif mode == "global":
-                if not isinstance(data, pd.DataFrame):
-                    raise ConfigError("data should be pd.DataFrame in global mode.")
-
-                self.logger.debug("Performing global metadata adjustment")
-
-                # Create new schema metadata for the transformed data
-                new_schema_metadata = Metadater.create_schema(
-                    dataframe=data,
-                    schema_id=f"processor_adjusted_{datetime.now().isoformat()}",
-                )
-
-                # Note: In the original design, this would update col_after_preproc
-                # Since SchemaMetadata is immutable, we log this information instead
-                self.logger.debug(
-                    f"Created new schema metadata for transformed data with "
-                    f"{len(new_schema_metadata.fields)} fields"
-                )
-            else:
-                raise ConfigError("Invalid mode.")
-
-        except Exception as e:
-            self.logger.error(f"Metadata adjustment failed: {str(e)}")
-            raise
