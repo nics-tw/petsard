@@ -54,6 +54,27 @@ Tests for the main Loader functionality:
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
 - `test_custom_header_names`: Tests loading data with custom column headers
 
+#### Ambiguous Data Type Processing Features
+
+Tests for processing data with ambiguous or easily misinterpreted types:
+
+- `test_preserve_raw_data_feature`: Tests preserve_raw_data feature prevents automatic pandas type inference:
+  - Verifies dtype=object is used when preserve_raw_data=True
+  - Tests integration with other ambiguous data processing features
+  - Validates data loading pipeline with raw data preservation
+- `test_leading_zero_detection_config`: Tests auto_detect_leading_zeros configuration:
+  - Verifies configuration is properly stored
+  - Tests both enabled and disabled states
+- `test_nullable_integer_config`: Tests force_nullable_integers configuration:
+  - Verifies configuration is properly stored
+  - Tests both enabled and disabled states
+- `test_ambiguous_data_config_combination`: Tests combination of all ambiguous data processing configurations:
+  - preserve_raw_data + auto_detect_leading_zeros + force_nullable_integers
+  - Verifies all settings work together correctly
+- `test_backward_compatibility`: Tests that new features don't break existing functionality:
+  - Verifies default values for new parameters
+  - Tests normal loading behavior when features are disabled
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -72,6 +93,83 @@ Tests for benchmark dataset handling:
 - `test_verify_file_remove_fails`: Tests error handling when file removal fails during verification
 - `test_init_file_exists_hash_match`: Tests initialization logic when file exists with matching hash
 - `test_file_content_change`: Tests hash verification mechanism after file content changes, ensuring changes are properly detected
+
+## Data Processing
+
+### `Metadater`
+
+#### Field Functions
+
+> tests/metadater/field/test_field_functions.py
+
+Tests for field-level data processing and type analysis:
+
+##### Comprehensive Type Analysis
+
+- `test_leading_zero_detection`: Tests leading zero detection and preservation:
+  - Identifies data with leading zeros (e.g., "001", "002")
+  - Preserves as string type to maintain leading zeros
+- `test_float_detection`: Tests floating point number detection:
+  - Identifies decimal numbers in string format
+  - Converts to appropriate float32/float64 types
+- `test_integer_with_nulls`: Tests integer data with null values:
+  - Uses nullable integer types (Int8, Int16, Int32, Int64)
+  - Prevents conversion to float64 that would add .0 suffixes
+- `test_integer_without_nulls`: Tests pure integer data:
+  - Uses regular integer types (int8, int16, int32, int64)
+  - Optimizes to smallest suitable integer type
+- `test_mixed_non_numeric_data`: Tests non-numeric mixed data:
+  - Falls back to category type for text data
+- `test_numeric_conversion_threshold`: Tests 80% numeric conversion threshold:
+  - Data with <80% numeric values treated as categorical
+- `test_integer_dtype_handling`: Tests handling of pd.to_numeric integer results:
+  - Properly handles int64 vs float64 type detection
+
+##### Leading Zero Detection
+
+- `test_has_leading_zeros_positive`: Tests positive detection cases:
+  - >30% of values have leading zeros pattern
+- `test_has_leading_zeros_negative`: Tests negative detection cases:
+  - <30% of values have leading zeros pattern
+- `test_has_leading_zeros_empty_data`: Tests empty data handling
+- `test_has_leading_zeros_all_na`: Tests all-NA data handling
+- `test_has_leading_zeros_mixed_types`: Tests mixed data type handling
+
+##### Field Metadata Integration
+
+- `test_build_field_metadata_with_leading_zeros`: Tests field metadata building with leading zero detection:
+  - Enabled vs disabled leading zero detection
+  - Integration with type analysis pipeline
+- `test_build_field_metadata_with_nullable_integers`: Tests nullable integer integration:
+  - Enabled vs disabled nullable integer handling
+  - Proper type selection based on null presence
+- `test_build_field_metadata_dtype_optimization`: Tests dtype optimization:
+  - Memory-efficient type selection (int8 vs int64)
+  - Float precision optimization (float32 vs float64)
+
+##### Ambiguous Data Scenarios
+
+- `test_id_code_preservation`: Tests preservation of ID codes with leading zeros:
+  - Leading zero identification codes (001, 002, etc.)
+  - Maintains data integrity for official identifiers
+- `test_demographic_data_with_missing_values`: Tests demographic data with missing values:
+  - Uses nullable integers to avoid .0 suffixes
+  - Maintains data type consistency
+- `test_financial_amount_detection`: Tests financial amount data handling:
+  - Proper float detection for monetary values
+  - Precision preservation for financial calculations
+- `test_score_integer_detection`: Tests scoring data:
+  - Integer detection for test scores, ratings
+- `test_categorical_data_detection`: Tests categorical data:
+  - Grade levels, status categories
+
+##### Edge Cases
+
+- `test_empty_series`: Tests empty data series handling
+- `test_all_null_series`: Tests all-null data handling
+- `test_single_value_series`: Tests single value data
+- `test_mixed_numeric_string_data`: Tests mixed data types
+- `test_config_none_handling`: Tests default configuration handling
 
 ### `Metadata`
 

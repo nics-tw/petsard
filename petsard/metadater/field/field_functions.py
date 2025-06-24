@@ -47,6 +47,15 @@ def build_field_metadata(
     pandas_dtype = _safe_dtype_string(field_data.dtype)
     data_type = _map_pandas_to_metadater_type(pandas_dtype)
 
+    # 檢查前導零情況，如果發現前導零則強制設為字串類型
+    if config.auto_detect_leading_zeros:
+        if (
+            data_type in [DataType.INT8, DataType.INT16, DataType.INT32, DataType.INT64]
+            or pandas_dtype == "object"
+        ):
+            if _has_leading_zeros(field_data):
+                data_type = DataType.STRING
+
     # Override with type hint if provided
     if config.type_hint:
         data_type = _apply_type_hint(config.type_hint, data_type)
@@ -93,7 +102,7 @@ def build_field_metadata(
 
     # Determine optimal target dtype
     if optimize_dtype:
-        target_dtype = optimize_field_dtype(field_data, field_metadata)
+        target_dtype = optimize_field_dtype(field_data, field_metadata, config)
         field_metadata = field_metadata.with_target_dtype(target_dtype)
 
     return field_metadata
@@ -241,29 +250,33 @@ def infer_field_logical_type(
     return None
 
 
-def optimize_field_dtype(field_data: pd.Series, field_metadata: FieldMetadata) -> str:
+def optimize_field_dtype(
+    field_data: pd.Series,
+    field_metadata: FieldMetadata,
+    config: Optional[FieldConfig] = None,
+) -> str:
     """
     Pure function to determine optimal dtype for storage
 
     Args:
         field_data: The pandas Series to analyze
         field_metadata: Field metadata for context
+        config: Optional field configuration
 
     Returns:
         Optimal dtype string
     """
+    if config is None:
+        config = FieldConfig()
+
     if (
         field_metadata.data_type == DataType.STRING
         and field_metadata.logical_type == LogicalType.CATEGORICAL
     ):
         return "category"
 
-    if is_numeric_dtype(field_data):
-        return _optimize_numeric_dtype(field_data)
-    elif is_object_dtype(field_data):
-        return _optimize_object_dtype(field_data)
-
-    return str(field_data.dtype)
+    # 使用完整的類型分析邏輯
+    return _comprehensive_type_analysis(field_data, config)
 
 
 # Helper functions (pure)
@@ -434,36 +447,265 @@ def _validate_currency(value: str) -> bool:
     return any(re.match(pattern, value) for pattern in currency_patterns)
 
 
-def _optimize_numeric_dtype(field_data: pd.Series) -> str:
-    """Optimize numeric dtype"""
-    if is_integer_dtype(field_data):
-        if field_data.isna().all():
-            return "int64"
+def _is_float_with_integer_values(field_data: pd.Series) -> bool:
+    """
+    檢測 float 序列是否實際上都是整數值
 
-        ranges = {
-            "int8": (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
-            "int16": (np.iinfo(np.int16).min, np.iinfo(np.int16).max),
-            "int32": (np.iinfo(np.int32).min, np.iinfo(np.int32).max),
-            "int64": (np.iinfo(np.int64).min, np.iinfo(np.int64).max),
-        }
-    elif is_float_dtype(field_data):
-        if field_data.isna().all():
-            return "float32"
+    Args:
+        field_data: 要檢查的 Series
 
-        ranges = {
-            "float32": (np.finfo(np.float32).min, np.finfo(np.float32).max),
-            "float64": (np.finfo(np.float64).min, np.finfo(np.float64).max),
-        }
+    Returns:
+        True 如果所有非空值都是整數，False 否則
+    """
+    if not is_float_dtype(field_data):
+        return False
+
+    # 移除空值
+    clean_data = field_data.dropna()
+    if len(clean_data) == 0:
+        return False
+
+    # 檢查所有值是否都是整數
+    try:
+        return all(val.is_integer() for val in clean_data)
+    except (AttributeError, TypeError):
+        return False
+
+
+def _comprehensive_type_analysis(
+    field_data: pd.Series, config: Optional[FieldConfig] = None
+) -> str:
+    """
+    完整的類型分析邏輯，按照以下順序：
+    1. 檢查前導零 -> 字串
+    2. 檢查小數點 -> float
+    3. 檢查整數（含空值處理）-> int/Int64
+    4. 其他 -> category/string
+
+    Args:
+        field_data: 要分析的 Series
+        config: 欄位配置
+
+    Returns:
+        最佳的 dtype 字串
+    """
+    if config is None:
+        config = FieldConfig()
+
+    # 1. 首先檢查前導零（無論原始類型為何）
+    if config.auto_detect_leading_zeros and _has_leading_zeros(field_data):
+        return "string"
+
+    # 2. 統一嘗試數值轉換（無論原始類型為何）
+    try:
+        # 嘗試轉換為數值（保留 NaN）
+        numeric_data = pd.to_numeric(field_data, errors="coerce")
+
+        # 計算有效數值的比例
+        non_na_count = field_data.notna().sum()
+        valid_numeric_count = numeric_data.notna().sum()
+
+        if non_na_count > 0 and valid_numeric_count > 0:
+            valid_numeric_ratio = valid_numeric_count / non_na_count
+
+            if valid_numeric_ratio >= 0.8:  # 80% 以上可以轉為數值
+                valid_numeric_values = numeric_data.dropna()
+
+                if len(valid_numeric_values) > 0:
+                    # 檢查是否都是整數值
+                    # 需要處理 int 和 float 兩種情況
+                    try:
+                        if is_integer_dtype(valid_numeric_values):
+                            # 如果已經是整數類型，直接認為是整數
+                            all_integers = True
+                        else:
+                            # 如果是浮點類型，檢查是否都是整數值
+                            all_integers = all(
+                                val.is_integer() for val in valid_numeric_values
+                            )
+                    except (AttributeError, TypeError):
+                        # 如果無法判斷，假設不是整數
+                        all_integers = False
+
+                    if all_integers:
+                        # 整數資料，檢查是否有空值
+                        if field_data.isna().any() and config.force_nullable_integers:
+                            return _optimize_nullable_integer_dtype(
+                                valid_numeric_values
+                            )
+                        else:
+                            return _optimize_regular_integer_dtype(valid_numeric_values)
+                    else:
+                        # 浮點數資料
+                        return _optimize_float_dtype(numeric_data)
+
+    except Exception:
+        pass
+
+    # 如果數值轉換失敗，但原本就是數值類型，使用原來的邏輯
+    if is_numeric_dtype(field_data):
+        return _optimize_numeric_dtype(field_data, config)
+
+    # 3. 如果不是數值資料，檢查其他類型
+    if is_object_dtype(field_data):
+        # 對於 object 類型，先檢查是否為 datetime，否則返回 category
+        clean_data = field_data.dropna()
+        if len(clean_data) == 0:
+            return "category"
+
+        # 檢查是否為 datetime
+        if _might_be_datetime(clean_data):
+            try:
+                datetime_data = pd.to_datetime(clean_data, errors="coerce")
+                if not datetime_data.isna().any():
+                    return "datetime64[s]"
+            except Exception:
+                pass
+
+        return "category"
+    elif is_numeric_dtype(field_data):
+        # 如果原本就是數值類型，使用原來的邏輯
+        return _optimize_numeric_dtype(field_data, config)
+
+    # 其他情況保持原樣
+    return str(field_data.dtype)
+
+
+def _optimize_float_dtype(numeric_data: pd.Series) -> str:
+    """優化浮點數類型"""
+    if numeric_data.isna().all():
+        return "float32"
+
+    col_min, col_max = np.nanmin(numeric_data), np.nanmax(numeric_data)
+
+    # 檢查是否 float32 足夠
+    if np.finfo(np.float32).min <= col_min and col_max <= np.finfo(np.float32).max:
+        return "float32"
     else:
-        return str(field_data.dtype)
+        return "float64"
 
-    col_min, col_max = np.nanmin(field_data), np.nanmax(field_data)
 
-    for dtype, (min_val, max_val) in ranges.items():
+def _optimize_nullable_integer_dtype(integer_data: pd.Series) -> str:
+    """優化 nullable integer 類型"""
+    if len(integer_data) == 0:
+        return "Int64"
+
+    col_min, col_max = integer_data.min(), integer_data.max()
+
+    ranges = [
+        ("Int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+        ("Int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+        ("Int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+        ("Int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+    ]
+
+    for dtype, min_val, max_val in ranges:
         if min_val <= col_min and col_max <= max_val:
             return dtype
+    return "Int64"
 
-    return str(field_data.dtype)
+
+def _optimize_regular_integer_dtype(integer_data: pd.Series) -> str:
+    """優化一般 integer 類型"""
+    if len(integer_data) == 0:
+        return "int64"
+
+    col_min, col_max = integer_data.min(), integer_data.max()
+
+    ranges = [
+        ("int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+        ("int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+        ("int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+        ("int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+    ]
+
+    for dtype, min_val, max_val in ranges:
+        if min_val <= col_min and col_max <= max_val:
+            return dtype
+    return "int64"
+
+
+def _optimize_numeric_dtype(
+    field_data: pd.Series, config: Optional[FieldConfig] = None
+) -> str:
+    """Optimize numeric dtype"""
+    if config is None:
+        config = FieldConfig()
+
+    if is_integer_dtype(field_data):
+        # 如果有空值且啟用 force_nullable_integers，使用 nullable integer 避免轉為 float
+        if field_data.isna().any() and config.force_nullable_integers:
+            if field_data.isna().all():
+                return "Int64"
+
+            col_min, col_max = np.nanmin(field_data), np.nanmax(field_data)
+
+            # 使用 nullable integer types
+            ranges = {
+                "Int8": (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                "Int16": (np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                "Int32": (np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                "Int64": (np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            }
+
+            for dtype, (min_val, max_val) in ranges.items():
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "Int64"
+        else:
+            # 沒有空值時使用傳統 integer types
+            col_min, col_max = np.nanmin(field_data), np.nanmax(field_data)
+
+            ranges = {
+                "int8": (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                "int16": (np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                "int32": (np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                "int64": (np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            }
+
+            for dtype, (min_val, max_val) in ranges.items():
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "int64"
+
+    elif is_float_dtype(field_data):
+        # 檢查是否實際上是整數值
+        if _is_float_with_integer_values(field_data):
+            # 轉換為 nullable integer
+            if field_data.isna().all():
+                return "Int64"
+
+            col_min, col_max = np.nanmin(field_data), np.nanmax(field_data)
+
+            ranges = {
+                "Int8": (np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                "Int16": (np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                "Int32": (np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                "Int64": (np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            }
+
+            for dtype, (min_val, max_val) in ranges.items():
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "Int64"
+        else:
+            # 真正的浮點數
+            if field_data.isna().all():
+                return "float32"
+
+            col_min, col_max = np.nanmin(field_data), np.nanmax(field_data)
+
+            ranges = {
+                "float32": (np.finfo(np.float32).min, np.finfo(np.float32).max),
+                "float64": (np.finfo(np.float64).min, np.finfo(np.float64).max),
+            }
+
+            for dtype, (min_val, max_val) in ranges.items():
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "float64"
+    else:
+        return str(field_data.dtype)
 
 
 def _might_be_datetime(field_data: pd.Series) -> bool:
@@ -597,12 +839,63 @@ def _might_be_datetime(field_data: pd.Series) -> bool:
     return datetime_indicators / sample_size >= 0.7
 
 
-def _optimize_object_dtype(field_data: pd.Series) -> str:
+def _has_leading_zeros(field_data: pd.Series) -> bool:
+    """
+    檢測字串是否包含前導零的數字
+
+    Args:
+        field_data: 要檢查的 Series
+
+    Returns:
+        True 如果發現前導零模式，False 否則
+    """
+    if field_data.isna().all():
+        return False
+
+    field_data_clean = field_data.dropna()
+    if len(field_data_clean) == 0:
+        return False
+
+    # 轉換為字串進行檢查
+    try:
+        field_data_str = field_data_clean.astype(str)
+    except Exception:
+        return False
+
+    # 檢查前導零模式：開頭是 "0" 且後面跟數字
+    leading_zero_count = 0
+    total_checked = 0
+
+    for value in field_data_str.head(100):  # 檢查前100個值以提高效能
+        value = value.strip()
+        if len(value) >= 2:  # 至少要有兩個字符
+            # 檢查是否符合前導零模式：0開頭且全部都是數字
+            if value.startswith("0") and value.isdigit():
+                leading_zero_count += 1
+            total_checked += 1
+
+    # 如果超過30%的值有前導零，則認為這是前導零欄位
+    if total_checked > 0:
+        return (leading_zero_count / total_checked) >= 0.3
+
+    return False
+
+
+def _optimize_object_dtype(
+    field_data: pd.Series, config: Optional[FieldConfig] = None
+) -> str:
     """Optimize object dtype"""
+    if config is None:
+        config = FieldConfig()
+
     if field_data.isna().all():
         return "category"
 
     field_data_clean = field_data.dropna()
+
+    # 首先檢查是否有前導零，如果有則保持為字串
+    if config.auto_detect_leading_zeros and _has_leading_zeros(field_data):
+        return "string"
 
     # Pre-check if data might be datetime before attempting conversion
     # This avoids unnecessary datetime parsing warnings for obviously non-datetime data

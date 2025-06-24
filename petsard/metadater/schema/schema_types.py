@@ -39,6 +39,8 @@ class SchemaConfig:
         infer_logical_types: Whether to automatically infer logical types
         optimize_dtypes: Whether to optimize data types for storage
         sample_size: Sample size for type inference
+        auto_detect_leading_zeros: Whether to automatically detect and preserve leading zeros
+        force_nullable_integers: Whether to force use of nullable integer types
         properties: Additional schema-level properties
     """
 
@@ -50,6 +52,8 @@ class SchemaConfig:
     infer_logical_types: bool = True
     optimize_dtypes: bool = True
     sample_size: Optional[int] = 1000
+    auto_detect_leading_zeros: bool = True
+    force_nullable_integers: bool = True
     properties: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -84,6 +88,8 @@ class SchemaConfig:
             infer_logical_types=self.infer_logical_types,
             optimize_dtypes=self.optimize_dtypes,
             sample_size=self.sample_size,
+            auto_detect_leading_zeros=self.auto_detect_leading_zeros,
+            force_nullable_integers=self.force_nullable_integers,
             properties=self.properties,
         )
 

@@ -48,6 +48,8 @@ class FieldConfig:
         nullable: Whether the field can contain null values
         description: Human-readable description
         cast_error: Error handling strategy ('raise', 'coerce', 'ignore')
+        auto_detect_leading_zeros: Whether to automatically detect and preserve leading zeros
+        force_nullable_integers: Whether to force use of nullable integer types
         properties: Additional field properties
     """
 
@@ -56,6 +58,8 @@ class FieldConfig:
     nullable: Optional[bool] = None
     description: Optional[str] = None
     cast_error: str = "coerce"
+    auto_detect_leading_zeros: bool = True
+    force_nullable_integers: bool = True
     properties: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
