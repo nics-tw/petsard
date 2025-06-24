@@ -365,9 +365,8 @@ class Loader:
         if self.config.column_types:
             for col_type, columns in self.config.column_types.items():
                 for col in columns:
-                    if col not in fields_config:
-                        fields_config[col] = FieldConfig()
-                    fields_config[col].type_hint = col_type
+                    # Create FieldConfig with type_hint directly since it's frozen
+                    fields_config[col] = FieldConfig(type_hint=col_type)
 
         # Create schema configuration
         schema_config = SchemaConfig(
