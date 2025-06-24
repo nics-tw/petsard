@@ -738,6 +738,8 @@ class Processor:
                     adjusted_na_percentage: float = (
                         field_na_percentage / self._na_percentage_global
                     )
+                    # Ensure adjusted_na_percentage is within valid range [0.0, 1.0]
+                    adjusted_na_percentage = max(0.0, min(1.0, adjusted_na_percentage))
             # if there is no NA in the original data
             except ZeroDivisionError:
                 adjusted_na_percentage: float = 0.0
