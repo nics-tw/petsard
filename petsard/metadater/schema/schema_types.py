@@ -203,9 +203,10 @@ class SchemaMetadata:
         Returns:
             dict: Metadata in SDV format
         """
-        from petsard.metadater.adapters.sdv_adapter import convert_petsard_to_sdv_dict
+        from petsard.metadater.adapters.sdv_adapter import SDVMetadataAdapter
 
-        return convert_petsard_to_sdv_dict(self)
+        adapter = SDVMetadataAdapter()
+        return adapter.convert_to_sdv_dict(self)
 
 
 # Type aliases

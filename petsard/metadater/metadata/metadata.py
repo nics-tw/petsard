@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from petsard.metadater.schema_meta import SchemaConfig, SchemaMetadata
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
 
 class RelationType(Enum):

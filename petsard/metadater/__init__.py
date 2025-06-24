@@ -20,6 +20,8 @@ PETsARD Metadater Module - 元資料管理模組
 """
 
 # 主要介面
+# SDV adapter 功能
+from petsard.metadater.adapters.sdv_adapter import SDVMetadataAdapter
 from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
 
 # 核心類型 (使用者需要的)
@@ -27,9 +29,6 @@ from petsard.metadater.metadata.metadata_types import Metadata, MetadataConfig
 from petsard.metadater.metadater import Metadater
 from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 from petsard.metadater.types.data_types import safe_round
-
-# 工具函數 (必要的)
-from petsard.metadater.utils import load_external_module
 
 __all__ = [
     # 主要介面
@@ -41,7 +40,8 @@ __all__ = [
     "SchemaConfig",
     "FieldMetadata",
     "FieldConfig",
+    # SDV adapter
+    "SDVMetadataAdapter",
     # 工具函數
-    "load_external_module",
     "safe_round",
 ]
