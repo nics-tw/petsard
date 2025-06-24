@@ -15,7 +15,7 @@ from sdv.single_table import (
 from sdv.single_table.base import BaseSingleTableSynthesizer
 
 from petsard.exceptions import UnableToSynthesizeError, UnsupportedMethodError
-from petsard.metadater import SchemaMetadata
+from petsard.metadater import SchemaMetadata, SDVMetadataAdapter
 from petsard.synthesizer.synthesizer_base import BaseSynthesizer
 
 
@@ -75,13 +75,16 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
             f"Initializing {self.__class__.__name__} with config: {config}"
         )
 
+        # Initialize SDV metadata adapter
+        self._sdv_adapter = SDVMetadataAdapter()
+
         # If metadata is provided, initialize the synthesizer in the init method.
         if metadata is not None:
             self._logger.debug(
                 "Metadata provided, initializing synthesizer in __init__"
             )
             self._impl: BaseSingleTableSynthesizer = self._initialize_impl(
-                metadata=self._create_sdv_metadata(
+                metadata=self._sdv_adapter.create_sdv_metadata(
                     metadata=metadata,
                 )
             )
@@ -136,47 +139,6 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         )
         return synthesizer
 
-    def _create_sdv_metadata(
-        self, metadata: SchemaMetadata = None, data: pd.DataFrame = None
-    ) -> SDV_Metadata:
-        """
-        Create or convert metadata for SDV compatibility.
-            This function either converts existing metadata to SDV format or
-            generates new SDV metadata by detecting it from the provided dataframe.
-
-        Args:
-            metadata (SchemaMetadata, optional): The metadata of the data.
-            data (pd.DataFrame, optional): The data to be fitted.
-
-        Returns:
-            (SingleTableMetadata): The SDV metadata.
-        """
-        self._logger.debug("Creating SDV metadata")
-        sdv_metadata: SDV_Metadata = SDV_Metadata()
-
-        if metadata is None:
-            if data is None:
-                self._logger.warning(
-                    "Both metadata and data are None, cannot create SDV metadata"
-                )
-                return sdv_metadata
-
-            self._logger.info(
-                f"Detecting metadata from dataframe with shape {data.shape}"
-            )
-            sdv_metadata_result: SDV_Metadata = sdv_metadata.detect_from_dataframe(data)
-            self._logger.debug("Successfully detected metadata from dataframe")
-            return sdv_metadata_result
-        else:
-            self._logger.info("Converting existing metadata to SDV format")
-            # Use SchemaMetadata's to_sdv() method instead of custom conversion
-            sdv_metadata = sdv_metadata.load_from_dict(
-                metadata_dict=metadata.to_sdv(),
-                single_table_name="table",
-            )
-            self._logger.debug("Successfully converted metadata to SDV format")
-            return sdv_metadata
-
     def _fit(self, data: pd.DataFrame) -> None:
         """
         Fit the synthesizer.
@@ -197,7 +159,7 @@ class SDVSingleTableSynthesizer(BaseSynthesizer):
         if not hasattr(self, "_impl") or self._impl is None:
             self._logger.debug("Initializing synthesizer in _fit method")
             self._impl: BaseSingleTableSynthesizer = self._initialize_impl(
-                metadata=self._create_sdv_metadata(
+                metadata=self._sdv_adapter.create_sdv_metadata(
                     data=data,
                 )
             )
