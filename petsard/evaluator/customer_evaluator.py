@@ -2,7 +2,7 @@ import pandas as pd
 
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError
-from petsard.util import load_external_module
+from petsard.utils import load_external_module
 
 
 class CustomEvaluator(BaseEvaluator):
@@ -44,12 +44,25 @@ class CustomEvaluator(BaseEvaluator):
             raise ConfigError(error_msg)
 
         evaluator_class: callable = None
-        _, evaluator_class = load_external_module(
-            module_path=self.config["module_path"],
-            class_name=self.config["class_name"],
-            logger=self._logger,
-            required_methods=self.REQUIRED_METHODS,
-        )
+
+        # Use demo-specific module loading for better path resolution
+        try:
+            from demo.utils import load_demo_module
+
+            _, evaluator_class = load_demo_module(
+                module_path=self.config["module_path"],
+                class_name=self.config["class_name"],
+                logger=self._logger,
+                required_methods=self.REQUIRED_METHODS,
+            )
+        except ImportError:
+            # Fallback to core function if demo utils not available
+            _, evaluator_class = load_external_module(
+                module_path=self.config["module_path"],
+                class_name=self.config["class_name"],
+                logger=self._logger,
+                required_methods=self.REQUIRED_METHODS,
+            )
 
         self.REQUIRED_INPUT_KEYS: list[str] = evaluator_class.REQUIRED_INPUT_KEYS
         self.AVAILABLE_SCORES_GRANULARITY: list[str] = (

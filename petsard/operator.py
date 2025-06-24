@@ -9,9 +9,9 @@ import pandas as pd
 from petsard.constrainer import Constrainer
 from petsard.evaluator import Describer, Evaluator
 from petsard.exceptions import ConfigError
-from petsard.loader import Loader, Metadata, Splitter
+from petsard.loader import Loader, Splitter
+from petsard.metadater import SchemaMetadata
 from petsard.processor import Processor
-from petsard.processor.encoder import EncoderUniform
 from petsard.reporter import Reporter
 from petsard.synthesizer import Synthesizer
 
@@ -39,13 +39,10 @@ class BaseOperator:
         """
         self.module_name: str = self.__class__.__name__.replace("Operator", "Op")
         self._logger = logging.getLogger(f"PETsARD.{self.module_name}")
-        self._logger = logging.getLogger(f"PETsARD.{self.module_name}")
 
         self.config = config
         self.input: dict = {}
         if config is None:
-            self._logger.error("Configuration is None")
-            self._logger.debug("Error details: ", exc_info=True)
             self._logger.error("Configuration is None")
             self._logger.debug("Error details: ", exc_info=True)
             raise ConfigError
@@ -77,8 +74,6 @@ class BaseOperator:
             try:
                 return func(self, *args, **kwargs)
             except Exception as e:
-                self._logger.error(f"Configuration error in {func.__name__}: {str(e)}")
-                self._logger.debug("Error details: ", exc_info=True)
                 self._logger.error(f"Configuration error in {func.__name__}: {str(e)}")
                 self._logger.debug("Error details: ", exc_info=True)
                 raise ConfigError(f"Config error in {func.__name__}: {str(e)}")
@@ -133,12 +128,12 @@ class BaseOperator:
         raise NotImplementedError
 
     @log_and_raise_not_implemented
-    def get_metadata(self) -> Metadata:
+    def get_metadata(self) -> SchemaMetadata:
         """
         Retrieve the metadata of the loaded data.
 
         Returns:
-            (Metadata): The metadata of the loaded data.
+            (SchemaMetadata): The metadata of the loaded data.
         """
         raise NotImplementedError
 
@@ -159,6 +154,7 @@ class LoaderOperator(BaseOperator):
         """
         super().__init__(config)
         self.loader = Loader(**config)
+        self._schema_metadata = None  # Store the SchemaMetadata
 
     def _run(self, input: dict):
         """
@@ -172,7 +168,12 @@ class LoaderOperator(BaseOperator):
                 An loading result data.
         """
         self._logger.debug("Starting data loading process")
-        self.data, self.metadata = self.loader.load()
+        self.data, self._schema_metadata = self.loader.load()
+
+        # Use SchemaMetadata directly
+        self._logger.debug("Using SchemaMetadata from Metadater")
+        self.metadata = self._schema_metadata
+
         self._logger.debug("Data loading completed")
 
     def set_input(self, status) -> dict:
@@ -193,12 +194,12 @@ class LoaderOperator(BaseOperator):
         """
         return self.data
 
-    def get_metadata(self) -> Metadata:
+    def get_metadata(self) -> SchemaMetadata:
         """
         Retrieve the metadata of the loaded data.
 
         Returns:
-            (Metadata): The metadata of the loaded data.
+            (SchemaMetadata): The metadata of the loaded data.
         """
         return self.metadata
 
@@ -237,7 +238,13 @@ class SplitterOperator(BaseOperator):
                     key as str: 'train' and 'validation', value as pd.DataFrame.
         """
         self._logger.debug("Starting data splitting process")
-        self.splitter.split(**input)
+        # Only pass parameters that Splitter.split() accepts
+        split_params = {
+            key: value
+            for key, value in input.items()
+            if key in ["data", "exclude_index"]
+        }
+        self.data, self.metadata = self.splitter.split(**split_params)
         self._logger.debug("Data splitting completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -271,14 +278,14 @@ class SplitterOperator(BaseOperator):
         result: dict = deepcopy(self.splitter.data[1])
         return result
 
-    def get_metadata(self) -> Metadata:
+    def get_metadata(self) -> SchemaMetadata:
         """
         Retrieve the metadata.
 
         Returns:
-            (Metadata): The updated metadata.
+            (SchemaMetadata): The updated metadata.
         """
-        return deepcopy(self.splitter.metadata)
+        return deepcopy(self.metadata)
 
 
 class PreprocessorOperator(BaseOperator):
@@ -294,7 +301,7 @@ class PreprocessorOperator(BaseOperator):
 
         Attributes:
             _processor (Processor): The processor object used by the Operator.
-            _config (dict): The configuration parameters for the Operator.
+            _config (dict): The configuration parameters for the Processor.
             _sequence (list): The sequence of the pre-processing steps (if any
         """
         super().__init__(config)
@@ -303,8 +310,20 @@ class PreprocessorOperator(BaseOperator):
         self._sequence = None
         if "sequence" in config:
             self._sequence = config["sequence"]
-            del config["sequence"]
-        self._config = {} if method == "default" else config
+
+        # Extract the processor configuration properly
+        if method == "default":
+            self._config = {}
+        else:
+            # For custom method, extract the "config" key if it exists
+            # Otherwise use the config directly (for backward compatibility)
+            if "config" in config:
+                self._config = config["config"]
+            else:
+                # Remove non-processor keys from config
+                self._config = {
+                    k: v for k, v in config.items() if k not in ["method", "sequence"]
+                }
 
     def _run(self, input: dict):
         """
@@ -361,22 +380,21 @@ class PreprocessorOperator(BaseOperator):
         result: pd.DataFrame = deepcopy(self.data_preproc)
         return result
 
-    def get_metadata(self) -> Metadata:
+    def get_metadata(self) -> SchemaMetadata:
         """
         Retrieve the metadata.
             If the encoder is EncoderUniform,
             update the metadata infer_dtype to numerical.
 
         Returns:
-            (Metadata): The updated metadata.
+            (SchemaMetadata): The updated metadata.
         """
-        metadata: Metadata = deepcopy(self.processor._metadata)
+        metadata: SchemaMetadata = deepcopy(self.processor._metadata)
 
-        if "encoder" in self.processor._sequence:
-            encoder_cfg: dict = self.processor.get_config()["encoder"]
-            for col, encoder in encoder_cfg.items():
-                if isinstance(encoder, EncoderUniform):
-                    metadata.set_col_infer_dtype(col, "numerical")  # for SDV
+        # Note: The metadata update logic for EncoderUniform and ScalerTimeAnchor
+        # needs to be adapted to work with SchemaMetadata instead of legacy Metadata
+        # This will be handled by the processor module's own refactoring
+
         return metadata
 
 
@@ -394,10 +412,7 @@ class SynthesizerOperator(BaseOperator):
         """
         super().__init__(config)
 
-        self.synthesizer: SyntaxError = Synthesizer(**config)
-        self.data_syn: pd.DataFrame = None
-
-        self.synthesizer: SyntaxError = Synthesizer(**config)
+        self.synthesizer: Synthesizer = Synthesizer(**config)
         self.data_syn: pd.DataFrame = None
 
     def _run(self, input: dict):
@@ -412,15 +427,10 @@ class SynthesizerOperator(BaseOperator):
                 An synthesizing result data.
         """
         self._logger.debug("Starting data synthesizing process")
-        self._logger.debug("Starting data synthesizing process")
 
         self.synthesizer.create(metadata=input["metadata"])
         self._logger.debug("Synthesizing model initialization completed")
-        self.synthesizer.create(metadata=input["metadata"])
-        self._logger.debug("Synthesizing model initialization completed")
 
-        self.data_syn = self.synthesizer.fit_sample(data=input["data"])
-        self._logger.debug("Train and sampling Synthesizing model completed")
         self.data_syn = self.synthesizer.fit_sample(data=input["data"])
         self._logger.debug("Train and sampling Synthesizing model completed")
 
@@ -439,10 +449,18 @@ class SynthesizerOperator(BaseOperator):
         """
         pre_module = status.get_pre_module("Synthesizer")
 
-        if status.metadata == {}:  # no metadata
-            self.input["metadata"] = None
-        else:
+        # Check if metadata exists for the previous module
+        try:
             self.input["metadata"] = status.get_metadata(pre_module)
+            # Validate that the metadata has fields
+            if not self.input["metadata"].fields:
+                self._logger.warning(
+                    f"Metadata from {pre_module} has no fields, setting to None"
+                )
+                self.input["metadata"] = None
+        except Exception as e:
+            self._logger.warning(f"Could not get metadata from {pre_module}: {e}")
+            self.input["metadata"] = None
 
         if pre_module == "Splitter":
             self.input["data"] = status.get_result(pre_module)["train"]
@@ -490,14 +508,11 @@ class PostprocessorOperator(BaseOperator):
                 An instance of the Processor class initialized with the provided configuration.
         """
         self._logger.debug("Starting data postprocessing process")
-        self._logger.debug("Starting data postprocessing process")
 
         self.processor = input["preprocessor"]
         self._logger.debug("Processor configuration loading completed")
-        self._logger.debug("Processor configuration loading completed")
 
         self.data_postproc = self.processor.inverse_transform(data=input["data"])
-        self._logger.debug("Data postprocessing completed")
         self._logger.debug("Data postprocessing completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -672,7 +687,6 @@ class EvaluatorOperator(BaseOperator):
         super().__init__(config)
         self.evaluator = Evaluator(**config)
         self.evaluations: dict[str, pd.DataFrame] = None
-        self.evaluations: dict[str, pd.DataFrame] = None
 
     def _run(self, input: dict):
         """
@@ -685,15 +699,10 @@ class EvaluatorOperator(BaseOperator):
             evaluator.result (dict): An evaluating result data.
         """
         self._logger.debug("Starting data evaluating process")
-        self._logger.debug("Starting data evaluating process")
 
         self.evaluator.create()
         self._logger.debug("Evaluation model initialization completed")
-        self.evaluator.create()
-        self._logger.debug("Evaluation model initialization completed")
 
-        self.evaluations = self.evaluator.eval(**input)
-        self._logger.debug("Data evaluating completed")
         self.evaluations = self.evaluator.eval(**input)
         self._logger.debug("Data evaluating completed")
 
@@ -768,7 +777,6 @@ class DescriberOperator(BaseOperator):
             describer.result (dict): An describing result data.
         """
         self._logger.debug("Starting data describing process")
-        self._logger.debug("Starting data describing process")
 
         self.describer.create()
         self._logger.debug("Describing model initialization completed")
@@ -842,13 +850,11 @@ class ReporterOperator(BaseOperator):
                 - data (dict): The data to be reported.
         """
         self._logger.debug("Starting data reporting process")
-        self._logger.debug("Starting data reporting process")
 
         temp: dict = None
         eval_expt_name: str = None
         report: pd.DataFrame = None
         self.reporter.create(data=input["data"])
-        self._logger.debug("Reporting configuration initialization completed")
         self._logger.debug("Reporting configuration initialization completed")
 
         self.reporter.report()
@@ -867,7 +873,6 @@ class ReporterOperator(BaseOperator):
         else:
             # ReporterSaveData
             self.report = self.reporter.result
-        self._logger.debug("Data reporting completed")
         self._logger.debug("Data reporting completed")
 
     def set_input(self, status) -> dict:

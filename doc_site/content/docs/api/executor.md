@@ -13,16 +13,43 @@ Executor(
 )
 ```
 
-Execute pipeline according to configuration.
+Execute pipeline according to configuration with enhanced logging and configuration management.
 
 ## Parameters
 
-- `config` (str): Configuration filename
+- `config` (str): Configuration filename (YAML format)
+
+## Configuration Options
+
+The executor supports additional configuration options in the YAML file under the `Executor` section:
+
+```yaml
+Executor:
+  log_output_type: "both"    # "stdout", "file", "both"
+  log_level: "INFO"          # "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+  log_dir: "./logs"          # Directory for log files
+  log_filename: "PETsARD_{timestamp}.log"  # Log filename template
+
+# Your experiment configuration
+Loader:
+  load_data:
+    method: "csv"
+    path: "data.csv"
+```
 
 ## Examples
 
+### Basic Usage
 ```python
-exec = Executor(config=yaml_path)
+exec = Executor(config="config.yaml")
+exec.run()
+results = exec.get_result()
+```
+
+### With Custom Logging
+```python
+# config.yaml with executor settings
+exec = Executor(config="config_with_logging.yaml")
 exec.run()
 ```
 
@@ -55,7 +82,27 @@ None
 
 ## Attributes
 
-- `config`: Configuration contents (Config object)
-- `sequence`: Execution order list
-- `status`: Execution status (Status object)
-- `result`: Results dictionary
+- `executor_config`: Executor-specific configuration (ExecutorConfig object)
+- `config`: Experiment configuration contents (Config object)
+- `sequence`: Module execution order list
+- `status`: Execution status tracking (Status object)
+- `result`: Final results dictionary
+
+## Configuration Classes
+
+### ExecutorConfig
+
+```python
+@dataclass
+class ExecutorConfig:
+    log_output_type: str = "file"
+    log_level: str = "INFO"
+    log_dir: str = "."
+    log_filename: str = "PETsARD_{timestamp}.log"
+```
+
+**Parameters:**
+- `log_output_type`: Where to output logs ("stdout", "file", "both")
+- `log_level`: Logging level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+- `log_dir`: Directory for storing log files
+- `log_filename`: Log file name template (supports {timestamp} placeholder)

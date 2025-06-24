@@ -8,8 +8,6 @@ Preprocessor:
 Synthesizer:
   gaussian-copula:
     method: 'sdv-single_table-gaussiancopula'
-  ctgan:
-    method: 'sdv-single_table-ctgan'
   tvae:
     method: 'sdv-single_table-tvae'
 Postprocessor:

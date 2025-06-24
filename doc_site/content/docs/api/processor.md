@@ -1,7 +1,7 @@
 ---
 title: Processor
 type: docs
-weight: 54
+weight: 55
 prev: docs/api/splitter
 next: docs/api/synthesizer
 ---

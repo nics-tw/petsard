@@ -49,7 +49,7 @@ next: docs/developer-guide/anonymeter
 
 1. **校驗工具**
    ```python
-   from petsard.util import digest_sha256
+   from petsard.loader.benchmarker import digest_sha256
 
 
    hasher = digest_sha256(filepath)

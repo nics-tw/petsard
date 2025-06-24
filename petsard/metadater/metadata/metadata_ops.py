@@ -5,9 +5,9 @@ from typing import Any, Optional, Union
 
 import pandas as pd
 
-from petsard.metadater.metadata import Metadata, MetadataConfig
-from petsard.metadater.schema_meta import SchemaMetadata
-from petsard.metadater.schema_ops import SchemaOperations
+from petsard.metadater.metadata.metadata_types import Metadata, MetadataConfig
+from petsard.metadater.schema.schema_functions import build_schema_metadata
+from petsard.metadater.schema.schema_types import SchemaMetadata
 
 
 class MetadataOperations:
@@ -29,7 +29,6 @@ class MetadataOperations:
 
     def __init__(self):
         self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
-        self.schema_ops = SchemaOperations()
 
     @classmethod
     def build_metadata_from_datasets(
@@ -70,9 +69,7 @@ class MetadataOperations:
                 )
 
             # Build schema
-            schema = instance.schema_ops.build_schema_from_dataframe(
-                data=data, config=schema_config
-            )
+            schema = build_schema_metadata(data=data, config=schema_config)
             metadata.add_schema(schema)
 
             instance._logger.info(

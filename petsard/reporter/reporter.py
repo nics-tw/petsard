@@ -408,6 +408,8 @@ class ReporterSaveReport(BaseReporter):
         # granularity should be whether global/columnwise/pairwise
         if "granularity" not in self.config:
             raise ConfigError
+        if not isinstance(self.config["granularity"], str):
+            raise ConfigError
         self.config["granularity"] = self.config["granularity"].lower()
         granularity_code = ReporterSaveReportMap.map(self.config["granularity"])
         if granularity_code not in [
@@ -600,13 +602,13 @@ class ReporterSaveReport(BaseReporter):
 
         # 4. Rename columns as f"{eval_name}_{original column}" if assigned
         #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
-        # eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
-        # eval_name = eval_expt_tuple[0]
-        # for col in report.columns:
-        #     report.rename(
-        #         columns={col: f"{eval_name}_{col}"},
-        #         inplace=True,
-        #     )
+        eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+        eval_name = eval_expt_tuple[0]
+        for col in report.columns:
+            report.rename(
+                columns={col: f"{eval_name}_{col}"},
+                inplace=True,
+            )
 
         # 5. reset index to represent column
         granularity_code: int = ReporterSaveReportMap.map(granularity)
@@ -674,7 +676,12 @@ class ReporterSaveReport(BaseReporter):
         """
         df: pd.DataFrame = None
         common_columns: List[str] = None
-        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [cls.SAVE_REPORT_KEY]
+        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [
+            cls.SAVE_REPORT_KEY,
+            "column",
+            "column1",
+            "column2",
+        ]
         df1_common_dtype: dict = None
         df2_common_dtype: dict = None
         colname_replace: str = "_petsard|_replace"  # customized name for non-conflict
@@ -706,26 +713,43 @@ class ReporterSaveReport(BaseReporter):
         # 3. FULL OUTER JOIN df1 and df2,
         #   kept column order based on df1 than df2
         df2[colname_replace] = colname_replace
-        df = pd.merge(
-            df1,
-            df2,
-            on=common_columns,
-            how="outer",
-            suffixes=("", colname_suffix),
-        ).reset_index(drop=True)
+        if common_columns:
+            df = pd.merge(
+                df1,
+                df2,
+                on=common_columns,
+                how="outer",
+                suffixes=("", colname_suffix),
+            ).reset_index(drop=True)
+        else:
+            # If no common columns, concatenate the DataFrames vertically
+            # First, align columns
+            all_columns = list(df1.columns) + [
+                col for col in df2.columns if col not in df1.columns
+            ]
+            df1_aligned = df1.reindex(columns=all_columns)
+            df2_aligned = df2.reindex(columns=all_columns)
+            # Concatenate with df2 first, then df1 to match expected order
+            df = pd.concat([df2_aligned, df1_aligned], ignore_index=True)
 
         # 4. replace df1 column with df2 column if replace tag is labeled
-        for col in df1.columns:
-            if col in allow_common_columns:  # skip common_columns
-                continue
+        # Only do this when we have common columns (i.e., used pd.merge)
+        if common_columns:
+            for col in df1.columns:
+                if col in allow_common_columns:  # skip common_columns
+                    continue
 
-            right_col = col + colname_suffix
-            if right_col in df.columns:
-                df.loc[df[colname_replace] == colname_replace, col] = df[right_col]
+                right_col = col + colname_suffix
+                if right_col in df.columns:
+                    df.loc[df[colname_replace] == colname_replace, col] = df[right_col]
 
-                df.drop(columns=[right_col], inplace=True)
+                    df.drop(columns=[right_col], inplace=True)
 
-        df.drop(columns=[colname_replace], inplace=True)  # drop replace tag
+            df.drop(columns=[colname_replace], inplace=True)  # drop replace tag
+        else:
+            # For concatenated DataFrames, just remove the replace tag
+            if colname_replace in df.columns:
+                df.drop(columns=[colname_replace], inplace=True)
 
         return df
 

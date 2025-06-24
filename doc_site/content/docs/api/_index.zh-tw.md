@@ -13,6 +13,10 @@ sidebar:
 - [Executor](./executor)
   - 實驗管線的主要介面
 
+## 資料管理
+- [Metadater](./metadater)
+  - 資料集綱要與元資料管理
+
 ## 管線組件
 - [Loader](./loader)
   - 資料載入與處理
@@ -28,12 +32,8 @@ sidebar:
 - [Evaluator](./evaluator)
   - 隱私、保真與效用評估
   - 附錄：支援評測方式
-- [Reporter](./reporter)
-  - 結果匯出與報告
-
-## 資料管理
-- [Metadata](./metadata)
-  - 資料集綱要與特性
 - [Describer](./describer)
   - 資料描述摘要
   - 附錄：支援敘述方法
+- [Reporter](./reporter)
+  - 結果匯出與報告

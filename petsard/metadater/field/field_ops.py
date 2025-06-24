@@ -15,7 +15,7 @@ from pandas.api.types import (
 )
 
 from petsard.metadater.datatype import DataType, LogicalType
-from petsard.metadater.field_meta import FieldConfig, FieldMetadata, FieldStats
+from petsard.metadater.field.field_types import FieldConfig, FieldMetadata, FieldStats
 
 
 class TypeMapper:

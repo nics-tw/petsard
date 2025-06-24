@@ -3,7 +3,7 @@ title: Loader
 type: docs
 weight: 52
 prev: docs/api/executor
-next: docs/api/splitter
+next: docs/api/metadater
 ---
 
 
@@ -68,8 +68,8 @@ load.load()
 
 **回傳值**
 
-- `data` (`pd.DataFrame`): Loaded DataFrame
-- `metadata` (`Metadata`): Dataset metadata
+- `data` (`pd.DataFrame`)：載入的 DataFrame
+- `metadata` (`SchemaMetadata`)：包含欄位資訊和統計資料的資料集架構詮釋資料
 
 ```python
 loader = Loader('data.csv')

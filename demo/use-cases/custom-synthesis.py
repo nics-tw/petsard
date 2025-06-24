@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from petsard.loader import Metadata
+from petsard.metadater import Metadata
 
 
 class MySynthesizer_Shuffle:

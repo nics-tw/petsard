@@ -236,7 +236,7 @@ if __name__ == "__main__":
     import numpy as np
     import pandas as pd
 
-    from petsard.util import digest_sha256
+    from petsard.loader.benchmarker import digest_sha256
 
     # 決定公司數量 (Number of companies)
     company_num: int = 1000

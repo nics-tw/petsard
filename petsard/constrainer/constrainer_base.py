@@ -34,6 +34,8 @@ class BaseConstrainer(ABC):
         """
         missing = [col for col in columns if col not in df.columns]
         if missing:
-            warnings.warn(f"Warning: Columns {missing} do not exist in DataFrame")
+            warnings.warn(
+                f"Warning: Columns {missing} do not exist in DataFrame", stacklevel=2
+            )
             return False
         return True

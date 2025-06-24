@@ -445,7 +445,7 @@ def update_admission_type_code(
 
 
 if __name__ == "__main__":
-    from petsard.util import digest_sha256
+    from petsard.loader.benchmarker import digest_sha256
 
     # 決定學生數量 (Number of students)
     n_students: int = 10000

@@ -1,7 +1,7 @@
 ---
 title: Synthesizer
 type: docs
-weight: 55
+weight: 56
 prev: docs/api/processor
 next: docs/api/constrainer
 ---

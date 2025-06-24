@@ -7,7 +7,7 @@ import pandas as pd
 
 from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError
-from petsard.util import EvaluationScoreGranularityMap, align_dtypes
+from petsard.metadater.types.data_types import EvaluationScoreGranularityMap
 
 
 @dataclass
@@ -88,13 +88,15 @@ class EvaluatorInputConfig(BaseConfig):
             raise ConfigError(error_msg)
 
         if len(required_input_keys) > 1:
-            from petsard.loader import Metadata
+            from petsard.metadater import Metadater
 
             reference_data: pd.DataFrame = getattr(self, self.major_key)
             reference_columns: set = set(reference_data.columns)
 
-            metadata: Metadata = Metadata()
-            metadata.build_metadata(data=reference_data)
+            # Create schema metadata using Metadater
+            schema_metadata = Metadater.create_schema(
+                dataframe=reference_data, schema_id="reference_schema"
+            )
 
             other_keys: list[str] = [
                 key for key in required_input_keys if key != self.major_key
@@ -104,14 +106,14 @@ class EvaluatorInputConfig(BaseConfig):
             column_mismatches: dict[str, list[str]] = {}
             other_key_columns: list[str] = []
             for other_key in other_keys:
-                other_key_columns = set(getattr(self, key).columns)
+                other_key_columns = set(getattr(self, other_key).columns)
 
                 # Find differences
                 missing_cols = reference_columns - other_key_columns
                 extra_cols = other_key_columns - reference_columns
 
                 if missing_cols or extra_cols:
-                    column_mismatches[key] = {
+                    column_mismatches[other_key] = {
                         "missing": list(missing_cols),
                         "extra": list(extra_cols),
                     }
@@ -123,16 +125,19 @@ class EvaluatorInputConfig(BaseConfig):
                 self._logger.error(error_msg)
                 raise ConfigError(error_msg)
 
-            # 5. align dtypes
+            # 5. align dtypes using schema functions
             for other_key in other_keys:
-                setattr(
-                    self,
-                    other_key,
-                    align_dtypes(
-                        getattr(self, other_key),
-                        metadata,
-                    ),
+                other_data = getattr(self, other_key)
+                # Apply schema transformations to align dtypes
+                from petsard.metadater.schema.schema_functions import (
+                    apply_schema_transformations,
                 )
+
+                aligned_data = apply_schema_transformations(
+                    data=other_data,
+                    schema=schema_metadata,
+                )
+                setattr(self, other_key, aligned_data)
 
 
 @dataclass

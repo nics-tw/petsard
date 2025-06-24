@@ -5,7 +5,7 @@ import pandas as pd
 
 from petsard.exceptions import ConfigError
 from petsard.loader.loader import Loader
-from petsard.loader.metadata import Metadata
+from petsard.metadater import SchemaMetadata
 
 
 class Splitter:
@@ -53,17 +53,9 @@ class Splitter:
                 The split data of train and validation set.
                 Following the format:
                 {sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}
-
-            metadata (Metadata):
-                The metadata of the data.
-
-            loader (dict, optional):
-                The loader for 'custom_data' method.
-                Contains 'ori' and 'control' loader for train and validation data.
         """
         self.data: dict = {}
         self.config: dict = {}
-        self.metadata: Metadata = None
 
         # Normal Splitter use case
         if method is None:
@@ -113,8 +105,7 @@ class Splitter:
         self,
         data: pd.DataFrame = None,
         exclude_index: list[int] = None,
-        metadata: Metadata = None,
-    ):
+    ) -> tuple[dict, SchemaMetadata]:
         """
         Perform index bootstrapping on the Splitter-initialized data
             and split it into train and validation sets
@@ -126,23 +117,30 @@ class Splitter:
             data (pd.DataFrame, optional): The dataset which wait for split.
             exclude_index (list[int], optional):
                 The exist index we want to exclude them from our sampling.
-            metadata (Metadata, optional): The metadata class of the data.
+
+        Returns:
+            tuple[dict, SchemaMetadata]: Split data and metadata
         """
         if "method" in self.config:
+            # Custom data method - load from files
             ori_data, ori_metadata = self.loader["ori"].load()
             ctrl_data, _ = self.loader["control"].load()
+
             self.data[1] = {
                 "train": ori_data,
                 "validation": ctrl_data,
             }
-            # Setting metadata by train
-            metadata = ori_metadata
-            if "row_num" in metadata.metadata["global"]:
-                metadata.metadata["global"]["row_num_after_split"] = metadata.metadata[
-                    "global"
-                ].pop("row_num")
-            self.metadata = metadata
+
+            # Use the metadata from training data and update row counts
+            metadata = self._update_metadata_with_split_info(
+                ori_metadata, ori_data.shape[0], ctrl_data.shape[0]
+            )
+
         else:
+            # Normal splitting method
+            if data is None:
+                raise ConfigError("Data must be provided for normal splitting method")
+
             data.reset_index(drop=True, inplace=True)  # avoid unexpected index
 
             self.index = self._index_bootstrapping(
@@ -155,12 +153,68 @@ class Splitter:
                     "validation": data.iloc[index["validation"]].reset_index(drop=True),
                 }
 
-        if metadata is not None:
-            self.metadata = metadata
-            self.metadata.metadata["global"]["row_num_after_split"] = {
-                "train": self.data[1]["train"].shape[0],
-                "validation": self.data[1]["validation"].shape[0],
-            }
+            # Create basic metadata for split data
+            metadata = self._create_split_metadata(
+                self.data[1]["train"].shape[0], self.data[1]["validation"].shape[0]
+            )
+
+        return self.data, metadata
+
+    def _update_metadata_with_split_info(
+        self, metadata: SchemaMetadata, train_rows: int, validation_rows: int
+    ) -> SchemaMetadata:
+        """
+        Update metadata with split information using functional approach.
+
+        Args:
+            metadata: Original metadata from training data
+            train_rows: Number of training rows
+            validation_rows: Number of validation rows
+
+        Returns:
+            Updated metadata with split information
+        """
+        # Create new properties with split information
+        updated_properties = metadata.properties.copy() if metadata.properties else {}
+        updated_properties["row_num_after_split"] = {
+            "train": train_rows,
+            "validation": validation_rows,
+        }
+
+        # Create new metadata instance with updated properties
+        return SchemaMetadata(
+            schema_id=metadata.schema_id,
+            name=metadata.name,
+            description=metadata.description,
+            fields=metadata.fields,
+            properties=updated_properties,
+        )
+
+    def _create_split_metadata(
+        self, train_rows: int, validation_rows: int
+    ) -> SchemaMetadata:
+        """
+        Create basic metadata for split data.
+
+        Args:
+            train_rows: Number of training rows
+            validation_rows: Number of validation rows
+
+        Returns:
+            Basic metadata with split information
+        """
+        return SchemaMetadata(
+            schema_id="split_data",
+            name="Split Data Schema",
+            description="Metadata for split data",
+            fields=[],  # Will be populated if needed
+            properties={
+                "row_num_after_split": {
+                    "train": train_rows,
+                    "validation": validation_rows,
+                }
+            },
+        )
 
     def _index_bootstrapping(
         self, index: list, exclude_index: list[int] = None
@@ -171,8 +225,8 @@ class Splitter:
         Args
             index (list)
                 The index list of dataset which wait for split.
-            exist_index (dict[int, list[int]])
-                same as split()
+            exclude_index (list[int])
+                The exist index we want to exclude them from our sampling.
         """
         if self.config["random_state"] is not None:
             random.seed(self.config["random_state"])

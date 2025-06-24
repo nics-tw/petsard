@@ -4,11 +4,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import (
-    is_bool_dtype,
-    is_object_dtype,
-    is_string_dtype,
-)
+from pandas.api.types import is_bool_dtype, is_object_dtype, is_string_dtype
 
 from petsard.exceptions import ConfigError
 
@@ -325,10 +321,15 @@ class DataDescriberCov(BaseDataDescriber):
         upper_indices = np.triu_indices_from(temp, k=1)
         temp.values[upper_indices] = np.nan
 
+        # 確保索引名稱不會與現有列名衝突
+        index_name = "col1"
+        if index_name in temp.columns:
+            index_name = "index_col1"
+
         temp = (
-            temp.reset_index(names="col1")
+            temp.reset_index(names=index_name)
             .melt(
-                id_vars="col1",
+                id_vars=index_name,
                 value_vars=temp.columns,
                 var_name="col2",
                 value_name="cov",
@@ -337,7 +338,7 @@ class DataDescriberCov(BaseDataDescriber):
             .reset_index(drop=True)
         )
 
-        return temp.set_index(["col1", "col2"]).to_dict()
+        return temp.set_index([index_name, "col2"]).to_dict()
 
 
 class DataDescriberCorr(BaseDataDescriber):
@@ -353,10 +354,15 @@ class DataDescriberCorr(BaseDataDescriber):
         upper_indices = np.triu_indices_from(temp, k=1)
         temp.values[upper_indices] = np.nan
 
+        # 確保索引名稱不會與現有列名衝突
+        index_name = "col1"
+        if index_name in temp.columns:
+            index_name = "index_col1"
+
         temp = (
-            temp.reset_index(names="col1")
+            temp.reset_index(names=index_name)
             .melt(
-                id_vars="col1",
+                id_vars=index_name,
                 value_vars=temp.columns,
                 var_name="col2",
                 value_name="corr",
@@ -365,4 +371,4 @@ class DataDescriberCorr(BaseDataDescriber):
             .reset_index(drop=True)
         )
 
-        return temp.set_index(["col1", "col2"]).to_dict()
+        return temp.set_index([index_name, "col2"]).to_dict()

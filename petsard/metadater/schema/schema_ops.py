@@ -1,15 +1,16 @@
 """Schema-level operations and transformations"""
 
 import logging
+import warnings
 from datetime import datetime
 from typing import Any, Optional, Union
 
 import pandas as pd
 
-from petsard.metadater.datatype import DataType, LogicalType
-from petsard.metadater.field_meta import FieldMetadata
-from petsard.metadater.field_ops import FieldOperations
-from petsard.metadater.schema_meta import SchemaConfig, SchemaMetadata
+from petsard.metadater.datatype import DataType, LogicalType, legacy_safe_round
+from petsard.metadater.field.field_ops import FieldOperations
+from petsard.metadater.field.field_types import FieldMetadata
+from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
 
 class SchemaOperations:
@@ -498,3 +499,121 @@ class SchemaOperations:
             return numeric
         else:
             return numeric / 100
+
+    @classmethod
+    def to_legacy_metadata_format(
+        cls, data: pd.DataFrame, schema: SchemaMetadata
+    ) -> dict[str, Any]:
+        """
+        Convert SchemaMetadata to legacy Metadata format.
+
+        This method is deprecated and will be removed in future versions.
+        It's provided for backward compatibility only.
+
+        Args:
+            data (pd.DataFrame): The original dataframe
+            schema (SchemaMetadata): The schema metadata
+
+        Returns:
+            Dict[str, Any]: Legacy metadata format with 'col' and 'global' keys
+        """
+        warnings.warn(
+            "to_legacy_metadata_format() is deprecated and will be removed in v2.0.0. "
+            "Please use the new SchemaMetadata format directly. "
+            "Legacy Metadata format support will be discontinued.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        # Initialize legacy metadata structure
+        metadata = {"col": {}, "global": {}}
+
+        # Build global metadata
+        metadata["global"]["row_num"] = data.shape[0]
+        metadata["global"]["col_num"] = data.shape[1]
+        metadata["global"]["na_percentage"] = legacy_safe_round(
+            data.isna().any(axis=1).mean()
+        )
+
+        # Build column metadata
+        for field in schema.fields:
+            if field.name not in data.columns:
+                continue
+
+            col_metadata = {}
+
+            # Get pandas dtype
+            col_metadata["dtype"] = data[field.name].dtype
+
+            # Get na_percentage from stats if available, otherwise calculate
+            if field.stats and hasattr(field.stats, "na_percentage"):
+                col_metadata["na_percentage"] = legacy_safe_round(
+                    field.stats.na_percentage / 100
+                )
+            else:
+                col_metadata["na_percentage"] = legacy_safe_round(
+                    data[field.name].isna().mean()
+                )
+
+            # Convert DataType to legacy infer_dtype
+            col_metadata["infer_dtype"] = cls._convert_to_legacy_infer_dtype(
+                field.data_type, field.logical_type
+            )
+
+            metadata["col"][field.name] = col_metadata
+
+        return metadata
+
+    @staticmethod
+    def _convert_to_legacy_infer_dtype(
+        data_type: DataType, logical_type: Any = None
+    ) -> str:
+        """
+        Convert new DataType enum to legacy infer_dtype string.
+
+        Args:
+            data_type (DataType): The new DataType enum
+            logical_type: The logical type (if any)
+
+        Returns:
+            str: Legacy infer_dtype value ('numerical', 'categorical', 'datetime', 'object')
+        """
+        # Map DataType to legacy infer_dtype
+        numerical_types = {
+            DataType.INT8,
+            DataType.INT16,
+            DataType.INT32,
+            DataType.INT64,
+            DataType.FLOAT32,
+            DataType.FLOAT64,
+            DataType.DECIMAL,
+        }
+
+        datetime_types = {
+            DataType.DATE,
+            DataType.TIME,
+            DataType.TIMESTAMP,
+            DataType.TIMESTAMP_TZ,
+        }
+
+        # Check for categorical logical type
+        if (
+            logical_type
+            and hasattr(logical_type, "value")
+            and logical_type.value == "categorical"
+        ):
+            return "categorical"
+
+        # Map based on DataType
+        if data_type in numerical_types:
+            return "numerical"
+        elif data_type in datetime_types:
+            return "datetime"
+        elif data_type == DataType.BOOLEAN:
+            return "categorical"
+        elif data_type in {DataType.STRING, DataType.BINARY}:
+            # Default strings to object unless they have categorical logical type
+            return "object"
+        else:
+            # Default fallback
+            return "object"

@@ -1,8 +1,8 @@
 ---
 title: Splitter
 type: docs
-weight: 53
-prev: docs/api/loader
+weight: 54
+prev: docs/api/metadater
 next: docs/api/processor
 ---
 
@@ -16,7 +16,9 @@ Splitter(
 )
 ```
 
-用於實驗目的，將資料分割為訓練集和驗證集。設計用於支援如 Anonymeter 的隱私評估任務，多次分割可降低合成資料評估的偏誤。對於不平衡的資料集，建議使用較大的 `num_samples`。
+用於實驗目的，使用函數式程式設計模式將資料分割為訓練集和驗證集。設計用於支援如 Anonymeter 的隱私評估任務，多次分割可降低合成資料評估的偏誤。對於不平衡的資料集，建議使用較大的 `num_samples`。
+
+此模組採用函數式方法，使用純函數和不可變資料結構，回傳 `(data, metadata)` 元組以與其他 PETsARD 模組保持一致性。
 
 ## 參數
 
@@ -37,10 +39,19 @@ Splitter(
 from petsard import Splitter
 
 
-# 基本用法
-split = Splitter(num_samples=5, train_split_ratio=0.8)
-split.split(data=df)
-train_df = split.data[1]['train'] # 第一次分割的訓練集
+# 使用函數式 API 的基本用法
+splitter = Splitter(num_samples=5, train_split_ratio=0.8)
+split_data, split_metadata = splitter.split(data=df, metadata=metadata)
+
+# 存取分割結果
+train_df = split_data[1]['train']  # 第一次分割的訓練集
+val_df = split_data[1]['validation']  # 第一次分割的驗證集
+
+# 多次抽樣以降低偏誤
+for sample_num in range(1, 6):  # 5 次抽樣
+    train_set = split_data[sample_num]['train']
+    val_set = split_data[sample_num]['validation']
+    # 用於隱私評估...
 ```
 
 ## 方法
@@ -48,10 +59,10 @@ train_df = split.data[1]['train'] # 第一次分割的訓練集
 ### `split()`
 
 ```python
-split.split(data, exclude_index=None, metadata=None)
+data, metadata = split.split(data, exclude_index=None, metadata=None)
 ```
 
-執行資料分割。
+使用函數式程式設計模式執行資料分割。
 
 **參數**
 
@@ -59,25 +70,26 @@ split.split(data, exclude_index=None, metadata=None)
   - 若 `method='custom_data'` 則不需提供
 - `exclude_index` (list[int], optional)：要在抽樣時排除的索引列表
   - 預設值：無
-- `metadata` (Metadata, optional)：資料集的 Metadata 物件
+- `metadata` (SchemaMetadata, optional)：資料集的架構詮釋資料物件
   - 預設值：無
 
 **回傳值**
 
-無
+- `data` (dict)：包含所有分割結果的字典
+  - 格式：`{sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}`
+- `metadata` (SchemaMetadata)：更新後包含分割資訊的架構詮釋資料
 
-- 分割結果儲存於：
-  - `Splitter.data`：包含所有分割結果的字典
-  - `Splitter.metadata`：資料集詮釋資料
-- 存取分割資料的方式：
-  - `Splitter.data[sample_num]['train']`：特定樣本的訓練集
-  - `Splitter.data[sample_num]['validation']`：特定樣本的驗證集
+```python
+splitter = Splitter(num_samples=3, train_split_ratio=0.8)
+split_data, split_metadata = splitter.split(data=df, metadata=metadata)
+
+# 存取分割資料
+train_df = split_data[1]['train']  # 第一次分割的訓練集
+val_df = split_data[1]['validation']  # 第一次分割的驗證集
+```
 
 ## 屬性
 
-- `data`：分割資料集字典
-  - 格式：`{sample_num: {'train': pd.DataFrame, 'validation': pd.DataFrame}}`
-- `metadata`：資料集詮釋資料（Metadata 物件）
 - `config`：設定字典，包含：
   - 若 `method=None`：
     - `num_samples` (int)：重複抽樣次數
@@ -87,3 +99,5 @@ split.split(data, exclude_index=None, metadata=None)
     - `method` (str)：載入方法
     - `filepath` (dict)：資料檔案路徑
     - 其他 Loader 設定
+
+**注意**：新的函數式 API 直接從 `split()` 方法回傳資料和詮釋資料，而非將其儲存為實例屬性。此方法遵循函數式程式設計原則，使用不可變資料結構。

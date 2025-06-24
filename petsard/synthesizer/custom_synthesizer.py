@@ -3,9 +3,9 @@ import logging
 import pandas as pd
 
 from petsard.exceptions import ConfigError
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 from petsard.synthesizer.synthesizer_base import BaseSynthesizer
-from petsard.util import load_external_module
+from petsard.utils import load_external_module
 
 
 class CustomSynthesizer(BaseSynthesizer):
@@ -19,11 +19,11 @@ class CustomSynthesizer(BaseSynthesizer):
         "sample": [],
     }
 
-    def __init__(self, config: dict, metadata: Metadata = None):
+    def __init__(self, config: dict, metadata: SchemaMetadata = None):
         """
         Args:
             config (dict): The configuration assign by Synthesizer
-            metadata (Metadata, optional): The metadata object.
+            metadata (SchemaMetadata, optional): The metadata object.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -50,12 +50,26 @@ class CustomSynthesizer(BaseSynthesizer):
             raise ConfigError(error_msg)
 
         synthesizer_class: callable = None
-        _, synthesizer_class = load_external_module(
-            module_path=self.config["module_path"],
-            class_name=self.config["class_name"],
-            logger=self._logger,
-            required_methods=self.REQUIRED_METHODS,
-        )
+
+        # Use demo-specific module loading for better path resolution
+        try:
+            from demo.utils import load_demo_module
+
+            _, synthesizer_class = load_demo_module(
+                module_path=self.config["module_path"],
+                class_name=self.config["class_name"],
+                logger=self._logger,
+                required_methods=self.REQUIRED_METHODS,
+            )
+        except ImportError:
+            # Fallback to core function if demo utils not available
+            _, synthesizer_class = load_external_module(
+                module_path=self.config["module_path"],
+                class_name=self.config["class_name"],
+                logger=self._logger,
+                required_methods=self.REQUIRED_METHODS,
+            )
+
         self._impl = synthesizer_class(config=config, metadata=metadata)
 
     def _fit(self, data: pd.DataFrame) -> None:

@@ -15,7 +15,7 @@ from anonymeter.evaluators import (
 from petsard.config_base import BaseConfig
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.util import safe_round
+from petsard.metadater.types.data_types import safe_round
 
 
 class AnonymeterMap(Enum):

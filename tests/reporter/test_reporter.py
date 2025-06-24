@@ -4,15 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from petsard import Reporter
-from petsard.exceptions import (
-    ConfigError,
-    UnsupportedMethodError,
-)
-from petsard.reporter.reporter import (
-    ReporterSaveData,
-    ReporterSaveReport,
-)
+from petsard.exceptions import ConfigError, UnsupportedMethodError
+from petsard.reporter.reporter import Reporter, ReporterSaveData, ReporterSaveReport
 from petsard.reporter.utils import (
     convert_eval_expt_name_to_tuple,
     convert_full_expt_name_to_tuple,

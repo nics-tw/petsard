@@ -13,7 +13,7 @@ from sdv.metadata import Metadata as SDV_Metadata
 from petsard.config_base import BaseConfig
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import UnsupportedMethodError
-from petsard.util import safe_round
+from petsard.metadater import safe_round
 
 
 class SDMetricsSingleTableMap(Enum):

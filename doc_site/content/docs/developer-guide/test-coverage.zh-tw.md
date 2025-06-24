@@ -101,7 +101,49 @@ next: docs/developer-guide
   - 布林型態
   - 無效型態
 
+### `Splitter`
+
+> tests/loader/test_splitter.py
+
+測試資料分割功能：
+
+- `test_splitter_init_normal`：測試正常初始化
+- `test_splitter_init_invalid_ratio`：測試無效分割比例的處理
+- `test_splitter_init_custom_data_valid`：測試自定義資料方法的有效配置
+- `test_splitter_init_custom_data_invalid_method`：測試無效自定義方法的錯誤處理
+- `test_splitter_init_custom_data_invalid_filepath`：測試無效檔案路徑的錯誤處理
+- `test_split_normal_method`：測試正常分割方法
+- `test_split_normal_method_no_data`：測試無資料情況下的分割
+- `test_split_multiple_samples`：測試多重樣本分割
+- `test_split_custom_data_method`：測試自定義資料分割方法
+- `test_split_basic_functionality`：測試基本分割功能
+- `test_index_bootstrapping_collision_handling`：測試索引自助法碰撞處理
+- `test_metadata_update_functional_approach`：測試使用函數式方法更新 metadata
+- `test_create_split_metadata`：測試建立分割 metadata
+
+> **架構重構說明**：在 2025/6/18 的重構中，所有外部模組（Loader、Processor、Splitter、Benchmarker）已不再直接導入 Metadater 的內部 API（`metadater.api`、`metadater.core`、`metadater.types`），改為使用 Metadater 類別的公共方法。相關測試的 mock 路徑也已相應更新，確保架構的封裝性和一致性。
+
 ## 資料合成
+
+### `Synthesizer`
+
+> tests/synthesizer/test_synthesizer.py
+
+測試 Synthesizer 的主要功能：
+
+- `test_initialization`：驗證 Synthesizer 的初始化功能：
+  - 檢查配置方法是否正確設定
+  - 驗證初始狀態（_impl 為 None）
+  - 測試自定義參數設定（如 sample_num_rows）
+- `test_create_basic`：測試 create 方法的基本功能：
+  - 使用 mock 物件模擬 SDV synthesizer
+  - 驗證 _impl 在 create 前後的狀態變化
+  - 測試 _determine_sample_configuration 方法的整合
+- `test_fit_without_create`：測試在未呼叫 create 前呼叫 fit 會引發 UncreatedError
+- `test_fit_without_data_raises_error`：測試非 CUSTOM_DATA 方法但無資料時引發 ConfigError
+- `test_sample_without_create`：測試在未 create 時 sample 方法返回空 DataFrame
+
+
 
 ### `Constrainer`
 
@@ -196,6 +238,11 @@ next: docs/developer-guide
 
 ### `Evaluator`
 
+
+> - 所有功能替換都使用 Metadater 的公共介面，完全避免調用深層內部功能
+> - 保持了所有原有功能的完整性，確保向後相容性
+> - 新的 Metadater 功能通過 `Metadater` 類的靜態方法提供統一介面
+
 #### `MLUtility`
 
 > tests/evaluator/test_mlutility.py
@@ -215,3 +262,66 @@ next: docs/developer-guide
   - 處理空資料的預處理
   - 驗證 NaN 分數
   - 檢查警告訊息
+
+## 資料報告
+
+### `Reporter`
+
+> tests/reporter/test_reporter.py
+
+
+> - 所有原始功能都已保留，具有完全向後相容性
+> - 增強 `_safe_merge` 方法中的合併邏輯，正確處理 columnwise 和 pairwise 資料合併
+
+測試主要 Reporter 功能：
+
+- `test_method`：測試 Reporter 使用不同方法的初始化：
+  - 'save_data' 方法使用 ReporterSaveData
+  - 'save_report' 方法使用 ReporterSaveReport
+  - 無效方法拋出 UnsupportedMethodError
+- `test_method_save_data`：測試 save_data 方法驗證：
+  - 未提供 source 時拋出 ConfigError
+- `test_method_save_report`：測試 save_report 方法驗證：
+  - 僅使用 granularity 的有效初始化
+  - 缺少必要參數時拋出 ConfigError
+
+#### `ReporterSaveData`
+
+測試資料儲存功能：
+
+- `test_source`：測試 source 參數驗證：
+  - 接受字串和字串列表
+  - 無效類型（浮點數、混合列表、元組）拋出 ConfigError
+
+#### `ReporterSaveReport`
+
+測試報告生成功能：
+
+- `test_granularity`：測試 granularity 參數驗證：
+  - 有效值：'global'、'columnwise'、'pairwise'
+  - 缺少或無效 granularity 拋出 ConfigError
+  - 非字串類型拋出 ConfigError
+- `test_eval`：測試 eval 參數驗證：
+  - 接受字串、字串列表或 None
+  - 無效類型拋出 ConfigError
+- `test_create`：測試所有粒度的報告建立：
+  - Global 粒度報告生成
+  - Columnwise 粒度報告生成
+  - Pairwise 粒度報告生成
+- `test_process_report_data`：測試資料處理功能：
+  - 使用評估名稱前綴重命名欄位
+  - 不同粒度的索引處理
+  - 非 Evaluator/Describer 模組的跳過標記
+- `test_safe_merge`：測試 DataFrame 合併功能：
+  - 具有重疊欄位的純資料合併
+  - 所有粒度的處理資料合併
+  - 正確處理包括 'column'、'column1'、'column2' 的共同欄位
+  - 合併結果中的正確行順序
+
+#### `Reporter Utils`
+
+測試工具函數：
+
+- `test_convert_full_expt_tuple_to_name`：測試實驗元組到名稱的轉換
+- `test_convert_full_expt_name_to_tuple`：測試實驗名稱到元組的轉換
+- `test_convert_eval_expt_name_to_tuple`：測試評估實驗名稱解析
