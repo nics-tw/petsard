@@ -1,9 +1,9 @@
 ---
 title: Metadater
 type: docs
-weight: 52
+weight: 53
 prev: docs/api/loader
-next: docs/api/metadata
+next: docs/api/splitter
 ---
 
 
@@ -236,7 +236,7 @@ result = pipeline.process(field_data, initial_metadata)
 ### 1. Significantly Reduced API Complexity
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| Public Interface Count | 23 | 9 | -61% |
+| Public Interface Count | 23 | 8 | -65% |
 | Cognitive Load | High (exceeds 7±2) | Medium (follows principle) | ✅ |
 | Learning Curve | Steep | Gentle | ✅ |
 
@@ -266,12 +266,12 @@ field = Metadater.create_field(series, "field_name")
 
 The Metadater module provides a comprehensive set of tools organized into different categories:
 
-### Core Interface (9 interfaces)
+### Core Interface (8 interfaces)
 
 - **`Metadater`**: Primary class providing unified metadata operations
 - **`Metadata`**, **`SchemaMetadata`**, **`FieldMetadata`**: Core types
 - **`MetadataConfig`**, **`SchemaConfig`**, **`FieldConfig`**: Configuration types
-- **`load_external_module`**, **`safe_round`**: Utility functions
+- **`safe_round`**: Utility functions
 
 ### Functional API Tools
 

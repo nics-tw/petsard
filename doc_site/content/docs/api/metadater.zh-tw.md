@@ -1,9 +1,9 @@
 ---
 title: Metadater
 type: docs
-weight: 52
+weight: 53
 prev: docs/api/loader
-next: docs/api/metadata
+next: docs/api/splitter
 ---
 
 
@@ -15,7 +15,7 @@ Metadater()
 
 ## 設計概述
 
-Metadater 採用四層架構設計，結合函數式程式設計原則，提供清晰、可組合且易於使用的詮釋資料管理介面。我們將複雜的 23 個公開介面簡化為 9 個核心介面，大幅降低使用複雜度。
+Metadater 採用四層架構設計，結合函數式程式設計原則，提供清晰、可組合且易於使用的詮釋資料管理介面。我們將複雜的 23 個公開介面簡化為 8 個核心介面，大幅降低使用複雜度。
 
 **四層架構**：`Metadata → Schema → Field → Types`
 
@@ -236,7 +236,7 @@ result = pipeline.process(field_data, initial_metadata)
 ### 1. API 複雜度大幅降低
 | 指標 | 重構前 | 重構後 | 改善 |
 |------|--------|--------|------|
-| 公開介面數量 | 23 個 | 9 個 | -61% |
+| 公開介面數量 | 23 個 | 8 個 | -65% |
 | 認知負荷 | 高 (超過 7±2) | 中 (符合原則) | ✅ |
 | 學習曲線 | 陡峭 | 平緩 | ✅ |
 
@@ -266,12 +266,12 @@ field = Metadater.create_field(series, "field_name")
 
 Metadater 模組提供了一套完整的工具，分為不同類別：
 
-### 核心介面 (9 個介面)
+### 核心介面 (8 個介面)
 
 - **`Metadater`**：提供統一詮釋資料操作的主要類別
 - **`Metadata`**, **`SchemaMetadata`**, **`FieldMetadata`**：核心類型
 - **`MetadataConfig`**, **`SchemaConfig`**, **`FieldConfig`**：設定類型
-- **`load_external_module`**, **`safe_round`**：工具函數
+- **`safe_round`**：工具函數
 
 ### 函數式 API 工具
 

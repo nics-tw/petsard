@@ -2,7 +2,7 @@
 title: Splitter
 type: docs
 weight: 54
-prev: docs/api/loader
+prev: docs/api/metadater
 next: docs/api/processor
 ---
 

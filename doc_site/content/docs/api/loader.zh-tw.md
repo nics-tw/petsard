@@ -1,9 +1,9 @@
 ---
 title: Loader
 type: docs
-weight: 53
+weight: 52
 prev: docs/api/executor
-next: docs/api/splitter
+next: docs/api/metadater
 ---
 
 

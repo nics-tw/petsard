@@ -101,7 +101,49 @@ Tests for metadata handling and type inference:
   - Boolean types
   - Invalid types
 
+### `Splitter`
+
+> tests/loader/test_splitter.py
+
+Tests for data splitting functionality:
+
+- `test_splitter_init_normal`: Tests normal initialization
+- `test_splitter_init_invalid_ratio`: Tests handling of invalid split ratios
+- `test_splitter_init_custom_data_valid`: Tests valid custom data method configuration
+- `test_splitter_init_custom_data_invalid_method`: Tests error handling for invalid custom methods
+- `test_splitter_init_custom_data_invalid_filepath`: Tests error handling for invalid file paths
+- `test_split_normal_method`: Tests normal splitting method
+- `test_split_normal_method_no_data`: Tests splitting with no data
+- `test_split_multiple_samples`: Tests multiple sample splitting
+- `test_split_custom_data_method`: Tests custom data splitting method
+- `test_split_basic_functionality`: Tests basic splitting functionality
+- `test_index_bootstrapping_collision_handling`: Tests index bootstrapping collision handling
+- `test_metadata_update_functional_approach`: Tests metadata updates using functional approach
+- `test_create_split_metadata`: Tests creation of split metadata
+
+> **Architecture Refactoring Note**: In the refactoring on 2025/6/18, all external modules (Loader, Processor, Splitter, Benchmarker) no longer directly import Metadater's internal APIs (`metadater.api`, `metadater.core`, `metadater.types`), and instead use Metadater class's public methods. Related test mock paths have also been updated accordingly to ensure architectural encapsulation and consistency.
+
 ## Data Generating
+
+### `Synthesizer`
+
+> tests/synthesizer/test_synthesizer.py
+
+Tests for the main Synthesizer functionality:
+
+- `test_initialization`: Verifies Synthesizer initialization functionality:
+  - Checks configuration method is set correctly
+  - Validates initial state (_impl is None)
+  - Tests custom parameter settings (e.g., sample_num_rows)
+- `test_create_basic`: Tests basic functionality of create method:
+  - Uses mock objects to simulate SDV synthesizer
+  - Verifies _impl state changes before and after create
+  - Tests integration with _determine_sample_configuration method
+- `test_fit_without_create`: Tests that calling fit before create raises UncreatedError
+- `test_fit_without_data_raises_error`: Tests that non-CUSTOM_DATA methods without data raise ConfigError
+- `test_sample_without_create`: Tests that sample method returns empty DataFrame when not created
+
+> **Architecture Refactoring Note**: In the refactoring on 2025/6/18, the Synthesizer module has been completely migrated to use the new Metadater architecture. All submodules (synthesizer_base.py, custom_data.py, custom_synthesizer.py, sdv.py) have been updated to use `petsard.metadater.types.SchemaMetadata` instead of the old `petsard.loader.Metadata`. The SDV conversion logic has been adapted to the new SchemaMetadata structure, ensuring compatibility with the new architecture.
 
 ### `Constrainer`
 
@@ -196,6 +238,11 @@ Tests for field combination constraints:
 
 ### `Evaluator`
 
+
+> - All functionality replacements use Metadater's public interface, completely avoiding deep internal functionality calls
+> - All original functionality has been preserved with full backward compatibility
+> - New Metadater functionality is provided through unified interface via `Metadater` class static methods
+
 #### `MLUtility`
 
 > tests/evaluator/test_mlutility.py
@@ -215,3 +262,66 @@ Tests for machine learning utility evaluation:
   - Handles preprocessing of empty data
   - Verifies NaN scores
   - Checks warning messages
+
+## Data Reporting
+
+### `Reporter`
+
+> tests/reporter/test_reporter.py
+
+
+> - All original functionality has been preserved with full backward compatibility
+> - Enhanced merge logic in `_safe_merge` method to properly handle columnwise and pairwise data merging
+
+Tests for the main Reporter functionality:
+
+- `test_method`: Tests Reporter initialization with different methods:
+  - ReporterSaveData for 'save_data' method
+  - ReporterSaveReport for 'save_report' method
+  - UnsupportedMethodError for invalid methods
+- `test_method_save_data`: Tests save_data method validation:
+  - ConfigError when no source is provided
+- `test_method_save_report`: Tests save_report method validation:
+  - Valid initialization with granularity only
+  - ConfigError when required parameters are missing
+
+#### `ReporterSaveData`
+
+Tests for data saving functionality:
+
+- `test_source`: Tests source parameter validation:
+  - String and list of strings are accepted
+  - ConfigError for invalid types (float, mixed list, tuple)
+
+#### `ReporterSaveReport`
+
+Tests for report generation functionality:
+
+- `test_granularity`: Tests granularity parameter validation:
+  - Valid values: 'global', 'columnwise', 'pairwise'
+  - ConfigError for missing or invalid granularity
+  - ConfigError for non-string types
+- `test_eval`: Tests eval parameter validation:
+  - String, list of strings, or None are accepted
+  - ConfigError for invalid types
+- `test_create`: Tests report creation for all granularities:
+  - Global granularity report generation
+  - Columnwise granularity report generation
+  - Pairwise granularity report generation
+- `test_process_report_data`: Tests data processing functionality:
+  - Column renaming with eval name prefixes
+  - Index handling for different granularities
+  - Skip flag for non-Evaluator/Describer modules
+- `test_safe_merge`: Tests DataFrame merging functionality:
+  - Pure data merging with overlapping columns
+  - Processed data merging for all granularities
+  - Proper handling of common columns including 'column', 'column1', 'column2'
+  - Correct row ordering in merged results
+
+#### `Reporter Utils`
+
+Tests for utility functions:
+
+- `test_convert_full_expt_tuple_to_name`: Tests experiment tuple to name conversion
+- `test_convert_full_expt_name_to_tuple`: Tests experiment name to tuple conversion
+- `test_convert_eval_expt_name_to_tuple`: Tests evaluation experiment name parsing
