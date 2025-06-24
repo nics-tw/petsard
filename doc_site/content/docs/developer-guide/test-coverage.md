@@ -31,6 +31,8 @@ Tests for the main Executor functionality:
 - `test_logger_reconfiguration`: Tests logger can be reconfigured after initial setup
 - `test_get_config`: Tests YAML configuration loading from file
 
+
+
 ## Data Loading
 
 ### `Loader`
@@ -423,3 +425,101 @@ Tests for utility functions:
 - `test_convert_full_expt_tuple_to_name`: Tests experiment tuple to name conversion
 - `test_convert_full_expt_name_to_tuple`: Tests experiment name to tuple conversion
 - `test_convert_eval_expt_name_to_tuple`: Tests evaluation experiment name parsing
+
+## System Components
+
+### `Config`
+
+> tests/test_config.py
+
+Tests for configuration management and BaseConfig functionality:
+
+**Config Tests:**
+- `test_init_basic_config`: Tests basic configuration initialization with module sequence and queue setup
+- `test_config_validation_error`: Tests configuration validation for invalid experiment names with "_[xxx]" suffix
+- `test_splitter_handler`: Tests Splitter configuration expansion for multiple samples
+- `test_set_flow`: Tests flow setup with correct queue ordering and content
+- `test_complete_workflow_setup`: Tests complete multi-module workflow configuration
+- `test_operator_creation`: Tests operator instantiation from configuration
+
+**BaseConfig Tests (integrated):**
+- `test_init_and_get`: Tests initialization and get method with all attributes including logger
+- `test_update`: Tests configuration updates with validation for existing attributes and type checking
+- `test_get_params_include`: Tests parameter extraction with INCLUDE action and renaming
+- `test_get_params_merge`: Tests parameter merging with MERGE action and dictionary validation
+- `test_get_params_combined`: Tests combined parameter operations with multiple actions
+- `test_get_params_validation`: Tests validation for non-existent attributes, duplicates, and conflicts
+- `test_from_dict`: Tests configuration creation from dictionary with parameter validation
+- `test_config_get_param_action_map`: Tests ConfigGetParamActionMap enum functionality
+
+**Status Tests (integrated):**
+- `test_init`: Tests Status initialization with config, sequence, and attribute setup
+- `test_put_and_get_result`: Tests status storage and result retrieval with metadata tracking
+- `test_metadata_management`: Tests metadata setting, retrieval, and error handling for non-existent modules
+- `test_get_pre_module`: Tests previous module retrieval in execution sequence
+- `test_get_full_expt`: Tests experiment configuration retrieval (full and partial)
+- `test_report_management`: Tests report data management and DataFrame comparison
+- `test_status_renewal`: Tests status update mechanism when modules are re-executed
+
+### `Status`
+
+> tests/test_status.py
+
+Tests for the enhanced Status snapshot system with Metadater integration:
+
+- `test_snapshot_creation`: Tests ExecutionSnapshot and MetadataChange creation with proper dataclass structure
+- `test_change_tracking`: Tests metadata change tracking across pipeline stages
+- `test_metadata_evolution`: Tests metadata evolution tracking through multiple operations
+- `test_status_summary`: Tests status summary generation with execution history
+- `test_snapshot_retrieval`: Tests snapshot retrieval and filtering functionality
+
+> **Enhanced Status Architecture**: The Status system has been redesigned with Metadater at its core, providing comprehensive progress tracking, metadata snapshots, and change history while maintaining full backward compatibility with existing interfaces. Status is now a separate module (`petsard/status.py`) with dedicated snapshot functionality.
+
+## System Components
+
+### `Config`
+
+> tests/test_config.py
+
+Tests for configuration management and BaseConfig functionality:
+
+**Config Tests:**
+- `test_init_basic_config`: Tests basic configuration initialization with module sequence and queue setup
+- `test_config_validation_error`: Tests configuration validation for invalid experiment names with "_[xxx]" suffix
+- `test_splitter_handler`: Tests Splitter configuration expansion for multiple samples
+- `test_set_flow`: Tests flow setup with correct queue ordering and content
+- `test_complete_workflow_setup`: Tests complete multi-module workflow configuration
+- `test_operator_creation`: Tests operator instantiation from configuration
+
+**BaseConfig Tests (integrated):**
+- `test_init_and_get`: Tests initialization and get method with all attributes including logger
+- `test_update`: Tests configuration updates with validation for existing attributes and type checking
+- `test_get_params_include`: Tests parameter extraction with INCLUDE action and renaming
+- `test_get_params_merge`: Tests parameter merging with MERGE action and dictionary validation
+- `test_get_params_combined`: Tests combined parameter operations with multiple actions
+- `test_get_params_validation`: Tests validation for non-existent attributes, duplicates, and conflicts
+- `test_from_dict`: Tests configuration creation from dictionary with parameter validation
+- `test_config_get_param_action_map`: Tests ConfigGetParamActionMap enum functionality
+
+**Status Tests (integrated):**
+- `test_init`: Tests Status initialization with config, sequence, and attribute setup
+- `test_put_and_get_result`: Tests status storage and result retrieval with metadata tracking
+- `test_metadata_management`: Tests metadata setting, retrieval, and error handling for non-existent modules
+- `test_get_pre_module`: Tests previous module retrieval in execution sequence
+- `test_get_full_expt`: Tests experiment configuration retrieval (full and partial)
+- `test_report_management`: Tests report data management and DataFrame comparison
+- `test_status_renewal`: Tests status update mechanism when modules are re-executed
+
+### `Status`
+
+> tests/test_status.py
+
+Tests for the enhanced Status snapshot system with Metadater integration:
+
+- `test_snapshot_creation`: Tests ExecutionSnapshot and MetadataChange creation with proper dataclass structure
+- `test_change_tracking`: Tests metadata change tracking across pipeline stages
+- `test_metadata_evolution`: Tests metadata evolution tracking through multiple operations
+- `test_status_summary`: Tests status summary generation with execution history
+- `test_snapshot_retrieval`: Tests snapshot retrieval and filtering functionality
+
+> **Enhanced Status Architecture**: The Status system has been redesigned with Metadater at its core, providing comprehensive progress tracking, metadata snapshots, and change history while maintaining full backward compatibility with existing interfaces. Status is now a separate module (`petsard/status.py`) with dedicated snapshot functionality.

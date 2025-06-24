@@ -31,6 +31,8 @@ next: docs/developer-guide
 - `test_logger_reconfiguration`：測試日誌器能否在初始設置後重新配置
 - `test_get_config`：測試從檔案載入 YAML 配置
 
+
+
 ## 資料讀取
 
 ### `Loader`
@@ -423,3 +425,101 @@ next: docs/developer-guide
 - `test_convert_full_expt_tuple_to_name`：測試實驗元組到名稱的轉換
 - `test_convert_full_expt_name_to_tuple`：測試實驗名稱到元組的轉換
 - `test_convert_eval_expt_name_to_tuple`：測試評估實驗名稱解析
+
+## 系統組件
+
+### `Config`
+
+> tests/test_config.py
+
+配置管理和 BaseConfig 功能測試：
+
+**Config 測試：**
+- `test_init_basic_config`：測試基本配置初始化，包含模組序列和佇列設定
+- `test_config_validation_error`：測試含有 "_[xxx]" 後綴的無效實驗名稱的配置驗證
+- `test_splitter_handler`：測試 Splitter 配置的多樣本擴展
+- `test_set_flow`：測試流程設定的正確佇列順序和內容
+- `test_complete_workflow_setup`：測試完整多模組工作流程配置
+- `test_operator_creation`：測試從配置實例化操作器
+
+**BaseConfig 測試（已整合）：**
+- `test_init_and_get`：測試初始化和 get 方法，包含所有屬性和日誌器
+- `test_update`：測試配置更新，包含現有屬性的驗證和類型檢查
+- `test_get_params_include`：測試使用 INCLUDE 動作的參數提取和重命名
+- `test_get_params_merge`：測試使用 MERGE 動作的參數合併和字典驗證
+- `test_get_params_combined`：測試多個動作的組合參數操作
+- `test_get_params_validation`：測試不存在屬性、重複和衝突的驗證
+- `test_from_dict`：測試從字典建立配置，包含參數驗證
+- `test_config_get_param_action_map`：測試 ConfigGetParamActionMap 枚舉功能
+
+**Status 測試（已整合）：**
+- `test_init`：測試 Status 初始化，包含配置、序列和屬性設定
+- `test_put_and_get_result`：測試狀態儲存和結果檢索，包含詮釋資料追蹤
+- `test_metadata_management`：測試詮釋資料設定、檢索和不存在模組的錯誤處理
+- `test_get_pre_module`：測試執行序列中前一個模組的檢索
+- `test_get_full_expt`：測試實驗配置檢索（完整和部分）
+- `test_report_management`：測試報告資料管理和 DataFrame 比較
+- `test_status_renewal`：測試模組重新執行時的狀態更新機制
+
+### `Status`
+
+> tests/test_status.py
+
+測試整合 Metadater 的增強 Status 快照系統：
+
+- `test_snapshot_creation`：測試 ExecutionSnapshot 和 MetadataChange 建立，具有適當的資料類別結構
+- `test_change_tracking`：測試跨管線階段的詮釋資料變更追蹤
+- `test_metadata_evolution`：測試透過多個操作的詮釋資料演化追蹤
+- `test_status_summary`：測試狀態摘要生成，包含執行歷史
+- `test_snapshot_retrieval`：測試快照檢索和篩選功能
+
+> **增強的 Status 架構**：Status 系統已重新設計，以 Metadater 為核心，提供全面的進度追蹤、詮釋資料快照和變更歷史，同時保持與現有介面的完全向後相容性。Status 現在是一個獨立模組（`petsard/status.py`），具有專用的快照功能。
+
+## 系統組件
+
+### `Config`
+
+> tests/test_config.py
+
+配置管理和 BaseConfig 功能測試：
+
+**Config 測試：**
+- `test_init_basic_config`：測試基本配置初始化，包含模組序列和佇列設定
+- `test_config_validation_error`：測試含有 "_[xxx]" 後綴的無效實驗名稱的配置驗證
+- `test_splitter_handler`：測試 Splitter 配置的多樣本擴展
+- `test_set_flow`：測試流程設定的正確佇列順序和內容
+- `test_complete_workflow_setup`：測試完整多模組工作流程配置
+- `test_operator_creation`：測試從配置實例化操作器
+
+**BaseConfig 測試（已整合）：**
+- `test_init_and_get`：測試初始化和 get 方法，包含所有屬性和日誌器
+- `test_update`：測試配置更新，包含現有屬性的驗證和類型檢查
+- `test_get_params_include`：測試使用 INCLUDE 動作的參數提取和重命名
+- `test_get_params_merge`：測試使用 MERGE 動作的參數合併和字典驗證
+- `test_get_params_combined`：測試多個動作的組合參數操作
+- `test_get_params_validation`：測試不存在屬性、重複和衝突的驗證
+- `test_from_dict`：測試從字典建立配置，包含參數驗證
+- `test_config_get_param_action_map`：測試 ConfigGetParamActionMap 枚舉功能
+
+**Status 測試（已整合）：**
+- `test_init`：測試 Status 初始化，包含配置、序列和屬性設定
+- `test_put_and_get_result`：測試狀態儲存和結果檢索，包含詮釋資料追蹤
+- `test_metadata_management`：測試詮釋資料設定、檢索和不存在模組的錯誤處理
+- `test_get_pre_module`：測試執行序列中前一個模組的檢索
+- `test_get_full_expt`：測試實驗配置檢索（完整和部分）
+- `test_report_management`：測試報告資料管理和 DataFrame 比較
+- `test_status_renewal`：測試模組重新執行時的狀態更新機制
+
+### `Status`
+
+> tests/test_status.py
+
+測試整合 Metadater 的增強 Status 快照系統：
+
+- `test_snapshot_creation`：測試 ExecutionSnapshot 和 MetadataChange 建立，具有適當的資料類別結構
+- `test_change_tracking`：測試跨管線階段的詮釋資料變更追蹤
+- `test_metadata_evolution`：測試透過多個操作的詮釋資料演化追蹤
+- `test_status_summary`：測試狀態摘要生成，包含執行歷史
+- `test_snapshot_retrieval`：測試快照檢索和篩選功能
+
+> **增強的 Status 架構**：Status 系統已重新設計，以 Metadater 為核心，提供全面的進度追蹤、詮釋資料快照和變更歷史，同時保持與現有介面的完全向後相容性。Status 現在是一個獨立模組（`petsard/status.py`），具有專用的快照功能。
