@@ -54,6 +54,27 @@ next: docs/developer-guide
 - `test_custom_na_values`：測試自定義空值的處理
 - `test_custom_header_names`：測試使用自定義欄位標題載入資料
 
+#### 容易誤判資料類型處理功能
+
+測試處理容易誤判、型別判斷模糊的資料：
+
+- `test_preserve_raw_data_feature`：測試 preserve_raw_data 功能阻止 pandas 自動類型推斷：
+  - 驗證當 preserve_raw_data=True 時使用 dtype=object
+  - 測試與其他容易誤判資料處理功能的整合
+  - 驗證原始資料保留的資料載入流程
+- `test_leading_zero_detection_config`：測試 auto_detect_leading_zeros 配置：
+  - 驗證配置是否正確儲存
+  - 測試啟用和停用狀態
+- `test_nullable_integer_config`：測試 force_nullable_integers 配置：
+  - 驗證配置是否正確儲存
+  - 測試啟用和停用狀態
+- `test_ambiguous_data_config_combination`：測試所有容易誤判資料處理配置的組合：
+  - preserve_raw_data + auto_detect_leading_zeros + force_nullable_integers
+  - 驗證所有設定能正確協同運作
+- `test_backward_compatibility`：測試新功能不會破壞現有功能：
+  - 驗證新參數的預設值
+  - 測試功能停用時的正常載入行為
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -72,6 +93,83 @@ next: docs/developer-guide
 - `test_verify_file_remove_fails`：測試在驗證過程中刪除檔案失敗的處理機制
 - `test_init_file_exists_hash_match`：測試初始化時檔案存在且哈希值匹配的處理邏輯
 - `test_file_content_change`：測試檔案內容變更後的哈希驗證機制，確保能正確檢測變更
+
+## 資料處理
+
+### `Metadater`
+
+#### 欄位函數
+
+> tests/metadater/field/test_field_functions.py
+
+測試欄位級別的資料處理和類型分析：
+
+##### 完整類型分析
+
+- `test_leading_zero_detection`：測試前導零檢測和保留：
+  - 識別含前導零的資料（如 "001"、"002"）
+  - 保留為字串類型以維持前導零
+- `test_float_detection`：測試浮點數檢測：
+  - 識別字串格式的小數
+  - 轉換為適當的 float32/float64 類型
+- `test_integer_with_nulls`：測試含空值的整數資料：
+  - 使用可空整數類型（Int8、Int16、Int32、Int64）
+  - 防止轉換為會添加 .0 後綴的 float64
+- `test_integer_without_nulls`：測試純整數資料：
+  - 使用一般整數類型（int8、int16、int32、int64）
+  - 優化為最小適合的整數類型
+- `test_mixed_non_numeric_data`：測試混合非數值資料：
+  - 文字資料回退為 category 類型
+- `test_numeric_conversion_threshold`：測試 80% 數值轉換門檻：
+  - 少於 80% 數值的資料視為分類資料
+- `test_integer_dtype_handling`：測試 pd.to_numeric 整數結果的處理：
+  - 正確處理 int64 與 float64 類型檢測
+
+##### 前導零檢測
+
+- `test_has_leading_zeros_positive`：測試正面檢測案例：
+  - 超過 30% 的值具有前導零模式
+- `test_has_leading_zeros_negative`：測試負面檢測案例：
+  - 少於 30% 的值具有前導零模式
+- `test_has_leading_zeros_empty_data`：測試空資料處理
+- `test_has_leading_zeros_all_na`：測試全空值資料處理
+- `test_has_leading_zeros_mixed_types`：測試混合資料類型處理
+
+##### 欄位元資料整合
+
+- `test_build_field_metadata_with_leading_zeros`：測試含前導零檢測的欄位元資料建立：
+  - 啟用與停用前導零檢測
+  - 與類型分析流程的整合
+- `test_build_field_metadata_with_nullable_integers`：測試可空整數整合：
+  - 啟用與停用可空整數處理
+  - 根據空值存在選擇適當類型
+- `test_build_field_metadata_dtype_optimization`：測試資料類型優化：
+  - 記憶體效率的類型選擇（int8 vs int64）
+  - 浮點精度優化（float32 vs float64）
+
+##### 容易誤判資料情境
+
+- `test_id_code_preservation`：測試識別代號保留：
+  - 前導零識別代號（001、002 等）
+  - 維持官方識別碼的資料完整性
+- `test_demographic_data_with_missing_values`：測試含缺失值的人口統計資料：
+  - 使用可空整數避免 .0 後綴
+  - 維持資料類型一致性
+- `test_financial_amount_detection`：測試金額資料處理：
+  - 金額值的正確浮點檢測
+  - 財務計算的精度保留
+- `test_score_integer_detection`：測試評分資料：
+  - 測試分數、評級的整數檢測
+- `test_categorical_data_detection`：測試分類資料：
+  - 等級分類、狀態分類
+
+##### 邊界情況
+
+- `test_empty_series`：測試空資料序列處理
+- `test_all_null_series`：測試全空值資料處理
+- `test_single_value_series`：測試單值資料
+- `test_mixed_numeric_string_data`：測試混合資料類型
+- `test_config_none_handling`：測試預設配置處理
 
 ### `Metadata`
 

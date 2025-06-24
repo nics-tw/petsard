@@ -163,6 +163,10 @@ def infer_optimal_dtype(
     Returns:
         Optimal dtype string
     """
+    # 首先檢查前導零情況
+    if _has_leading_zeros_inference(series):
+        return "string"
+
     # If logical type suggests category, use category
     if logical_type == LogicalType.CATEGORICAL:
         return "category"
@@ -376,39 +380,148 @@ def _validate_currency_values(value: str) -> bool:
     return any(re.match(pattern, value) for pattern in currency_patterns)
 
 
+def _is_float_with_integer_values_inference(series: pd.Series) -> bool:
+    """
+    檢測 float 序列是否實際上都是整數值（type_inference 版本）
+
+    Args:
+        series: 要檢查的 Series
+
+    Returns:
+        True 如果所有非空值都是整數，False 否則
+    """
+    if not is_float_dtype(series):
+        return False
+
+    # 移除空值
+    clean_data = series.dropna()
+    if len(clean_data) == 0:
+        return False
+
+    # 檢查所有值是否都是整數
+    try:
+        return all(val.is_integer() for val in clean_data)
+    except (AttributeError, TypeError):
+        return False
+
+
 def _optimize_numeric_dtype(series: pd.Series) -> str:
     """Optimize numeric dtype to smallest suitable type"""
     if is_integer_dtype(series):
-        if series.isna().all():
+        # 如果有空值，使用 nullable integer 避免轉為 float
+        if series.isna().any():
+            if series.isna().all():
+                return "Int64"
+
+            col_min, col_max = np.nanmin(series), np.nanmax(series)
+
+            # 使用 nullable integer types
+            ranges = [
+                ("Int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                ("Int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                ("Int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                ("Int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            ]
+
+            for dtype, min_val, max_val in ranges:
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "Int64"
+        else:
+            # 沒有空值時使用傳統 integer types
+            col_min, col_max = np.nanmin(series), np.nanmax(series)
+
+            ranges = [
+                ("int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                ("int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                ("int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                ("int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            ]
+
+            for dtype, min_val, max_val in ranges:
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
             return "int64"
 
-        col_min, col_max = np.nanmin(series), np.nanmax(series)
-
-        # Check integer ranges
-        ranges = [
-            ("int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
-            ("int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
-            ("int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
-            ("int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
-        ]
-
-        for dtype, min_val, max_val in ranges:
-            if min_val <= col_min and col_max <= max_val:
-                return dtype
-
     elif is_float_dtype(series):
-        if series.isna().all():
-            return "float32"
+        # 檢查是否實際上是整數值
+        if _is_float_with_integer_values_inference(series):
+            # 轉換為 nullable integer
+            if series.isna().all():
+                return "Int64"
 
-        col_min, col_max = np.nanmin(series), np.nanmax(series)
+            col_min, col_max = np.nanmin(series), np.nanmax(series)
 
-        # Check if float32 is sufficient
-        if np.finfo(np.float32).min <= col_min and col_max <= np.finfo(np.float32).max:
-            return "float32"
+            ranges = [
+                ("Int8", np.iinfo(np.int8).min, np.iinfo(np.int8).max),
+                ("Int16", np.iinfo(np.int16).min, np.iinfo(np.int16).max),
+                ("Int32", np.iinfo(np.int32).min, np.iinfo(np.int32).max),
+                ("Int64", np.iinfo(np.int64).min, np.iinfo(np.int64).max),
+            ]
+
+            for dtype, min_val, max_val in ranges:
+                if min_val <= col_min and col_max <= max_val:
+                    return dtype
+            return "Int64"
         else:
-            return "float64"
+            # 真正的浮點數
+            if series.isna().all():
+                return "float32"
+
+            col_min, col_max = np.nanmin(series), np.nanmax(series)
+
+            # Check if float32 is sufficient
+            if (
+                np.finfo(np.float32).min <= col_min
+                and col_max <= np.finfo(np.float32).max
+            ):
+                return "float32"
+            else:
+                return "float64"
 
     return str(series.dtype)
+
+
+def _has_leading_zeros_inference(series: pd.Series) -> bool:
+    """
+    檢測字串是否包含前導零的數字（type_inference 版本）
+
+    Args:
+        series: 要檢查的 Series
+
+    Returns:
+        True 如果發現前導零模式，False 否則
+    """
+    if series.isna().all():
+        return False
+
+    clean_series = series.dropna()
+    if len(clean_series) == 0:
+        return False
+
+    # 轉換為字串進行檢查
+    try:
+        series_str = clean_series.astype(str)
+    except Exception:
+        return False
+
+    # 檢查前導零模式：開頭是 "0" 且後面跟數字
+    leading_zero_count = 0
+    total_checked = 0
+
+    for value in series_str.head(100):  # 檢查前100個值以提高效能
+        value = value.strip()
+        if len(value) >= 2:  # 至少要有兩個字符
+            # 檢查是否符合前導零模式：0開頭且全部都是數字
+            if value.startswith("0") and value.isdigit():
+                leading_zero_count += 1
+            total_checked += 1
+
+    # 如果超過30%的值有前導零，則認為這是前導零欄位
+    if total_checked > 0:
+        return (leading_zero_count / total_checked) >= 0.3
+
+    return False
 
 
 def _optimize_object_dtype(series: pd.Series) -> str:
@@ -417,6 +530,10 @@ def _optimize_object_dtype(series: pd.Series) -> str:
         return "category"
 
     clean_series = series.dropna()
+
+    # 首先檢查是否有前導零，如果有則保持為字串
+    if _has_leading_zeros_inference(series):
+        return "string"
 
     # Try datetime conversion
     try:

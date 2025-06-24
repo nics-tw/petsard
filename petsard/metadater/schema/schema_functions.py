@@ -33,6 +33,29 @@ def build_schema_metadata(
     for field_name in data.columns:
         field_config = config.get_field_config(field_name)
 
+        # 如果沒有特定的 field_config，創建一個包含全域設定的 config
+        if field_config is None:
+            from petsard.metadater.field.field_types import FieldConfig
+
+            field_config = FieldConfig(
+                auto_detect_leading_zeros=config.auto_detect_leading_zeros,
+                force_nullable_integers=config.force_nullable_integers,
+            )
+        else:
+            # 如果有 field_config，但沒有設定這些參數，則使用全域設定
+            if not hasattr(field_config, "auto_detect_leading_zeros"):
+                # 創建新的 field_config 包含全域設定
+                field_config = FieldConfig(
+                    type_hint=field_config.type_hint,
+                    logical_type=field_config.logical_type,
+                    nullable=field_config.nullable,
+                    description=field_config.description,
+                    cast_error=field_config.cast_error,
+                    properties=field_config.properties,
+                    auto_detect_leading_zeros=config.auto_detect_leading_zeros,
+                    force_nullable_integers=config.force_nullable_integers,
+                )
+
         # Build field metadata
         field_metadata = build_field_metadata(
             field_data=data[field_name],
