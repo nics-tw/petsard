@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import yaml
+
 from petsard.config import Config, Status
 from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError
@@ -146,7 +147,7 @@ class Executor:
             raise ConfigError(f"YAML file {yaml_file} does not exist")
 
         yaml_config: dict = {}
-        with open(yaml_file, "r") as yaml_file:
+        with open(yaml_file) as yaml_file:
             yaml_config = yaml.safe_load(yaml_file)
 
         if "Executor" in yaml_config:

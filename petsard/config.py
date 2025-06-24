@@ -1,15 +1,12 @@
 import queue
 import re
 from copy import deepcopy
-from typing import (
-    Tuple,
-    Union,
-)
+from typing import Tuple, Union
 
 import pandas as pd
 
 from petsard.exceptions import ConfigError, UnexecutedError
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 from petsard.operator import (  # noqa: F401 - Dynamic Imports
     BaseOperator,
     ConstrainerOperator,
@@ -161,7 +158,7 @@ class Status:
         self.sequence: list = config.sequence
 
         self.status: dict = {}
-        self.metadata: dict[str, Metadata] = {}
+        self.metadata: dict[str, SchemaMetadata] = {}
 
         if "Splitter" in self.sequence:
             self.exist_index: list = []
@@ -276,17 +273,17 @@ class Status:
         """
         return self.exist_index
 
-    def set_metadata(self, module: str, metadata: Metadata) -> None:
+    def set_metadata(self, module: str, metadata: SchemaMetadata) -> None:
         """
         Sets the metadata for a given module.
 
         Args:
             module (str): The name of the module.
-            metadata (Metadata): The metadata to be set.
+            metadata (SchemaMetadata): The metadata to be set.
         """
         self.metadata[module] = metadata
 
-    def get_metadata(self, module: str = "Loader") -> Metadata:
+    def get_metadata(self, module: str = "Loader") -> SchemaMetadata:
         """
         Retrieve the metadata of the dataset.
 
