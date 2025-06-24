@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 
 import yaml
 
-from petsard.config import Config, Status
+from petsard.config import Config
 from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError
+from petsard.status import Status
 
 
 @dataclass

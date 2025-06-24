@@ -1,8 +1,8 @@
 ---
 title: Utils
 type: docs
-weight: 61
-prev: docs/api/reporter
+weight: 65
+prev: docs/api/status
 next: docs/api
 ---
 

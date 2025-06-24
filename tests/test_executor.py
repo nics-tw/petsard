@@ -85,7 +85,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config") as mock_config_class, patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ) as mock_status_class:
                 executor = Executor(config_file)
 
@@ -121,7 +121,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config") as mock_config_class, patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ) as mock_status_class:
                 executor = Executor(config_file)
 
@@ -142,7 +142,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config"), patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ), patch("os.makedirs"), patch("logging.FileHandler") as mock_file_handler:
                 executor = Executor(config_file)
                 executor.executor_config.log_output_type = "file"
@@ -163,7 +163,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config"), patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ), patch("logging.StreamHandler") as mock_stream_handler:
                 executor = Executor(config_file)
                 executor.executor_config.log_output_type = "stdout"
@@ -181,7 +181,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config") as mock_config_class, patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ) as mock_status_class:
                 # 設定模擬物件
                 mock_config = Mock()
@@ -217,7 +217,7 @@ class TestExecutor:
 
         try:
             with patch("petsard.executor.Config"), patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ) as mock_status_class:
                 mock_status = Mock()
                 mock_status_class.return_value = mock_status
@@ -244,7 +244,7 @@ class TestExecutor:
         config_file = self.create_temp_config_file(self.test_config)
 
         try:
-            with patch("petsard.executor.Config"), patch("petsard.executor.Status"):
+            with patch("petsard.executor.Config"), patch("petsard.status.Status"):
                 executor = Executor(config_file)
                 executor.sequence = ["Loader", "Synthesizer"]
                 executor._set_result("Loader")  # 非最終模組
@@ -260,7 +260,7 @@ class TestExecutor:
         config_file = self.create_temp_config_file(self.test_config)
 
         try:
-            with patch("petsard.executor.Config"), patch("petsard.executor.Status"):
+            with patch("petsard.executor.Config"), patch("petsard.status.Status"):
                 executor = Executor(config_file)
                 executor.result = {"test_experiment": "test_result"}
 
@@ -289,7 +289,7 @@ class TestExecutorIntegration:
 
         try:
             with patch("petsard.executor.Config") as mock_config_class, patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ) as mock_status_class, patch("logging.StreamHandler"):
                 # 設定模擬物件
                 mock_config = Mock()
@@ -340,7 +340,7 @@ class TestExecutorIntegration:
 
         try:
             with patch("petsard.executor.Config") as mock_config_class, patch(
-                "petsard.executor.Status"
+                "petsard.status.Status"
             ), patch("logging.getLogger") as mock_get_logger:
                 mock_logger = Mock()
                 mock_get_logger.return_value = mock_logger

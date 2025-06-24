@@ -1,13 +1,34 @@
 import queue
-from unittest.mock import Mock, patch
+from dataclasses import dataclass, field
+from typing import Any, Dict
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
 
-from petsard.config import Config, Status
+from petsard.config import Config
+from petsard.config_base import BaseConfig, ConfigGetParamActionMap
 from petsard.exceptions import ConfigError, UnexecutedError
 from petsard.metadater import SchemaMetadata
 from petsard.operator import BaseOperator
+from petsard.status import Status
+
+
+@dataclass
+class TestConfigClass(BaseConfig):
+    """Test configuration class for unit tests"""
+
+    # PytestCollectionWarning: cannot collect test class 'TestConfig'
+    #   because it has a init constructor (from: tests/test_config_base.py)
+    __test__ = False
+
+    a: int
+    b: int
+    c: Dict[Any, Any] = field(default_factory=dict)
+    d: Dict[Any, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        super().__post_init__()
 
 
 class TestConfig:
@@ -16,7 +37,7 @@ class TestConfig:
     def test_init_basic_config(self):
         """測試基本配置初始化"""
         config_dict = {
-            "Loader": {"load_data": {"method": "csv", "path": "test.csv"}},
+            "Loader": {"load_data": {"filepath": "test.csv"}},
             "Synthesizer": {"synth_data": {"method": "sdv", "model": "GaussianCopula"}},
         }
 
@@ -31,9 +52,7 @@ class TestConfig:
     def test_config_validation_error(self):
         """測試配置驗證錯誤"""
         # 測試實驗名稱包含 "_[xxx]" 後綴的錯誤
-        config_dict = {
-            "Loader": {"load_data_[invalid]": {"method": "csv", "path": "test.csv"}}
-        }
+        config_dict = {"Loader": {"load_data_[invalid]": {"filepath": "test.csv"}}}
 
         with pytest.raises(ConfigError):
             Config(config_dict)
@@ -41,9 +60,7 @@ class TestConfig:
     def test_splitter_handler(self):
         """測試 Splitter 配置處理"""
         config_dict = {
-            "Splitter": {
-                "split_data": {"method": "random", "test_size": 0.2, "num_samples": 3}
-            }
+            "Splitter": {"split_data": {"train_split_ratio": 0.8, "num_samples": 3}}
         }
 
         config = Config(config_dict)
@@ -61,7 +78,7 @@ class TestConfig:
     def test_set_flow(self):
         """測試流程設定"""
         config_dict = {
-            "Loader": {"load_data": {"method": "csv"}},
+            "Loader": {"load_data": {"method": "default"}},
             "Synthesizer": {"synth_data": {"method": "sdv"}},
         }
 
@@ -89,9 +106,9 @@ class TestStatus:
     def setup_method(self):
         """設定測試環境"""
         config_dict = {
-            "Loader": {"load_data": {"method": "csv"}},
-            "Splitter": {"split_data": {"method": "random"}},
-            "Reporter": {"report_data": {"method": "save_data"}},
+            "Loader": {"data": {"filepath": "benchmark://adult-income"}},
+            "Splitter": {"split_data": {"train_split_ratio": 0.8}},
+            "Reporter": {"output": {"method": "save_data", "source": "Loader"}},
         }
         self.config = Config(config_dict)
         self.status = Status(self.config)
@@ -110,7 +127,11 @@ class TestStatus:
         # 建立模擬操作器
         mock_operator = Mock(spec=BaseOperator)
         mock_operator.get_result.return_value = pd.DataFrame({"A": [1, 2, 3]})
-        mock_operator.get_metadata.return_value = Mock(spec=SchemaMetadata)
+
+        # 建立模擬 SchemaMetadata
+        mock_metadata = Mock(spec=SchemaMetadata)
+        mock_metadata.schema_id = "test_schema"
+        mock_operator.get_metadata.return_value = mock_metadata
 
         # 儲存狀態
         self.status.put("Loader", "load_data", mock_operator)
@@ -179,7 +200,12 @@ class TestStatus:
         # 檢查報告設定
         self.status.set_report(mock_report)
         retrieved_report = self.status.get_report()
-        assert retrieved_report == mock_report
+
+        # 檢查報告內容
+        assert "test_report" in retrieved_report
+        pd.testing.assert_frame_equal(
+            retrieved_report["test_report"], mock_report["test_report"]
+        )
 
     def test_status_renewal(self):
         """測試狀態更新機制"""
@@ -209,11 +235,11 @@ class TestConfigIntegration:
     def test_complete_workflow_setup(self):
         """測試完整工作流程設定"""
         config_dict = {
-            "Loader": {"load_csv": {"method": "csv", "path": "data.csv"}},
+            "Loader": {"load_csv": {"filepath": "data.csv"}},
             "Preprocessor": {"preprocess": {"method": "default"}},
             "Synthesizer": {"synthesize": {"method": "sdv", "model": "GaussianCopula"}},
             "Evaluator": {"evaluate": {"method": "sdmetrics"}},
-            "Reporter": {"report": {"method": "save_report"}},
+            "Reporter": {"report": {"method": "save_report", "granularity": "global"}},
         }
 
         config = Config(config_dict)
@@ -228,10 +254,9 @@ class TestConfigIntegration:
         assert len(status.status) == 0
         assert len(status.metadata) == 0
 
-    @patch("petsard.operator.LoaderOperator")
-    def test_operator_creation(self, mock_loader_class):
+    def test_operator_creation(self):
         """測試操作器建立"""
-        config_dict = {"Loader": {"load_data": {"method": "csv", "path": "test.csv"}}}
+        config_dict = {"Loader": {"load_data": {"filepath": "test.csv"}}}
 
         config = Config(config_dict)
 
@@ -239,8 +264,170 @@ class TestConfigIntegration:
         assert config.config.qsize() == 1
         operator = config.config.get()
 
-        # 驗證操作器類型和配置
-        mock_loader_class.assert_called_once_with({"method": "csv", "path": "test.csv"})
+        # 驗證操作器類型
+        from petsard.operator import LoaderOperator
+
+        assert isinstance(operator, LoaderOperator)
+
+
+class TestBaseConfig:
+    """Test suite for BaseConfig class"""
+
+    def test_init_and_get(self):
+        """Test initialization and get method"""
+        # Create a test configuration
+        config = TestConfigClass(a=1, b=2, c={3: "3"}, d={4: "4"})
+
+        # Test the get method
+        result = config.get()
+        assert "a" in result
+        assert "b" in result
+        assert "c" in result
+        assert "d" in result
+        assert result["a"] == 1
+        assert result["b"] == 2
+        assert result["c"] == {3: "3"}
+        assert result["d"] == {4: "4"}
+        assert "_logger" in result  # Check that logger is included
+
+    def test_update(self):
+        """Test update method"""
+        config = TestConfigClass(a=1, b=2)
+
+        # Update existing attributes
+        config.update({"a": 10, "b": 20})
+        assert config.a == 10
+        assert config.b == 20
+
+        # Test updating non-existent attribute
+        with pytest.raises(ConfigError):
+            config.update({"nonexistent": 30})
+
+        # Test updating with incorrect type
+        with pytest.raises(ConfigError):
+            config.update({"a": "string instead of int"})
+
+    def test_get_params_include(self):
+        """Test get_params with INCLUDE action"""
+        config = TestConfigClass(a=1, b=2, c={3: "3"}, d={4: "4"})
+
+        # Basic include
+        result = config.get_params([{"a": {"action": "INCLUDE"}}])
+        assert result == {"a": 1}
+
+        # Include with renaming
+        result = config.get_params(
+            [{"b": {"action": "INCLUDE", "rename": {"b": "test_b"}}}]
+        )
+        assert result == {"test_b": 2}
+
+        # Missing matching key in rename dictionary
+        with pytest.raises(ConfigError):
+            config.get_params(
+                [{"b": {"action": "INCLUDE", "rename": {"wrong_key": "test_b"}}}]
+            )
+
+    def test_get_params_merge(self):
+        """Test get_params with MERGE action"""
+        config = TestConfigClass(a=1, b=2, c={3: "3"}, d={4: "4"})
+
+        # Basic merge
+        result = config.get_params([{"c": {"action": "MERGE"}}])
+        assert result == {3: "3"}
+
+        # Merge with renaming
+        result = config.get_params(
+            [{"d": {"action": "MERGE", "rename": {4: "test_d"}}}]
+        )
+        assert result == {"test_d": "4"}
+
+        # Merge with non-dictionary attribute
+        with pytest.raises(ConfigError):
+            config.get_params([{"a": {"action": "MERGE"}}])
+
+        # Rename key doesn't exist
+        with pytest.raises(ConfigError):
+            config.get_params([{"d": {"action": "MERGE", "rename": {5: "test_d"}}}])
+
+    def test_get_params_combined(self):
+        """Test get_params with combined actions"""
+        config = TestConfigClass(a=1, b=2, c={3: "3"}, d={4: "4"})
+
+        # Combine different operations
+        result = config.get_params(
+            [
+                {"a": {"action": "INCLUDE"}},
+                {"b": {"action": "INCLUDE", "rename": {"b": "test_b"}}},
+                {"c": {"action": "MERGE"}},
+                {"d": {"action": "MERGE", "rename": {4: "test_d"}}},
+            ]
+        )
+
+        assert result == {"a": 1, "test_b": 2, 3: "3", "test_d": "4"}
+
+    def test_get_params_validation(self):
+        """Test validation in get_params"""
+        config = TestConfigClass(a=1, b=2, c={3: "3", 5: "5"}, d={4: "4"})
+
+        # Non-existent attribute
+        with pytest.raises(ConfigError):
+            config.get_params([{"nonexistent": {"action": "INCLUDE"}}])
+
+        # Duplicate attribute usage
+        with pytest.raises(ConfigError):
+            config.get_params(
+                [{"a": {"action": "INCLUDE"}}, {"a": {"action": "INCLUDE"}}]
+            )
+
+        # Target key conflict
+        with pytest.raises(ConfigError):
+            config.get_params(
+                [
+                    {"a": {"action": "INCLUDE"}},
+                    {"b": {"action": "INCLUDE", "rename": {"b": "a"}}},
+                ]
+            )
+
+        # Key conflict when merging
+        config.c[6] = "6"
+        config.d[6] = "6"
+        with pytest.raises(ConfigError):
+            config.get_params([{"c": {"action": "MERGE"}}, {"d": {"action": "MERGE"}}])
+
+        # Key conflict after renaming
+        with pytest.raises(ConfigError):
+            config.get_params(
+                [
+                    {"c": {"action": "MERGE", "rename": {3: "test_key"}}},
+                    {"d": {"action": "MERGE", "rename": {4: "test_key"}}},
+                ]
+            )
+
+    def test_from_dict(self):
+        """Test from_dict class method"""
+        # Valid parameters
+        config = TestConfigClass.from_dict({"a": 1, "b": 2})
+        assert config.a == 1
+        assert config.b == 2
+
+        # Missing required parameter
+        with pytest.raises(ConfigError):
+            TestConfigClass.from_dict({"a": 1})  # Missing b
+
+        # Unexpected parameter
+        with pytest.raises(ConfigError):
+            TestConfigClass.from_dict({"a": 1, "b": 2, "extra": 3})
+
+        # Incorrect parameter type
+        with pytest.raises(ConfigError):
+            config = TestConfigClass.from_dict({"a": "string", "b": 2})
+
+
+def test_config_get_param_action_map():
+    """Test the ConfigGetParamActionMap enum"""
+    assert hasattr(ConfigGetParamActionMap, "INCLUDE")
+    assert hasattr(ConfigGetParamActionMap, "MERGE")
+    assert ConfigGetParamActionMap.INCLUDE != ConfigGetParamActionMap.MERGE
 
 
 if __name__ == "__main__":
