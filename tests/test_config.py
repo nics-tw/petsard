@@ -119,7 +119,7 @@ class TestStatus:
         assert self.status.sequence == ["Loader", "Splitter", "Reporter"]
         assert self.status.status == {}
         assert self.status.metadata == {}
-        assert hasattr(self.status, "exist_index")
+        assert hasattr(self.status, "exist_train_indices")
         assert hasattr(self.status, "report")
 
     def test_put_and_get_result(self):

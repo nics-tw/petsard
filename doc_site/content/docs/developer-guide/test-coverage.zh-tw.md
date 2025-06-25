@@ -207,19 +207,56 @@ next: docs/developer-guide
 
 測試資料分割功能：
 
-- `test_splitter_init_normal`：測試正常初始化
+#### 基本功能測試
+
+- `test_splitter_init_normal`：測試正常初始化，包含預設參數設定
 - `test_splitter_init_invalid_ratio`：測試無效分割比例的處理
 - `test_splitter_init_custom_data_valid`：測試自定義資料方法的有效配置
 - `test_splitter_init_custom_data_invalid_method`：測試無效自定義方法的錯誤處理
 - `test_splitter_init_custom_data_invalid_filepath`：測試無效檔案路徑的錯誤處理
-- `test_split_normal_method`：測試正常分割方法
+
+#### 分割方法測試
+
+- `test_split_normal_method`：測試正常分割方法，驗證返回格式為三元組
 - `test_split_normal_method_no_data`：測試無資料情況下的分割
-- `test_split_multiple_samples`：測試多重樣本分割
+- `test_split_multiple_samples`：測試多重樣本分割，驗證每個樣本的獨立性
 - `test_split_custom_data_method`：測試自定義資料分割方法
-- `test_split_basic_functionality`：測試基本分割功能
-- `test_index_bootstrapping_collision_handling`：測試索引自助法碰撞處理
-- `test_metadata_update_functional_approach`：測試使用函數式方法更新 metadata
-- `test_create_split_metadata`：測試建立分割 metadata
+- `test_split_basic_functionality`：測試基本分割功能和資料完整性
+
+#### 重疊控制功能測試
+
+- `test_bootstrapping_with_exist_indices`：測試使用現有索引的拔靴法抽樣：
+  - 驗證重疊比率計算的正確性
+  - 測試重疊檢查機制
+  - 確認索引集合的正確性
+- `test_bootstrapping_overlap_control`：測試重疊控制參數：
+  - `max_overlap_ratio` 參數的有效性
+  - `max_attempts` 參數的重試機制
+  - 重疊比率超過限制時的處理
+- `test_bootstrapping_edge_cases`：測試邊界情況：
+  - 空的現有索引集合
+  - 極端重疊比率設定
+  - 最大嘗試次數達到上限
+
+#### 函數式編程架構測試
+
+- `test_metadata_update_functional_approach`：測試函數式方法更新 metadata：
+  - 驗證不修改原始物件狀態
+  - 測試返回新的 metadata 物件
+- `test_create_split_metadata`：測試建立分割 metadata 的純函數特性
+- `test_split_return_format`：測試 split 方法的三元組返回格式：
+  - `split_data` 字典結構驗證
+  - `metadata_dict` 字典結構驗證
+  - `train_indices_list` 列表格式驗證
+
+#### 參數重構測試
+
+- `test_exist_train_indices_parameter`：測試重構後的參數名稱：
+  - 驗證 `exist_train_indices` 參數的正確處理
+  - 測試與舊版本的相容性
+- `test_overlap_parameters_validation`：測試重疊控制參數的驗證：
+  - `max_overlap_ratio` 範圍檢查
+  - `max_attempts` 正整數檢查
 
 > **架構重構說明**：在 2025/6/18 的重構中，所有外部模組（Loader、Processor、Splitter、Benchmarker）已不再直接導入 Metadater 的內部 API（`metadater.api`、`metadater.core`、`metadater.types`），改為使用 Metadater 類別的公共方法。相關測試的 mock 路徑也已相應更新，確保架構的封裝性和一致性。
 
