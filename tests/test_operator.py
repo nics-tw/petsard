@@ -216,17 +216,40 @@ class TestSplitterOperator:
         input_data = {
             "data": pd.DataFrame({"A": [1, 2, 3]}),
             "metadata": Mock(spec=SchemaMetadata),
-            "exclude_index": [],
+            "exist_train_indices": [],
         }
 
         with patch("petsard.operator.Splitter") as mock_splitter_class:
             mock_splitter = Mock()
+            mock_data = {
+                1: {
+                    "train": pd.DataFrame({"A": [1, 2]}),
+                    "validation": pd.DataFrame({"A": [3]}),
+                }
+            }
+            mock_metadata = Mock(spec=SchemaMetadata)
+            mock_train_indices = {1: [0, 1]}
+            mock_splitter.split.return_value = (
+                mock_data,
+                mock_metadata,
+                mock_train_indices,
+            )
             mock_splitter_class.return_value = mock_splitter
 
             operator = SplitterOperator(config)
             operator._run(input_data)
 
-            mock_splitter.split.assert_called_once_with(**input_data)
+            # Check that split was called with correct parameters
+            # 空的 exist_train_indices 不會被傳遞
+            expected_params = {
+                "data": input_data["data"],
+            }
+            mock_splitter.split.assert_called_once_with(**expected_params)
+
+            # Check that results are stored correctly
+            assert operator.data == mock_data
+            assert operator.metadata == mock_metadata
+            assert operator.train_indices == mock_train_indices
 
     def test_set_input_with_data(self):
         """測試有資料的輸入設定"""
@@ -240,13 +263,13 @@ class TestSplitterOperator:
             mock_status = Mock()
             mock_status.get_result.return_value = test_data
             mock_status.get_metadata.return_value = mock_metadata
-            mock_status.get_exist_index.return_value = []
+            mock_status.get_exist_train_indices.return_value = []
 
             result = operator.set_input(mock_status)
 
             assert result["data"].equals(test_data)
             assert result["metadata"] == mock_metadata
-            assert result["exclude_index"] == []
+            assert result["exist_train_indices"] == []
 
     def test_set_input_custom_method(self):
         """測試自定義方法的輸入設定"""
@@ -256,12 +279,12 @@ class TestSplitterOperator:
             operator = SplitterOperator(config)
 
             mock_status = Mock()
-            mock_status.get_exist_index.return_value = []
+            mock_status.get_exist_train_indices.return_value = []
 
             result = operator.set_input(mock_status)
 
             assert result["data"] is None
-            assert result["exclude_index"] == []
+            assert result["exist_train_indices"] == []
 
     def test_get_result(self):
         """測試結果取得"""
@@ -272,11 +295,10 @@ class TestSplitterOperator:
         }
 
         with patch("petsard.operator.Splitter") as mock_splitter_class:
-            mock_splitter = Mock()
-            mock_splitter.data = {1: test_result}
-            mock_splitter_class.return_value = mock_splitter
+            mock_splitter_class.return_value = Mock()
 
             operator = SplitterOperator(config)
+            operator.data = {1: test_result}  # 直接設定在 operator 上
             result = operator.get_result()
 
             assert "train" in result
@@ -289,16 +311,40 @@ class TestSplitterOperator:
 
         with patch("petsard.operator.Splitter") as mock_splitter_class:
             mock_splitter = Mock()
-            mock_splitter.metadata = mock_metadata
             mock_splitter_class.return_value = mock_splitter
 
             operator = SplitterOperator(config)
+            # 設定新的字典格式 metadata
+            metadata_dict = {1: {"train": mock_metadata, "validation": mock_metadata}}
+            operator.metadata = metadata_dict
 
-            with patch("copy.deepcopy", return_value=mock_metadata) as mock_deepcopy:
+            with patch(
+                "petsard.operator.deepcopy", return_value=mock_metadata
+            ) as mock_deepcopy:
                 result = operator.get_metadata()
 
                 mock_deepcopy.assert_called_once_with(mock_metadata)
                 assert result == mock_metadata
+
+    def test_get_train_indices(self):
+        """測試訓練索引取得"""
+        config = {"method": "random"}
+        mock_train_indices = {1: [0, 1, 2], 2: [3, 4, 5]}
+
+        with patch("petsard.operator.Splitter") as mock_splitter_class:
+            mock_splitter = Mock()
+            mock_splitter_class.return_value = mock_splitter
+
+            operator = SplitterOperator(config)
+            operator.train_indices = mock_train_indices
+
+            with patch(
+                "petsard.operator.deepcopy", return_value=mock_train_indices
+            ) as mock_deepcopy:
+                result = operator.get_train_indices()
+
+                mock_deepcopy.assert_called_once_with(mock_train_indices)
+                assert result == mock_train_indices
 
 
 class TestPreprocessorOperator:

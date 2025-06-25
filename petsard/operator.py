@@ -228,23 +228,28 @@ class SplitterOperator(BaseOperator):
 
         Args:
             input (dict):
-                Splitter input should contains data (pd.DataFrame) and exclude_index (list).
+                Splitter input should contains data (pd.DataFrame) and exclude_index (list[set]).
 
         Attributes:
-            splitter.data (Dict[int, Dict[str, pd.DataFrame]]):
+            data (Dict[int, Dict[str, pd.DataFrame]]):
                 An splitting result data.
                     First layer is the splitting index, key as int, value as dictionary.
                     Second layer is the splitting result of specific splitting,
                     key as str: 'train' and 'validation', value as pd.DataFrame.
+            train_indices (Dict[int, List[int]]):
+                The original indices of training data for each sample.
         """
         self._logger.debug("Starting data splitting process")
-        # Only pass parameters that Splitter.split() accepts
-        split_params = {
-            key: value
-            for key, value in input.items()
-            if key in ["data", "exclude_index"]
-        }
-        self.data, self.metadata = self.splitter.split(**split_params)
+        # Only pass parameters that Splitter.split() accepts and are not empty
+        split_params = {}
+        for key, value in input.items():
+            if key == "data":
+                split_params[key] = value
+            elif key == "exist_train_indices" and value:  # 只有非空時才傳遞
+                split_params[key] = value
+        self.data, self.metadata, self.train_indices = self.splitter.split(
+            **split_params
+        )
         self._logger.debug("Data splitting completed")
 
     @BaseOperator.log_and_raise_config_error
@@ -266,7 +271,7 @@ class SplitterOperator(BaseOperator):
             # Splitter accept following Loader only
             self.input["data"] = status.get_result("Loader")
             self.input["metadata"] = status.get_metadata("Loader")
-        self.input["exclude_index"] = status.get_exist_index()
+        self.input["exist_train_indices"] = status.get_exist_train_indices()
 
         return self.input
 
@@ -275,7 +280,7 @@ class SplitterOperator(BaseOperator):
         Retrieve the splitting result.
             Due to Config force num_samples = 1, return 1st dataset is fine.
         """
-        result: dict = deepcopy(self.splitter.data[1])
+        result: dict = deepcopy(self.data[1])
         return result
 
     def get_metadata(self) -> SchemaMetadata:
@@ -285,7 +290,16 @@ class SplitterOperator(BaseOperator):
         Returns:
             (SchemaMetadata): The updated metadata.
         """
-        return deepcopy(self.metadata)
+        return deepcopy(self.metadata[1]["train"])
+
+    def get_train_indices(self) -> list[set]:
+        """
+        Retrieve the training indices for each sample.
+
+        Returns:
+            list[set]: Training indices as list of sets
+        """
+        return deepcopy(self.train_indices)
 
 
 class PreprocessorOperator(BaseOperator):

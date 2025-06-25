@@ -205,21 +205,31 @@ Tests for metadata handling and type inference:
 
 > tests/loader/test_splitter.py
 
-Tests for data splitting functionality:
+Tests for data splitting functionality with enhanced overlap control:
 
-- `test_splitter_init_normal`: Tests normal initialization
-- `test_splitter_init_invalid_ratio`: Tests handling of invalid split ratios
+#### Core Functionality Tests
+- `test_splitter_init_normal`: Tests normal initialization with new parameters (`max_overlap_ratio`, `max_attempts`)
+- `test_splitter_init_invalid_ratio`: Tests handling of invalid split ratios and overlap ratios
 - `test_splitter_init_custom_data_valid`: Tests valid custom data method configuration
 - `test_splitter_init_custom_data_invalid_method`: Tests error handling for invalid custom methods
 - `test_splitter_init_custom_data_invalid_filepath`: Tests error handling for invalid file paths
-- `test_split_normal_method`: Tests normal splitting method
+
+#### Functional Programming API Tests
+- `test_split_normal_method`: Tests normal splitting method with new return format `(split_data, metadata_dict, train_indices)`
 - `test_split_normal_method_no_data`: Tests splitting with no data
-- `test_split_multiple_samples`: Tests multiple sample splitting
-- `test_split_custom_data_method`: Tests custom data splitting method
-- `test_split_basic_functionality`: Tests basic splitting functionality
-- `test_index_bootstrapping_collision_handling`: Tests index bootstrapping collision handling
+- `test_split_multiple_samples`: Tests multiple sample splitting with `list[set]` train indices format
+- `test_split_custom_data_method`: Tests custom data splitting method with updated metadata structure
+- `test_split_basic_functionality`: Tests basic splitting functionality with functional API
+
+#### Overlap Control Features
+- `test_max_overlap_ratio_parameter`: Tests `max_overlap_ratio` parameter initialization and validation
+- `test_overlap_control_functionality`: Tests overlap control between samples using bootstrap sampling
+- `test_exclude_index_functionality`: Tests `exist_train_indices` functionality to avoid overlap with existing samples
+- `test_index_bootstrapping_collision_handling`: Tests bootstrap sampling collision handling with configurable attempts
+
+#### Metadata and Architecture Tests
 - `test_metadata_update_functional_approach`: Tests metadata updates using functional approach
-- `test_create_split_metadata`: Tests creation of split metadata
+- `test_create_split_metadata`: Tests creation of split metadata with new dictionary format
 
 > **Architecture Refactoring Note**: In the refactoring on 2025/6/18, all external modules (Loader, Processor, Splitter, Benchmarker) no longer directly import Metadater's internal APIs (`metadater.api`, `metadater.core`, `metadater.types`), and instead use Metadater class's public methods. Related test mock paths have also been updated accordingly to ensure architectural encapsulation and consistency.
 

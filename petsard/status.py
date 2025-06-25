@@ -102,7 +102,7 @@ class Status:
 
         # 原有功能的相容性支援
         if "Splitter" in self.sequence:
-            self.exist_index: list = []
+            self.exist_train_indices: list[set] = []
         if "Reporter" in self.sequence:
             self.report: dict = {}
 
@@ -241,6 +241,11 @@ class Status:
         if module == "Reporter":
             self.set_report(report=operator.get_result())
 
+        # Splitter 處理 - 更新 exist_train_indices
+        if module == "Splitter" and hasattr(operator, "get_train_indices"):
+            train_indices = operator.get_train_indices()
+            self.update_exist_train_indices(train_indices)
+
         # 建立執行快照
         metadata_after = self.metadata.get(module)
         self._create_snapshot(
@@ -309,9 +314,22 @@ class Status:
                 for seq_module in sub_sequence
             }
 
-    def get_exist_index(self) -> list:
-        """取得 Splitter 模組生成的唯一訓練索引列表"""
-        return self.exist_index
+    def get_exist_train_indices(self) -> list[set]:
+        """取得 Splitter 模組生成的唯一訓練索引集合列表"""
+        return self.exist_train_indices
+
+    def update_exist_train_indices(self, new_indices: list[set]) -> None:
+        """
+        更新 exist_train_indices，將新的訓練索引加入到集合列表中
+
+        Args:
+            new_indices: 新的訓練索引集合列表 list[set]
+        """
+        if not hasattr(self, "exist_train_indices"):
+            self.exist_train_indices = []
+
+        for index_set in new_indices:
+            self.exist_train_indices.append(index_set)
 
     def set_metadata(self, module: str, metadata: SchemaMetadata) -> None:
         """設定給定模組的元資料"""
