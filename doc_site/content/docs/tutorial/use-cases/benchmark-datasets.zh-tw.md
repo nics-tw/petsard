@@ -3,7 +3,7 @@ title: 基準資料集
 type: docs
 weight: 35
 prev: docs/tutorial/use-cases/custom-evaluation
-next: docs/tutorial/use-cases
+next: docs/tutorial/use-cases/timing
 ---
 
 

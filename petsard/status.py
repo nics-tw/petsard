@@ -5,8 +5,9 @@ PETsARD Status Module - 以 Metadater 為核心的狀態管理
 """
 
 import logging
+import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
@@ -68,6 +69,131 @@ class MetadataChange:
     module_context: str = ""
 
 
+@dataclass(frozen=True)
+class TimingRecord:
+    """
+    計時記錄 - 記錄每個模組和步驟的執行時間
+
+    Attributes:
+        record_id: 記錄唯一識別碼
+        module_name: 模組名稱
+        experiment_name: 實驗名稱
+        step_name: 步驟名稱 (如 'run', 'fit', 'sample', 'eval' 等)
+        start_time: 開始時間
+        end_time: 結束時間
+        duration_seconds: 執行時間（秒）
+        context: 額外的上下文資訊
+        duration_precision: duration_seconds 的小數位數精度，預設為 2
+    """
+
+    record_id: str
+    module_name: str
+    experiment_name: str
+    step_name: str
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    duration_seconds: Optional[float] = None
+    context: Dict[str, Any] = field(default_factory=dict)
+    duration_precision: int = 2
+
+    def complete(
+        self,
+        end_time: Optional[datetime] = None,
+        duration_precision: Optional[int] = None,
+    ) -> "TimingRecord":
+        """完成計時記錄"""
+        if end_time is None:
+            end_time = datetime.now()
+
+        duration = (end_time - self.start_time).total_seconds()
+
+        # 使用指定的精度或預設精度
+        precision = (
+            duration_precision
+            if duration_precision is not None
+            else self.duration_precision
+        )
+        rounded_duration = round(duration, precision)
+
+        return TimingRecord(
+            record_id=self.record_id,
+            module_name=self.module_name,
+            experiment_name=self.experiment_name,
+            step_name=self.step_name,
+            start_time=self.start_time,
+            end_time=end_time,
+            duration_seconds=rounded_duration,
+            context=self.context,
+            duration_precision=precision,
+        )
+
+    def get_formatted_duration(self) -> str:
+        """取得格式化的持續時間字串"""
+        if self.duration_seconds is None:
+            return "N/A"
+        return f"{self.duration_seconds:.{self.duration_precision}f}s"
+
+
+class TimingLogHandler(logging.Handler):
+    """
+    自定義 logging handler 來捕獲 Operator 的時間資訊
+    """
+
+    def __init__(self, status_instance):
+        super().__init__()
+        self.status = status_instance
+        self._timing_pattern = re.compile(
+            r"TIMING_(START|END|ERROR)\|([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?(?:\|(.+))?"
+        )
+
+    def emit(self, record):
+        """處理 log 記錄，解析時間資訊"""
+        try:
+            message = record.getMessage()
+            match = self._timing_pattern.match(message)
+
+            if match:
+                timing_type = match.group(1)  # START, END, ERROR
+                module_name = match.group(2)  # 模組名稱
+                step_name = match.group(3)  # 步驟名稱
+                timestamp = float(match.group(4))  # 時間戳
+                duration = float(match.group(5)) if match.group(5) else None  # 持續時間
+                error_msg = match.group(6) if match.group(6) else None  # 錯誤訊息
+
+                # 從 status 中取得當前模組的實驗名稱
+                # 嘗試匹配模組名稱（移除 "Op" 後綴）
+                clean_module_name = module_name.replace("Op", "")
+                expt_name = self.status._current_experiments.get(
+                    clean_module_name, "default"
+                )
+
+                # 如果還是找不到，嘗試直接匹配
+                if expt_name == "default":
+                    expt_name = self.status._current_experiments.get(
+                        module_name, "default"
+                    )
+
+                if timing_type == "START":
+                    self.status._handle_timing_start(
+                        module_name, expt_name, step_name, timestamp
+                    )
+                elif timing_type in ["END", "ERROR"]:
+                    context = {}
+                    if timing_type == "ERROR" and error_msg:
+                        context["error"] = error_msg
+                        context["status"] = "error"
+                    else:
+                        context["status"] = "completed"
+
+                    self.status._handle_timing_end(
+                        module_name, expt_name, step_name, timestamp, duration, context
+                    )
+
+        except Exception:
+            # 避免 logging handler 本身出錯影響主程式
+            pass
+
+
 class Status:
     """
     以 Metadater 為核心的狀態管理器
@@ -100,11 +226,27 @@ class Status:
         self._snapshot_counter = 0
         self._change_counter = 0
 
+        # 新增的時間記錄功能
+        self.timing_records: List[TimingRecord] = []
+        self._timing_counter = 0
+        self._active_timings: Dict[str, TimingRecord] = {}  # 追蹤進行中的計時
+
         # 原有功能的相容性支援
         if "Splitter" in self.sequence:
             self.exist_train_indices: list[set] = []
         if "Reporter" in self.sequence:
             self.report: dict = {}
+
+        # 設置 logging handler 來捕獲時間資訊
+        self._timing_handler = TimingLogHandler(self)
+        self._timing_handler.setLevel(logging.INFO)
+
+        # 將 handler 添加到 PETsARD 的根 logger
+        petsard_logger = logging.getLogger("PETsARD")
+        petsard_logger.addHandler(self._timing_handler)
+
+        # 儲存當前實驗名稱的映射
+        self._current_experiments: Dict[str, str] = {}
 
     def _generate_snapshot_id(self) -> str:
         """生成快照 ID"""
@@ -115,6 +257,11 @@ class Status:
         """生成變更 ID"""
         self._change_counter += 1
         return f"change_{self._change_counter:06d}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    def _generate_timing_id(self) -> str:
+        """生成計時 ID"""
+        self._timing_counter += 1
+        return f"timing_{self._timing_counter:06d}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     def _create_snapshot(
         self,
@@ -190,6 +337,195 @@ class Status:
         )
         return change
 
+    def start_timing(
+        self,
+        module: str,
+        expt: str,
+        step: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        開始計時
+
+        Args:
+            module: 模組名稱
+            expt: 實驗名稱
+            step: 步驟名稱
+            context: 額外的上下文資訊
+
+        Returns:
+            str: 計時記錄 ID
+        """
+        timing_id = self._generate_timing_id()
+        timing_key = f"{module}_{expt}_{step}"
+
+        timing_record = TimingRecord(
+            record_id=timing_id,
+            module_name=module,
+            experiment_name=expt,
+            step_name=step,
+            start_time=datetime.now(),
+            context=context or {},
+            duration_precision=2,  # 預設精度為 2
+        )
+
+        self._active_timings[timing_key] = timing_record
+        self._logger.debug(f"開始計時: {timing_key} - {timing_id}")
+
+        return timing_id
+
+    def end_timing(
+        self,
+        module: str,
+        expt: str,
+        step: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[TimingRecord]:
+        """
+        結束計時
+
+        Args:
+            module: 模組名稱
+            expt: 實驗名稱
+            step: 步驟名稱
+            context: 額外的上下文資訊
+
+        Returns:
+            Optional[TimingRecord]: 完成的計時記錄，如果沒有找到對應的開始記錄則返回 None
+        """
+        timing_key = f"{module}_{expt}_{step}"
+
+        if timing_key not in self._active_timings:
+            self._logger.warning(f"找不到對應的開始計時記錄: {timing_key}")
+            return None
+
+        active_timing = self._active_timings.pop(timing_key)
+
+        # 合併額外的上下文資訊
+        if context:
+            merged_context = active_timing.context.copy()
+            merged_context.update(context)
+        else:
+            merged_context = active_timing.context
+
+        completed_timing = active_timing.complete()
+        # 更新 context
+        completed_timing = TimingRecord(
+            record_id=completed_timing.record_id,
+            module_name=completed_timing.module_name,
+            experiment_name=completed_timing.experiment_name,
+            step_name=completed_timing.step_name,
+            start_time=completed_timing.start_time,
+            end_time=completed_timing.end_time,
+            duration_seconds=completed_timing.duration_seconds,
+            context=merged_context,
+            duration_precision=completed_timing.duration_precision,
+        )
+
+        self.timing_records.append(completed_timing)
+
+        formatted_duration = str(
+            timedelta(seconds=round(completed_timing.duration_seconds))
+        )
+        self._logger.debug(f"結束計時: {timing_key} - 耗時: {formatted_duration}")
+
+        return completed_timing
+
+    def _handle_timing_start(self, module: str, expt: str, step: str, timestamp: float):
+        """
+        處理從 logging 解析的開始計時資訊
+
+        Args:
+            module: 模組名稱
+            expt: 實驗名稱
+            step: 步驟名稱
+            timestamp: 時間戳
+        """
+        timing_id = self._generate_timing_id()
+        timing_key = f"{module}_{expt}_{step}"
+
+        timing_record = TimingRecord(
+            record_id=timing_id,
+            module_name=module,
+            experiment_name=expt,
+            step_name=step,
+            start_time=datetime.fromtimestamp(timestamp),
+            context={"source": "logging"},
+            duration_precision=2,  # 預設精度為 2
+        )
+
+        self._active_timings[timing_key] = timing_record
+        self._logger.debug(f"從 logging 開始計時: {timing_key} - {timing_id}")
+
+    def _handle_timing_end(
+        self,
+        module: str,
+        expt: str,
+        step: str,
+        timestamp: float,
+        duration: Optional[float],
+        context: Dict[str, Any],
+    ):
+        """
+        處理從 logging 解析的結束計時資訊
+
+        Args:
+            module: 模組名稱
+            expt: 實驗名稱
+            step: 步驟名稱
+            timestamp: 結束時間戳
+            duration: 持續時間（秒）
+            context: 上下文資訊
+        """
+        timing_key = f"{module}_{expt}_{step}"
+
+        if timing_key in self._active_timings:
+            # 有對應的開始記錄
+            active_timing = self._active_timings.pop(timing_key)
+
+            # 合併上下文
+            merged_context = active_timing.context.copy()
+            merged_context.update(context)
+
+            completed_timing = TimingRecord(
+                record_id=active_timing.record_id,
+                module_name=active_timing.module_name,
+                experiment_name=active_timing.experiment_name,
+                step_name=active_timing.step_name,
+                start_time=active_timing.start_time,
+                end_time=datetime.fromtimestamp(timestamp),
+                duration_seconds=round(duration, 2) if duration is not None else None,
+                context=merged_context,
+                duration_precision=2,
+            )
+        else:
+            # 沒有對應的開始記錄，直接創建一個完整的記錄
+            timing_id = self._generate_timing_id()
+            start_time = datetime.fromtimestamp(timestamp - (duration or 0))
+
+            completed_timing = TimingRecord(
+                record_id=timing_id,
+                module_name=module,
+                experiment_name=expt,
+                step_name=step,
+                start_time=start_time,
+                end_time=datetime.fromtimestamp(timestamp),
+                duration_seconds=round(duration, 2) if duration is not None else None,
+                context={**context, "source": "logging", "orphaned": True},
+                duration_precision=2,
+            )
+
+        self.timing_records.append(completed_timing)
+
+        formatted_duration = (
+            str(timedelta(seconds=round(completed_timing.duration_seconds)))
+            if completed_timing.duration_seconds
+            else "N/A"
+        )
+        self._logger.debug(
+            f"從 logging 結束計時: {timing_key} - 耗時: {formatted_duration}"
+        )
+
     def put(self, module: str, expt: str, operator: BaseOperator):
         """
         新增模組狀態和操作器到狀態字典
@@ -201,6 +537,8 @@ class Status:
             expt: 當前實驗名稱
             operator: 當前操作器
         """
+        # 記錄當前模組的實驗名稱，供 logging handler 使用
+        self._current_experiments[module] = expt
         # 取得執行前的元資料狀態
         metadata_before = self.metadata.get(module) if module in self.metadata else None
 
@@ -474,3 +812,47 @@ class Status:
             if self.change_history
             else None,
         }
+
+    def get_timing_records(self, module: str = None) -> List[TimingRecord]:
+        """
+        取得特定模組的時間記錄
+
+        Args:
+            module: 可選的模組名稱過濾，如果為 None 則返回所有記錄
+
+        Returns:
+            List[TimingRecord]: 時間記錄列表
+        """
+        if module is None:
+            return self.timing_records.copy()
+        else:
+            return [r for r in self.timing_records if r.module_name == module]
+
+    def get_timing_report_data(self) -> pd.DataFrame:
+        """
+        取得適合 Reporter 使用的時間記錄資料
+
+        Returns:
+            pd.DataFrame: 時間記錄的 DataFrame
+        """
+        if not self.timing_records:
+            return pd.DataFrame()
+
+        data = []
+        for record in self.timing_records:
+            data.append(
+                {
+                    "record_id": record.record_id,
+                    "module_name": record.module_name,
+                    "experiment_name": record.experiment_name,
+                    "step_name": record.step_name,
+                    "start_time": record.start_time.isoformat(),
+                    "end_time": record.end_time.isoformat()
+                    if record.end_time
+                    else None,
+                    "duration_seconds": record.duration_seconds,
+                    **record.context,  # 展開 context 中的額外資訊
+                }
+            )
+
+        return pd.DataFrame(data)

@@ -13,7 +13,7 @@ sidebar:
 
 | 模組 | 物件名稱 | 建立方法 | 主要方法 |
 |------|----------|----------|----------|
-| [Executor](./executor) | `Executor` | `Executor(config)` | `run()`, `get_status()` |
+| [Executor](./executor) | `Executor` | `Executor(config)` | `run()`, `get_result()`, `get_timing()` |
 | [Loader](./loader) | `Loader` | `Loader(filepath, **kwargs)` | `load()` |
 | [Metadater](./metadater) | `Metadater` | `Metadater.create_schema()` | `create_schema()`, `validate_schema()` |
 | [Splitter](./splitter) | `Splitter` | `Splitter(**kwargs)` | `split()` |

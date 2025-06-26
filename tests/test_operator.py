@@ -86,9 +86,15 @@ class TestBaseOperator:
         operator = TestOperator(config)
 
         with patch("time.time", side_effect=[1000.0, 1001.0]):
-            operator.run({})
+            with patch.object(operator, "_logger") as mock_logger:
+                operator.run({})
 
         assert operator.run_called
+
+        # 驗證計時 logging 訊息
+        mock_logger.info.assert_any_call("TIMING_START|TestOp|run|1000.0")
+        mock_logger.info.assert_any_call("Starting TestOp execution")
+        mock_logger.info.assert_any_call("TIMING_END|TestOp|run|1001.0|1.0")
 
     def test_log_and_raise_config_error_decorator(self):
         """測試配置錯誤裝飾器"""
@@ -129,6 +135,37 @@ class TestBaseOperator:
 
         with pytest.raises(NotImplementedError):
             operator.get_metadata()
+
+    def test_run_with_error_timing(self):
+        """測試錯誤情況下的計時記錄"""
+        config = {"method": "test"}
+
+        class ErrorOperator(BaseOperator):
+            def _run(self, input):
+                raise ValueError("Test error")
+
+            def set_input(self, status):
+                return {}
+
+            def get_result(self):
+                return None
+
+            def get_metadata(self):
+                return Mock(spec=SchemaMetadata)
+
+        operator = ErrorOperator(config)
+
+        with patch("time.time", side_effect=[1000.0, 1001.5]):
+            with patch.object(operator, "_logger") as mock_logger:
+                with pytest.raises(ValueError, match="Test error"):
+                    operator.run({})
+
+        # 驗證錯誤計時 logging 訊息
+        mock_logger.info.assert_any_call("TIMING_START|ErrorOp|run|1000.0")
+        mock_logger.info.assert_any_call("Starting ErrorOp execution")
+        mock_logger.info.assert_any_call(
+            "TIMING_ERROR|ErrorOp|run|1001.5|1.5|Test error"
+        )
 
 
 class TestLoaderOperator:

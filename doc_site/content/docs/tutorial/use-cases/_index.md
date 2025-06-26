@@ -70,3 +70,10 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
   - Test your synthesis workflow on benchmark data
   - Verify synthesis parameter settings
   - Provide reliable reference standards
+
+### **Performance Analysis: [Timing](./timing)**
+
+  - Monitor execution time for each module in your pipeline
+  - Identify performance bottlenecks in your workflow
+  - Compare execution times across different configurations
+  - Generate timing reports for performance analysis

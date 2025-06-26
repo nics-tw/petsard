@@ -46,6 +46,20 @@ exec.run()
 results = exec.get_result()
 ```
 
+### 時間分析
+```python
+exec = Executor(config="config.yaml")
+exec.run()
+
+# 取得執行結果
+results = exec.get_result()
+
+# 取得時間資訊
+timing_data = exec.get_timing()
+print(timing_data)
+# 顯示每個模組和步驟的執行時間
+```
+
 ### 自定義日誌設定
 ```python
 # 包含執行器設定的 config.yaml
@@ -79,6 +93,27 @@ exec.run()
 
 - dict：包含所有實驗結果的字典
   - 格式：`{full_expt_name: result}`
+
+### `get_timing()`
+
+取得所有模組的執行時間記錄。
+
+**參數**
+
+無
+
+**回傳值**
+
+- pandas.DataFrame：包含時間資訊的 DataFrame，欄位包括：
+  - `record_id`：唯一的時間記錄識別碼
+  - `module_name`：執行的模組名稱
+  - `experiment_name`：實驗配置名稱
+  - `step_name`：執行步驟名稱（如 'run', 'fit', 'sample'）
+  - `start_time`：執行開始時間（ISO 格式）
+  - `end_time`：執行結束時間（ISO 格式）
+  - `duration_seconds`：執行持續時間（秒，預設四捨五入至 2 位小數）
+  - `duration_precision`：duration_seconds 的小數位數精度（預設：2）
+  - 其他來自執行上下文的欄位
 
 ## 屬性
 

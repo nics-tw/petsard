@@ -46,6 +46,20 @@ exec.run()
 results = exec.get_result()
 ```
 
+### With Timing Analysis
+```python
+exec = Executor(config="config.yaml")
+exec.run()
+
+# Get execution results
+results = exec.get_result()
+
+# Get timing information
+timing_data = exec.get_timing()
+print(timing_data)
+# Shows execution time for each module and step
+```
+
 ### With Custom Logging
 ```python
 # config.yaml with executor settings
@@ -79,6 +93,27 @@ None
 
 - dict: Dictionary containing all experiment results
   - Format: `{full_expt_name: result}`
+
+### `get_timing()`
+
+Retrieve execution timing records for all modules.
+
+**Parameters**
+
+None
+
+**Returns**
+
+- pandas.DataFrame: DataFrame containing timing information with columns:
+  - `record_id`: Unique timing record identifier
+  - `module_name`: Name of the executed module
+  - `experiment_name`: Name of the experiment configuration
+  - `step_name`: Name of the execution step (e.g., 'run', 'fit', 'sample')
+  - `start_time`: Execution start time (ISO format)
+  - `end_time`: Execution end time (ISO format)
+  - `duration_seconds`: Execution duration in seconds (rounded to 2 decimal places by default)
+  - `duration_precision`: Number of decimal places for duration_seconds (default: 2)
+  - Additional context fields from the execution
 
 ## Attributes
 
