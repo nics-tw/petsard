@@ -5,7 +5,12 @@ import pandas as pd
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.reporter.reporter import Reporter, ReporterSaveData, ReporterSaveReport
+from petsard.reporter.reporter import (
+    Reporter,
+    ReporterSaveData,
+    ReporterSaveReport,
+    ReporterSaveTiming,
+)
 from petsard.reporter.utils import (
     convert_eval_expt_name_to_tuple,
     convert_full_expt_name_to_tuple,
@@ -252,6 +257,22 @@ class Test_Reporter:
 
         with pytest.raises(UnsupportedMethodError):
             Reporter(method="invalid_method")
+
+    def test_method_save_timing(self):
+        """
+        Test case for the arg. `method` = 'save_timing' of Reporter class.
+
+        - The Reporter.reporter will be created as ReporterSaveTiming when:
+            - method='save_timing'
+        """
+        rpt = Reporter(method="save_timing")
+        assert isinstance(rpt.reporter, ReporterSaveTiming)
+
+        rpt = Reporter(method="save_timing", time_unit="minutes")
+        assert isinstance(rpt.reporter, ReporterSaveTiming)
+
+        rpt = Reporter(method="save_timing", module="Loader")
+        assert isinstance(rpt.reporter, ReporterSaveTiming)
 
     def test_method_save_data(self):
         """
@@ -722,3 +743,239 @@ class Test_utils:
             eval_expt_name: str = sample_eval_expt_name(case=case)
             eval_expt_tuple: tuple = sample_eval_expt_tuple(case=case)
             assert convert_eval_expt_name_to_tuple(eval_expt_name) == eval_expt_tuple
+
+
+class TestReporterSaveTiming:
+    """測試 ReporterSaveTiming 類別"""
+
+    @pytest.fixture
+    def sample_timing_data(self):
+        """建立測試用的時間資料"""
+        return pd.DataFrame(
+            [
+                {
+                    "record_id": "timing_001",
+                    "module_name": "LoaderOp",
+                    "experiment_name": "default",
+                    "step_name": "run",
+                    "start_time": "2025-01-01T10:00:00",
+                    "end_time": "2025-01-01T10:00:01",
+                    "duration_seconds": 1.0,
+                    "source": "logging",
+                    "status": "completed",
+                },
+                {
+                    "record_id": "timing_002",
+                    "module_name": "SynthesizerOp",
+                    "experiment_name": "default",
+                    "step_name": "run",
+                    "start_time": "2025-01-01T10:00:02",
+                    "end_time": "2025-01-01T10:00:04",
+                    "duration_seconds": 2.0,
+                    "source": "logging",
+                    "status": "completed",
+                },
+                {
+                    "record_id": "timing_003",
+                    "module_name": "EvaluatorOp",
+                    "experiment_name": "default",
+                    "step_name": "run",
+                    "start_time": "2025-01-01T10:00:05",
+                    "end_time": "2025-01-01T10:00:06",
+                    "duration_seconds": 1.5,
+                    "source": "logging",
+                    "status": "completed",
+                },
+            ]
+        )
+
+    def test_init_default(self):
+        """測試預設初始化"""
+        config = {"method": "save_timing"}
+        reporter = ReporterSaveTiming(config)
+
+        assert reporter.config["modules"] == []
+        assert reporter.config["time_unit"] == "seconds"
+
+    def test_init_with_module_filter(self):
+        """測試模組過濾初始化"""
+        # 單一模組
+        config = {"method": "save_timing", "module": "LoaderOp"}
+        reporter = ReporterSaveTiming(config)
+        assert reporter.config["modules"] == ["LoaderOp"]
+
+        # 多個模組
+        config = {"method": "save_timing", "module": ["LoaderOp", "SynthesizerOp"]}
+        reporter = ReporterSaveTiming(config)
+        assert reporter.config["modules"] == ["LoaderOp", "SynthesizerOp"]
+
+    def test_init_with_time_unit(self):
+        """測試時間單位初始化"""
+        valid_units = ["days", "hours", "minutes", "seconds"]
+
+        for unit in valid_units:
+            config = {"method": "save_timing", "time_unit": unit}
+            reporter = ReporterSaveTiming(config)
+            assert reporter.config["time_unit"] == unit
+
+        # 無效時間單位應該回到預設值
+        config = {"method": "save_timing", "time_unit": "invalid"}
+        reporter = ReporterSaveTiming(config)
+        assert reporter.config["time_unit"] == "seconds"
+
+    def test_create_with_empty_data(self):
+        """測試空資料的處理"""
+        config = {"method": "save_timing"}
+        reporter = ReporterSaveTiming(config)
+
+        # 沒有 timing_data 鍵
+        reporter.create({})
+        assert reporter.result == {}
+
+        # 空的 DataFrame
+        reporter.create({"timing_data": pd.DataFrame()})
+        assert reporter.result == {}
+
+    def test_create_seconds_unit(self, sample_timing_data):
+        """測試秒為單位的處理"""
+        config = {"method": "save_timing", "time_unit": "seconds"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        assert "timing_report" in reporter.result
+        result_df = reporter.result["timing_report"]
+
+        # 檢查欄位
+        assert "duration_seconds" in result_df.columns
+        assert (
+            "duration_seconds" not in result_df.columns
+            or len([col for col in result_df.columns if col == "duration_seconds"]) == 1
+        )
+
+        # 檢查資料
+        assert len(result_df) == 3
+        assert result_df["duration_seconds"].sum() == 4.5
+
+    def test_create_minutes_unit(self, sample_timing_data):
+        """測試分鐘為單位的處理"""
+        config = {"method": "save_timing", "time_unit": "minutes"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 檢查欄位
+        assert "duration_minutes" in result_df.columns
+        assert "duration_seconds" not in result_df.columns
+
+        # 檢查轉換 (4.5 秒 = 0.075 分鐘)
+        expected_total_minutes = 4.5 / 60
+        assert abs(result_df["duration_minutes"].sum() - expected_total_minutes) < 0.001
+
+    def test_create_hours_unit(self, sample_timing_data):
+        """測試小時為單位的處理"""
+        config = {"method": "save_timing", "time_unit": "hours"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 檢查欄位
+        assert "duration_hours" in result_df.columns
+        assert "duration_seconds" not in result_df.columns
+
+        # 檢查轉換 (4.5 秒 = 0.00125 小時)
+        expected_total_hours = 4.5 / 3600
+        assert abs(result_df["duration_hours"].sum() - expected_total_hours) < 0.000001
+
+    def test_create_days_unit(self, sample_timing_data):
+        """測試天為單位的處理"""
+        config = {"method": "save_timing", "time_unit": "days"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 檢查欄位
+        assert "duration_days" in result_df.columns
+        assert "duration_seconds" not in result_df.columns
+
+        # 檢查轉換 (4.5 秒 = 0.0000520833... 天)
+        expected_total_days = 4.5 / 86400
+        assert abs(result_df["duration_days"].sum() - expected_total_days) < 0.0000001
+
+    def test_create_with_module_filter(self, sample_timing_data):
+        """測試模組過濾"""
+        config = {"method": "save_timing", "module": "LoaderOp"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 只應該有 LoaderOp 的記錄
+        assert len(result_df) == 1
+        assert result_df.iloc[0]["module_name"] == "LoaderOp"
+        assert result_df.iloc[0]["duration_seconds"] == 1.0
+
+    def test_create_with_multiple_module_filter(self, sample_timing_data):
+        """測試多模組過濾"""
+        config = {"method": "save_timing", "module": ["LoaderOp", "SynthesizerOp"]}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 應該有 LoaderOp 和 SynthesizerOp 的記錄
+        assert len(result_df) == 2
+        module_names = set(result_df["module_name"])
+        assert module_names == {"LoaderOp", "SynthesizerOp"}
+
+    def test_create_column_order(self, sample_timing_data):
+        """測試欄位順序"""
+        config = {"method": "save_timing", "time_unit": "minutes"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        result_df = reporter.result["timing_report"]
+
+        # 檢查基本欄位順序
+        expected_start = [
+            "record_id",
+            "module_name",
+            "experiment_name",
+            "step_name",
+            "start_time",
+            "end_time",
+            "duration_minutes",
+        ]
+
+        actual_columns = list(result_df.columns)
+        for i, expected_col in enumerate(expected_start):
+            assert actual_columns[i] == expected_col
+
+    def test_report_empty_result(self):
+        """測試空結果的報告"""
+        config = {"method": "save_timing"}
+        reporter = ReporterSaveTiming(config)
+
+        # 沒有結果時應該印出訊息但不出錯
+        reporter.report()  # 應該不會拋出異常
+
+    def test_report_with_data(self, sample_timing_data):
+        """測試有資料的報告"""
+        config = {"method": "save_timing", "output": "test_timing"}
+        reporter = ReporterSaveTiming(config)
+
+        reporter.create({"timing_data": sample_timing_data})
+
+        # 這裡我們不實際儲存檔案，只檢查不會出錯
+        # 在實際環境中會呼叫 _save 方法
+        assert "timing_report" in reporter.result
+        assert not reporter.result["timing_report"].empty

@@ -209,3 +209,12 @@ class Executor:
         Returns the result of the executor.
         """
         return self.result
+
+    def get_timing(self):
+        """
+        取得執行時間記錄資料
+
+        Returns:
+            pd.DataFrame: 包含所有模組執行時間的 DataFrame
+        """
+        return self.status.get_timing_report_data()

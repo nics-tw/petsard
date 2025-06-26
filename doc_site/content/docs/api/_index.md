@@ -13,7 +13,7 @@ sidebar:
 
 | Module | Object Name | Creation Method | Main Methods |
 |--------|-------------|-----------------|--------------|
-| [Executor](./executor) | `Executor` | `Executor(config)` | `run()`, `get_status()` |
+| [Executor](./executor) | `Executor` | `Executor(config)` | `run()`, `get_result()`, `get_timing()` |
 | [Loader](./loader) | `Loader` | `Loader(filepath, **kwargs)` | `load()` |
 | [Metadater](./metadater) | `Metadater` | `Metadater.create_schema()` | `create_schema()`, `validate_schema()` |
 | [Splitter](./splitter) | `Splitter` | `Splitter(**kwargs)` | `split()` |

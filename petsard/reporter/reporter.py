@@ -20,6 +20,7 @@ class ReporterMap:
 
     SAVE_DATA: int = 10
     SAVE_REPORT: int = 11
+    SAVE_TIMING: int = 12
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -96,6 +97,8 @@ class Reporter:
             self.reporter = ReporterSaveData(config=self.config)
         elif method_code == ReporterMap.SAVE_REPORT:
             self.reporter = ReporterSaveReport(config=self.config)
+        elif method_code == ReporterMap.SAVE_TIMING:
+            self.reporter = ReporterSaveTiming(config=self.config)
         else:
             raise UnsupportedMethodError
 
@@ -782,3 +785,127 @@ class ReporterSaveReport(BaseReporter):
             raise UnexecutedError
 
         self._save(data=report, full_output=full_output)
+
+
+class ReporterSaveTiming(BaseReporter):
+    """
+    Save timing data to file.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration dictionary.
+                - method (str): The method used for reporting.
+                - output (str, optional):
+                    The output filename prefix for the report.
+                    Default is 'petsard'.
+                - module (str | List[str], optional):
+                    Filter by specific module(s). If not provided, includes all modules.
+                - time_unit (str, optional):
+                    Time unit for duration display: 'days', 'hours', 'minutes', 'seconds'.
+                    Default is 'seconds'.
+        """
+        super().__init__(config)
+
+        # 處理模組過濾器
+        modules = self.config.get("module")
+        if isinstance(modules, str):
+            modules = [modules]
+        elif modules is None:
+            modules = []
+        self.config["modules"] = modules
+
+        # 設定時間單位
+        time_unit = self.config.get("time_unit", "seconds").lower()
+        if time_unit not in ["days", "hours", "minutes", "seconds"]:
+            time_unit = "seconds"
+        self.config["time_unit"] = time_unit
+
+    def create(self, data: dict) -> None:
+        """
+        Creates the timing report data.
+
+        Args:
+            data (dict): The data dictionary containing timing information.
+                Expected to have a 'timing_data' key with timing records.
+        """
+        # 從 data 中取得 timing 資料
+        if "timing_data" not in data:
+            self.result = {}
+            return
+
+        timing_data = data["timing_data"].copy()
+
+        # 根據設定過濾資料
+        if self.config["modules"]:
+            timing_data = timing_data[
+                timing_data["module_name"].isin(self.config["modules"])
+            ]
+
+        if timing_data.empty:
+            self.result = {}
+            return
+
+        # 根據時間單位轉換持續時間
+        time_unit = self.config["time_unit"]
+        if time_unit == "days":
+            timing_data[f"duration_{time_unit}"] = (
+                timing_data["duration_seconds"] / 86400
+            )  # 24*60*60
+        elif time_unit == "hours":
+            timing_data[f"duration_{time_unit}"] = (
+                timing_data["duration_seconds"] / 3600
+            )  # 60*60
+        elif time_unit == "minutes":
+            timing_data[f"duration_{time_unit}"] = timing_data["duration_seconds"] / 60
+        else:  # seconds
+            timing_data[f"duration_{time_unit}"] = timing_data["duration_seconds"]
+
+        # 重新排列欄位順序，移除原始的 duration_seconds（除非是 seconds 單位）
+        columns_order = [
+            "record_id",
+            "module_name",
+            "experiment_name",
+            "step_name",
+            "start_time",
+            "end_time",
+            f"duration_{time_unit}",
+        ]
+
+        # 選擇需要的欄位，保留其他 context 欄位
+        context_columns = [
+            col
+            for col in timing_data.columns
+            if col not in ["duration_seconds"] + columns_order
+        ]
+        final_columns = columns_order + context_columns
+
+        # 如果不是 seconds 單位，移除原始的 duration_seconds 欄位
+        if time_unit != "seconds":
+            timing_data = timing_data.drop(
+                columns=["duration_seconds"], errors="ignore"
+            )
+            final_columns = [col for col in final_columns if col != "duration_seconds"]
+
+        # 確保所有欄位都存在
+        available_columns = [col for col in final_columns if col in timing_data.columns]
+        timing_data = timing_data[available_columns]
+
+        self.result["timing_report"] = timing_data
+
+    def report(self) -> None:
+        """
+        Generates the timing report.
+        """
+        if not self.result:
+            print("Reporter: No timing data available for reporting.")
+            return
+
+        for report_type, df in self.result.items():
+            if df is None or df.empty:
+                continue
+
+            # petsard_timing
+            full_output = f"{self.config['output']}_timing"
+            self._save(data=df, full_output=full_output)

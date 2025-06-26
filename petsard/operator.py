@@ -56,16 +56,28 @@ class BaseOperator:
                 See self.set_input() for more details.
         """
         start_time: time = time.time()
+        self._logger.info(f"TIMING_START|{self.module_name}|run|{start_time}")
         self._logger.info(f"Starting {self.module_name} execution")
 
-        self._run(input)
+        try:
+            self._run(input)
 
-        elapsed_time: time = time.time() - start_time
-        formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
-        self._logger.info(
-            f"Completed {self.module_name} execution "
-            f"(elapsed: {formatted_elapsed_time})"
-        )
+            elapsed_time: time = time.time() - start_time
+            formatted_elapsed_time: str = str(timedelta(seconds=round(elapsed_time)))
+
+            self._logger.info(
+                f"TIMING_END|{self.module_name}|run|{time.time()}|{elapsed_time}"
+            )
+            self._logger.info(
+                f"Completed {self.module_name} execution "
+                f"(elapsed: {formatted_elapsed_time})"
+            )
+        except Exception as e:
+            elapsed_time: time = time.time() - start_time
+            self._logger.error(
+                f"TIMING_ERROR|{self.module_name}|run|{time.time()}|{elapsed_time}|{str(e)}"
+            )
+            raise
 
     @classmethod
     def log_and_raise_config_error(cls, func):
@@ -923,6 +935,12 @@ class ReporterOperator(BaseOperator):
                 data[index_tuple] = deepcopy(result)
         self.input["data"] = data
         self.input["data"]["exist_report"] = status.get_report()
+
+        # 新增時間資料支援
+        if hasattr(status, "get_timing_report_data"):
+            timing_data = status.get_timing_report_data()
+            if not timing_data.empty:
+                self.input["data"]["timing_data"] = timing_data
 
         return self.input
 
