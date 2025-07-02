@@ -1,0 +1,34 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-mpuccs:
+    method: 'mpuccs'
+    n_cols:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

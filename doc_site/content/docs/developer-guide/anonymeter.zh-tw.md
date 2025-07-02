@@ -3,7 +3,7 @@ title: Anonymeter 隱私風險評測
 type: docs
 weight: 84
 prev: docs/developer-guide/benchmark-datasets
-next: docs/developer-guide/logging-configuration
+next: docs/developer-guide/mpuccs
 math: true
 ---
 

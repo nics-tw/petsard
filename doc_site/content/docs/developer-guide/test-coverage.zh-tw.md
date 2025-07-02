@@ -1,7 +1,7 @@
 ---
 title: 測試覆蓋範圍
 type: docs
-weight: 87
+weight: 88
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 ---
@@ -399,6 +399,50 @@ next: docs/developer-guide
   - 處理空資料的預處理
   - 驗證 NaN 分數
   - 檢查警告訊息
+
+#### `MPUCCs`
+
+> tests/evaluator/test_mpuccs.py
+
+測試 mpUCCs（最大部分唯一欄位組合）隱私風險評估：
+
+**基本功能測試（`TestMPUCCsBasic`）：**
+- `test_initialization`：測試 MPUCCs 評估器初始化與配置參數
+- `test_basic_evaluation`：測試使用簡單測試資料的基本評估功能
+- `test_empty_data`：測試空資料集的處理
+
+**精度處理測試（`TestMPUCCsPrecisionHandling`）：**
+- `test_numeric_precision_auto_detection`：測試數值欄位精度的自動檢測（小數位數）
+- `test_numeric_precision_manual_setting`：測試手動數值精度配置
+- `test_datetime_precision_auto_detection`：測試日期時間欄位精度的自動檢測
+- `test_datetime_precision_normalization`：測試大小寫不敏感的日期時間精度格式正規化
+
+**熵計算測試（`TestMPUCCsEntropyCalculation`）：**
+- `test_renyi_entropy_calculation`：測試不同資料分佈的 Rényi 熵（α=2，碰撞熵）計算：
+ - 高熵（均勻分佈）
+ - 中等熵（中度偏斜）
+ - 低熵（高度偏斜）
+ - 極低熵（極端偏斜）
+- `test_entropy_gain_calculation`：測試欄位組合的條件熵增益計算
+
+**剪枝邏輯測試（`TestMPUCCsPruningLogic`）：**
+- `test_entropy_based_pruning`：測試可配置閾值的基於熵的剪枝機制
+- `test_base_combo_pruning_propagation`：測試從基礎組合到超集的剪枝傳播
+
+**整合測試（`TestMPUCCsIntegration`）：**
+- `test_complete_workflow`：測試具有真實資料情境的完整 mpUCCs 工作流程
+- `test_skip_ncols_configuration`：測試跳躍模式配置（如 n_cols=[1, 3]）
+- `test_deduplication_functionality`：測試分析前的自動資料去重
+
+**邊界情況測試（`TestMPUCCsEdgeCases`）：**
+- `test_single_column_data`：測試單欄位資料集
+- `test_all_unique_data`：測試所有值唯一但無碰撞的資料集
+- `test_all_identical_data`：測試具有相同值的資料集
+
+**理論驗證：**
+- `test_renyi_vs_shannon_entropy`：展示 Rényi 熵與 Shannon 熵在隱私分析中的差異
+
+> **mpUCCs 架構**：mpUCCs 實現基於最大部分唯一欄位組合理論（mpUCCs = QIDs）的先進指認性風險評估。主要特色包括漸進式樹狀搜尋、基於熵的剪枝、數值/日期時間欄位的精度處理，以及具有雙層進度條的全面進度追蹤。
 
 ## 資料報告
 

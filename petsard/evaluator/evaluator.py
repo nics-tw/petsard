@@ -13,6 +13,7 @@ from petsard.evaluator.customer_evaluator import CustomEvaluator
 from petsard.evaluator.data_describer import DataDescriber
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.evaluator.mlutlity import MLUtility
+from petsard.evaluator.mpuccs import MPUCCs
 from petsard.evaluator.sdmetrics import SDMetricsSingleTable
 from petsard.evaluator.stats import Stats
 from petsard.exceptions import UncreatedError, UnsupportedMethodError
@@ -26,6 +27,7 @@ class EvaluatorMap(Enum):
     DEFAULT: int = auto()
     # Protection
     ANONYMETER: int = auto()
+    MPUCCS: int = auto()
     # Fidelity
     SDMETRICS: int = auto()
     STATS: int = auto()
@@ -117,6 +119,7 @@ class Evaluator:
     EVALUATOR_MAP: dict[int, BaseEvaluator] = {
         EvaluatorMap.DEFAULT: SDMetricsSingleTable,
         EvaluatorMap.ANONYMETER: Anonymeter,
+        EvaluatorMap.MPUCCS: MPUCCs,
         EvaluatorMap.SDMETRICS: SDMetricsSingleTable,
         EvaluatorMap.STATS: Stats,
         EvaluatorMap.MLUTILITY: MLUtility,
