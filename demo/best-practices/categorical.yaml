@@ -1,0 +1,44 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/best-practices_categorical_high-cardinality.csv'
+    column_types:
+      category:
+        - university_code
+        - college_code
+        - department_code
+Preprocessor:
+  encoding_uniform:
+    sequence:
+      - 'encoder'
+    encoder:
+      birth_year: 'encoding_uniform'
+      birth_month: 'encoding_uniform'
+      birth_day: 'encoding_uniform'
+      zodiac: 'encoding_uniform'
+      university_code: 'encoding_uniform'
+      university: 'encoding_uniform'
+      college_code: 'encoding_uniform'
+      college: 'encoding_uniform'
+      deparment_code: 'encoding_uniform'
+      department_name: 'encoding_uniform'
+      admission_type_code: 'encoding_uniform'
+      admission_type: 'encoding_uniform'
+      disabled_code: 'encoding_uniform'
+      disabled_type: 'encoding_uniform'
+      nationality_code: 'encoding_uniform'
+      nationality: 'encoding_uniform'
+      identity_code: 'encoding_uniform'
+      identity: 'encoding_uniform'
+      sex: 'encoding_uniform'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Postprocessor'
+...

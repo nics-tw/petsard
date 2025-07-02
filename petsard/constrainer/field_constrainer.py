@@ -8,6 +8,15 @@ from petsard.exceptions import ConfigError
 
 
 class FieldConstrainer(BaseConstrainer):
+    # Operator patterns
+    COMPARISON_OPS = ["<=", ">=", "==", "!=", "<", ">"]
+    LOGICAL_OPS = ["&", "|"]
+    SPECIAL_OPS = ["IS", "IS NOT"]
+    ALL_OPERATORS = COMPARISON_OPS + LOGICAL_OPS + SPECIAL_OPS
+
+    # Regex pattern for operators
+    OPERATOR_PATTERN = r"(?:<=|>=|==|!=|<|>|&|\||IS(?:\s+NOT)?)"
+
     def __init__(self, config):
         super().__init__(config)
         self._validate_config_structure()  # Perform basic structure validation during initialization
@@ -139,47 +148,34 @@ class FieldConstrainer(BaseConstrainer):
         # Remove DATE function calls to avoid treating dates as field names
         constraint = re.sub(r"DATE\(\d{4}-\d{2}-\d{2}\)", "", constraint)
 
-        # Clean special syntax elements
-        constraint = (
-            constraint.replace("(", " ")
-            .replace(")", " ")
-            .replace("IS pd.NA", "")
-            .replace("IS NOT pd.NA", "")
-        )
-
-        # Extract and validate field names
-        parts = constraint.split()
+        # Extract potential field names - looking for words not inside quotes
+        # and not immediately next to operators
         fields = []
-        i = 0
-        while i < len(parts):
-            part = parts[i].strip()
 
-            # Skip operators
-            if part in ["&", "|", ">", "<", ">=", "<=", "==", "!=", "IS", "NOT"]:
-                i += 1
-                continue
+        # Updated pattern to include hyphens in field names
+        # Match field names that can contain letters, numbers, underscores, and hyphens
+        # Hyphen placed at the end to avoid unintended range definitions
+        field_pattern = r"\b([\w-]+)\s*(?:[=!<>]+|IS(?:\s+NOT)?)\s*|(?:[=!<>]+|IS(?:\s+NOT)?)\s*\b([\w-]+)\b"
+        matches = re.finditer(field_pattern, constraint)
 
-            # Skip literals
-            if part == "pd.NA" or part.replace(".", "").isdigit():
-                i += 1
-                continue
+        for match in matches:
+            if match.group(1):  # Field before operator
+                fields.append(match.group(1))
+            if match.group(2):  # Field after operator
+                fields.append(match.group(2))
 
-            # Handle field addition expressions
-            if i + 2 < len(parts) and parts[i + 1] == "+":
-                if not any(
-                    op in part for op in [">", "<", ">=", "<=", "==", "!=", "&", "|"]
-                ):
-                    fields.append(part)
-                    fields.append(parts[i + 2])
-                i += 3
-                continue
+        # Add fields involved in addition operations
+        addition_pattern = r"\b([\w-]+)\s*\+\s*([\w-]+)\b"
+        for match in re.finditer(addition_pattern, constraint):
+            fields.append(match.group(1))
+            fields.append(match.group(2))
 
-            # Process potential field names
-            if not any(
-                op in part for op in [">", "<", ">=", "<=", "==", "!=", "&", "|"]
-            ):
-                fields.append(part)
-            i += 1
+        # Filter out obvious non-fields
+        fields = [
+            field
+            for field in fields
+            if field not in ["pd", "NA", "IS", "NOT", "AND", "OR", "TRUE", "FALSE"]
+        ]
 
         return list(set(fields))
 
@@ -209,7 +205,9 @@ class FieldConstrainer(BaseConstrainer):
                 tokens.copy(), result, involved_columns
             )
             if mask is None:
-                warnings.warn(f"Warning: Constraint '{constraint}' parsing failed")
+                warnings.warn(
+                    f"Warning: Constraint '{constraint}' parsing failed", stacklevel=2
+                )
                 continue
 
             # Apply the constraint
@@ -232,6 +230,27 @@ class FieldConstrainer(BaseConstrainer):
         i = 0
 
         while i < len(condition):
+            # Handle quotes - match entire string literals
+            if condition[i] in "\"'":
+                quote_char = condition[i]
+                start = i
+                i += 1  # Move past the opening quote
+
+                # Find closing quote
+                while i < len(condition) and condition[i] != quote_char:
+                    i += 1
+
+                if i < len(condition):  # Found closing quote
+                    i += 1  # Move past the closing quote
+                    tokens.append(
+                        condition[start:i]
+                    )  # Include the entire quoted string
+                    continue
+                else:
+                    # No closing quote found - treat as error
+                    tokens.append(condition[start:])
+                    break
+
             # Handle DATE() function
             if condition[i : i + 5] == "DATE(":
                 end = condition.find(")", i)
@@ -246,28 +265,39 @@ class FieldConstrainer(BaseConstrainer):
                 i += 1
                 continue
 
-            # Handle operators
-            if condition[i : i + 2] in ["IS", "<=", ">=", "==", "!="]:
-                if condition[i : i + 7] == "IS NOT ":
-                    tokens.append(condition[i : i + 7])
-                    i += 7
-                    continue
+            # Handle operators using predefined patterns
+            # Check for IS NOT first (longer match)
+            if condition[i : i + 7] == "IS NOT ":
+                tokens.append("IS NOT ")
+                i += 7
+                continue
+
+            # Check for two-character operators
+            if condition[i : i + 2] in self.COMPARISON_OPS + ["IS"]:
                 tokens.append(condition[i : i + 2])
                 i += 2
                 continue
 
-            if condition[i] in ["<", ">", "&", "|"]:
+            # Check for single-character operators
+            if condition[i] in self.LOGICAL_OPS + ["<", ">"]:
                 tokens.append(condition[i])
                 i += 1
                 continue
 
-            # Handle expressions
-            if condition[i].isalnum() or condition[i] in "_.":
+            # Handle expressions (field names can contain hyphens)
+            if condition[i].isalnum() or condition[i] in "_-.":
                 expr_end = i
-                while expr_end < len(condition) and (
-                    condition[expr_end].isalnum() or condition[expr_end] in "_. +-"
-                ):
-                    if condition[expr_end : expr_end + 4] == " IS ":
+                # Use regex to find the end of the field name
+                # Stop when we hit an operator or whitespace followed by operator
+                while expr_end < len(condition):
+                    if condition[expr_end] in " ":
+                        # Check if next token is an operator
+                        remaining = condition[expr_end + 1 :]
+                        if re.match(self.OPERATOR_PATTERN, remaining):
+                            break
+                    elif not (
+                        condition[expr_end].isalnum() or condition[expr_end] in "_-.+"
+                    ):
                         break
                     expr_end += 1
 
@@ -282,7 +312,7 @@ class FieldConstrainer(BaseConstrainer):
 
     def _get_value(
         self, expr: str, df: pd.DataFrame, involved_columns: list[str]
-    ) -> tuple[pd.Series | float | None, list[str]]:
+    ) -> tuple[pd.Series | float | str | None, list[str]]:
         """
         Get value from expression. Handles fields, literals, and date functions.
 
@@ -309,6 +339,12 @@ class FieldConstrainer(BaseConstrainer):
                 print(f"Date parsing error: {e}")
                 return None, involved_columns
 
+        # Handle string literals (text within quotes)
+        string_match = re.match(r"^['\"](.+)['\"]$", expr)
+        if string_match:
+            # Return the string literal without quotes
+            return string_match.group(1), involved_columns
+
         if "+" in expr:
             col1, col2 = map(str.strip, expr.split("+"))
 
@@ -316,6 +352,7 @@ class FieldConstrainer(BaseConstrainer):
                 warnings.warn(
                     f"Warning: Column '{col1}' or '{col2}' does not exist",
                     UserWarning,
+                    stacklevel=2,
                 )
                 return None, involved_columns
             involved_columns = list(set(involved_columns + [col1, col2]))
@@ -343,7 +380,9 @@ class FieldConstrainer(BaseConstrainer):
                 return pd.Series(result, index=df.index), involved_columns
 
             except Exception as e:
-                warnings.warn(f"Warning: Operation failed '{str(e)}'", UserWarning)
+                warnings.warn(
+                    f"Warning: Operation failed '{str(e)}'", UserWarning, stacklevel=2
+                )
                 return None, involved_columns
 
         if expr in df.columns:
@@ -359,7 +398,9 @@ class FieldConstrainer(BaseConstrainer):
             return float(expr), involved_columns
         except Exception:
             if expr != "pd.NA":
-                warnings.warn(f"Warning: Cannot parse value '{expr}'", UserWarning)
+                warnings.warn(
+                    f"Warning: Cannot parse value '{expr}'", UserWarning, stacklevel=2
+                )
             return None, involved_columns
 
     def _process_comparison(
@@ -406,13 +447,15 @@ class FieldConstrainer(BaseConstrainer):
             elif op == "!=":
                 result = left != right
             else:
-                warnings.warn(f"Warning: Unsupported operator '{op}'")
+                warnings.warn(f"Warning: Unsupported operator '{op}'", stacklevel=2)
                 return pd.Series(False, index=df.index)
 
             return result
         except Exception as e:
             print(f"Comparison failed: {e}")
-            warnings.warn(f"Warning: Comparison operation failed '{str(e)}'")
+            warnings.warn(
+                f"Warning: Comparison operation failed '{str(e)}'", stacklevel=2
+            )
             return pd.Series(False, index=df.index)
 
     def _parse_expression(

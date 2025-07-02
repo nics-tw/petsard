@@ -1,8 +1,13 @@
+import logging
+import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any, Optional, Tuple, Type
 
 import requests
+
+from petsard.utils import load_external_module
 
 
 def setup_environment(
@@ -10,6 +15,7 @@ def setup_environment(
     branch: str = "main",
     benchmark_data: list[str] = None,
     example_files: list[str] = None,
+    subfolder: Optional[str] = None,
 ) -> None:
     """
     Setup the environment for both Colab and local development
@@ -21,6 +27,8 @@ def setup_environment(
             The dataset list of benchmark data to load by PETsARD Loader
         example_files (list[str], optional):
             List of example files to download from GitHub
+        subfolder (str, optional):
+            The subfolder in the demo directory. Defaults to None
     """
     # Check Python version
     if sys.version_info < (3, 10):
@@ -31,6 +39,8 @@ def setup_environment(
 
     # Ensure pip is installed
     subprocess.run([sys.executable, "-m", "ensurepip"], check=True)
+    # avoid pip version warning
+    os.environ["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     if is_colab:
         # Install petsard directly from GitHub
@@ -50,7 +60,27 @@ def setup_environment(
     else:
         # Find the project root directory
         demo_dir = Path.cwd()
-        project_root = demo_dir.parent
+
+        # Calculate project root based on current directory structure
+        if subfolder:
+            # If we're in a subfolder like demo/use-cases/preproc/
+            # we need to go up to find the project root (where pyproject.toml is)
+            current_path = demo_dir
+            project_root = None
+
+            # Search upwards for pyproject.toml
+            for parent in [current_path] + list(current_path.parents):
+                if (parent / "pyproject.toml").exists():
+                    project_root = parent
+                    break
+
+            if project_root is None:
+                raise FileNotFoundError(
+                    "Could not find project root with pyproject.toml"
+                )
+        else:
+            # If we're directly in demo/, project root is parent
+            project_root = demo_dir.parent
 
         # Local installation
         subprocess.run(
@@ -96,6 +126,7 @@ def get_yaml_path(
     is_colab: bool,
     yaml_file: str,
     branch: str = "main",
+    subfolder: Optional[str] = None,
 ) -> Path:
     """
     Get the YAML file path and display its content,
@@ -106,6 +137,8 @@ def get_yaml_path(
         yaml_file (str): Name of the YAML file
         branch (str, optional):
             The branch name to fetch YAML from GitHub. Defaults to "main"
+        subfolder (str, optional):
+            The subfolder in the demo directory. Defaults to None
 
     Returns:
         Path: Path to the YAML file
@@ -138,9 +171,29 @@ def get_yaml_path(
             print(response.text)
             return Path(tmp_file.name)
     else:
-        demo_dir = Path().absolute()
-        project_root = demo_dir.parent
-        yaml_path = project_root / "yaml" / yaml_file
+        demo_dir = Path.cwd()
+
+        # Calculate project root based on current directory structure
+        if subfolder:
+            # Search upwards for pyproject.toml to find project root
+            current_path = demo_dir
+            project_root = None
+
+            for parent in [current_path] + list(current_path.parents):
+                if (parent / "pyproject.toml").exists():
+                    project_root = parent
+                    break
+
+            if project_root is None:
+                raise FileNotFoundError(
+                    "Could not find project root with pyproject.toml"
+                )
+
+            yaml_path = project_root / "demo" / subfolder / yaml_file
+        else:
+            # If we're directly in demo/, project root is parent
+            project_root = demo_dir.parent
+            yaml_path = project_root / "demo" / yaml_file
 
         if not yaml_path.exists():
             raise FileNotFoundError(
@@ -149,9 +202,72 @@ def get_yaml_path(
                 "and are in the correct directory"
             )
 
-        with open(yaml_path, "r") as f:
+        with open(yaml_path) as f:
             content = f.read()
             print("Configuration content:")
             print(content)
 
         return yaml_path
+
+
+def load_demo_module(
+    module_path: str,
+    class_name: str,
+    logger: logging.Logger,
+    required_methods: dict[str, list[str]] = None,
+) -> Tuple[Any, Type]:
+    """
+    Load external Python module for demo purposes with intelligent path resolution.
+
+    This function is specifically designed for demo environments and supports
+    multi-level subdirectory searching within the demo folder structure.
+
+    Args:
+        module_path (str): Path to the external module (relative or absolute)
+        class_name (str): Name of the class to load from the module
+        logger (logging.Logger): Logger for recording messages
+        required_methods (Dict[str, List[str]], optional):
+            Dictionary mapping method names to required parameter names
+            e.g. {"fit": ["data"], "sample": []}
+
+    Returns:
+        Tuple[Any, Type]: A tuple containing the module instance and the class
+
+    Raises:
+        FileNotFoundError: If the module file does not exist
+        ConfigError: If the module cannot be loaded or doesn't contain the specified class
+    """
+    # Create demo-specific search paths
+    demo_search_paths = _get_demo_search_paths(module_path)
+
+    # Use the core petsard function with demo search paths
+    return load_external_module(
+        module_path, class_name, logger, required_methods, demo_search_paths
+    )
+
+
+def _get_demo_search_paths(module_path: str) -> list[str]:
+    """
+    Get demo-specific search paths for module resolution.
+
+    Args:
+        module_path (str): The module path to create search paths for
+
+    Returns:
+        List[str]: List of demo-specific search paths
+    """
+    # Get the current working directory
+    cwd = os.getcwd()
+
+    # Demo-specific search locations
+    demo_search_paths = [
+        # 3. Relative to current working directory with demo prefix
+        os.path.join(cwd, "demo", module_path),
+        # 4. Search in demo subdirectories for multi-level support
+        os.path.join(cwd, "demo", "use-cases", module_path),
+        os.path.join(cwd, "demo", "use-cases", "preproc", module_path),
+        os.path.join(cwd, "demo", "best-practices", module_path),
+        os.path.join(cwd, "demo", "developer-guide", module_path),
+    ]
+
+    return demo_search_paths

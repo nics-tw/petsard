@@ -1,0 +1,26 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  gaussian-copula:
+    method: 'sdv-single_table-gaussiancopula'
+  tvae:
+    method: 'sdv-single_table-tvae'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  output:
+    method: 'save_data'
+    source: 'Synthesizer'
+  save_report_global:
+    method: 'save_report'
+    granularity: 'global'
+...

@@ -28,7 +28,7 @@ from petsard.evaluator.data_describer_base import (
 )
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.util import safe_round
+from petsard.metadater import safe_round
 
 
 class DataDescriberMap(Enum):
@@ -277,9 +277,9 @@ class DataDescriber(BaseEvaluator):
                     columnwise_desc_df[col].fillna(-1).astype(int).replace(-1, pd.NA)
                 )
             else:
-                columnwise_desc_df[col] = safe_round(columnwise_desc_df[col]).fillna(
-                    pd.NA
-                )
+                # 安全處理 safe_round 可能返回 None 的情況
+                rounded_series = columnwise_desc_df[col].apply(safe_round)
+                columnwise_desc_df[col] = rounded_series.fillna(pd.NA)
 
         return columnwise_desc_df
 

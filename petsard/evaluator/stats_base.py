@@ -11,7 +11,7 @@ from pandas.api.types import (
     is_string_dtype,
 )
 
-from petsard.util import safe_round
+from petsard.metadater.types.data_types import safe_round
 
 
 class BaseStats(ABC):

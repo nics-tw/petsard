@@ -1,10 +1,5 @@
 import logging
-import logging
 import re
-import time
-from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Any
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -13,20 +8,17 @@ from typing import Any
 import pandas as pd
 
 from petsard.config_base import BaseConfig
-from petsard.config_base import BaseConfig
 from petsard.evaluator.anonymeter import Anonymeter
 from petsard.evaluator.customer_evaluator import CustomEvaluator
 from petsard.evaluator.data_describer import DataDescriber
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.evaluator.mlutlity import MLUtility
-from petsard.evaluator.sdmetrics import SDMetricsSingleTable
+from petsard.evaluator.mpuccs import MPUCCs
 from petsard.evaluator.sdmetrics import SDMetricsSingleTable
 from petsard.evaluator.stats import Stats
 from petsard.exceptions import UncreatedError, UnsupportedMethodError
-from petsard.exceptions import UncreatedError, UnsupportedMethodError
 
 
-class EvaluatorMap(Enum):
 class EvaluatorMap(Enum):
     """
     Mapping of Evaluator.
@@ -35,10 +27,8 @@ class EvaluatorMap(Enum):
     DEFAULT: int = auto()
     # Protection
     ANONYMETER: int = auto()
-    ANONYMETER: int = auto()
+    MPUCCS: int = auto()
     # Fidelity
-    SDMETRICS: int = auto()
-    STATS: int = auto()
     SDMETRICS: int = auto()
     STATS: int = auto()
     # Utility
@@ -118,19 +108,6 @@ class EvaluatorConfig(BaseConfig):
         self._logger.info(
             f"EvaluatorConfig initialized with method: {self.method}, eval_method: {self.eval_method}"
         )
-            error_msg: str = f"Unsupported evaluator method: {self.method}"
-            self._logger.error(error_msg)
-            raise UnsupportedMethodError(error_msg)
-
-        # Set the default
-        self.eval_method: str = (
-            self.DEFAULT_EVALUATING_METHOD
-            if self.method_code == EvaluatorMap.DEFAULT
-            else self.method
-        )
-        self._logger.info(
-            f"EvaluatorConfig initialized with method: {self.method}, eval_method: {self.eval_method}"
-        )
 
 
 class Evaluator:
@@ -142,6 +119,7 @@ class Evaluator:
     EVALUATOR_MAP: dict[int, BaseEvaluator] = {
         EvaluatorMap.DEFAULT: SDMetricsSingleTable,
         EvaluatorMap.ANONYMETER: Anonymeter,
+        EvaluatorMap.MPUCCS: MPUCCs,
         EvaluatorMap.SDMETRICS: SDMetricsSingleTable,
         EvaluatorMap.STATS: Stats,
         EvaluatorMap.MLUTILITY: MLUtility,
@@ -149,7 +127,6 @@ class Evaluator:
         EvaluatorMap.CUSTOM_METHOD: CustomEvaluator,
     }
 
-    def __init__(self, method: str, **kwargs):
     def __init__(self, method: str, **kwargs):
         """
         Args:

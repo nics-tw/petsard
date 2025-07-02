@@ -48,7 +48,10 @@ class Constrainer:
         """Initialize all constraint instances"""
         for constraint_type, config in self.config.items():
             if constraint_type not in self._constraints:
-                warnings.warn(f"Warning: Unknown constraint type '{constraint_type}'")
+                warnings.warn(
+                    f"Warning: Unknown constraint type '{constraint_type}'",
+                    stacklevel=2,
+                )
                 continue
             else:
                 self._constrainers[constraint_type] = self._constraints[
@@ -66,7 +69,7 @@ class Constrainer:
             DataFrame after applying all constraints
         """
         result = df.copy()
-        for constraint_type, constrainer in self._constrainers.items():
+        for _constraint_type, constrainer in self._constrainers.items():
             result = constrainer.apply(result)
         return result
 
@@ -124,19 +127,33 @@ class Constrainer:
 
         self.resample_trails = 0
         result_df = None
-        remain_rows = target_rows
+        remain_rows = target_rows - data.shape[0]
+
+        if remain_rows <= 0:
+            if remain_rows < 0:
+                data.sample(n=target_rows, random_state=42, inplace=True)
+                data.reset_index(drop=True, inplace=True)
+
+            return data
 
         while remain_rows > 0:
             self.resample_trails += 1
             if self.resample_trails >= max_trials:
                 warnings.warn(
-                    f"Maximum trials ({max_trials}) reached but only got {result_df.shape[0] if result_df is not None else 0} rows"
+                    f"Maximum trials ({max_trials}) reached but only got {result_df.shape[0] if result_df is not None else 0} rows",
+                    stacklevel=2,
                 )
                 break
 
             # Generate new samples
-            synthesizer.sample(sample_num_rows=int(target_rows * sampling_ratio))
-            new_samples = synthesizer.data_syn.reset_index(drop=True)
+            synthesizer.config.update(
+                {
+                    "sample_from": "Constrainter",
+                    "sample_num_rows": int(target_rows * sampling_ratio),
+                }
+            )
+
+            new_samples = synthesizer.sample()
 
             # Apply postprocessor if provided
             if postprocessor is not None:
@@ -149,11 +166,22 @@ class Constrainer:
             if result_df is None:
                 result_df = filtered_samples
             else:
-                result_df = (
-                    pd.concat([result_df, filtered_samples], axis=0, ignore_index=True)
-                    .drop_duplicates()
-                    .reset_index(drop=True)
-                )
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        category=FutureWarning,
+                        message=".*behavior of DataFrame concatenation with empty or all-NA entries.*",
+                    )
+
+                    result_df = (
+                        pd.concat(
+                            [result_df, filtered_samples],
+                            axis=0,
+                            ignore_index=True,
+                        )
+                        .drop_duplicates()
+                        .reset_index(drop=True)
+                    )
 
             # Check if we have enough rows
             if result_df.shape[0] >= target_rows:

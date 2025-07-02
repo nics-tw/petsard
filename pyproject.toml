@@ -1,51 +1,113 @@
 [project]
 name = "petsard"
-version = "1.2.2"
+version = "1.3.1"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
     { name = "alexchen830", email = "alexchen830@gmail.com" },
     { name = "matheme-justyn", email = "matheme.justyn@gmail.com" },
 ]
+keywords = [
+    "petsard",
+    "data preprocessing",
+    "data generation",
+    "data evaluation",
+    "synthetic data",
+    "privacy",
+    "privacy enhancing technologies",
+    "PET",
+    "anonymization",
+    "differential privacy",
+    "data science",
+    "machine learning",
+]
 readme = "README.md"
+
+classifiers = [
+    # 專案狀態 Project status：5 產品/穩定 Production/Stable
+    "Development Status :: 5 - Production/Stable",
+    # 自然語言 Natural language：英文與正體中文 English and Traditional Chinese
+    "Natural Language :: English",
+    "Natural Language :: Chinese (Traditional)",
+    # 程式語言 Programming language：Python 3.10 和 3.11
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    # 目標使用者 Target audience：
+    #   開發者 Developers、
+    #   金融和保險業 Financial and Insurance Industry、
+    #   法律業 Legal Industry
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Legal Industry",
+]
+
 requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
 
 dependencies = [
     "anonymeter>=1.0.0,<2",
-    "jinja2>=3.1.6",
-    "python-dateutil>=2.9.0.post0",
-    "pyyaml>=6.0.2",
-    "requests>=2.32.3",
-    "sdmetrics>=0.18.0,<1",
-    "sdv>=1.17.4,<2",
+    "jinja2>=3.1.6,<4",
+    "python-dateutil>=2.9.0.post0,<3",
+    "pyyaml>=6.0.2,<7",
+    "requests>=2.32.3,<3",
+    "sdmetrics>=0.21.0,<1",
+    "sdv>=1.22.1,<2",
     ###### ###### ######
     # SBOM dependency related
     ###### ###### ######
     # #739
-    "faker>=37.1.0",
-    "boto3>=1.37.36",
+    "boto3>=1.38.30",
+    "botocore>=1.38.30",
+    "certifi>=2025.4.26",
+    "charset-normalizer>=3.4.2",
+    "faker>=37.3.0",
     "filelock>=3.18.0",
-    "fsspec>=2025.3.2",
-    "narwhals>=1.34.1",
+    "fsspec>=2025.5.1",
+    "joblib>=1.5.1",
+    "narwhals>=1.41.0",
     "numba>=0.61.2",
-    "torch>=2.6.0",
-    "platformdirs>=4.3.7",
-    "plotly>=6.0.1",
+    "platformdirs>=4.3.8",
+    "plotly>=6.1.2",
     "pytz>=2025.2",
-    "s3transfer>=0.11.4",
-    "scipy>=1.15.2",
+    "s3transfer>=0.13.0",
+    "scipy>=1.15.3",
+    "sympy>=1.13.3",
     "threadpoolctl>=3.6.0",
+    "torch>=2.7.1",
+    "typing-extensions>=4.14.0",
     "tzdata>=2025.2",
     "urllib3>=2.4.0",
-    "typing-extensions>=4.13.2",
+    "nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cuda-runtime-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cudnn-cu12>=9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cufft-cu12>=11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cufile-cu12>=1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-curand-cu12>=10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cusolver-cu12>=11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cusparse-cu12>=12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-cusparselt-cu12>=0.6.3 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    "triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    ###### ###### ######
+    # #775
+    "setuptools>=80.9.0",
+    ###### ###### ######
+    "numpy>=1.26.4", # block by Anonymeter, but already alert
 ]
+
+[project.urls]
+Repository = "https://github.com/nics-tw/petsard"
+Documentation = "https://nics-tw.github.io/petsard/"
+"Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
 dev = [
-    "hatchling>=1.27.0",
-    "ipykernel>=6.29.5",
-    "pytest>=8.3.5",
-    "python-semantic-release>=9.21.0",
-    "ruff>=0.11.5",
+    "ipykernel>=6.29.5,<7",
+    "pytest>=8.4.0,<9",
+    "python-semantic-release>=10.0.2,<11", # 770, 771
+    "ruff>=0.11.12,<1",
     ###### ###### ######
     # SBOM dependency related
     ###### ###### ######
@@ -54,118 +116,136 @@ dev = [
     "debugpy>=1.8.14",
     "decorator>=5.2.1",
     "iniconfig>=2.1.0",
-    "ipython>=8.35.0",
-    "psutil>=7.0",
-    "pydantic>=2.11.3",
-    "pywin32>=310 ; sys_platform == 'win32'",
-    "pyzmq>=26.4.0",
-    "trove-classifiers>=2025.4.11.15",
+    "ipython>=8.3.0", # block by Python==3.10
     "prompt-toolkit>=3.0.51",
+    "psutil>=7.0",
+    "pydantic>=2.11.5",
+    "python-gitlab>=5.6.0", # block by python-semantic-release<=10.0.2
+    "pyzmq>=26.4.0",
+    "rich>=14.0.0",
+    "trove-classifiers>=2025.5.1.12",
+    "pywin32>=310 ; sys_platform == 'win32'",
 ]
 
 [build-system]
-# Specifies Hatchling as the build tool for creating distributions
-requires = ["hatchling"]
-# Uses Hatchling's build backend for package building
-build-backend = "hatchling.build"
+requires = ["hatchling"]           # 指定 Hatchling 作為建置工具 Specifies Hatchling as the build tool
+build-backend = "hatchling.build"  # 使用 Hatchling 的後端建置套件 Uses Hatchling's build backend
+
+[tool.ruff]
+# 基本設定
+line-length = 88
+target-version = "py38"
+
+# 選擇要檢查的規則
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+
+# 忽略的規則
+ignore = [
+    "E501",  # 行長度限制（已在 line-length 設定）
+]
+
+[tool.ruff.format]
+# 格式化設定
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.semantic_release]
-# Format for version tags and releases
-tag_format = "v{version}"
-# Not allow 0.x.x version numbers for early development
-major_on_zero = false
-allow_zero_version = false
-# Command to build distribution packages (creates dist/ directory)
-build_command = "pip install build && python -m build"
-# Specifies additional files to be included in releases
-# Empty array means no additional assets will be included
-assets = []
-# Template for the automatic commit message created when version is bumped
-# {version} will be replaced with the new version number
-# Example: "2.1.0\n\nAutomatically generated by python-semantic-release"
+tag_format = "v{version}"                  # 版本標籤格式 Version tag format
+major_on_zero = false                      # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
+allow_zero_version = false                 # 不允許 0.x.x 版本 Do not allow 0.x.x versions
+build_command = "pip install hatch && hatch build"
+                                           # 建置指令 Build command
+assets = []                                # 附加檔案 Additional assets
 commit_message = "{version}\n\nAutomatically generated by python-semantic-release"
-# Specifies the commit message convention to parse
-# 'angular' follows the Angular commit message format
-# Example: feat(scope): message or fix(scope): message
-commit_parser = "angular"
-# When false, simplifies log output by disabling named masks in logging
-# Affects only the development/debugging logs, not the changelog
-logging_use_named_masks = false
-# List of files and locations where version numbers should be updated
-# Format: "file_path:version_location"
-# Here it will update the version in pyproject.toml under project.version
-version_variable = [
+                                           # 提交訊息格式 Commit message format
+commit_parser = "conventional"             # 提交訊息解析器 Commit message parser, conventional = angular
+logging_use_named_masks = false            # 日誌輸出設定 Logging configuration
+version_variable = [                       # 版本位置 Version locations
    "pyproject.toml:project.version",
 ]
-# tag for use GitHub tag, commit for use pyproject.toml
-version_source = "commit"
+version_source = "commit"                  # 版本來源 Version source
+upload_to_pypi = true                      # 上傳至 PyPI Upload to PyPI
+upload_to_release = false                  # 不上傳至 GitHub Releases Do not upload to GitHub Releases
 
-# Main branch release configuration
+
+# 允許發布的分支 Branches allowed for release
+
+# main: 不建立預發布版本 Do not create pre-release versions
 [tool.semantic_release.branches.main]
 match = "main"
-prerelease = false  # Do not create pre-release versions
+prerelease = false
+
+# dev: 建立預發布版本 Create pre-release versions
+[tool.semantic_release.branches.dev]
+match = "dev"
+prerelease = true
 prerelease_token = "rc"
 
-# Changelog generation settings
-[tool.semantic_release.changelog]
-# Specify the path to custom templates directory
-template_dir = "templates"
-# Specify the changelog file to be updated
-changelog_file = "CHANGELOG.md"
-# Patterns of commits to exclude from changelog
-exclude_commit_patterns = []
+# 變更日誌生成設定 Changelog generation settings
+[tool.semantic_release.changelog.default_templates]
+template_dir = "templates"       # 自定義模板目錄 Custom templates directory
+changelog_file = "CHANGELOG.md"  # 變更日誌檔案 Changelog file path
+exclude_commit_patterns = []     # 排除的提交模式 Excluded commit patterns
 
+# 模板引擎設定 Template engine configurations
 [tool.semantic_release.changelog.environment]
-# Template engine configurations (Jinja2 syntax)
-# Start delimiter for template blocks
-block_start_string = "{%"
-# End delimiter for template blocks
-block_end_string = "%}"
-# Start delimiter for variables
-variable_start_string = "{{"
-# End delimiter for variables
-variable_end_string = "}}"
-# Start delimiter for comments
-comment_start_string = "{#"
-# End delimiter for comments
-comment_end_string = "#}"
-# Whether to remove trailing newlines in blocks
-trim_blocks = false
-# Whether to strip leading whitespace from lines
-lstrip_blocks = false
-# Sequence used for newlines
-newline_sequence = "\n"
-# Whether to keep trailing newlines
-keep_trailing_newline = false
-# Additional template extensions
-extensions = []
-# Enable auto-escaping of variables
-autoescape = true
+block_start_string = "{%"      # 模板區塊起始符號 Template block start
+block_end_string = "%}"        # 模板區塊結束符號 Template block end
+variable_start_string = "{{"   # 變數起始符號 Variable start
+variable_end_string = "}}"     # 變數結束符號 Variable end
+comment_start_string = "{#"    # 註解起始符號 Comment start
+comment_end_string = "#}"      # 註解結束符號 Comment end
+trim_blocks = false            # 是否移除尾隨換行 Remove trailing newlines
+lstrip_blocks = false          # 是否移除前導空白 Strip leading whitespace
+newline_sequence = "\n"        # 換行符號 Newline sequence
+keep_trailing_newline = false  # 保留尾隨換行 Keep trailing newline
+extensions = []                # 附加模板擴展 Additional template extensions
+autoescape = true              # 自動轉義變數 Auto-escape variables
 
+# 提交作者設定 Commit author configuration
 [tool.semantic_release.commit_author]
-env = "GIT_COMMIT_AUTHOR"
-default = "semantic-release <semantic-release>"
+env = "GIT_COMMIT_AUTHOR"                        # 環境變數名稱 Environment variable
+default = "semantic-release <semantic-release>"  # 預設作者 Default author
 
-# Commit message parsing configuration
+# 提交訊息解析設定 Commit message parsing configuration
 [tool.semantic_release.commit_parser_options]
-# Supported commit types
-allowed_tags = ["build", "chore", "ci", "docs", "feat", "fix", "perf", "style", "refactor", "test"]
-# feat commits trigger minor version bump (1.x.0)
-minor_tags = ["feat"]
-# fix and perf commits trigger patch version bump (1.1.x)
-patch_tags = ["fix", "perf"]
-# Default bump level if no explicit version bump is found (0: patch, 1: minor, 2: major)
-default_bump_level = 0
+allowed_tags = [ # 支援的提交類型 Supported commit types
+    "feat",        # 新功能 A new feature
+    "fix",         # 錯誤修復 A bug fix
+    "docs",        # 僅文檔變更 Documentation only changes
+    "style",       # 不影響代碼含義的變更 Changes that do not affect the meaning of the code
+    "refactor",    # 既不修復錯誤也不增加功能的代碼變更 A code change that neither fixes a bug nor adds a feature
+    "perf",        # 提高性能的代碼變更 A code change that improves performance
+    "test",        # 增加或修正現有測試 Adding missing or correcting existing tests
+    "chore",       # 構建過程或輔助工具的變更 Changes to the build process or auxiliary tools
+    "build",       # 影響構建系統的變更 Changes that affect the build system
+    "ci"           # CI 配置文件和腳本的變更 Changes to CI configuration files and scripts
+]
+minor_tags = ["feat"]         # 觸發次版本更新的類型 Tags for minor version bump
+patch_tags = ["fix", "perf"]  # 觸發修補版本更新的類型 Tags for patch version bump
+default_bump_level = 0        # 預設更新級別 Default bump level (0: patch, 1: minor, 2: major)
 
-# GitHub repository settings
+# GitHub 倉庫設定 GitHub repository settings
 [tool.semantic_release.remote]
-name = "origin"
-type = "github"
-ignore_token_for_push = false
+name = "origin"                # 遠端名稱 Remote name
+type = "github"                # 倉庫類型 Repository type
+ignore_token_for_push = false  # 推送時不忽略認證令牌 Do not ignore token for push
 
-# Publishing configuration
+# GitHub 認證令牌設定 GitHub authentication token settings
+[tool.semantic_release.remote.token]
+env = "GITHUB_TOKEN"
+
+# 發布設定 Publishing configuration
 [tool.semantic_release.publish]
-# Files to be uploaded to GitHub releases
-dist_glob_patterns = ["dist/*"]
-# Enable uploading built files to GitHub releases
-upload_to_vcs_release = true
+dist_glob_patterns = ["dist/*"]  # 發布檔案模式 Distribution file patterns
+upload_to_vcs_release = true     # 上傳到版本控制系統 Upload to VCS releases

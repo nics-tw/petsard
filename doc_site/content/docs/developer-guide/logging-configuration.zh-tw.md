@@ -1,8 +1,8 @@
 ---
 title: 日誌設定
 type: docs
-weight: 85
-prev: docs/developer-guide/anonymeter
+weight: 86
+prev: docs/developer-guide/mpuccs
 next: docs/developer-guide/experiment-name-in-reporter
 ---
 
@@ -12,7 +12,7 @@ next: docs/developer-guide/experiment-name-in-reporter
 
 請點擊下方按鈕在 Colab 中執行範例：
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/logging-configuration.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/developer-guide/logging-configuration.ipynb)
 
 ```yaml
 ---

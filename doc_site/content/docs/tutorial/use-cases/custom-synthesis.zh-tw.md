@@ -11,7 +11,7 @@ next: docs/tutorial/use-cases/data-constraining
 
 請點擊下方按鈕在 Colab 中執行範例：
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/custom-synthesis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/custom-synthesis.ipynb)
 
 ```yaml
 ---
@@ -47,7 +47,7 @@ Reporter:
 import numpy as np
 import pandas as pd
 
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 
 
 class MySynthesizer_Shuffle:
@@ -58,7 +58,7 @@ class MySynthesizer_Shuffle:
     這對於簡單的匿名化或作為基準合成資料生成方法很有用。
     """
 
-    def __init__(self, config: dict, metadata: Metadata):
+    def __init__(self, config: dict, metadata: SchemaMetadata):
         """
         初始化合成器。
 
@@ -66,7 +66,7 @@ class MySynthesizer_Shuffle:
         並且歡迎準備您的合成器使用它。
 
         Args:
-            metadata (Metadata): 元數據物件。
+            metadata (SchemaMetadata): 元數據物件。
         """
         self.config: dict = config
         self.result: pd.DataFrame = None
@@ -118,7 +118,7 @@ class MySynthesizer_Shuffle:
 
 您的合成器類別必須實作以下所有方法：
 
-1. `__init__(config: dict, metadata: Metadata)`：初始化合成器
+1. `__init__(config: dict, metadata: SchemaMetadata)`：初始化合成器
 
     - 接收配置字典和元數據物件
     - 設置任何必要的參數或內部狀態

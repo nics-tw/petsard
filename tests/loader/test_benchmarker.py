@@ -113,7 +113,7 @@ class TestBenchmarker:
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = True
             with patch("builtins.open", mock_open(read_data=b"test data")):
-                with patch("petsard.util.digest_sha256") as mock_sha:
+                with patch("petsard.loader.benchmarker.digest_sha256") as mock_sha:
                     mock_sha.return_value = "wrong_sha256"
                     with pytest.raises(BenchmarkDatasetsError):
                         BenchmarkerRequests(sample_config)

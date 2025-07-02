@@ -1,13 +1,13 @@
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 from typing import Any, Optional, Union
 
 import pandas as pd
-
 import yaml
+
 from petsard.config_base import BaseConfig
 from petsard.exceptions import (
     BenchmarkDatasetsError,
@@ -17,12 +17,7 @@ from petsard.exceptions import (
     UnsupportedMethodError,
 )
 from petsard.loader.benchmarker import BenchmarkerRequests
-from petsard.loader.metadata import Metadata
-from petsard.util import (
-    ALLOWED_COLUMN_TYPES,
-    casting_dataframe,
-    optimize_dtypes,
-)
+from petsard.metadater import FieldConfig, Metadater, SchemaConfig, SchemaMetadata
 
 
 class LoaderFileExt:
@@ -61,12 +56,10 @@ class LoaderConfig(BaseConfig):
     Attributes:
         _logger (logging.Logger): The logger object.
         DEFAULT_METHOD_FILEPATH (str): The default method filepath.
-        VALID_COLUMN_TYPES (list): The valid column types.
         YAML_FILENAME (str): The benchmark datasets YAML filename.
         filepath (str): The fullpath of dataset.
         method (str): The method of Loader.
         column_types (dict): The dictionary of column types and their corresponding column names.
-        dtype (dict): The dictionary of column names and their types.
         header_names (list): Specifies a list of headers for the data without header.
         na_values (str | list | dict): Extra string to recognized as NA/NaN.
         dir_name (str): The directory name of the file path.
@@ -85,22 +78,25 @@ class LoaderConfig(BaseConfig):
     """
 
     DEFAULT_METHOD_FILEPATH: str = "benchmark://adult-income"
-    VALID_COLUMN_TYPES: list = field(default_factory=lambda: ["category", "datetime"])
     YAML_FILENAME: str = "benchmark_datasets.yaml"
 
     filepath: Optional[str] = None
     method: Optional[str] = None
     column_types: Optional[dict[str, list[str]]] = None
-    dtype: Optional[dict[str, str]] = None
     header_names: Optional[list[str]] = None
-    na_values: Optional[str | list[str] | dict[str, str]] = None
+    na_values: Optional[Union[str, list[str], dict[str, str]]] = None
+
+    # 新增：處理容易誤判、型別判斷模糊資料的參數
+    preserve_raw_data: bool = False  # 是否保留原始資料格式，避免 pandas 自動類型推斷
+    auto_detect_leading_zeros: bool = False  # 是否自動檢測前導零並保留為字串
+    force_nullable_integers: bool = False  # 是否強制使用 nullable integers 避免 .0 後綴
 
     # Filepath related
-    dir_name: str = None
-    base_name: str = None
-    file_name: str = None
-    file_ext: str = None
-    file_ext_code: int = None
+    dir_name: Optional[str] = None
+    base_name: Optional[str] = None
+    file_name: Optional[str] = None
+    file_ext: Optional[str] = None
+    file_ext_code: Optional[int] = None
 
     # Benchmark related
     benchmark: bool = False
@@ -180,19 +176,20 @@ class LoaderConfig(BaseConfig):
         self.file_ext = filepath_path.suffix.lower()
         try:
             self.file_ext_code = LoaderFileExt.get(self.file_ext)
-        except KeyError:
+        except KeyError as e:
             error_msg = f"Unsupported file extension: {self.file_ext}"
             self._logger.error(error_msg)
-            raise UnsupportedMethodError(error_msg)
+            raise UnsupportedMethodError(error_msg) from e
         self._logger.debug(
             f"File path information - dir: {self.dir_name}, name: {self.file_name}, ext: {self.file_ext}, ext code: {self.file_ext_code}"
         )
 
-        # 6. validate column_types
+        # 6. validate column_types (using new Metadater architecture)
         if self.column_types is not None:
             self._logger.debug(f"Validating column types: {self.column_types}")
+            valid_column_types = ["category", "datetime"]
             for col_type, columns in self.column_types.items():
-                if col_type.lower() not in self.VALID_COLUMN_TYPES:
+                if col_type.lower() not in valid_column_types:
                     error_msg = f"Column type {col_type} on {columns} is not supported"
                     self._logger.error(error_msg)
                     raise UnsupportedMethodError(error_msg)
@@ -223,7 +220,7 @@ class LoaderConfig(BaseConfig):
         except Exception as e:
             error_msg = f"Failed to load benchmark configuration: {str(e)}"
             self._logger.error(error_msg)
-            raise BenchmarkDatasetsError(error_msg)
+            raise BenchmarkDatasetsError(error_msg) from e
 
         REGION_NAME = config["region_name"]
         BUCKET_NAME = config["bucket_name"]
@@ -256,6 +253,9 @@ class Loader:
         column_types: Optional[dict[str, list[str]]] = None,
         header_names: Optional[list[str]] = None,
         na_values: Optional[Union[str, list[str], dict[str, str]]] = None,
+        preserve_raw_data: bool = False,
+        auto_detect_leading_zeros: bool = False,
+        force_nullable_integers: bool = False,
     ):
         """
         Args:
@@ -278,6 +278,16 @@ class Loader:
                 Format as {colname: na_values}.
                 Default is None, means no extra.
                 Check pandas document for Default NA string list.
+            preserve_raw_data (bool, optional):
+                Whether to preserve raw data format and avoid pandas automatic type inference.
+                When True, all columns are initially loaded as object type to prevent misinterpretation.
+                Useful for data with ambiguous types. Default is False.
+            auto_detect_leading_zeros (bool, optional):
+                Whether to automatically detect and preserve leading zeros in string data.
+                Prevents codes like "001" from being converted to integer 1. Default is False.
+            force_nullable_integers (bool, optional):
+                Whether to force use of nullable integer types for integer data with missing values.
+                Prevents integers with NaN from becoming floats with .0 suffixes. Default is False.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -297,45 +307,19 @@ class Loader:
             column_types=column_types,
             header_names=header_names,
             na_values=na_values,
+            preserve_raw_data=preserve_raw_data,
+            auto_detect_leading_zeros=auto_detect_leading_zeros,
+            force_nullable_integers=force_nullable_integers,
         )
         self._logger.debug("LoaderConfig successfully initialized")
 
-    @classmethod
-    def _assign_str_dtype(
-        cls, column_types: Optional[dict[str, list[str]]]
-    ) -> dict[str, str]:
-        """
-        Force setting discrete and datetime columns been load as str at first.
-
-        Args:
-            column_types (dict):
-                The dictionary of column names and their types as format.
-                See __init__ for detail.
-        Return:
-            dtype (dict):
-                dtype: particular columns been force assign as string
-        """
-        cls.logger.debug("Assigning string dtypes for specific column types")
-
-        str_colname: list[str] = []
-        for coltype in ALLOWED_COLUMN_TYPES:
-            if coltype in column_types:
-                str_colname.extend(column_types.get(coltype, []))
-                cls.logger.debug(
-                    f"Added {len(column_types.get(coltype, []))} columns of type {coltype} to be loaded as string"
-                )
-
-        result = {colname: "str" for colname in str_colname}
-        cls.logger.debug(f"Total {len(result)} columns will be loaded as string type")
-        return result
-
-    def load(self) -> tuple[pd.DataFrame, Metadata]:
+    def load(self) -> tuple[pd.DataFrame, SchemaMetadata]:
         """
         Load data from the specified file path.
 
         Returns:
             data (pd.DataFrame): Data been loaded
-            metadata (Metadata): Metadata of the data
+            schema (SchemaMetadata): Schema metadata of the data
         """
         self._logger.info(f"Loading data from {self.config.filepath}")
         error_msg: str = ""
@@ -352,73 +336,122 @@ class Loader:
             except Exception as e:
                 error_msg = f"Failed to download benchmark dataset: {str(e)}"
                 self._logger.error(error_msg)
-                raise BenchmarkDatasetsError(error_msg)
+                raise BenchmarkDatasetsError(error_msg) from e
 
-        # 2. Setting self.loader as specified Loader class by file extension and load data
+        # 2. Setting loaders map by file extension and load data
         self._logger.info(f"Loading data using file extension: {self.config.file_ext}")
         loaders_map: dict[int, Any] = {
             LoaderFileExt.CSVTYPE: pd.read_csv,
             LoaderFileExt.EXCELTYPE: pd.read_excel,
         }
 
+        # 2.5 Prepare dtype dictionary based on configuration
+        dtype_dict = {}
+
+        if self.config.preserve_raw_data:
+            # 當 preserve_raw_data=True 時，強制所有欄位為 object 類型
+            # 這樣可以避免 pandas 自動類型推斷
+            self._logger.debug(
+                "Preserving raw data format - loading all columns as object type"
+            )
+            dtype_dict = "object"  # 這會讓所有欄位都載入為 object
+        else:
+            # 傳統模式：只對指定的 category 欄位設定類型
+            if self.config.column_types and "category" in self.config.column_types:
+                category_columns = self.config.column_types["category"]
+                if isinstance(category_columns, list) and category_columns:
+                    self._logger.debug(
+                        f"Setting category columns to string type: {category_columns}"
+                    )
+                    for col in category_columns:
+                        dtype_dict[col] = str
+
         try:
             if self.config.header_names:
                 self._logger.debug(
                     f"Using custom header names: {self.config.header_names}"
                 )
-                data: pd.DataFrame = loaders_map[self.config.file_ext_code](
-                    self.config.filepath,
-                    header=0,
-                    names=self.config.header_names,
-                    na_values=self.config.na_values,
-                )
             else:
                 self._logger.debug("Using inferred headers")
-                data: pd.DataFrame = loaders_map[self.config.file_ext_code](
-                    self.config.filepath,
-                    header="infer",
-                    na_values=self.config.na_values,
-                )
+
+            # 載入資料
+            load_params = {
+                "header": 0 if self.config.header_names else "infer",
+                "names": self.config.header_names,
+                "na_values": self.config.na_values,
+            }
+
+            # 只有在有 dtype 設定時才加入 dtype 參數
+            if dtype_dict:
+                load_params["dtype"] = dtype_dict
+
+            data: pd.DataFrame = loaders_map[self.config.file_ext_code](
+                self.config.filepath, **load_params
+            ).fillna(pd.NA)
 
             self._logger.info(f"Successfully loaded data with shape: {data.shape}")
+
+            if self.config.preserve_raw_data:
+                self._logger.debug(
+                    "Raw data preserved - all columns loaded as object type"
+                )
+
         except Exception as e:
             error_msg = f"Failed to load data: {str(e)}"
             self._logger.error(error_msg)
-            raise UnableToLoadError(error_msg)
+            raise UnableToLoadError(error_msg) from e
 
-        # 3. Optimizing dtype
-        self._logger.info("Optimizing data types")
+        # 3. Build schema configuration using new Metadater
+        self._logger.info("Building schema configuration")
+
+        # Create field configurations based on column_types
+        fields_config = {}
+        if self.config.column_types:
+            for col_type, columns in self.config.column_types.items():
+                for col in columns:
+                    # Create FieldConfig with type_hint directly since it's frozen
+                    fields_config[col] = FieldConfig(type_hint=col_type)
+
+        # Create schema configuration
+        schema_config = SchemaConfig(
+            schema_id=self.config.file_name or "default_schema",
+            name=self.config.base_name or "default Schema",
+            fields=fields_config,
+            compute_stats=True,
+            infer_logical_types=True,
+            optimize_dtypes=True,
+            # 傳遞新的配置參數
+            auto_detect_leading_zeros=self.config.auto_detect_leading_zeros,
+            force_nullable_integers=self.config.force_nullable_integers,
+        )
+
+        # 4. Build schema metadata using Metadater public API
+        self._logger.info("Building schema metadata from dataframe")
         try:
-            self.config.dtype = optimize_dtypes(
-                data=data,
-                column_types=self.config.column_types,
+            schema: SchemaMetadata = Metadater.create_schema(
+                dataframe=data, schema_id=schema_config.schema_id, config=schema_config
             )
-            self._logger.debug(f"Optimized dtypes: {self.config.dtype}")
+            self._logger.debug(f"Built schema with {len(schema.fields)} fields")
         except Exception as e:
-            error_msg = f"Failed to optimize data types: {str(e)}"
+            error_msg = f"Failed to build schema metadata: {str(e)}"
             self._logger.error(error_msg)
-            raise UnableToFollowMetadataError(error_msg)
+            raise UnableToFollowMetadataError(error_msg) from e
 
-        # 4. Casting data for more efficient storage space
-        self._logger.info("Casting dataframe to optimized types")
+        # 5. Apply schema transformations using schema functions
+        self._logger.info("Applying schema transformations to optimize data")
         try:
-            data = casting_dataframe(data, self.config.dtype)
-            self._logger.debug("Dataframe cast successfully")
-        except Exception as e:
-            error_msg = f"Failed to cast dataframe: {str(e)}"
-            self._logger.error(error_msg)
-            raise UnableToFollowMetadataError(error_msg)
+            from petsard.metadater.schema.schema_functions import (
+                apply_schema_transformations,
+            )
 
-        # 5. Setting metadata
-        self._logger.info("Building metadata")
-        try:
-            metadata: Metadata = Metadata()
-            metadata.build_metadata(data=data)
-            self._logger.debug("Metadata built successfully")
+            data = apply_schema_transformations(
+                data=data, schema=schema, include_fields=None, exclude_fields=None
+            )
+            self._logger.debug("Schema transformations applied successfully")
         except Exception as e:
-            error_msg = f"Failed to build metadata: {str(e)}"
+            error_msg = f"Failed to apply schema transformations: {str(e)}"
             self._logger.error(error_msg)
-            raise UnableToFollowMetadataError(error_msg)
+            raise UnableToFollowMetadataError(error_msg) from e
 
         self._logger.info("Data loading completed successfully")
-        return data, metadata
+        return data, schema

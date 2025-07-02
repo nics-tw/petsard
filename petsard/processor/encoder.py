@@ -11,6 +11,24 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from petsard.exceptions import ConfigError, UnfittedError
 
 
+def dict_get_na(dictionary: dict, key: str) -> Any:
+    """
+    Get value from dictionary by key, handling NaN keys.
+
+    Args:
+        dictionary (dict): The dictionary to search.
+        key (str): The key to look for.
+
+    Returns:
+        Any: The value associated with the key, or None if not found.
+    """
+    if pd.isna(key):
+        for k, v in dictionary.items():
+            if pd.isna(k):
+                return v
+    return dictionary.get(key, None)
+
+
 class Encoder:
     """
     Base class for all Encoder classes.
@@ -65,7 +83,9 @@ class Encoder:
 
         # Check whether the categories of the column are
         # included in the fitted instance
-        if not set(data.unique()).issubset(set(self.labels)):
+        data_set = {x for x in set(data.unique()) if pd.notna(x)}
+        labels_set = {x for x in set(self.labels) if pd.notna(x)}
+        if not data_set.issubset(labels_set):
             raise ValueError(
                 "The data contains categories that the object hasn't seen",
                 " in the fitting process.",
@@ -140,7 +160,9 @@ class EncoderUniform(Encoder):
             data (pd.Series): The categorical data needed to be transformed.
         """
         # Filter the counts > 0
-        normalize_value_counts = data.value_counts(normalize=True).loc[lambda x: x > 0]
+        normalize_value_counts = data.value_counts(normalize=True, dropna=False).loc[
+            lambda x: x > 0.0
+        ]
         # Get keys (original labels)
         self.labels = normalize_value_counts.index.get_level_values(0).to_list()
         # Get values (upper and lower bounds)
@@ -175,7 +197,9 @@ class EncoderUniform(Encoder):
 
         return data_obj.map(
             lambda x: self._rgenerator.uniform(
-                self.cat_to_val[x][0], self.cat_to_val[x][1], size=1
+                dict_get_na(self.cat_to_val, x)[0],
+                dict_get_na(self.cat_to_val, x)[1],
+                size=1,
             )[0]
         ).values
 
@@ -200,13 +224,20 @@ class EncoderUniform(Encoder):
 
         bins_val = np.append(self.lower_values, 1.0)
 
-        return pd.cut(
-            data,
-            right=False,
-            include_lowest=True,
-            bins=bins_val,
-            labels=self.labels,
-            ordered=False,
+        return (
+            pd.cut(
+                data,
+                right=False,
+                include_lowest=True,
+                bins=bins_val,
+                labels=[
+                    "pd.NA-PETsARD-impossible" if pd.isna(label) else label
+                    for label in self.labels
+                ],
+                ordered=False,
+            )
+            .astype("object")
+            .replace("pd.NA-PETsARD-impossible", pd.NA)
         )
 
 

@@ -1,7 +1,7 @@
 ---
 title: Constrainer
 type: docs
-weight: 56
+weight: 57
 prev: docs/api/synthesizer
 next: docs/api/evaluator
 ---
@@ -23,6 +23,11 @@ Data constraint handler for synthetic data generation. Supports NaN handling, fi
     - Value for 'erase' and 'copy' actions: Dictionary containing action and target fields
       - For 'erase': `{'erase': target_field}` where target_field can be a string or list of strings
       - For 'copy': `{'copy': target_field}` where target_field is a string
+    - Value for 'nan_if_condition' action: `{'nan_if_condition': condition_dict}`
+      - condition_dict is a dictionary where:
+        - Key: Target field name to check condition
+        - Value: Matching value(s) in the target field (can be a single value or list of values)
+      - When values in target fields match the specified conditions, the main field will be set to pd.NA
 
   - `field_constraints` (List[str]): Field-level constraints as string expressions
     - Support operators: >, >=, ==, !=, <, <=, IS, IS NOT

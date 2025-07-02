@@ -3,7 +3,7 @@ title: 基準資料集維護
 type: docs
 weight: 82
 prev: docs/developer-guide/development-guidelines
-next: docs/developer-guide/uniform-encoder
+next: docs/developer-guide/anonymeter
 ---
 
 本文件說明如何維護和擴充 PETsARD 的基準資料集功能。主要面向開發者，提供新增或修改基準資料集的相關指南。
@@ -49,7 +49,7 @@ next: docs/developer-guide/uniform-encoder
 
 1. **校驗工具**
    ```python
-   from petsard.util import digest_sha256
+   from petsard.loader.benchmarker import digest_sha256
 
 
    hasher = digest_sha256(filepath)

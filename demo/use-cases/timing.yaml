@@ -1,0 +1,15 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+Synthesizer:
+  default:
+    method: 'default'
+Evaluator:
+  default:
+    method: 'default'
+Reporter:
+  save_timing:
+    method: 'save_timing'
+    time_unit: 'seconds'
+...

@@ -2,9 +2,8 @@
 title: Anonymeter Privacy risk evaluation
 type: docs
 weight: 84
-weight: 84
-prev: docs/developer-guide/uniform-encoder
-next: docs/developer-guide/logging-configuration
+prev: docs/developer-guide/benchmark-datasets
+next: docs/developer-guide/mpuccs
 math: true
 ---
 

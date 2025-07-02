@@ -244,18 +244,21 @@ class TestLoader:
 
         with (
             patch("pandas.read_csv") as mock_read_csv,
-            patch("petsard.loader.loader.optimize_dtypes") as mock_optimize,
-            patch("petsard.loader.loader.casting_dataframe") as mock_casting,
-            patch("petsard.loader.loader.Metadata") as mock_metadata,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
         ):
             # Setup mock returns
             # 設置模擬回傳值
             mock_df = pd.DataFrame({"A": [1, 2, 3], "B": ["x", "y", "z"]})
-            mock_read_csv.return_value = mock_df
-            mock_optimize.return_value = {"A": "int64", "B": "object"}
-            mock_casting.return_value = mock_df
-            mock_metadata_instance = MagicMock()
-            mock_metadata.return_value = mock_metadata_instance
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
 
             # Call load method
             # 調用 load 方法
@@ -265,12 +268,13 @@ class TestLoader:
             # 斷言
             mock_read_csv.assert_called_once_with(
                 sample_csv_path,
-                header="infer",  # 更新為 "infer"
+                header="infer",
+                names=None,
                 na_values=loader.config.na_values,
+                dtype=None,
             )
-            mock_optimize.assert_called_once()
-            mock_casting.assert_called_once()
-            mock_metadata_instance.build_metadata.assert_called_once()
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
             assert data is not None
             assert metadata is not None
 
@@ -283,20 +287,23 @@ class TestLoader:
 
         with (
             patch("pandas.read_excel") as mock_read_excel,
-            patch("petsard.loader.loader.optimize_dtypes") as mock_optimize,
-            patch("petsard.loader.loader.casting_dataframe") as mock_casting,
-            patch("petsard.loader.loader.Metadata") as mock_metadata,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
             patch("os.path.exists") as mock_exists,
         ):
             # Setup mock returns
             # 設置模擬回傳值
             mock_exists.return_value = True
             mock_df = pd.DataFrame({"A": [1, 2, 3], "B": ["x", "y", "z"]})
-            mock_read_excel.return_value = mock_df
-            mock_optimize.return_value = {"A": "int64", "B": "object"}
-            mock_casting.return_value = mock_df
-            mock_metadata_instance = MagicMock()
-            mock_metadata.return_value = mock_metadata_instance
+            mock_read_excel.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
 
             # Call load method
             # 調用 load 方法
@@ -306,12 +313,13 @@ class TestLoader:
             # 斷言
             mock_read_excel.assert_called_once_with(
                 excel_path,
-                header="infer",  # 更新為 "infer"
+                header="infer",
+                names=None,
                 na_values=loader.config.na_values,
+                dtype=None,
             )
-            mock_optimize.assert_called_once()
-            mock_casting.assert_called_once()
-            mock_metadata_instance.build_metadata.assert_called_once()
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
             assert data is not None
             assert metadata is not None
 
@@ -323,9 +331,12 @@ class TestLoader:
             patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config,
             patch("petsard.loader.loader.BenchmarkerRequests") as mock_benchmarker,
             patch("pandas.read_csv") as mock_read_csv,
-            patch("petsard.loader.loader.optimize_dtypes") as mock_optimize,
-            patch("petsard.loader.loader.casting_dataframe") as mock_casting,
-            patch("petsard.loader.loader.Metadata") as mock_metadata,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
         ):
             # Setup mock returns
             # 設置模擬回傳值
@@ -339,11 +350,11 @@ class TestLoader:
                 }
             }
             mock_df = pd.DataFrame({"A": [1, 2, 3], "B": ["x", "y", "z"]})
-            mock_read_csv.return_value = mock_df
-            mock_optimize.return_value = {"A": "int64", "B": "object"}
-            mock_casting.return_value = mock_df
-            mock_metadata_instance = MagicMock()
-            mock_metadata.return_value = mock_metadata_instance
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
             mock_benchmarker_instance = MagicMock()
             mock_benchmarker.return_value = mock_benchmarker_instance
 
@@ -357,9 +368,8 @@ class TestLoader:
             mock_benchmarker.assert_called_once()
             mock_benchmarker_instance.download.assert_called_once()
             mock_read_csv.assert_called_once()
-            mock_optimize.assert_called_once()
-            mock_casting.assert_called_once()
-            mock_metadata_instance.build_metadata.assert_called_once()
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
             assert data is not None
             assert metadata is not None
 
@@ -372,18 +382,21 @@ class TestLoader:
 
         with (
             patch("pandas.read_csv") as mock_read_csv,
-            patch("petsard.loader.loader.optimize_dtypes") as mock_optimize,
-            patch("petsard.loader.loader.casting_dataframe") as mock_casting,
-            patch("petsard.loader.loader.Metadata") as mock_metadata,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
         ):
             # Setup mock returns
             # 設置模擬回傳值
             mock_df = pd.DataFrame({"A": [1, 2, 3], "B": [None, "y", "z"]})
-            mock_read_csv.return_value = mock_df
-            mock_optimize.return_value = {"A": "int64", "B": "object"}
-            mock_casting.return_value = mock_df
-            mock_metadata_instance = MagicMock()
-            mock_metadata.return_value = mock_metadata_instance
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
 
             # Call load method
             # 調用 load 方法
@@ -393,9 +406,13 @@ class TestLoader:
             # 斷言
             mock_read_csv.assert_called_once_with(
                 sample_csv_path,
-                header="infer",  # 更新為 "infer"
+                header="infer",
+                names=None,
                 na_values=na_values,
+                dtype=None,
             )
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
             assert data is not None
             assert metadata is not None
 
@@ -408,18 +425,21 @@ class TestLoader:
 
         with (
             patch("pandas.read_csv") as mock_read_csv,
-            patch("petsard.loader.loader.optimize_dtypes") as mock_optimize,
-            patch("petsard.loader.loader.casting_dataframe") as mock_casting,
-            patch("petsard.loader.loader.Metadata") as mock_metadata,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
         ):
             # Setup mock returns
             # 設置模擬回傳值
             mock_df = pd.DataFrame({"Col1": [1, 2, 3], "Col2": ["x", "y", "z"]})
-            mock_read_csv.return_value = mock_df
-            mock_optimize.return_value = {"Col1": "int64", "Col2": "object"}
-            mock_casting.return_value = mock_df
-            mock_metadata_instance = MagicMock()
-            mock_metadata.return_value = mock_metadata_instance
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
 
             # Call load method
             # 調用 load 方法
@@ -429,9 +449,187 @@ class TestLoader:
             # 斷言
             mock_read_csv.assert_called_once_with(
                 sample_csv_path,
-                header=0,  # 當有 header_names 時，應該是 0 而不是 header_names
+                header=0,
                 names=header_names,
                 na_values=loader.config.na_values,
+                dtype=None,
+            )
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
+            assert data is not None
+            assert metadata is not None
+
+
+class TestLoaderAmbiguousDataFeatures:
+    """Test cases for ambiguous data type processing features
+    容易誤判、型別判斷模糊資料處理功能的測試案例
+    """
+
+    @pytest.fixture
+    def ambiguous_sample_csv(self, tmp_path):
+        """Create a sample CSV file with ambiguous data types for testing
+        創建含有型別判斷模糊資料的測試用 CSV 檔案
+        """
+        csv_file = tmp_path / "ambiguous_test.csv"
+        # Ambiguous data with leading zeros, mixed types, and null values
+        test_data = {
+            "id_code": ["001", "002", "010", "099"],  # Leading zeros - 前導零代號
+            "age": [25, 30, "", 45],  # Integers with null - 含空值整數
+            "amount": [
+                50000.5,
+                60000.7,
+                "",
+                75000.3,
+            ],  # Floats with null - 含空值浮點數
+            "score": [85, 90, 78, 92],  # Pure integers - 純整數
+            "category": ["A級", "B級", "C級", "A級"],  # Categories - 分類資料
+        }
+        pd.DataFrame(test_data).to_csv(csv_file, index=False)
+        return str(csv_file)
+
+    def test_preserve_raw_data_feature(self, ambiguous_sample_csv):
+        """Test preserve_raw_data feature prevents automatic type inference
+        測試 preserve_raw_data 功能阻止自動類型推斷
+        """
+        loader = Loader(
+            filepath=ambiguous_sample_csv,
+            preserve_raw_data=True,
+            auto_detect_leading_zeros=True,
+            force_nullable_integers=True,
+        )
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+        ):
+            # Setup mock returns
+            mock_df = pd.DataFrame(
+                {
+                    "id_code": ["001", "002", "010", "099"],
+                    "age": ["25", "30", "", "45"],
+                    "amount": ["50000.5", "60000.7", "", "75000.3"],
+                    "score": ["85", "90", "78", "92"],
+                    "category": ["A級", "B級", "C級", "A級"],
+                }
+            )
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
+
+            # Call load method
+            data, metadata = loader.load()
+
+            # Verify that dtype="object" was used to preserve raw data
+            mock_read_csv.assert_called_once_with(
+                ambiguous_sample_csv,
+                header="infer",
+                names=None,
+                na_values=loader.config.na_values,
+                dtype="object",  # This should be "object" string when preserve_raw_data=True
+            )
+            mock_create_schema.assert_called_once()
+            mock_apply_transformations.assert_called_once()
+            assert data is not None
+            assert metadata is not None
+
+    def test_leading_zero_detection_config(self, ambiguous_sample_csv):
+        """Test auto_detect_leading_zeros configuration
+        測試 auto_detect_leading_zeros 配置
+        """
+        # Test with leading zero detection enabled
+        loader_on = Loader(
+            filepath=ambiguous_sample_csv,
+            auto_detect_leading_zeros=True,
+        )
+        assert loader_on.config.auto_detect_leading_zeros is True
+
+        # Test with leading zero detection disabled
+        loader_off = Loader(
+            filepath=ambiguous_sample_csv,
+            auto_detect_leading_zeros=False,
+        )
+        assert loader_off.config.auto_detect_leading_zeros is False
+
+    def test_nullable_integer_config(self, ambiguous_sample_csv):
+        """Test force_nullable_integers configuration
+        測試 force_nullable_integers 配置
+        """
+        # Test with nullable integers enabled
+        loader_on = Loader(
+            filepath=ambiguous_sample_csv,
+            force_nullable_integers=True,
+        )
+        assert loader_on.config.force_nullable_integers is True
+
+        # Test with nullable integers disabled
+        loader_off = Loader(
+            filepath=ambiguous_sample_csv,
+            force_nullable_integers=False,
+        )
+        assert loader_off.config.force_nullable_integers is False
+
+    def test_ambiguous_data_config_combination(self, ambiguous_sample_csv):
+        """Test combination of ambiguous data processing configurations
+        測試容易誤判資料處理配置的組合
+        """
+        loader = Loader(
+            filepath=ambiguous_sample_csv,
+            preserve_raw_data=True,
+            auto_detect_leading_zeros=True,
+            force_nullable_integers=True,
+        )
+
+        # Verify all configurations are set correctly
+        assert loader.config.preserve_raw_data is True
+        assert loader.config.auto_detect_leading_zeros is True
+        assert loader.config.force_nullable_integers is True
+
+    def test_backward_compatibility(self, ambiguous_sample_csv):
+        """Test that new features don't break existing functionality
+        測試新功能不會破壞現有功能
+        """
+        # Test with default settings (all new features disabled)
+        loader = Loader(filepath=ambiguous_sample_csv)
+
+        # Verify default values
+        assert loader.config.preserve_raw_data is False
+        assert loader.config.auto_detect_leading_zeros is False
+        assert loader.config.force_nullable_integers is False
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+        ):
+            # Setup mock returns
+            mock_df = pd.DataFrame({"A": [1, 2, 3], "B": ["x", "y", "z"]})
+            mock_read_csv.return_value = mock_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = mock_df
+
+            # Call load method
+            data, metadata = loader.load()
+
+            # Verify normal behavior (no dtype parameter when preserve_raw_data=False)
+            mock_read_csv.assert_called_once_with(
+                ambiguous_sample_csv,
+                header="infer",
+                names=None,
+                na_values=loader.config.na_values,
+                # No dtype parameter should be passed when preserve_raw_data=False
             )
             assert data is not None
             assert metadata is not None

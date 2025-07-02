@@ -188,38 +188,45 @@ class FieldCombinationConstrainer:
             if isinstance(source_fields, str):
                 source_fields = (source_fields,)
 
-            # Create a mask to track valid rows
-            constraint_mask = pd.Series(True, index=result.index)
+            # 初始化掩碼 - 默認保留所有行
+            mask = pd.Series(True, index=result.index)
 
+            # 對每個源值-目標值對應關係
             for source_values, allowed_values in conditions.items():
-                # Ensure source_values is a tuple
                 if isinstance(source_values, str):
                     source_values = (source_values,)
 
-                # Find rows matching all source field values
+                # 找到匹配源值的行
                 source_mask = pd.Series(True, index=result.index)
                 for field, value in zip(source_fields, source_values):
-                    # Handle NA values and specific values
                     if self._is_na_value(value):
-                        # if condition is NA, check if the field is NA
-                        source_mask &= result[field].isna()
+                        field_match = result[field].isna()
                     else:
-                        # if condition is specific value, check if matches the value AND is not NA
-                        source_mask &= (result[field] == value) & (
-                            ~result[field].isna()
-                        )
+                        # 對於 category 類型，先轉換為字符串再比較
+                        if isinstance(result[field].dtype, pd.CategoricalDtype):
+                            field_match = result[field].astype(str) == str(value)
+                        else:
+                            field_match = result[field] == value
 
-                # Normalize allowed values to a list
+                    source_mask &= field_match
+
+                # 規範化允許值為列表
                 if not isinstance(allowed_values, (list, tuple)):
                     allowed_values = [allowed_values]
 
-                # Check target field values
+                # 檢查目標值
                 value_mask = result[target_field].isin(allowed_values)
 
-                # Combine masks
-                constraint_mask &= ~(source_mask & ~value_mask)
+                # 更清晰的邏輯：
+                # - 源不匹配的行保留
+                # - 源匹配且目標合法的行保留
+                # - 源匹配但目標不合法的行移除
+                row_mask = (~source_mask) | (source_mask & value_mask)
 
-        # Apply final constraint
-        result = result[constraint_mask]
+                # 更新總掩碼
+                mask &= row_mask
 
-        return result.reset_index(drop=True)
+            # 應用掩碼
+            result = result[mask].reset_index(drop=True)
+
+        return result

@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import yaml
-from petsard.config import Config, Status
+
+from petsard.config import Config
 from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError
+from petsard.status import Status
 
 
 @dataclass
@@ -146,7 +148,7 @@ class Executor:
             raise ConfigError(f"YAML file {yaml_file} does not exist")
 
         yaml_config: dict = {}
-        with open(yaml_file, "r") as yaml_file:
+        with open(yaml_file) as yaml_file:
             yaml_config = yaml.safe_load(yaml_file)
 
         if "Executor" in yaml_config:
@@ -207,3 +209,12 @@ class Executor:
         Returns the result of the executor.
         """
         return self.result
+
+    def get_timing(self):
+        """
+        取得執行時間記錄資料
+
+        Returns:
+            pd.DataFrame: 包含所有模組執行時間的 DataFrame
+        """
+        return self.status.get_timing_report_data()

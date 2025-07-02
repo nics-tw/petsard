@@ -1,9 +1,9 @@
 ---
 title: Describer
 type: docs
-weight: 60
-prev: docs/api/metadata
-next: docs/api
+weight: 59
+prev: docs/api/evaluator
+next: docs/api/reporter
 ---
 
 ```python

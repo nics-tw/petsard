@@ -1,7 +1,7 @@
 ---
 title: Synthesizer
 type: docs
-weight: 55
+weight: 56
 prev: docs/api/processor
 next: docs/api/constrainer
 ---
@@ -40,8 +40,8 @@ syn = Synthesizer(method='sdv-single_table-gaussiancopula')
 syn = Synthesizer(method='default')
 
 # 合成
-syn.create(data=df, metadata=metadata)
-syn.fit_sample()
+syn.create(metadata=metadata)
+syn.fit_sample(data=df)
 synthetic_data = syn.data_syn
 ```
 
@@ -50,16 +50,14 @@ synthetic_data = syn.data_syn
 ### `create()`
 
 ```python
-syn.create(data, metadata=None)
+syn.create(metadata)
 ```
 
 建立合成器。
 
 **參數**
 
-- `data` (pd.DataFrame)：用於訓練的資料集
 - `metadata` (Metadata, optional)：資料集的 Metadata 物件
-  - 預設值：無
 
 **回傳值**
 
@@ -67,11 +65,15 @@ syn.create(data, metadata=None)
 
 ### `fit()`
 
+```python
+syn.fit(data=data)
+```
+
 訓練合成模型。
 
 **參數**
 
-無
+- `data` (pd.DataFrame)：用於訓練的資料集
 
 **回傳值**
 
@@ -105,7 +107,7 @@ syn.sample(
 ### `fit_sample()`
 
 ```python
-syn.fit_sample(**kwargs)
+syn.fit_sample(data, **kwargs)
 ```
 
 Perform training and generation in sequence. Combines functionality of `fit()` and `sample()`.

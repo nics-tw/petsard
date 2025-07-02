@@ -11,7 +11,7 @@ Besides built-in synthesis methods, you can create your own synthesis methods. T
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/custom-synthesis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/custom-synthesis.ipynb)
 
 ```yaml
 ---
@@ -47,7 +47,7 @@ Create a synthesizer class that implements the required methods:
 import numpy as np
 import pandas as pd
 
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 
 
 class MySynthesizer_Shuffle:
@@ -59,7 +59,7 @@ class MySynthesizer_Shuffle:
     or as a baseline synthetic data generation method.
     """
 
-    def __init__(self, config: dict, metadata: Metadata):
+    def __init__(self, config: dict, metadata: SchemaMetadata):
         """
         Initialize the synthesizer.
 
@@ -67,7 +67,7 @@ class MySynthesizer_Shuffle:
         and feel free to prepare your synthesizer to use it.
 
         Args:
-            metadata (Metadata): The metadata object.
+            metadata (SchemaMetadata): The metadata object.
         """
         self.config: dict = config
         self.result: pd.DataFrame = None
@@ -119,7 +119,7 @@ class MySynthesizer_Shuffle:
 
 Your synthesizer class must implement all of the following methods:
 
-1. `__init__(config: dict, metadata: Metadata)`：Initialize the synthesizer
+1. `__init__(config: dict, metadata: SchemaMetadata)`：Initialize the synthesizer
 
     - Takes configuration dictionary and metadata object
     - Sets up any necessary parameters or internal state

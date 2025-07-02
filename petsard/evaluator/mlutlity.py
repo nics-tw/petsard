@@ -22,7 +22,7 @@ from sklearn.svm import SVC
 from petsard.config_base import BaseConfig
 from petsard.evaluator.evaluator_base import BaseEvaluator
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.util import safe_round
+from petsard.metadater.types.data_types import safe_round
 
 
 class MLUtilityMap(Enum):
@@ -392,7 +392,7 @@ class MLUtility(BaseEvaluator):
                 preprocessed_data[key]["y"] = (
                     ss_y.transform(target_value.reshape(-1, 1)).ravel()
                     if self.mlutility_config.eval_method_code == MLUtilityMap.REGRESSION
-                    else target_value.to_numpy()
+                    else target_value
                 )
                 preprocessed_data[key]["X"] = ss_X.transform(
                     inprogress_data[key].drop(columns=[target], inplace=False)

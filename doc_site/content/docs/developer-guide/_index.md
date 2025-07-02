@@ -19,13 +19,14 @@ sidebar:
   - Maintaining and extending benchmark datasets
 
 ## Data Generating
-- [Uniform Encoder](./uniform-encoder)
-  - Converting categorical variables to continuous values
 
 ## Data Evaluating
 - [Anonymeter Privacy Risk Assessment](./anonymeter)
   - European standards for privacy risk assessment
   - Three dimensions of privacy risk measurement
+- [mpUCCs Experimental Feature](./mpuccs)
+  - Advanced singling-out risk assessment
+  - Maximal partial unique column combinations theory
 
 ## Configuration and Reporting
 - [Logging Configuration](./logging-configuration)

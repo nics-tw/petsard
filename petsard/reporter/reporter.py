@@ -1,9 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import (
-    List,
-)
+from typing import List
 
 import pandas as pd
 
@@ -22,6 +20,7 @@ class ReporterMap:
 
     SAVE_DATA: int = 10
     SAVE_REPORT: int = 11
+    SAVE_TIMING: int = 12
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -98,6 +97,8 @@ class Reporter:
             self.reporter = ReporterSaveData(config=self.config)
         elif method_code == ReporterMap.SAVE_REPORT:
             self.reporter = ReporterSaveReport(config=self.config)
+        elif method_code == ReporterMap.SAVE_TIMING:
+            self.reporter = ReporterSaveTiming(config=self.config)
         else:
             raise UnsupportedMethodError
 
@@ -175,6 +176,7 @@ class BaseReporter(ABC):
         Verify the input data for the create method.
 
         Validates the structure and type of input data intended for creating a report.
+        Invalid entries will be removed and logged.
 
         Args:
             data (dict): Input data for report creation, where:
@@ -197,31 +199,89 @@ class BaseReporter(ABC):
         Raises:
             ConfigError: If any validation check fails.
         """
+        import logging
+
+        logger = logging.getLogger(f"PETsARD.{__name__}")
+
+        keys_to_remove = []
+
         for idx, value in data.items():
             # 1. The 'exist_report' must be a dict with pd.DataFrame values.
             if idx == "exist_report":
-                if not isinstance(value, dict) or not all(
-                    isinstance(v, pd.DataFrame) for v in value.values()
-                ):
-                    raise ConfigError
+                if not isinstance(value, dict):
+                    logger.info(
+                        f"Removing 'exist_report': Expected dict, got {type(value).__name__}"
+                    )
+                    keys_to_remove.append(idx)
+                    continue
+
+                # Clean exist_report entries
+                exist_report_keys_to_remove = []
+                for exist_key, exist_value in value.items():
+                    if exist_value is not None and not isinstance(
+                        exist_value, pd.DataFrame
+                    ):
+                        logger.info(
+                            f"Removing exist_report['{exist_key}']: "
+                            f"Expected pd.DataFrame or None, got {type(exist_value).__name__}"
+                        )
+                        exist_report_keys_to_remove.append(exist_key)
+
+                # Remove invalid entries from exist_report
+                for key in exist_report_keys_to_remove:
+                    del value[key]
+
+                # If exist_report is now empty, remove it entirely
+                if not value:
+                    logger.info("Removing 'exist_report': All entries were invalid")
+                    keys_to_remove.append(idx)
                 continue
 
             # 2. Index must have an even number of elements.
             if len(idx) % 2 != 0:
-                raise ConfigError
+                logger.info(
+                    f"Removing key {idx}: Index must have even number of elements"
+                )
+                keys_to_remove.append(idx)
+                continue
+
             module_names = idx[::2]  # experiment_names = idx[1::2]
 
             # 3. Every module names should be in ALLOWED_IDX_MODULE.
             if not all(module in cls.ALLOWED_IDX_MODULE for module in module_names):
-                raise ConfigError
+                invalid_modules = [
+                    m for m in module_names if m not in cls.ALLOWED_IDX_MODULE
+                ]
+                logger.info(
+                    f"Removing key {idx}: Invalid module names: {invalid_modules}"
+                )
+                keys_to_remove.append(idx)
+                continue
 
             # 4. Module names in the index must be unique.
             if len(module_names) != len(set(module_names)):
-                raise ConfigError
+                logger.info(f"Removing key {idx}: Duplicate module names found")
+                keys_to_remove.append(idx)
+                continue
 
             # 5. Each value must be a pd.DataFrame or None.
             if value is not None and not isinstance(value, pd.DataFrame):
-                raise ConfigError
+                logger.info(
+                    f"Removing key {idx}: "
+                    f"Expected pd.DataFrame or None, got {type(value).__name__}"
+                )
+                keys_to_remove.append(idx)
+                continue
+
+        # Remove invalid keys
+        for key in keys_to_remove:
+            del data[key]
+
+        # Log summary if any keys were removed
+        if keys_to_remove:
+            logger.info(
+                f"Removed {len(keys_to_remove)} invalid entries from input data"
+            )
 
     @abstractmethod
     def report(self) -> None:
@@ -350,6 +410,8 @@ class ReporterSaveReport(BaseReporter):
 
         # granularity should be whether global/columnwise/pairwise
         if "granularity" not in self.config:
+            raise ConfigError
+        if not isinstance(self.config["granularity"], str):
             raise ConfigError
         self.config["granularity"] = self.config["granularity"].lower()
         granularity_code = ReporterSaveReportMap.map(self.config["granularity"])
@@ -543,13 +605,13 @@ class ReporterSaveReport(BaseReporter):
 
         # 4. Rename columns as f"{eval_name}_{original column}" if assigned
         #   eval_name: "sdmetrics-qual[default]" <- get "sdmetrics-qual"
-        # eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
-        # eval_name = eval_expt_tuple[0]
-        # for col in report.columns:
-        #     report.rename(
-        #         columns={col: f"{eval_name}_{col}"},
-        #         inplace=True,
-        #     )
+        eval_expt_tuple = convert_eval_expt_name_to_tuple(full_expt_tuple[-1])
+        eval_name = eval_expt_tuple[0]
+        for col in report.columns:
+            report.rename(
+                columns={col: f"{eval_name}_{col}"},
+                inplace=True,
+            )
 
         # 5. reset index to represent column
         granularity_code: int = ReporterSaveReportMap.map(granularity)
@@ -617,7 +679,12 @@ class ReporterSaveReport(BaseReporter):
         """
         df: pd.DataFrame = None
         common_columns: List[str] = None
-        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [cls.SAVE_REPORT_KEY]
+        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [
+            cls.SAVE_REPORT_KEY,
+            "column",
+            "column1",
+            "column2",
+        ]
         df1_common_dtype: dict = None
         df2_common_dtype: dict = None
         colname_replace: str = "_petsard|_replace"  # customized name for non-conflict
@@ -649,26 +716,43 @@ class ReporterSaveReport(BaseReporter):
         # 3. FULL OUTER JOIN df1 and df2,
         #   kept column order based on df1 than df2
         df2[colname_replace] = colname_replace
-        df = pd.merge(
-            df1,
-            df2,
-            on=common_columns,
-            how="outer",
-            suffixes=("", colname_suffix),
-        ).reset_index(drop=True)
+        if common_columns:
+            df = pd.merge(
+                df1,
+                df2,
+                on=common_columns,
+                how="outer",
+                suffixes=("", colname_suffix),
+            ).reset_index(drop=True)
+        else:
+            # If no common columns, concatenate the DataFrames vertically
+            # First, align columns
+            all_columns = list(df1.columns) + [
+                col for col in df2.columns if col not in df1.columns
+            ]
+            df1_aligned = df1.reindex(columns=all_columns)
+            df2_aligned = df2.reindex(columns=all_columns)
+            # Concatenate with df2 first, then df1 to match expected order
+            df = pd.concat([df2_aligned, df1_aligned], ignore_index=True)
 
         # 4. replace df1 column with df2 column if replace tag is labeled
-        for col in df1.columns:
-            if col in allow_common_columns:  # skip common_columns
-                continue
+        # Only do this when we have common columns (i.e., used pd.merge)
+        if common_columns:
+            for col in df1.columns:
+                if col in allow_common_columns:  # skip common_columns
+                    continue
 
-            right_col = col + colname_suffix
-            if right_col in df.columns:
-                df.loc[df[colname_replace] == colname_replace, col] = df[right_col]
+                right_col = col + colname_suffix
+                if right_col in df.columns:
+                    df.loc[df[colname_replace] == colname_replace, col] = df[right_col]
 
-                df.drop(columns=[right_col], inplace=True)
+                    df.drop(columns=[right_col], inplace=True)
 
-        df.drop(columns=[colname_replace], inplace=True)  # drop replace tag
+            df.drop(columns=[colname_replace], inplace=True)  # drop replace tag
+        else:
+            # For concatenated DataFrames, just remove the replace tag
+            if colname_replace in df.columns:
+                df.drop(columns=[colname_replace], inplace=True)
 
         return df
 
@@ -701,3 +785,127 @@ class ReporterSaveReport(BaseReporter):
             raise UnexecutedError
 
         self._save(data=report, full_output=full_output)
+
+
+class ReporterSaveTiming(BaseReporter):
+    """
+    Save timing data to file.
+    """
+
+    def __init__(self, config: dict):
+        """
+        Args:
+            config (dict): The configuration dictionary.
+                - method (str): The method used for reporting.
+                - output (str, optional):
+                    The output filename prefix for the report.
+                    Default is 'petsard'.
+                - module (str | List[str], optional):
+                    Filter by specific module(s). If not provided, includes all modules.
+                - time_unit (str, optional):
+                    Time unit for duration display: 'days', 'hours', 'minutes', 'seconds'.
+                    Default is 'seconds'.
+        """
+        super().__init__(config)
+
+        # 處理模組過濾器
+        modules = self.config.get("module")
+        if isinstance(modules, str):
+            modules = [modules]
+        elif modules is None:
+            modules = []
+        self.config["modules"] = modules
+
+        # 設定時間單位
+        time_unit = self.config.get("time_unit", "seconds").lower()
+        if time_unit not in ["days", "hours", "minutes", "seconds"]:
+            time_unit = "seconds"
+        self.config["time_unit"] = time_unit
+
+    def create(self, data: dict) -> None:
+        """
+        Creates the timing report data.
+
+        Args:
+            data (dict): The data dictionary containing timing information.
+                Expected to have a 'timing_data' key with timing records.
+        """
+        # 從 data 中取得 timing 資料
+        if "timing_data" not in data:
+            self.result = {}
+            return
+
+        timing_data = data["timing_data"].copy()
+
+        # 根據設定過濾資料
+        if self.config["modules"]:
+            timing_data = timing_data[
+                timing_data["module_name"].isin(self.config["modules"])
+            ]
+
+        if timing_data.empty:
+            self.result = {}
+            return
+
+        # 根據時間單位轉換持續時間
+        time_unit = self.config["time_unit"]
+        if time_unit == "days":
+            timing_data[f"duration_{time_unit}"] = (
+                timing_data["duration_seconds"] / 86400
+            )  # 24*60*60
+        elif time_unit == "hours":
+            timing_data[f"duration_{time_unit}"] = (
+                timing_data["duration_seconds"] / 3600
+            )  # 60*60
+        elif time_unit == "minutes":
+            timing_data[f"duration_{time_unit}"] = timing_data["duration_seconds"] / 60
+        else:  # seconds
+            timing_data[f"duration_{time_unit}"] = timing_data["duration_seconds"]
+
+        # 重新排列欄位順序，移除原始的 duration_seconds（除非是 seconds 單位）
+        columns_order = [
+            "record_id",
+            "module_name",
+            "experiment_name",
+            "step_name",
+            "start_time",
+            "end_time",
+            f"duration_{time_unit}",
+        ]
+
+        # 選擇需要的欄位，保留其他 context 欄位
+        context_columns = [
+            col
+            for col in timing_data.columns
+            if col not in ["duration_seconds"] + columns_order
+        ]
+        final_columns = columns_order + context_columns
+
+        # 如果不是 seconds 單位，移除原始的 duration_seconds 欄位
+        if time_unit != "seconds":
+            timing_data = timing_data.drop(
+                columns=["duration_seconds"], errors="ignore"
+            )
+            final_columns = [col for col in final_columns if col != "duration_seconds"]
+
+        # 確保所有欄位都存在
+        available_columns = [col for col in final_columns if col in timing_data.columns]
+        timing_data = timing_data[available_columns]
+
+        self.result["timing_report"] = timing_data
+
+    def report(self) -> None:
+        """
+        Generates the timing report.
+        """
+        if not self.result:
+            print("Reporter: No timing data available for reporting.")
+            return
+
+        for report_type, df in self.result.items():
+            if df is None or df.empty:
+                continue
+
+            # petsard_timing
+            full_output = f"{self.config['output']}_timing"
+            self._save(data=df, full_output=full_output)

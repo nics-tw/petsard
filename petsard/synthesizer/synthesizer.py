@@ -8,7 +8,7 @@ import pandas as pd
 
 from petsard.config_base import BaseConfig
 from petsard.exceptions import ConfigError, UncreatedError, UnsupportedMethodError
-from petsard.loader import Metadata
+from petsard.metadater import SchemaMetadata
 from petsard.synthesizer.custom_data import CustomDataSynthesizer
 from petsard.synthesizer.custom_synthesizer import CustomSynthesizer
 from petsard.synthesizer.sdv import SDVSingleTableSynthesizer
@@ -149,7 +149,7 @@ class Synthesizer:
         self._logger.info("Synthesizer initialization completed")
 
     def _determine_sample_configuration(
-        self, metadata: Metadata = None
+        self, metadata: SchemaMetadata = None
     ) -> tuple[str, Optional[int]]:
         """
         Determine the sample configuration based on available metadata and configuration.
@@ -162,7 +162,7 @@ class Synthesizer:
         4. Fall back to source data if no other information is available
 
         Args:
-            metadata (Metadata, optional): The metadata containing information about the dataset
+            metadata (SchemaMetadata, optional): The schema metadata containing information about the dataset
 
         Returns:
             (tuple[str, Optional[int]]): A tuple containing:
@@ -184,28 +184,25 @@ class Synthesizer:
         # 2. If no manual input, get the sample number of rows from metadata
         elif metadata is not None:
             self._logger.debug("Checking metadata for sample size information")
-            # 2-1. if Splitter information exist, use row_num after split
-            if hasattr(metadata, "metadata") and "global" in metadata.metadata:
+            # Check if metadata has stats with row count information
+            if metadata.stats and metadata.stats.row_count > 0:
+                # Check if this is split data (look for split info in properties)
                 if (
-                    "row_num_after_split" in metadata.metadata["global"]
-                    and "train" in metadata.metadata["global"]["row_num_after_split"]
+                    "split_info" in metadata.properties
+                    and "train_rows" in metadata.properties["split_info"]
                 ):
                     sample_from = "Splitter data"
-                    sample_num_rows = metadata.metadata["global"][
-                        "row_num_after_split"
-                    ]["train"]
+                    sample_num_rows = metadata.properties["split_info"]["train_rows"]
                     self._logger.debug(
                         f"Using splitter train data count: {sample_num_rows}"
                     )
-                # 2-2. if Loader only, assume data didn't been split
-                elif "row_num" in metadata.metadata["global"]:
-                    sample_from = "Loader data"
-                    sample_num_rows = metadata.metadata["global"]["row_num"]
-                    self._logger.debug(f"Using loader data count: {sample_num_rows}")
                 else:
-                    self._logger.debug("No row count information found in metadata")
+                    # Use total row count from schema stats
+                    sample_from = "Loader data"
+                    sample_num_rows = metadata.stats.row_count
+                    self._logger.debug(f"Using schema row count: {sample_num_rows}")
             else:
-                self._logger.debug("Metadata lacks global information structure")
+                self._logger.debug("No row count information found in metadata stats")
 
         # 3. if sample_from didn't been assign, means no effective metadata been used
         if self.config.sample_from == "Undefined":
@@ -219,12 +216,12 @@ class Synthesizer:
         )
         return sample_from, sample_num_rows
 
-    def create(self, metadata: Metadata = None) -> None:
+    def create(self, metadata: SchemaMetadata = None) -> None:
         """
         Create a synthesizer object with the given data.
 
         Args.:
-            metadata (Metadata, optional): The metadata class of the data.
+            metadata (SchemaMetadata, optional): The schema metadata of the data.
         """
         self._logger.info("Creating synthesizer instance")
         if metadata is not None:
@@ -349,7 +346,7 @@ class Synthesizer:
                 f"Sampled data shape: {data.shape}, dtypes: {data.dtypes.value_counts().to_dict()}"
             )
 
-            return data
+            return data.reset_index(drop=True)
         except Exception as e:
             self._logger.error(f"Error during sampling: {str(e)}")
             raise
