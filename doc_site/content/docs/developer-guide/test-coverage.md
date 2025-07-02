@@ -1,7 +1,7 @@
 ---
 title: Test Coverage
 type: docs
-weight: 87
+weight: 88
 prev: docs/developer-guide/experiment-name-in-reporter
 next: docs/developer-guide
 ---
@@ -372,6 +372,50 @@ Tests for machine learning utility evaluation:
   - Handles preprocessing of empty data
   - Verifies NaN scores
   - Checks warning messages
+
+#### `MPUCCs`
+
+> tests/evaluator/test_mpuccs.py
+
+Tests for mpUCCs (Maximal Partial Unique Column Combinations) privacy risk assessment:
+
+**Basic Functionality Tests (`TestMPUCCsBasic`):**
+- `test_initialization`: Tests MPUCCs evaluator initialization with configuration parameters
+- `test_basic_evaluation`: Tests basic evaluation functionality with simple test data
+- `test_empty_data`: Tests handling of empty datasets
+
+**Precision Handling Tests (`TestMPUCCsPrecisionHandling`):**
+- `test_numeric_precision_auto_detection`: Tests automatic detection of numeric field precision (decimal places)
+- `test_numeric_precision_manual_setting`: Tests manual numeric precision configuration
+- `test_datetime_precision_auto_detection`: Tests automatic detection of datetime field precision
+- `test_datetime_precision_normalization`: Tests case-insensitive datetime precision format normalization
+
+**Entropy Calculation Tests (`TestMPUCCsEntropyCalculation`):**
+- `test_renyi_entropy_calculation`: Tests Rényi entropy (α=2, Collision Entropy) calculation with different data distributions:
+ - High entropy (uniform distribution)
+ - Medium entropy (moderate skew)
+ - Low entropy (high skew)
+ - Very low entropy (extreme skew)
+- `test_entropy_gain_calculation`: Tests conditional entropy gain calculation for field combinations
+
+**Pruning Logic Tests (`TestMPUCCsPruningLogic`):**
+- `test_entropy_based_pruning`: Tests entropy-based pruning mechanism with configurable thresholds
+- `test_base_combo_pruning_propagation`: Tests pruning propagation from base combinations to supersets
+
+**Integration Tests (`TestMPUCCsIntegration`):**
+- `test_complete_workflow`: Tests complete mpUCCs workflow with realistic data scenarios
+- `test_skip_ncols_configuration`: Tests skip pattern configuration (e.g., n_cols=[1, 3])
+- `test_deduplication_functionality`: Tests automatic data deduplication before analysis
+
+**Edge Cases Tests (`TestMPUCCsEdgeCases`):**
+- `test_single_column_data`: Tests single-field datasets
+- `test_all_unique_data`: Tests datasets with all unique values but no collisions
+- `test_all_identical_data`: Tests datasets with identical values
+
+**Theoretical Validation:**
+- `test_renyi_vs_shannon_entropy`: Demonstrates differences between Rényi and Shannon entropy for privacy analysis
+
+> **mpUCCs Architecture**: mpUCCs implements advanced singling-out risk assessment based on maximal partial unique column combinations theory (mpUCCs = QIDs). Key features include progressive tree-based search, entropy-based pruning, precision handling for numeric/datetime fields, and comprehensive progress tracking with dual-layer progress bars.
 
 ## Data Reporting
 

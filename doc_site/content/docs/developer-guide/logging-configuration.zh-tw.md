@@ -1,8 +1,8 @@
 ---
 title: 日誌設定
 type: docs
-weight: 85
-prev: docs/developer-guide/anonymeter
+weight: 86
+prev: docs/developer-guide/mpuccs
 next: docs/developer-guide/experiment-name-in-reporter
 ---
 
