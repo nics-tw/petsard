@@ -120,3 +120,57 @@ class TestFieldConstrainerValidation:
             assert sorted(fields) == sorted(expected_fields), (
                 f"Field extraction failed for '{constraint}'. Expected: {expected_fields}, Got: {fields}"
             )
+
+    def test_apply_with_empty_dataframe(self):
+        """Test applying constraints to empty DataFrame"""
+        constrainer = FieldConstrainer(["age > 30"])
+        empty_df = pd.DataFrame(columns=["age", "name"])
+        result = constrainer.apply(empty_df)
+        assert result.empty
+        assert list(result.columns) == ["age", "name"]
+
+    def test_apply_with_all_rows_filtered(self, sample_df):
+        """Test when all rows are filtered out by constraints"""
+        constrainer = FieldConstrainer(["age > 100"])  # Impossible constraint
+        result = constrainer.apply(sample_df)
+        assert result.empty
+        assert list(result.columns) == list(sample_df.columns)
+
+    def test_complex_boolean_operations(self, sample_df):
+        """Test complex boolean operations in constraints"""
+        constrainer = FieldConstrainer(["((age > 20) & (salary < 80000)) | (id == 1)"])
+        result = constrainer.apply(sample_df)
+
+        # Should keep rows that meet the complex condition
+        for _, row in result.iterrows():
+            condition_met = ((row["age"] > 20) and (row["salary"] < 80000)) or (
+                row["id"] == 1
+            )
+            assert condition_met
+
+    def test_null_handling_in_constraints(self):
+        """Test handling of null values in constraints"""
+        df_with_nulls = pd.DataFrame(
+            {
+                "id": [1, 2, 3, 4],
+                "age": [25, None, 35, 40],
+                "salary": [50000, 60000, None, 70000],
+            }
+        )
+
+        constrainer = FieldConstrainer(["age IS NOT pd.NA"])
+        result = constrainer.apply(df_with_nulls)
+
+        # Should only keep rows where age is not null
+        assert all(pd.notna(result["age"]))
+        assert len(result) == 3  # Should have 3 non-null age rows
+
+    def test_multiple_constraints_interaction(self, sample_df):
+        """Test multiple constraints working together"""
+        constrainer = FieldConstrainer(["age >= 25", "salary >= 50000", "id <= 3"])
+        result = constrainer.apply(sample_df)
+
+        # All constraints should be satisfied
+        assert all(result["age"] >= 25)
+        assert all(result["salary"] >= 50000)
+        assert all(result["id"] <= 3)
