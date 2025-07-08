@@ -41,10 +41,17 @@ Data constraint handler for synthetic data generation. Supports NaN handling, fi
       - field_map: Dict with one source-to-target field mapping
       - allowed_values: Dict mapping source values to allowed target values
 
+  - `field_proportions` (List[dict]): Field proportion maintenance rules list
+    - Each rule is a dictionary containing:
+      - `fields` (str or List[str]): Field name(s) to maintain proportions for, can be a single field or list of fields
+      - `mode` (str): Either 'all' (maintain all value distributions) or 'missing' (maintain missing value proportions only)
+      - `tolerance` (float, optional): Allowed deviation from original proportions (0.0-1.0), defaults to 0.1 (10%)
+
 > Note:
 > 1. All constraints are combined with AND logic. A row must satisfy all constraints to be kept in the result.
 > 2. Field combinations are positive listings that only affect specified values. For example, if education='PhD' requires performance in [4,5], this only filters PhD records. Other education values or NULL values are not affected by this rule.
-> 3. When handling NULL values in YAML or Python configurations, always use the string "pd.NA" (case-sensitive) instead of None, np.nan, or pd.NA objects to avoid unexpected behaviors.
+> 3. Field proportions maintain the original data distribution by iteratively removing excess data while protecting underrepresented groups.
+> 4. When handling NULL values in YAML or Python configurations, always use the string "pd.NA" (case-sensitive) instead of None, np.nan, or pd.NA objects to avoid unexpected behaviors.
 
 ## Examples
 
@@ -96,11 +103,50 @@ config = {
                 ('Master', 4): [70000, 80000]  # Salary range for Master with performance 4
             }
         )
+    ],
+
+    # Field proportion rules - Maintain original data distribution proportions
+    'field_proportions': [
+        # Maintain category distribution with default tolerance (10%)
+        {'fields': 'category', 'mode': 'all'},
+        
+        # Maintain missing value proportions for income field with custom 5% tolerance
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05},
+        
+        # Maintain field combination proportions with default tolerance (10%)
+        {'fields': ['gender', 'age_group'], 'mode': 'all'}
     ]
 }
 
 cnst: Constrainer = Constrainer(config)
 result: pd.DataFrame = cnst.apply(df)
+```
+
+### Field Proportions Examples
+
+```python
+# Example 1: Basic field proportions (using default tolerance 0.1)
+config = {
+    'field_proportions': [
+        {'fields': 'category', 'mode': 'all'}  # Maintain category distribution with default 10% tolerance
+    ]
+}
+
+# Example 2: Missing value proportions (custom tolerance)
+config = {
+    'field_proportions': [
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05}  # Maintain missing ratio with 5% tolerance
+    ]
+}
+
+# Example 3: Multiple field combinations
+config = {
+    'field_proportions': [
+        {'fields': 'category', 'mode': 'all'},  # Default 10% tolerance
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05},  # Custom 5% tolerance
+        {'fields': ['gender', 'age_group'], 'mode': 'all', 'tolerance': 0.15}  # Custom 15% tolerance
+    ]
+}
 ```
 
 ## Methods
