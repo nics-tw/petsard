@@ -3,7 +3,7 @@ title: External Synthesis with Default Evaluation
 type: docs
 weight: 14
 prev: docs/tutorial/default-synthesis-default-evaluation
-next: docs/tutorial/use-cases
+next: docs/tutorial/docker-usage
 ---
 
 

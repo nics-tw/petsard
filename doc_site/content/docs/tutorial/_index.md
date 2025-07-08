@@ -45,7 +45,13 @@ The following scenarios guide you in choosing the right YAML configuration:
   - When you have pre-synthesized data
   - For evaluating existing privacy-enhanced solutions
 
-6. **Special Scenarios: [Use Cases](./use-cases)**
+6. **Docker Usage: [Using Docker](./docker-usage)**
+
+  - When you want to run PETsARD in containerized environments
+  - For easy deployment without local Python setup
+  - Use pre-built containers from GitHub Container Registry
+
+3. **Special Scenarios: [Use Cases](./use-cases)**
 
   - Explore different synthesis application scenarios
   - Handle various practical requirements
