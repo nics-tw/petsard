@@ -7,6 +7,9 @@ from petsard.constrainer.field_combination_constrainer import (
     FieldCombinationConstrainer,
 )
 from petsard.constrainer.field_constrainer import FieldConstrainer
+from petsard.constrainer.field_proportions_constrainer import (
+    FieldProportionsConstrainer,
+)
 from petsard.constrainer.nan_group_constrainer import NaNGroupConstrainer
 
 
@@ -17,6 +20,7 @@ class Constrainer:
         "nan_groups": NaNGroupConstrainer,
         "field_constraints": FieldConstrainer,
         "field_combinations": FieldCombinationConstrainer,
+        "field_proportions": FieldProportionsConstrainer,
     }
 
     def __init__(self, config: dict):
@@ -58,18 +62,22 @@ class Constrainer:
                     constraint_type
                 ](config)
 
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
+    def apply(self, df: pd.DataFrame, target_rows: int = None) -> pd.DataFrame:
         """
         Apply all constraints in sequence
 
         Args:
             df: Input DataFrame
+            target_rows: Target number of rows (used internally by resample_until_satisfy)
 
         Returns:
             DataFrame after applying all constraints
         """
         result = df.copy()
         for _constraint_type, constrainer in self._constrainers.items():
+            # Set target rows for field proportions constrainer if needed
+            if _constraint_type == "field_proportions" and target_rows is not None:
+                constrainer._set_target_rows(target_rows)
             result = constrainer.apply(result)
         return result
 
@@ -130,11 +138,23 @@ class Constrainer:
         remain_rows = target_rows - data.shape[0]
 
         if remain_rows <= 0:
-            if remain_rows < 0:
-                data.sample(n=target_rows, random_state=42, inplace=True)
-                data.reset_index(drop=True, inplace=True)
+            # Apply constraints to the input data first
+            constrained_data = self.apply(data, target_rows)
 
-            return data
+            if constrained_data.shape[0] >= target_rows:
+                # If we have enough rows after applying constraints, sample the target number
+                result = constrained_data.sample(
+                    n=target_rows, random_state=42
+                ).reset_index(drop=True)
+                return result
+            elif constrained_data.shape[0] > 0:
+                # If we have some rows but not enough, continue with resampling
+                result_df = constrained_data
+                remain_rows = target_rows - constrained_data.shape[0]
+            else:
+                # If no rows remain after constraints, start fresh with resampling
+                result_df = None
+                remain_rows = target_rows
 
         while remain_rows > 0:
             self.resample_trails += 1
@@ -160,7 +180,7 @@ class Constrainer:
                 new_samples = postprocessor.inverse_transform(new_samples)
 
             # Apply constraints
-            filtered_samples = self.apply(new_samples)
+            filtered_samples = self.apply(new_samples, target_rows)
 
             # Combine with existing results
             if result_df is None:
