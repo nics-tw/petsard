@@ -259,7 +259,7 @@ Tests for the main Synthesizer functionality:
 
 > tests/constrainer/test_constrainer.py
 
-Tests for the main Constrainer class:
+Tests for the main Constrainer factory class (18 tests):
 
 - `test_basic_initialization`: Tests basic constrainer initialization and config storage
 - `test_nan_groups_constraints`: Tests NaN group constraints:
@@ -285,12 +285,38 @@ Tests for the main Constrainer class:
 - `test_edge_cases`: Tests boundary conditions:
   - Empty DataFrame
   - All NaN values
+- `test_empty_config`: Tests constrainer with empty configuration
+- `test_unknown_constraint_type_warning`: Tests warning for unknown constraint types
+- `test_resample_trails_attribute`: Tests resample trails tracking functionality
+- `test_register_custom_constraint`: Tests custom constraint registration
+- `test_register_invalid_constraint_class`: Tests error handling for invalid constraint classes
+
+**Field Proportions Integration Tests (5 tests):**
+- `test_field_proportions_integration`: Tests field proportions constrainer integration with new architecture:
+  - Single field proportions with updated configuration format
+  - Missing value proportions maintenance
+  - Field combination proportions handling
+- `test_field_proportions_with_other_constraints`: Tests field proportions working with other constraint types:
+  - Combined field proportions and field constraints
+  - Multi-constraint interaction validation
+- `test_field_proportions_comprehensive_integration`: Tests comprehensive field proportions integration based on real-world scenarios:
+  - Education, income, and workclass data distribution maintenance
+  - Multiple constraint modes (all, missing, field combinations)
+  - New architecture validation with `target_rows` parameter
+- `test_field_proportions_multiple_modes`: Tests field proportions with multiple constraint modes:
+  - Category proportions ('all' mode)
+  - Missing value proportions ('missing' mode)
+  - Region proportions validation
+- `test_field_proportions_edge_cases_integration`: Tests field proportions edge cases:
+  - Small dataset handling
+  - Target rows larger than available data
+  - Empty field proportions list handling
 
 #### `NaNGroupConstrainer`
 
 > tests/constrainer/test_nan_group_constrainer.py
 
-Tests for NaN value handling constraints:
+Tests for NaN value handling constraints (18 tests):
 
 - `test_invalid_config_initialization`: Tests invalid configuration handling:
   - Non-dictionary inputs
@@ -308,12 +334,19 @@ Tests for NaN value handling constraints:
 - `test_copy_action_compatible_types`: Tests value copying between compatible types
 - `test_copy_action_incompatible_types`: Tests handling of incompatible type copying
 - `test_multiple_constraints`: Tests multiple constraints working together
+- `test_delete_action_edge_case`: Tests delete action with edge cases
+- `test_erase_action_multiple_targets`: Tests erase action with multiple target fields
+- `test_copy_action_type_validation`: Tests copy action with type validation
+- `test_invalid_action_type`: Tests handling of invalid action types
+- `test_invalid_target_specification`: Tests invalid target field specifications
+- `test_empty_config_handling`: Tests empty configuration handling
+- `test_mixed_action_validation`: Tests validation of mixed action configurations
 
 #### `FieldConstrainer`
 
 > tests/constrainer/test_field_constrainer.py
 
-Tests for field-level constraints:
+Tests for field-level constraints (12 tests):
 
 - `test_invalid_config_structure`: Tests configuration validation:
   - Non-list inputs
@@ -329,12 +362,17 @@ Tests for field-level constraints:
   - NULL checks
   - Date operations
 - `test_complex_expression_validation`: Tests complex constraint combinations
+- `test_empty_constraint_list`: Tests empty constraint list handling
+- `test_null_check_operations`: Tests NULL value check operations
+- `test_date_operation_constraints`: Tests date-based constraint operations
+- `test_parentheses_validation`: Tests parentheses matching validation
+- `test_operator_validation`: Tests operator syntax validation
 
 #### `FieldCombinationConstrainer`
 
 > tests/constrainer/test_field_combination_constrainer.py
 
-Tests for field combination constraints:
+Tests for field combination constraints (15 tests):
 
 - `test_validate_config_existing_columns`: Tests column existence validation
 - `test_invalid_constraints_not_list`: Tests non-list constraint handling
@@ -343,6 +381,65 @@ Tests for field combination constraints:
 - `test_invalid_source_fields`: Tests source field type validation
 - `test_invalid_target_field`: Tests target field type validation
 - `test_multi_field_source_value_length_mismatch`: Tests multi-field value matching
+- `test_single_field_constraint`: Tests single field constraint validation
+- `test_multi_field_constraint`: Tests multi-field constraint scenarios
+- `test_constraint_tuple_validation`: Tests constraint tuple structure validation
+- `test_field_mapping_edge_cases`: Tests field mapping edge cases
+- `test_value_length_validation`: Tests value length matching validation
+- `test_complex_field_combinations`: Tests complex field combination scenarios
+
+#### `FieldProportionsConstrainer`
+
+> tests/constrainer/test_field_proportions_constrainer.py
+
+Tests for field proportion maintenance constraints (33 tests):
+
+**FieldProportionsConfig Tests (6 tests):**
+- `test_valid_config_initialization`: Tests valid configuration initialization with field proportions only
+- `test_invalid_field_proportions_structure`: Tests invalid field proportions structure (missing tolerance, invalid mode)
+- `test_invalid_tolerance_values`: Tests invalid tolerance values (>1, <0)
+- `test_verify_data_with_valid_data`: Tests data verification with valid DataFrame and provided target_n_rows
+- `test_verify_data_with_missing_columns`: Tests error handling for missing columns in data
+- `test_check_proportions`: Tests proportion checking with good and bad filtered data
+
+**FieldProportionsConstrainer Tests (14 tests):**
+- `test_constrainer_initialization`: Tests constrainer initialization with valid configuration
+- `test_invalid_constrainer_config`: Tests constrainer with invalid configuration (invalid mode)
+- `test_apply_with_empty_dataframe`: Tests apply method with empty DataFrame
+- `test_apply_with_valid_data`: Tests apply method with valid data and known proportions
+- `test_field_combination_proportions`: Tests field combination proportions with tuple field keys
+- `test_missing_value_proportions`: Tests missing value proportions maintenance
+- `test_edge_case_all_same_values`: Tests edge case where all values are identical
+- `test_edge_case_target_larger_than_data`: Tests edge case where target exceeds available data
+
+**Extreme Edge Cases Tests (19 tests):**
+- `test_extreme_case_single_row_data`: Tests single row data handling
+- `test_extreme_case_very_large_tolerance`: Tests very large tolerance values (0.9)
+- `test_extreme_case_zero_tolerance`: Tests zero tolerance with perfect proportions
+- `test_extreme_case_all_missing_values`: Tests all missing values scenario
+- `test_extreme_case_no_missing_values`: Tests no missing values scenario
+- `test_extreme_case_very_small_target`: Tests very small target rows (1 row)
+- `test_extreme_case_huge_data_small_target`: Tests large dataset with small target
+- `test_extreme_case_many_unique_values`: Tests many unique values (each appears once)
+- `test_extreme_case_complex_field_combinations`: Tests complex multi-field combinations
+- `test_extreme_case_mixed_data_types`: Tests mixed data types (int, string, float, None, bool)
+- `test_extreme_case_empty_field_proportions_list`: Tests empty field proportions list
+- `test_extreme_case_duplicate_field_rules`: Tests duplicate field rules handling
+- `test_extreme_case_very_unbalanced_data`: Tests very unbalanced data (99% vs 1%)
+- `test_extreme_case_numerical_precision`: Tests numerical precision issues with small tolerance
+- `test_extreme_case_unicode_and_special_characters`: Tests unicode and special characters
+- `test_extreme_case_datetime_objects`: Tests datetime objects as field values
+- `test_extreme_case_large_string_values`: Tests very large string values (1000+ chars)
+- `test_extreme_case_nested_tuple_combinations`: Tests deeply nested tuple combinations (5 fields)
+- `test_apply_without_target_rows_should_fail`: Tests that apply without target_rows parameter fails appropriately
+
+**Architecture Integration:**
+- Field proportions constrainer now follows the unified Constrainer architecture
+- Target rows are provided by the main Constrainer during resampling process
+- Removed date name mapping functionality for simplified configuration
+- All tests updated to reflect the new parameter passing mechanism
+
+> **Total Constrainer Tests**: 97 tests across 5 test files covering comprehensive constraint functionality including factory pattern implementation, NaN group handling, field-level constraints, field combination rules, and field proportion maintenance with extensive edge case coverage and integration testing.
 
 ## Data Evaluating
 
