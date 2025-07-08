@@ -1,7 +1,7 @@
 ---
 title: Using Docker
 type: docs
-weight: 15
+weight: 10
 prev: docs/tutorial/external-synthesis-default-evaluation
 next: docs/tutorial/use-cases
 ---

@@ -1,7 +1,7 @@
 ---
 title: Default Synthesis Default Evaluation
 type: docs
-weight: 13
+weight: 8
 prev: docs/tutorial/default-synthesis
 next: docs/tutorial/external-synthesis-default-evaluation
 ---

@@ -1,7 +1,7 @@
 ---
 title: 教學
 type: docs
-weight: 10
+weight: 5
 prev: docs/get-started
 next: docs/best-practices
 sidebar:

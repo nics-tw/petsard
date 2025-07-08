@@ -1,7 +1,7 @@
 ---
 title: 外部合成與預設評測
 type: docs
-weight: 14
+weight: 9
 prev: docs/tutorial/default-synthesis-default-evaluation
 next: docs/tutorial/docker-usage
 ---
