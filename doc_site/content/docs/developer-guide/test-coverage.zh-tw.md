@@ -98,6 +98,171 @@ next: docs/developer-guide
 
 ## 資料處理
 
+### `Processor`
+
+> tests/processor/test_processor.py, tests/processor/test_*.py
+
+測試主要 Processor 功能和所有處理組件，**100% 測試覆蓋率（124/124 測試通過）**：
+
+#### 核心 Processor 測試（20 個測試）
+> tests/processor/test_processor.py
+
+- `test_processor_initialization`：測試 Processor 初始化與詮釋資料和配置
+- `test_processor_initialization_with_config`：測試自定義配置初始化
+- `test_generate_config`：測試基於詮釋資料的自動配置生成
+- `test_get_config`：測試配置檢索與欄位過濾和列印選項
+- `test_update_config`：測試配置更新和驗證
+- `test_sequence_validation`：測試處理序列驗證和排序
+- `test_fit_default_sequence`：測試使用預設處理序列的擬合
+- `test_fit_custom_sequence`：測試使用自定義處理序列的擬合
+- `test_transform_before_fit`：測試在擬合前轉換時的錯誤處理
+- `test_transform_after_fit`：測試適當擬合後的資料轉換
+- `test_inverse_transform_before_fit`：測試在擬合前逆轉換的錯誤處理
+- `test_inverse_transform_after_fit`：測試逆轉換功能
+- `test_get_changes`：測試配置變更追蹤和比較
+- `test_field_metadata_methods`：測試欄位詮釋資料存取和操作
+- `test_global_na_percentage`：測試全域缺失值百分比處理
+- `test_field_na_percentage`：測試欄位特定缺失值百分比處理
+- `test_extreme_values_processing`：測試處理管線中的極值處理
+- `test_empty_metadata`：測試空詮釋資料的處理器行為
+- `test_single_column_data`：測試單欄資料處理
+- `test_all_missing_data`：測試全缺失值資料的處理
+
+#### 缺失值處理測試（31 個測試）
+> tests/processor/test_missing.py
+
+- `test_missing_mean_basic`：測試數值資料的平均值插補與各種情境
+- `test_missing_mean_edge_cases`：測試平均值插補的邊界情況和極值
+- `test_missing_mean_inverse_transform`：測試平均值插補逆轉換
+- `test_missing_median_basic`：測試中位數插補的邊界情況和資料類型處理
+- `test_missing_median_edge_cases`：測試中位數插補的極值
+- `test_missing_median_inverse_transform`：測試中位數插補逆轉換
+- `test_missing_simple_basic`：測試自定義值插補的參數驗證
+- `test_missing_simple_edge_cases`：測試自定義值插補的邊界情況
+- `test_missing_simple_inverse_transform`：測試自定義值插補逆轉換
+- `test_missing_drop_basic`：測試缺失值的列刪除
+- `test_missing_drop_edge_cases`：測試列刪除的邊界情況
+- `test_missing_drop_inverse_transform`：測試列刪除逆轉換
+- `test_missing_mode_basic`：測試分類和數值資料的眾數插補
+- `test_missing_mode_edge_cases`：測試眾數插補的邊界情況
+- `test_missing_mode_inverse_transform`：測試眾數插補逆轉換
+- `test_missing_handlers_proc_type`：測試 PROC_TYPE 屬性驗證
+- `test_missing_handlers_different_data_types`：測試整數、浮點數、字串、日期時間資料處理
+- `test_missing_handlers_extreme_values`：測試極大/極小數值和邊界情況
+- `test_missing_handlers_all_missing_data`：測試整個欄位缺失時的行為
+- `test_missing_handlers_parameter_validation`：測試 na_percentage 和自定義值參數
+- `test_missing_handlers_single_value_data`：測試單值資料處理
+- `test_missing_handlers_empty_data`：測試空資料處理
+- `test_missing_handlers_infinite_values`：測試無限值處理
+- `test_missing_handlers_na_percentage_threshold`：測試 na_percentage 閾值功能
+- `test_missing_handlers_imputation_index_setup`：測試缺失值恢復和索引追蹤
+- `test_missing_handlers_mixed_data_types`：測試混合資料類型情境
+- `test_missing_handlers_datetime_handling`：測試日期時間資料缺失值處理
+- `test_missing_handlers_string_data`：測試字串資料缺失值處理
+- `test_missing_handlers_boolean_data`：測試布林資料缺失值處理
+- `test_missing_handlers_large_dataset`：測試大型資料集的效能
+- `test_missing_handlers_consistency`：測試多次執行的一致性
+
+#### 編碼器處理測試（26 個測試）
+> tests/processor/test_encoder.py
+
+- `test_encoder_uniform_basic`：測試分類資料轉換的基本功能
+- `test_encoder_uniform_missing_values`：測試缺失值處理和 NaN 保留
+- `test_encoder_uniform_unknown_category`：測試未知類別錯誤處理
+- `test_encoder_uniform_invalid_range`：測試逆轉換的無效範圍錯誤處理
+- `test_encoder_uniform_high_cardinality`：測試高基數資料處理
+- `test_encoder_uniform_single_category`：測試單類別資料處理
+- `test_encoder_label_basic`：測試基本標籤編碼功能
+- `test_encoder_label_numeric_categorical`：測試數值分類資料處理
+- `test_encoder_label_unknown_category`：測試未知類別錯誤處理
+- `test_encoder_label_proc_type`：測試 PROC_TYPE 屬性驗證
+- `test_encoder_onehot_basic`：測試基本獨熱編碼功能
+- `test_encoder_onehot_sparse_disabled`：測試稀疏輸出停用驗證
+- `test_encoder_minguo_date_basic`：測試基本民國日期轉換功能
+- `test_encoder_minguo_date_string_format`：測試字串格式日期處理
+- `test_encoder_minguo_date_fix_strategies`：測試無效日期的修復策略
+- `test_encoder_minguo_date_output_formats`：測試多種輸出格式（日期、日期時間、字串）
+- `test_encoder_date_diff_basic`：測試基本日期差異計算
+- `test_encoder_date_diff_time_units`：測試不同時間單位（天、週、月、年）
+- `test_encoder_date_diff_absolute_value`：測試絕對值選項處理
+- `test_encoder_date_diff_inverse_transform`：測試逆轉換功能
+- `test_encoder_date_diff_missing_columns`：測試缺失欄位的錯誤處理
+- `test_encoder_date_diff_invalid_time_unit`：測試無效時間單位驗證
+- `test_encoder_date_diff_reference_type`：測試參考類型驗證
+- `test_encoder_edge_cases_empty_data`：測試空資料處理
+- `test_encoder_edge_cases_single_value`：測試單值資料處理
+- `test_encoder_edge_cases_all_missing`：測試全缺失資料情境
+
+#### 異常值檢測測試（16 個測試）
+> tests/processor/test_outlier.py
+
+- `test_outlier_zscore_no_outliers`：測試無異常值情境驗證
+- `test_outlier_zscore_with_outliers`：測試極值的異常值檢測
+- `test_outlier_zscore_threshold`：測試 Z 分數閾值驗證（>3 個標準差）
+- `test_outlier_iqr_no_outliers`：測試無異常值情境驗證
+- `test_outlier_iqr_with_outliers`：測試使用四分位距的異常值檢測
+- `test_outlier_iqr_threshold`：測試 IQR 閾值驗證（1.5 * IQR）
+- `test_outlier_handler_abstract_methods`：測試抽象方法驗證
+- `test_outlier_handler_unimplemented_methods`：測試未實作方法的錯誤處理
+- `test_outlier_single_value_data`：測試單值資料（均勻資料）
+- `test_outlier_empty_data`：測試空資料錯誤處理
+- `test_outlier_missing_values`：測試異常值檢測中的缺失值
+- `test_outlier_extreme_values`：測試極值處理
+- `test_outlier_different_data_types`：測試不同資料類型（整數、浮點數）
+- `test_outlier_datetime_data`：測試日期時間資料異常值檢測
+- `test_outlier_large_dataset`：測試大型資料集效能測試
+- `test_outlier_consistency`：測試多次執行的一致性
+
+#### 縮放測試（15 個測試）
+> tests/processor/test_scaler.py
+
+- `test_scaler_standard_unfitted`：測試未擬合錯誤處理
+- `test_scaler_standard_basic`：測試標準縮放功能（平均值=0，標準差=1）
+- `test_scaler_zero_center_unfitted`：測試未擬合錯誤處理
+- `test_scaler_zero_center_basic`：測試零中心縮放（平均值=0，無標準差縮放）
+- `test_scaler_minmax_unfitted`：測試未擬合錯誤處理
+- `test_scaler_minmax_basic`：測試最小-最大縮放至 [0,1] 範圍
+- `test_scaler_log_unfitted`：測試未擬合錯誤處理
+- `test_scaler_log_basic`：測試對數轉換功能
+- `test_scaler_log_negative_values`：測試負值錯誤處理
+- `test_scaler_time_anchor_unfitted`：測試未擬合錯誤處理
+- `test_scaler_time_anchor_basic`：測試時間錨點縮放與參考序列
+- `test_scaler_time_anchor_time_units`：測試不同時間單位（天、秒）
+- `test_scaler_time_anchor_length_mismatch`：測試長度不匹配錯誤處理
+- `test_scaler_time_anchor_invalid_unit`：測試無效時間單位驗證
+- `test_scaler_time_anchor_invalid_reference`：測試無效參考類型驗證
+
+#### 離散化測試（16 個測試）
+> tests/processor/test_discretizing.py
+
+- `test_discretizing_handler_abstract_methods`：測試基礎處理器抽象方法驗證
+- `test_discretizing_handler_unimplemented_methods`：測試未實作方法的錯誤處理
+- `test_discretizing_kbins_basic`：測試基本離散化功能
+- `test_discretizing_kbins_different_bins`：測試不同箱數（2、5、10、20）
+- `test_discretizing_kbins_inverse_transform`：測試逆轉換功能
+- `test_discretizing_kbins_missing_values`：測試 NA 保留的缺失值處理
+- `test_discretizing_kbins_constant_data`：測試邊界情況（常數資料、空資料）
+- `test_discretizing_kbins_extreme_values`：測試極值處理
+- `test_discretizing_kbins_data_types`：測試不同資料類型相容性
+- `test_discretizing_kbins_large_dataset`：測試大型資料集處理
+- `test_discretizing_kbins_consistency`：測試一致性驗證
+- `test_discretizing_kbins_bin_initialization`：測試箱初始化和邊界處理
+- `test_discretizing_kbins_drop_na`：測試丟棄 NA 方法功能
+- `test_discretizing_kbins_datetime_data`：測試日期時間資料離散化
+- `test_discretizing_kbins_structure_preservation`：測試逆轉換中的結構保留
+- `test_discretizing_kbins_nan_handling`：測試 NaN 資料處理與適當錯誤訊息
+
+**驗證的關鍵特性：**
+- **全面的資料類型支援**：所有處理器處理數值、分類、日期時間和物件資料類型
+- **缺失值整合**：在所有處理器中適當處理 NaN、None 和 pd.NA
+- **邊界情況穩健性**：廣泛測試空資料、單值、極值和邊界條件
+- **錯誤處理**：對無效配置和資料提供適當驗證和錯誤訊息
+- **逆轉換完整性**：所有處理器透過正向和逆向轉換維持資料完整性
+- **效能驗證**：使用大型資料集和高基數資料進行測試
+- **配置靈活性**：支援自定義參數和處理序列
+
+> **架構整合**：所有處理器測試已更新以配合新的 Metadater 架構，使用 SchemaMetadata 和 FieldStats 進行類型資訊和詮釋資料處理。處理器模組達到 100% 測試覆蓋率，全面驗證所有處理工作流程、錯誤條件和邊界情況。
+
 ### `Metadater`
 
 #### 欄位函數
