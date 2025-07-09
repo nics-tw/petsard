@@ -6,11 +6,11 @@ prev: docs/tutorial/external-synthesis-default-evaluation
 next: docs/tutorial/use-cases
 ---
 
-PETsARD 提供預先建置的 Docker 容器，方便部署和使用。本指南將說明如何從 GitHub Container Registry 開始使用 Docker 容器。
+PETsARD 提供預先建置的 Docker 容器和本地開發環境。本指南將說明如何開始使用 Docker 容器。
 
 ## 快速開始
 
-### 拉取並運行容器
+### 選項 1：預先建置的容器（推薦給使用者）
 
 ```bash
 # 拉取最新版本
@@ -20,15 +20,34 @@ docker pull ghcr.io/nics-tw/petsard:latest
 docker run -it --rm ghcr.io/nics-tw/petsard:latest
 ```
 
+### 選項 2：本地開發環境
+
+如果您有 PETsARD 原始碼，可以使用開發環境：
+
+```bash
+# 複製儲存庫（如果尚未完成）
+git clone https://github.com/nics-tw/petsard.git
+cd petsard
+
+# 啟動包含 Jupyter Lab 的開發環境
+./scripts/dev-docker.sh up
+
+# 在 http://localhost:8888 存取 Jupyter Lab
+```
+
 ### 使用您的資料運行
 
 ```bash
-# 掛載資料目錄並運行
+# 使用預先建置的容器
 docker run -it --rm \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/output:/workspace/output \
   ghcr.io/nics-tw/petsard:latest \
   bash
+
+# 使用本地開發環境
+./scripts/dev-docker.sh up
+# 然後在 http://localhost:8888 存取 Jupyter Lab
 ```
 
 ## 可用標籤
@@ -81,6 +100,54 @@ docker run -it --rm \
     done
   "
 ```
+
+## 本地開發環境管理
+
+如果您正在使用 PETsARD 原始碼，可以使用內建的開發環境管理腳本：
+
+### 可用指令
+
+```bash
+# 啟動開發環境（包含 Jupyter Lab）
+./scripts/dev-docker.sh up
+
+# 停止開發環境
+./scripts/dev-docker.sh down
+
+# 建置開發映像檔
+./scripts/dev-docker.sh build
+
+# 存取容器 shell
+./scripts/dev-docker.sh shell
+
+# 在容器中運行測試
+./scripts/dev-docker.sh test
+
+# 查看容器日誌
+./scripts/dev-docker.sh logs
+
+# 清理容器和映像檔
+./scripts/dev-docker.sh clean
+```
+
+### 生產版 vs 開發版模式
+
+```bash
+# 開發模式（預設）- 包含 Jupyter Lab 和開發工具
+./scripts/dev-docker.sh build
+./scripts/dev-docker.sh up
+
+# 生產模式 - 最小運行時環境
+./scripts/dev-docker.sh prod build
+./scripts/dev-docker.sh prod up
+```
+
+### 開發功能
+
+- **Jupyter Lab**：可在 http://localhost:8888 存取
+- **即時程式碼重載**：原始碼的變更會立即反映
+- **完整開發堆疊**：包含測試、文檔和開發工具
+- **卷掛載**：您的本地檔案會掛載到容器中
 
 ## 環境變數
 

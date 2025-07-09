@@ -19,17 +19,22 @@ WORKDIR /app
 
 # Copy dependency files first for better layer caching
 # 先複製依賴檔案以優化層快取
-COPY pyproject.toml uv.lock requirements.txt ./
+COPY pyproject.toml uv.lock ./
 
 # Create and activate virtual environment
 # 建立並啟用虛擬環境
 RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies with better error handling
-# 安裝 Python 依賴，包含錯誤處理機制
-RUN uv pip install -r requirements.txt \
-    || (echo "uv install failed, falling back to pip" && pip install --no-cache-dir -r requirements.txt --timeout 300 --retries 3)
+# Install Python dependencies from uv.lock (excluding local package)
+# 從 uv.lock 安裝 Python 依賴（排除本地套件）
+RUN uv pip sync uv.lock --no-dev || \
+    (echo "uv sync failed, installing core dependencies with pip" && \
+     pip install --no-cache-dir \
+     numpy pandas scipy scikit-learn torch \
+     faker pydantic pyyaml click rich tqdm \
+     matplotlib seaborn plotly networkx \
+     --timeout 300 --retries 3)
 
 # Copy source code
 # 複製原始碼
@@ -38,9 +43,9 @@ COPY demo/ ./demo/
 COPY templates/ ./templates/
 COPY README.md LICENSE CHANGELOG.md ./
 
-# Install PETsARD package in development mode
-# 以開發模式安裝 PETsARD 套件
-RUN uv pip install -e . || pip install --no-cache-dir -e .
+# Install PETsARD package in production mode
+# 以生產模式安裝 PETsARD 套件
+RUN pip install --no-cache-dir -e .
 
 # Production stage
 # 生產階段

@@ -93,6 +93,146 @@ docker-compose up -d petsard-jupyter
 - Port 8888 exposed for browser access
 - No authentication required for development
 
+## Development Environment Management
+
+### Unified Development Script
+
+PETsARD provides a unified script for managing both development and production Docker environments:
+
+```bash
+# Development mode (default)
+./scripts/dev-docker.sh <command>
+
+# Production mode
+./scripts/dev-docker.sh prod <command>
+BUILD_TYPE=prod ./scripts/dev-docker.sh <command>
+```
+
+#### Available Commands
+
+```bash
+# Environment management
+./scripts/dev-docker.sh up          # Start environment
+./scripts/dev-docker.sh down        # Stop and remove environment
+./scripts/dev-docker.sh build       # Build images
+./scripts/dev-docker.sh shell       # Access container shell
+./scripts/dev-docker.sh test        # Run tests in container
+./scripts/dev-docker.sh logs        # View container logs
+./scripts/dev-docker.sh clean       # Clean up images and containers
+./scripts/dev-docker.sh help        # Show all available commands
+```
+
+### Development vs Production Environments
+
+#### Development Environment Features
+
+- **Jupyter Lab Integration** - Full Jupyter environment accessible at http://localhost:8888
+- **Live Code Reloading** - Volume mounts for real-time development
+- **Complete Development Stack** - All dependencies including testing and documentation tools
+- **Larger Image Size** - ~1.5GB with all development tools
+
+```bash
+# Start development environment
+./scripts/dev-docker.sh up
+# Access Jupyter Lab at http://localhost:8888
+```
+
+#### Production Environment Features
+
+- **Minimal Runtime** - Only essential dependencies
+- **Smaller Image Size** - ~450MB optimized for deployment
+- **Security Optimized** - Non-root user execution
+- **Health Checks** - Built-in container health monitoring
+
+```bash
+# Build and run production environment
+./scripts/dev-docker.sh prod build
+./scripts/dev-docker.sh prod up
+```
+
+### Configuration Files
+
+The development environment uses these key files:
+
+- **`Dockerfile.dev`** - Multi-stage development image with Jupyter
+- **`Dockerfile`** - Production-optimized image
+- **`docker-compose.dev.yml`** - Development services configuration
+- **`scripts/dev-docker.sh`** - Unified management script
+
+### Environment Variables
+
+Both environments automatically configure:
+
+```bash
+# Python optimization
+PYTHONPATH=/app
+PYTHONUNBUFFERED=1
+PYTHONDONTWRITEBYTECODE=1
+
+# Development-specific (dev mode only)
+JUPYTER_ENABLE_LAB=yes
+JUPYTER_TOKEN=""
+JUPYTER_ALLOW_ROOT=1
+PETSARD_ENV=development
+```
+
+## Development Workflows
+
+### Feature Development with New Script
+
+1. **Setup Development Environment**
+   ```bash
+   # Start development environment with Jupyter
+   ./scripts/dev-docker.sh up
+   
+   # Access Jupyter Lab at http://localhost:8888
+   # Or access container shell
+   ./scripts/dev-docker.sh shell
+   ```
+
+2. **Code and Test**
+   ```bash
+   # Run tests in development container
+   ./scripts/dev-docker.sh test
+   
+   # Or manually inside container
+   ./scripts/dev-docker.sh shell
+   python -m pytest tests/
+   python -m petsard.executor demo/use-cases/data-constraining.yaml
+   ```
+
+3. **Test Both Environments**
+   ```bash
+   # Test development build
+   ./scripts/dev-docker.sh build
+   
+   # Test production build
+   ./scripts/dev-docker.sh prod build
+   
+   # Run comprehensive tests
+   ./scripts/test-docker.sh
+   ```
+
+### Research and Experimentation Workflow
+
+1. **Start Jupyter Environment**
+   ```bash
+   ./scripts/dev-docker.sh up
+   # Navigate to http://localhost:8888
+   ```
+
+2. **Create and Run Notebooks**
+   - Use the `/app/notebooks` directory for persistent notebooks
+   - Access PETsARD modules directly: `import petsard`
+   - Experiment with different configurations
+
+3. **Export Results**
+   ```bash
+   # Access container to export results
+   ./scripts/dev-docker.sh shell
+   # Your notebooks and data persist in mounted volumes
+   ```
+
 ## Testing and Validation
 
 ### Comprehensive Testing Script
