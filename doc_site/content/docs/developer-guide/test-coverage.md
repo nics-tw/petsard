@@ -98,6 +98,171 @@ Tests for benchmark dataset handling:
 
 ## Data Processing
 
+### `Processor`
+
+> tests/processor/test_processor.py, tests/processor/test_*.py
+
+Tests for the main Processor functionality and all processing components with **100% test coverage (124/124 tests passing)**:
+
+#### Core Processor Tests (20 tests)
+> tests/processor/test_processor.py
+
+- `test_processor_initialization`: Tests Processor initialization with metadata and configuration
+- `test_processor_initialization_with_config`: Tests custom configuration initialization
+- `test_generate_config`: Tests automatic configuration generation based on metadata
+- `test_get_config`: Tests configuration retrieval with column filtering and printing options
+- `test_update_config`: Tests configuration updates and validation
+- `test_sequence_validation`: Tests processing sequence validation and ordering
+- `test_fit_default_sequence`: Tests fitting with default processing sequence
+- `test_fit_custom_sequence`: Tests fitting with custom processing sequence
+- `test_transform_before_fit`: Tests error handling when transforming before fitting
+- `test_transform_after_fit`: Tests data transformation after proper fitting
+- `test_inverse_transform_before_fit`: Tests error handling for inverse transform before fitting
+- `test_inverse_transform_after_fit`: Tests inverse transformation functionality
+- `test_get_changes`: Tests configuration change tracking and comparison
+- `test_field_metadata_methods`: Tests field metadata access and manipulation
+- `test_global_na_percentage`: Tests global missing value percentage handling
+- `test_field_na_percentage`: Tests field-specific missing value percentage handling
+- `test_extreme_values_processing`: Tests extreme value handling in processing pipeline
+- `test_empty_metadata`: Tests processor behavior with empty metadata
+- `test_single_column_data`: Tests single column data processing
+- `test_all_missing_data`: Tests processing of data with all missing values
+
+#### Missing Value Processing Tests (31 tests)
+> tests/processor/test_missing.py
+
+- `test_missing_mean_basic`: Tests mean imputation for numerical data with various scenarios
+- `test_missing_mean_edge_cases`: Tests mean imputation with edge cases and extreme values
+- `test_missing_mean_inverse_transform`: Tests mean imputation inverse transformation
+- `test_missing_median_basic`: Tests median imputation with edge cases and data type handling
+- `test_missing_median_edge_cases`: Tests median imputation with extreme values
+- `test_missing_median_inverse_transform`: Tests median imputation inverse transformation
+- `test_missing_simple_basic`: Tests custom value imputation with parameter validation
+- `test_missing_simple_edge_cases`: Tests custom value imputation with edge cases
+- `test_missing_simple_inverse_transform`: Tests custom value imputation inverse transformation
+- `test_missing_drop_basic`: Tests row deletion for missing values
+- `test_missing_drop_edge_cases`: Tests row deletion with edge cases
+- `test_missing_drop_inverse_transform`: Tests row deletion inverse transformation
+- `test_missing_mode_basic`: Tests mode imputation for categorical and numerical data
+- `test_missing_mode_edge_cases`: Tests mode imputation with edge cases
+- `test_missing_mode_inverse_transform`: Tests mode imputation inverse transformation
+- `test_missing_handlers_proc_type`: Tests PROC_TYPE attributes validation
+- `test_missing_handlers_different_data_types`: Tests integer, float, string, datetime data handling
+- `test_missing_handlers_extreme_values`: Tests with very large/small numbers and edge cases
+- `test_missing_handlers_all_missing_data`: Tests behavior when entire columns are missing
+- `test_missing_handlers_parameter_validation`: Tests na_percentage and custom value parameters
+- `test_missing_handlers_single_value_data`: Tests single value data handling
+- `test_missing_handlers_empty_data`: Tests empty data handling
+- `test_missing_handlers_infinite_values`: Tests infinite values handling
+- `test_missing_handlers_na_percentage_threshold`: Tests na_percentage threshold functionality
+- `test_missing_handlers_imputation_index_setup`: Tests missing value restoration and index tracking
+- `test_missing_handlers_mixed_data_types`: Tests mixed data type scenarios
+- `test_missing_handlers_datetime_handling`: Tests datetime data missing value processing
+- `test_missing_handlers_string_data`: Tests string data missing value processing
+- `test_missing_handlers_boolean_data`: Tests boolean data missing value processing
+- `test_missing_handlers_large_dataset`: Tests performance with large datasets
+- `test_missing_handlers_consistency`: Tests consistency across multiple runs
+
+#### Encoder Processing Tests (26 tests)
+> tests/processor/test_encoder.py
+
+- `test_encoder_uniform_basic`: Tests basic functionality with categorical data transformation
+- `test_encoder_uniform_missing_values`: Tests missing value handling and NaN preservation
+- `test_encoder_uniform_unknown_category`: Tests unknown category error handling
+- `test_encoder_uniform_invalid_range`: Tests invalid range error handling for inverse transform
+- `test_encoder_uniform_high_cardinality`: Tests high cardinality data processing
+- `test_encoder_uniform_single_category`: Tests single category data handling
+- `test_encoder_label_basic`: Tests basic label encoding functionality
+- `test_encoder_label_numeric_categorical`: Tests numeric categorical data handling
+- `test_encoder_label_unknown_category`: Tests unknown category error handling
+- `test_encoder_label_proc_type`: Tests PROC_TYPE attribute validation
+- `test_encoder_onehot_basic`: Tests basic one-hot encoding functionality
+- `test_encoder_onehot_sparse_disabled`: Tests sparse output disabled verification
+- `test_encoder_minguo_date_basic`: Tests basic Minguo date conversion functionality
+- `test_encoder_minguo_date_string_format`: Tests string format date handling
+- `test_encoder_minguo_date_fix_strategies`: Tests fix strategies for invalid dates
+- `test_encoder_minguo_date_output_formats`: Tests multiple output formats (date, datetime, string)
+- `test_encoder_date_diff_basic`: Tests basic date difference calculation
+- `test_encoder_date_diff_time_units`: Tests different time units (days, weeks, months, years)
+- `test_encoder_date_diff_absolute_value`: Tests absolute value option handling
+- `test_encoder_date_diff_inverse_transform`: Tests inverse transformation functionality
+- `test_encoder_date_diff_missing_columns`: Tests error handling for missing columns
+- `test_encoder_date_diff_invalid_time_unit`: Tests invalid time unit validation
+- `test_encoder_date_diff_reference_type`: Tests reference type validation
+- `test_encoder_edge_cases_empty_data`: Tests empty data handling
+- `test_encoder_edge_cases_single_value`: Tests single value data processing
+- `test_encoder_edge_cases_all_missing`: Tests all missing data scenarios
+
+#### Outlier Detection Tests (16 tests)
+> tests/processor/test_outlier.py
+
+- `test_outlier_zscore_no_outliers`: Tests no outliers scenario validation
+- `test_outlier_zscore_with_outliers`: Tests outlier detection with extreme values
+- `test_outlier_zscore_threshold`: Tests Z-score threshold validation (>3 standard deviations)
+- `test_outlier_iqr_no_outliers`: Tests no outliers scenario validation
+- `test_outlier_iqr_with_outliers`: Tests outlier detection using interquartile range
+- `test_outlier_iqr_threshold`: Tests IQR threshold validation (1.5 * IQR)
+- `test_outlier_handler_abstract_methods`: Tests abstract method validation
+- `test_outlier_handler_unimplemented_methods`: Tests error handling for unimplemented methods
+- `test_outlier_single_value_data`: Tests single value data (uniform data)
+- `test_outlier_empty_data`: Tests empty data error handling
+- `test_outlier_missing_values`: Tests missing values in outlier detection
+- `test_outlier_extreme_values`: Tests extreme values processing
+- `test_outlier_different_data_types`: Tests different data types (integer, float)
+- `test_outlier_datetime_data`: Tests datetime data outlier detection
+- `test_outlier_large_dataset`: Tests large dataset performance testing
+- `test_outlier_consistency`: Tests consistency across multiple runs
+
+#### Scaling Tests (15 tests)
+> tests/processor/test_scaler.py
+
+- `test_scaler_standard_unfitted`: Tests unfitted error handling
+- `test_scaler_standard_basic`: Tests standard scaling functionality (mean=0, std=1)
+- `test_scaler_zero_center_unfitted`: Tests unfitted error handling
+- `test_scaler_zero_center_basic`: Tests zero-center scaling (mean=0, no std scaling)
+- `test_scaler_minmax_unfitted`: Tests unfitted error handling
+- `test_scaler_minmax_basic`: Tests min-max scaling to [0,1] range
+- `test_scaler_log_unfitted`: Tests unfitted error handling
+- `test_scaler_log_basic`: Tests log transformation functionality
+- `test_scaler_log_negative_values`: Tests negative value error handling
+- `test_scaler_time_anchor_unfitted`: Tests unfitted error handling
+- `test_scaler_time_anchor_basic`: Tests time anchor scaling with reference series
+- `test_scaler_time_anchor_time_units`: Tests different time units (days, seconds)
+- `test_scaler_time_anchor_length_mismatch`: Tests length mismatch error handling
+- `test_scaler_time_anchor_invalid_unit`: Tests invalid time unit validation
+- `test_scaler_time_anchor_invalid_reference`: Tests invalid reference type validation
+
+#### Discretizing Tests (16 tests)
+> tests/processor/test_discretizing.py
+
+- `test_discretizing_handler_abstract_methods`: Tests base handler abstract method validation
+- `test_discretizing_handler_unimplemented_methods`: Tests error handling for unimplemented methods
+- `test_discretizing_kbins_basic`: Tests basic discretization functionality
+- `test_discretizing_kbins_different_bins`: Tests different bin numbers (2, 5, 10, 20)
+- `test_discretizing_kbins_inverse_transform`: Tests inverse transformation functionality
+- `test_discretizing_kbins_missing_values`: Tests missing value handling with NA preservation
+- `test_discretizing_kbins_constant_data`: Tests edge cases (constant data, empty data)
+- `test_discretizing_kbins_extreme_values`: Tests extreme values processing
+- `test_discretizing_kbins_data_types`: Tests different data types compatibility
+- `test_discretizing_kbins_large_dataset`: Tests large dataset processing
+- `test_discretizing_kbins_consistency`: Tests consistency validation
+- `test_discretizing_kbins_bin_initialization`: Tests bin initialization and edge handling
+- `test_discretizing_kbins_drop_na`: Tests drop NA method functionality
+- `test_discretizing_kbins_datetime_data`: Tests datetime data discretization
+- `test_discretizing_kbins_structure_preservation`: Tests structure preservation in inverse transform
+- `test_discretizing_kbins_nan_handling`: Tests NaN data handling with proper error messages
+
+**Key Features Validated:**
+- **Comprehensive Data Type Support**: All processors handle numerical, categorical, datetime, and object data types
+- **Missing Value Integration**: Proper handling of NaN, None, and pd.NA across all processors
+- **Edge Case Robustness**: Extensive testing of empty data, single values, extreme values, and boundary conditions
+- **Error Handling**: Proper validation and error messages for invalid configurations and data
+- **Inverse Transform Integrity**: All processors maintain data integrity through forward and inverse transformations
+- **Performance Validation**: Testing with large datasets and high cardinality data
+- **Configuration Flexibility**: Support for custom parameters and processing sequences
+
+> **Architecture Integration**: All processor tests have been updated to work with the new Metadater architecture, using SchemaMetadata and FieldStats for type information and metadata handling. The processor module achieves 100% test coverage with comprehensive validation of all processing workflows, error conditions, and edge cases.
+
 ### `Metadater`
 
 #### Field Functions
