@@ -1,0 +1,204 @@
+name: 🐳 Build and Publish Docker Image
+
+on:
+  # 當 semantic release workflow 完成時觸發
+  workflow_run:
+    workflows: ["Semantic Release"]
+    types:
+      - completed
+    branches:
+      - main
+      - dev
+  # 當有新的版本標籤時觸發
+  push:
+    tags:
+      - 'v*'
+  # PR 時仍然建置但不推送
+  pull_request:
+    branches:
+      - main
+  # 手動觸發
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # 只有在 semantic release 成功或者是標籤推送時才執行
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    permissions:
+      contents: read
+      packages: write
+      # 這是用於 attestations
+      id-token: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # 對於 workflow_run 事件，我們需要 checkout 到最新的 commit
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+          fetch-depth: 0
+
+      - name: 🔍 Debug - Check current version (after semantic release)
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Head branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Current ref: ${{ github.ref }}"
+          echo "Current SHA: ${{ github.sha }}"
+          
+          # 檢查 pyproject.toml 中的版本號
+          if [ -f "pyproject.toml" ]; then
+            echo "=== pyproject.toml version ==="
+            grep -E "^version\s*=" pyproject.toml || echo "Version not found in pyproject.toml"
+          fi
+          
+          # 檢查最新的 Git 標籤
+          echo "=== Latest Git tags ==="
+          git tag --sort=-version:refname | head -5 || echo "No tags found"
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # set latest tag for default branch
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🐳 Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🔏 Generate artifact attestation
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          push-to-registry: true
+
+  test-image:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # 只有在成功建置且不是 PR 時才測試
+    if: |
+      github.event_name != 'pull_request' && (
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      )
+    
+    steps:
+      - name: 🔐 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧪 Test Docker image
+        run: |
+          # 取得映像標籤
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            TAG=latest
+          else
+            TAG=${GITHUB_REF#refs/heads/}
+          fi
+          
+          IMAGE_URL="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+          echo "Testing image: $IMAGE_URL"
+          
+          # 測試映像是否可以正常運行
+          docker run --rm $IMAGE_URL python -c "
+          import petsard
+          import importlib.metadata
+          print('✅ PETsARD 套件載入成功')
+          
+          # 使用 importlib.metadata 獲取版本號（配合 semantic release）
+          try:
+              version = importlib.metadata.version('petsard')
+              print(f'📦 版本: {version}')
+          except Exception as e:
+              print(f'⚠️  版本獲取失敗: {e}')
+          
+          # 測試基本功能
+          from petsard.executor import Executor
+          print('✅ Executor 類別載入成功')
+          
+          # 測試模組匯入
+          from petsard import loader, constrainer, synthesizer, evaluator
+          print('✅ 所有主要模組載入成功')
+          
+          # 測試健康檢查功能
+          try:
+              health_version = importlib.metadata.version('petsard')
+              print(f'🏥 健康檢查通過 - PETsARD v{health_version}')
+          except Exception as e:
+              print(f'❌ 健康檢查失敗: {e}')
+              exit(1)
+          
+          print('🎉 Docker 映像測試通過！')
+          "
+
+      - name: 📊 Display image information
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            TAG=latest
+          else
+            TAG=${GITHUB_REF#refs/heads/}
+          fi
+          
+          IMAGE_URL="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+          echo "## 📦 Docker 映像資訊" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**映像位置:** \`$IMAGE_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**使用方式:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# 拉取映像" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull $IMAGE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# 運行容器" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -it --rm $IMAGE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# 運行範例" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -it --rm -v \$(pwd):/workspace $IMAGE_URL bash" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
