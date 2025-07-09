@@ -1,0 +1,109 @@
+# Git 相關
+.git
+.gitignore
+.github/
+
+# Python 相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虛擬環境
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# IDE 相關
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 測試相關
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# 文件網站
+doc_site/
+docs/
+
+# 開發工具
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 作業系統相關
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 日誌檔案
+*.log
+
+# 臨時檔案
+*.tmp
+*.temp
+
+# 備份檔案
+*.bak
+*.backup
+
+# 壓縮檔案
+*.zip
+*.tar.gz
+*.rar
+
+# 本地設定檔案
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 專案特定排除
+scripts/
+tests/
+module_functional_designs/
+
+# 保留重要檔案的註解
+# 包含的重要檔案：
+# - petsard/ (主要套件)
+# - demo/ (範例)
+# - templates/ (模板)
+# - pyproject.toml (專案設定)
+# - requirements.txt (依賴)
+# - README.md, LICENSE, CHANGELOG.md (文件)

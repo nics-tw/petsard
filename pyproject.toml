@@ -3,7 +3,6 @@ name = "petsard"
 version = "1.4.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
-    { name = "alexchen830", email = "alexchen830@gmail.com" },
     { name = "matheme-justyn", email = "matheme.justyn@gmail.com" },
 ]
 keywords = [
@@ -28,10 +27,9 @@ classifiers = [
     # 自然語言 Natural language：英文與正體中文 English and Traditional Chinese
     "Natural Language :: English",
     "Natural Language :: Chinese (Traditional)",
-    # 程式語言 Programming language：Python 3.10、3.11 和 3.12
+    # 程式語言 Programming language：Python 3.10 和 3.11
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     # 目標使用者 Target audience：
     #   開發者 Developers、
     #   金融和保險業 Financial and Insurance Industry、
@@ -41,7 +39,7 @@ classifiers = [
     "Intended Audience :: Legal Industry",
 ]
 
-requires-python = ">=3.10,<3.13" # Python 3.13 not yet supported due to dependency conflicts
+requires-python = ">=3.10,<3.12" # Python 3.12 not supported due to anonymeter dependency conflicts
 
 dependencies = [
     "anonymeter>=1.0.0,<2",
@@ -146,7 +144,7 @@ build-backend = "hatchling.build"  # 使用 Hatchling 的後端建置套件 Uses
 [tool.ruff]
 # 基本設定
 line-length = 88
-target-version = "py38"
+target-version = "py311"
 
 # 選擇要檢查的規則
 select = [
