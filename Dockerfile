@@ -1,6 +1,6 @@
 # Multi-stage build for smaller final image
 # 多階段建置以減少最終映像檔大小
-FROM python:3.12-slim AS builder
+FROM python:3.11-slim AS builder
 
 # Install build dependencies
 # 安裝建置依賴
@@ -44,7 +44,7 @@ RUN uv pip install -e . || pip install --no-cache-dir -e .
 
 # Production stage
 # 生產階段
-FROM python:3.12-slim AS production
+FROM python:3.11-slim AS production
 
 # Install minimal runtime dependencies only
 # 僅安裝最小運行時依賴
@@ -98,7 +98,7 @@ CMD ["python", "-c", "import petsard; from importlib.metadata import version; pr
 # 容器註冊表的元資料標籤
 ARG BUILD_DATE
 ARG VCS_REF
-LABEL maintainer="alexchen830@gmail.com, matheme.justyn@gmail.com" \
+LABEL maintainer="matheme.justyn@gmail.com" \
       description="PETsARD - Privacy Enhancing Technologies Analysis, Research, and Development" \
       org.opencontainers.image.source="https://github.com/nics-tw/petsard" \
       org.opencontainers.image.documentation="https://nics-tw.github.io/petsard/" \

@@ -134,7 +134,7 @@ docker run --rm \
 The Dockerfile uses a multi-stage build for optimization:
 
 ### Builder Stage
-- Based on `python:3.12-slim`
+- Based on `python:3.11-slim`
 - Installs build dependencies and compilation tools
 - Uses `uv` package manager for faster dependency installation
 - Builds virtual environment in `/opt/venv`
@@ -147,7 +147,7 @@ The Dockerfile uses a multi-stage build for optimization:
 - Includes health check using `importlib.metadata`
 
 ### Key Features
-- **Python 3.12** - Latest stable Python version
+- **Python 3.11** - Stable Python version with anonymeter compatibility
 - **Virtual Environment Isolation** - Dependencies isolated in `/opt/venv`
 - **Security** - Non-root user execution
 - **Health Monitoring** - Built-in health checks
@@ -247,7 +247,7 @@ Images are published to GitHub Container Registry:
 ### Runtime Optimization
 
 - **Virtual Environment** - Isolated Python environment
-- **Minimal Base Image** - `python:3.12-slim` for smaller footprint
+- **Minimal Base Image** - `python:3.11-slim` for smaller footprint
 - **Non-root Execution** - Security and permission optimization
 
 ## Troubleshooting

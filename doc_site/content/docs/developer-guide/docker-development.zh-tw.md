@@ -134,7 +134,7 @@ docker run --rm \
 Dockerfile 使用多階段建置進行優化：
 
 ### 建置階段
-- 基於 `python:3.12-slim`
+- 基於 `python:3.11-slim`
 - 安裝建置依賴和編譯工具
 - 使用 `uv` 套件管理器進行更快的依賴安裝
 - 在 `/opt/venv` 建置虛擬環境
@@ -147,7 +147,7 @@ Dockerfile 使用多階段建置進行優化：
 - 包含使用 `importlib.metadata` 的健康檢查
 
 ### 主要特點
-- **Python 3.12** - 最新穩定 Python 版本
+- **Python 3.11** - 穩定的 Python 版本，與 anonymeter 相容
 - **虛擬環境隔離** - 依賴隔離在 `/opt/venv`
 - **安全性** - 非 root 使用者執行
 - **健康監控** - 內建健康檢查
@@ -247,7 +247,7 @@ workflow_run:
 ### 運行時優化
 
 - **虛擬環境** - 隔離的 Python 環境
-- **最小基礎映像檔** - `python:3.12-slim` 以減少佔用空間
+- **最小基礎映像檔** - `python:3.11-slim` 以減少佔用空間
 - **非 root 執行** - 安全性和權限優化
 
 ## 疑難排解
