@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: petsard-dev-docker:latest
+    image: petsard-dev:latest
     container_name: petsard-dev
     ports:
       - "8888:8888"  # Jupyter Lab
