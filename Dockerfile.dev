@@ -1,15 +1,22 @@
-# Single-stage optimized build for development environment using Alpine
-# 單階段優化建置開發環境使用 Alpine
-FROM python:3.11-alpine
+# Single-stage optimized build for development environment
+# 單階段優化建置開發環境
+FROM python:3.11-slim
 
 # Install system dependencies in a single layer and clean up
 # 單層安裝系統依賴並清理
-RUN apk add --no-cache \
-    build-base \
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    build-essential \
     git \
     curl \
-    bash \
-    linux-headers
+    wget \
+    vim \
+    nano \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && apt-get autoremove -y
 
 # Set environment variables for Python optimization and Jupyter
 # 設定 Python 優化和 Jupyter 環境變數
@@ -21,9 +28,9 @@ ENV PYTHONPATH=/app \
     JUPYTER_ALLOW_ROOT=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Create non-root user and directories (Alpine compatible)
-# 建立非 root 使用者和目錄 (Alpine 相容)
-RUN adduser -D -u 1000 -s /bin/bash petsard && \
+# Create non-root user and directories
+# 建立非 root 使用者和目錄
+RUN useradd --create-home --shell /bin/bash --uid 1000 petsard && \
     mkdir -p /app/notebooks /app/data /app/output
 
 # Set working directory
@@ -57,6 +64,7 @@ COPY README.md ./
 # Install PETsARD package and clean up
 # 安裝 PETsARD 套件並清理
 RUN pip install --no-cache-dir -e . && \
+    pip cache purge && \
     find /usr/local/lib/python3.11 -name "*.pyc" -delete && \
     find /usr/local/lib/python3.11 -name "__pycache__" -type d -exec rm -rf {} + || true
 
