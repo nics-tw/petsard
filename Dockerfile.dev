@@ -1,5 +1,5 @@
-# Multi-stage build for development environment with full Jupyter support
-# 多階段建置開發環境，包含完整 Jupyter 支援
+# Multi-stage build for development environment with distroless final stage
+# 多階段建置開發環境，最終階段使用 distroless
 FROM python:3.11-slim AS builder
 
 # Install build dependencies and system tools
@@ -23,9 +23,9 @@ COPY pyproject.toml ./
 # 升級 pip 到最新版本
 RUN pip install --no-cache-dir --upgrade pip
 
-# Install Python dependencies (excluding CUDA-related packages for compatibility)
-# 安裝 Python 依賴（排除 CUDA 相關套件以提升相容性）
-RUN pip install --no-cache-dir \
+# Install Python dependencies to a specific target directory
+# 安裝 Python 依賴到特定目標目錄
+RUN pip install --no-cache-dir --target=/opt/python-deps \
     numpy pandas scipy scikit-learn \
     faker pydantic pyyaml click rich tqdm \
     matplotlib seaborn plotly networkx \
@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir \
 
 # Install development dependencies including full Jupyter environment
 # 安裝開發依賴，包含完整 Jupyter 環境
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --target=/opt/python-deps \
     jupyter \
     jupyterlab \
     notebook \
@@ -58,83 +58,66 @@ COPY demo/ ./demo/
 COPY templates/ ./templates/
 COPY README.md LICENSE CHANGELOG.md ./
 
-# Install PETsARD package in development mode
-# 以開發模式安裝 PETsARD 套件
-RUN pip install --no-cache-dir -e .
+# Install PETsARD package in development mode to target directory
+# 以開發模式安裝 PETsARD 套件到目標目錄
+RUN pip install --no-cache-dir --target=/opt/python-deps -e .
 
-# Development stage with full tooling
-# 開發階段，包含完整工具
-FROM python:3.11-slim AS development
+# Copy jupyter and other executables
+# 複製 jupyter 和其他執行檔
+RUN mkdir -p /opt/bin && \
+    cp /usr/local/bin/jupyter* /opt/bin/ 2>/dev/null || true && \
+    cp /usr/local/bin/pip* /opt/bin/ 2>/dev/null || true
 
-# Install runtime dependencies and development tools
-# 安裝運行時依賴和開發工具
-RUN apt-get update && apt-get install -y \
-    --no-install-recommends \
-    git \
-    curl \
-    wget \
-    vim \
-    nano \
-    htop \
-    tree \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# Final stage with Google Cloud distroless Python
+# 使用 Google Cloud distroless Python 的最終階段
+FROM gcr.io/distroless/python3-debian12
+
+# Copy Python dependencies from builder
+# 從建置器複製 Python 依賴
+COPY --from=builder /opt/python-deps /usr/local/lib/python3.11/site-packages
+
+# Copy the application files
+# 複製應用程式檔案
+COPY --from=builder /app /app
+
+# Copy executables
+# 複製執行檔
+COPY --from=builder /opt/bin /usr/local/bin
 
 # Set environment variables for Python optimization and Jupyter
 # 設定 Python 優化和 Jupyter 環境變數
-ENV PYTHONPATH=/app \
+ENV PYTHONPATH=/app:/usr/local/lib/python3.11/site-packages \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    JUPYTER_ENABLE_LAB=yes \
-    JUPYTER_TOKEN="" \
-    JUPYTER_ALLOW_ROOT=1
-
-# Create non-root user with specific UID for development
-# 建立特定 UID 的非 root 使用者用於開發
-RUN useradd --create-home --shell /bin/bash --uid 1000 petsard
+    PATH=/usr/local/bin:$PATH
 
 # Set working directory
 # 設定工作目錄
 WORKDIR /app
 
-# Copy installed packages and application from builder stage
-# 從建置階段複製已安裝的套件和應用程式
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /app /app
-
-# Create directories for Jupyter notebooks and data
-# 建立 Jupyter notebook 和資料目錄
-RUN mkdir -p /app/notebooks /app/data /app/output && \
-    chown -R petsard:petsard /app
-
-# Switch to non-root user for development
-# 切換到非 root 使用者進行開發
-USER petsard
+# Create necessary directories (distroless runs as non-root by default)
+# 建立必要目錄（distroless 預設以非 root 執行）
+RUN ["python", "-c", "import os; os.makedirs('/app/notebooks', exist_ok=True); os.makedirs('/app/data', exist_ok=True); os.makedirs('/app/output', exist_ok=True)"]
 
 # Expose Jupyter Lab port
 # 暴露 Jupyter Lab 埠
 EXPOSE 8888
 
-# Add health check for development environment
-# 新增開發環境健康檢查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import petsard, jupyter_core; from importlib.metadata import version; print(f'PETsARD v{version(\"petsard\")} + Jupyter v{version(\"jupyter\")} OK')" || exit 1
-
-# Set default command to start Jupyter Lab
-# 設定預設指令啟動 Jupyter Lab
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+# Set default command to start Jupyter Lab using full path
+# 設定預設指令啟動 Jupyter Lab 使用完整路徑
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab"]
+CMD ["--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=", "--NotebookApp.password="]
 
 # Metadata labels for container registry
 # 容器註冊表的元資料標籤
 ARG BUILD_DATE
 ARG VCS_REF
 LABEL maintainer="matheme.justyn@gmail.com" \
-      description="PETsARD Development Environment - Privacy Enhancing Technologies Analysis, Research, and Development with Jupyter" \
+      description="PETsARD Development Environment - Distroless with Jupyter" \
       org.opencontainers.image.source="https://github.com/nics-tw/petsard" \
       org.opencontainers.image.documentation="https://nics-tw.github.io/petsard/" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.title="PETsARD Development Environment" \
-      org.opencontainers.image.description="Full development environment with Jupyter Lab, all dev tools, and PETsARD"
+      org.opencontainers.image.description="Distroless development environment with Jupyter Lab, all dev tools, and PETsARD"
