@@ -18,14 +18,20 @@ This guide covers Docker development setup, testing, and deployment for PETsARD 
 
 ### Quick Environment Check
 
-Use the provided script to verify your Docker setup:
+Verify your Docker setup with basic commands:
 
 ```bash
-# Check Docker installation and basic functionality
-./scripts/quick-docker-test.sh
+# Check Docker installation and version
+docker --version
+
+# Check Docker daemon status
+docker info
+
+# Test basic Docker functionality
+docker run --rm hello-world
 ```
 
-This script will:
+This will:
 - Verify Docker version
 - Check Docker daemon status
 - Test basic Docker functionality
@@ -35,133 +41,109 @@ This script will:
 ### Building Local Images
 
 ```bash
-# Build development image
-docker build -t petsard:dev .
+# Build standard version (default - without Jupyter)
+docker build -t petsard:latest .
 
-# Build with specific build arguments
-docker build \
-  --build-arg BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
-  --build-arg VCS_REF="$(git rev-parse --short HEAD)" \
-  -t petsard:local .
+# Build Jupyter version with Jupyter Lab
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+
+# For ARM64 platforms (Apple Silicon)
+docker buildx build --platform linux/arm64 --load --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter --no-cache .
 ```
 
-### Docker Compose Development
+### Running Containers
 
-The project includes a comprehensive `docker-compose.yml` with three services:
-
-#### 1. Development Service (`petsard`)
+#### Standard Container
 
 ```bash
-# Start development container
-docker-compose up -d petsard
+# Run standard container (without Jupyter) - Python REPL
+docker run -it --entrypoint /opt/venv/bin/python3 petsard:standard
 
-# Enter the container
-docker-compose exec petsard bash
-
-# Stop the container
-docker-compose down
+# Run with volume mounts for data
+docker run -it -v $(pwd):/app/data --entrypoint /opt/venv/bin/python3 petsard:standard
 ```
 
-**Features:**
-- Mounts entire project directory to `/workspace`
-- Persistent container for development
-- Real-time code changes reflected in container
-
-#### 2. Demo Service (`petsard-demo`)
+#### Jupyter Lab Container
 
 ```bash
-# Run demo container
-docker-compose up petsard-demo
-```
+# Run container with Jupyter Lab (default behavior)
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 
-**Features:**
-- Focused on `/app/demo` directory
-- Automatically lists available YAML configurations
-- Lightweight for demonstration purposes
+# Run Python REPL in Jupyter container
+docker run -it --entrypoint /opt/venv/bin/python3 petsard:jupyter
 
-#### 3. Jupyter Service (`petsard-jupyter`)
-
-```bash
-# Start Jupyter notebook server
-docker-compose up -d petsard-jupyter
-
-# Access at http://localhost:8888
-```
-
-**Features:**
-- Jupyter notebook environment
-- Port 8888 exposed for browser access
-- No authentication required for development
-
-## Development Environment Management
-
-### Unified Development Script
-
-PETsARD provides a unified script for managing both development and production Docker environments:
-
-```bash
-# Development mode (default)
-./scripts/dev-docker.sh <command>
-
-# Production mode
-./scripts/dev-docker.sh prod <command>
-BUILD_TYPE=prod ./scripts/dev-docker.sh <command>
-```
-
-#### Available Commands
-
-```bash
-# Environment management
-./scripts/dev-docker.sh up          # Start environment
-./scripts/dev-docker.sh down        # Stop and remove environment
-./scripts/dev-docker.sh build       # Build images
-./scripts/dev-docker.sh shell       # Access container shell
-./scripts/dev-docker.sh test        # Run tests in container
-./scripts/dev-docker.sh logs        # View container logs
-./scripts/dev-docker.sh clean       # Clean up images and containers
-./scripts/dev-docker.sh help        # Show all available commands
-```
-
-### Development vs Production Environments
-
-#### Development Environment Features
-
-- **Jupyter Lab Integration** - Full Jupyter environment accessible at http://localhost:8888
-- **Live Code Reloading** - Volume mounts for real-time development
-- **Complete Development Stack** - All dependencies including testing and documentation tools
-- **Larger Image Size** - ~1.5GB with all development tools
-
-```bash
-# Start development environment
-./scripts/dev-docker.sh up
 # Access Jupyter Lab at http://localhost:8888
 ```
 
-#### Production Environment Features
+**Features:**
+- Jupyter Lab interface for interactive development
+- Port 8888 exposed for browser access
+- Volume mounting for persistent data and notebooks
+- ARM64 optimization for Apple Silicon
 
-- **Minimal Runtime** - Only essential dependencies
-- **Smaller Image Size** - ~450MB optimized for deployment
-- **Security Optimized** - Non-root user execution
-- **Health Checks** - Built-in container health monitoring
+## Development Environment Management
+
+### Docker Build Variants
+
+PETsARD provides flexible Docker builds with optional Jupyter Lab support:
 
 ```bash
-# Build and run production environment
-./scripts/dev-docker.sh prod build
-./scripts/dev-docker.sh prod up
+# Build Jupyter version (with Jupyter Lab)
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+
+# Build standard version (without Jupyter)
+docker build --build-arg INCLUDE_JUPYTER=false -t petsard:standard .
+
+# Default build (includes Jupyter)
+docker build -t petsard:latest .
+```
+
+### Jupyter vs Standard Environments
+
+#### Jupyter Environment Features
+
+- **Jupyter Lab Integration** - Full Jupyter environment accessible at http://localhost:8888
+- **Interactive Development** - Volume mounts for real-time development
+- **Complete Development Stack** - All dependencies from pyproject.toml [docker] group
+- **Larger Image Size** - Includes Jupyter Lab and development tools
+
+```bash
+# Run Jupyter container with Jupyter Lab
+docker run -it --rm \
+  -p 8888:8888 \
+  -v $(pwd):/workspace \
+  petsard:jupyter
+# Access Jupyter Lab at http://localhost:8888
+```
+
+#### Standard Environment Features
+
+- **Core Runtime** - Only essential dependencies for PETsARD core functionality
+- **Smaller Image Size** - Optimized for deployment without Jupyter
+- **Security Optimized** - Non-root user execution (UID 1000)
+- **Distroless Base** - Minimal attack surface using gcr.io/distroless/python3
+
+```bash
+# Run standard container
+docker run -it --rm \
+  -v $(pwd)/data:/app/data \
+  petsard:standard
 ```
 
 ### Configuration Files
 
-The development environment uses these key files:
+The Docker environment uses these key files:
 
-- **`Dockerfile.dev`** - Multi-stage development image with Jupyter
-- **`Dockerfile`** - Production-optimized image
-- **`docker-compose.dev.yml`** - Development services configuration
-- **`scripts/dev-docker.sh`** - Unified management script
+- **`Dockerfile`** - Multi-stage production-optimized image with optional Jupyter support
+- **`pyproject.toml`** - Project configuration with dependency groups
+- **`.github/workflows/docker-publish.yml`** - CI/CD pipeline for automated builds
 
 ### Environment Variables
 
-Both environments automatically configure:
+The container automatically configures:
 
 ```bash
 # Python optimization
@@ -169,92 +151,95 @@ PYTHONPATH=/app
 PYTHONUNBUFFERED=1
 PYTHONDONTWRITEBYTECODE=1
 
-# Development-specific (dev mode only)
-JUPYTER_ENABLE_LAB=yes
-JUPYTER_TOKEN=""
-JUPYTER_ALLOW_ROOT=1
-PETSARD_ENV=development
+# Performance optimization
+TORCH_DISABLE_DISTRIBUTED=1
+OMP_NUM_THREADS=1
+
+# Jupyter configuration
+HOME=/app
+JUPYTER_CONFIG_DIR=/app/.jupyter
+JUPYTER_DATA_DIR=/app/.local/share/jupyter
+
+# Build variant indicator
+INCLUDE_JUPYTER=true/false
 ```
 
 ## Development Workflows
 
-### Feature Development with New Script
+### Feature Development
 
 1. **Setup Development Environment**
    ```bash
-   # Start development environment with Jupyter
-   ./scripts/dev-docker.sh up
+   # Build Jupyter image with Jupyter Lab (ARM64 optimized)
+   docker buildx build --platform linux/arm64 --load --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter --no-cache .
+   
+   # Start container with Jupyter Lab
+   docker run -it -p 8888:8888 \
+     -v $(pwd)/data:/app/data \
+     -v $(pwd)/notebooks:/app/notebooks \
+     petsard:jupyter
    
    # Access Jupyter Lab at http://localhost:8888
-   # Or access container shell
-   ./scripts/dev-docker.sh shell
    ```
 
 2. **Code and Test**
    ```bash
-   # Run tests in development container
-   ./scripts/dev-docker.sh test
+   # Run Python REPL for testing
+   docker run -it --entrypoint /opt/venv/bin/python3 petsard:jupyter
    
-   # Or manually inside container
-   ./scripts/dev-docker.sh shell
-   python -m pytest tests/
-   python -m petsard.executor demo/use-cases/data-constraining.yaml
+   # Run with data volume for testing
+   docker run -it -v $(pwd):/app/data --entrypoint /opt/venv/bin/python3 petsard:jupyter
+   
+   # Test PETsARD functionality inside container
+   # python -m petsard.executor demo/use-cases/data-constraining.yaml
    ```
 
-3. **Test Both Environments**
+3. **Test Both Build Variants**
    ```bash
-   # Test development build
-   ./scripts/dev-docker.sh build
+   # Test Jupyter build (with Jupyter Lab)
+   docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
    
-   # Test production build
-   ./scripts/dev-docker.sh prod build
+   # Test standard build (without Jupyter)
+   docker build --build-arg INCLUDE_JUPYTER=false -t petsard:standard .
    
-   # Run comprehensive tests
-   ./scripts/test-docker.sh
+   # For ARM64 platforms
+   docker buildx build --platform linux/arm64 --load --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter --no-cache .
    ```
 
 ### Research and Experimentation Workflow
 
 1. **Start Jupyter Environment**
    ```bash
-   ./scripts/dev-docker.sh up
+   # Run container with Jupyter Lab
+   docker run -it --rm \
+     -p 8888:8888 \
+     -v $(pwd):/workspace \
+     petsard:jupyter
    # Navigate to http://localhost:8888
    ```
 
 2. **Create and Run Notebooks**
-   - Use the `/app/notebooks` directory for persistent notebooks
+   - Use the `/workspace` directory for persistent notebooks
    - Access PETsARD modules directly: `import petsard`
    - Experiment with different configurations
 
 3. **Export Results**
    ```bash
-   # Access container to export results
-   ./scripts/dev-docker.sh shell
+   # Access container shell for file operations
+   docker run -it --rm \
+     -v $(pwd):/workspace \
+     petsard:jupyter \
+     bash
    # Your notebooks and data persist in mounted volumes
    ```
 
 ## Testing and Validation
 
-### Comprehensive Testing Script
-
-```bash
-# Run full Docker image testing
-./scripts/test-docker.sh
-```
-
-This script performs:
-- Docker environment validation
-- Image building with error handling
-- PETsARD package import testing
-- Module functionality verification
-- Health check validation
-- Image size and metadata display
-
 ### Manual Testing Commands
 
 ```bash
-# Test basic functionality
-docker run --rm petsard:dev python -c "
+# Test basic functionality (default includes Jupyter)
+docker run --rm petsard:latest python -c "
 import petsard
 import importlib.metadata
 print(f'✅ PETsARD v{importlib.metadata.version(\"petsard\")} loaded')
@@ -264,9 +249,37 @@ print('✅ All modules imported successfully')
 
 # Test with demo configuration
 docker run --rm \
-  -v $(pwd)/demo:/app/demo \
-  petsard:dev \
-  python -m petsard.executor /app/demo/use-cases/data-constraining.yaml
+  -v $(pwd):/workspace \
+  -w /workspace \
+  petsard:latest \
+  python -m petsard.executor demo/use-cases/data-constraining.yaml
+
+# Test Jupyter variant
+docker run --rm \
+  -p 8888:8888 \
+  -v $(pwd):/workspace \
+  petsard:jupyter \
+  python -c "import jupyterlab; print('✅ Jupyter Lab available')"
+
+# Test standard variant
+docker run --rm \
+  petsard:standard \
+  python -c "import petsard; print('✅ Standard build OK')"
+```
+
+### Build Testing
+
+```bash
+# Test standard build (without Jupyter)
+docker build --build-arg INCLUDE_JUPYTER=false -t petsard:test-standard .
+docker run --rm petsard:test-standard python -c "import petsard; print('✅ Standard build OK')"
+
+# Test Jupyter build (with Jupyter Lab)
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:test-jupyter .
+docker run --rm petsard:test-jupyter python -c "import jupyterlab; print('✅ Jupyter build OK')"
+
+# Clean up test images
+docker rmi petsard:test-standard petsard:test-jupyter
 ```
 
 ## Multi-Stage Dockerfile Architecture
@@ -276,22 +289,25 @@ The Dockerfile uses a multi-stage build for optimization:
 ### Builder Stage
 - Based on `python:3.11-slim`
 - Installs build dependencies and compilation tools
-- Uses `uv` package manager for faster dependency installation
 - Builds virtual environment in `/opt/venv`
-- Installs PETsARD in editable mode
+- **ARM64 Optimization** - Special handling for Apple Silicon with CPU-only PyTorch
+- Installs PETsARD with dependencies based on `INCLUDE_JUPYTER` build argument
+- Uses `--dependency-groups=docker` for Jupyter Lab installation
 
 ### Production Stage
-- Minimal runtime environment
-- Copies only necessary files from builder stage
-- Runs as non-root user (UID 1000) for security
-- Includes health check using `importlib.metadata`
+- Based on `python:3.11-slim` (not distroless for better compatibility)
+- Creates dedicated `petsard` user for security
+- Copies virtual environment and application files from builder
+- Adaptive entrypoint script that handles both Jupyter and Python REPL modes
+- **ARM64 Performance Tuning** - Optimized environment variables for Apple Silicon
 
 ### Key Features
 - **Python 3.11** - Stable Python version with anonymeter compatibility
 - **Virtual Environment Isolation** - Dependencies isolated in `/opt/venv`
-- **Security** - Non-root user execution
-- **Health Monitoring** - Built-in health checks
-- **ARM64 Support** - Compatible with Apple Silicon
+- **ARM64 Optimization** - Special CPU-only PyTorch installation for Apple Silicon
+- **Conditional Jupyter** - Optional Jupyter Lab based on build argument
+- **Non-root Execution** - Runs as dedicated `petsard` user for security
+- **Cross-platform Support** - Optimized for both x86_64 and ARM64 architectures
 
 ## CI/CD Integration
 
@@ -322,59 +338,47 @@ Images are published to GitHub Container Registry:
 - `ghcr.io/nics-tw/petsard:latest`
 - `ghcr.io/nics-tw/petsard:v1.4.0`
 
-## Development Workflows
+## Debugging Issues
 
-### Feature Development
+### Check Container Logs
 
-1. **Setup Development Environment**
-   ```bash
-   # Start development container
-   docker-compose up -d petsard
-   docker-compose exec petsard bash
-   ```
+```bash
+# Check logs for running container
+docker logs <container_id>
 
-2. **Code and Test**
-   ```bash
-   # Inside container - your changes are live-mounted
-   python -m pytest tests/
-   python -m petsard.executor demo/use-cases/data-constraining.yaml
-   ```
+# Follow logs in real-time
+docker logs -f <container_id>
+```
 
-3. **Test Docker Build**
-   ```bash
-   # Test local build before pushing
-   ./scripts/test-docker.sh
-   ```
+### Interactive Debugging
 
-### Debugging Issues
+```bash
+# Start container with debugging access
+docker run -it --rm \
+  -v $(pwd):/workspace \
+  petsard:jupyter \
+  bash
 
-1. **Check Container Logs**
-   ```bash
-   docker logs <container_id>
-   docker-compose logs petsard
-   ```
+# Debug standard version
+docker run -it --rm \
+  -v $(pwd):/workspace \
+  petsard:standard \
+  python
+```
 
-2. **Interactive Debugging**
-   ```bash
-   # Start container with debugging tools
-   docker run -it --rm \
-     -v $(pwd):/workspace \
-     --entrypoint bash \
-     petsard:dev
-   ```
+### Health Check Debugging
 
-3. **Health Check Debugging**
-   ```bash
-   # Manual health check
-   docker run --rm petsard:dev python -c "
-   import importlib.metadata
-   try:
-       version = importlib.metadata.version('petsard')
-       print(f'✅ Health check passed - PETsARD v{version}')
-   except Exception as e:
-       print(f'❌ Health check failed: {e}')
-   "
-   ```
+```bash
+# Manual health check
+docker run --rm petsard:latest python -c "
+import importlib.metadata
+try:
+    version = importlib.metadata.version('petsard')
+    print(f'✅ Health check passed - PETsARD v{version}')
+except Exception as e:
+    print(f'❌ Health check failed: {e}')
+"
+```
 
 ## Performance Optimization
 
@@ -416,16 +420,20 @@ Images are published to GitHub Container Registry:
 
 ### Environment Variables
 
-Key environment variables for development:
+Key environment variables used in containers:
 
 ```bash
 # Python optimization
-PYTHONPATH=/workspace:/app
+PYTHONPATH=/app
 PYTHONUNBUFFERED=1
 PYTHONDONTWRITEBYTECODE=1
 
-# Development mode
-PETSARD_ENV=development
+# Jupyter-specific (when INCLUDE_JUPYTER=true)
+JUPYTER_ENABLE_LAB=yes
+JUPYTER_ALLOW_ROOT=1
+
+# Build variant indicator
+INCLUDE_JUPYTER=true/false
 ```
 
 ## Best Practices
