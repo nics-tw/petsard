@@ -55,29 +55,29 @@ Preprocessor:
     sequence:
       - 'encoder'
     encoder:
-      workclass: 'encoding_uniform'
-      occupation: 'encoding_label'
-      native-country: 'encoding_onehot'
+      workclass: 'encoder_uniform'
+      occupation: 'encoder_label'
+      native-country: 'encoder_onehot'
 ```
 
 ## Encoding Methods
 
-1. Uniform Encoding (`encoding_uniform`)
+1. Uniform Encoding (`encoder_uniform`)
   - Converts categorical values to uniformly distributed numbers
   - Suitable for general categorical variables
   - Default encoding method
 
-2. Label Encoding (`encoding_label`)
+2. Label Encoding (`encoder_label`)
   - Converts categorical values to consecutive integers
   - Suitable for ordinal categorical variables
   - Preserves order relationships between categories
 
-3. One-Hot Encoding (`encoding_onehot`)
+3. One-Hot Encoding (`encoder_onehot`)
   - Transforms each category into an independent feature column, where each column represents the presence or absence of a category
   - Categorical data is processed as independent features during synthesis and recombined afterward
   - Suitable for variables with fewer categories, as each additional category increases feature dimensionality
 
-4. Date Encoding (`encoder_date`)
+4. Minguo Date Encoding (`encoder_minguodate`)
    - Converts datetime values into numerical format for synthesis
    - Supports multiple output formats:
        - Date only: Basic date information
