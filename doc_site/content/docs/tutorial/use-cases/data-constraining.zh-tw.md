@@ -6,8 +6,8 @@ prev: docs/tutorial/use-cases/custom-synthesis
 next: docs/tutorial/use-cases/ml-utility
 ---
 
-透過欄位值規則、欄位組合和空值處理策略來約束合成資料。
-目前的實作支援三種約束：欄位約束、欄位組合和空值群組。
+透過欄位值規則、欄位組合、欄位比例和空值處理策略來約束合成資料。
+目前的實作支援四種約束：欄位約束、欄位組合、欄位比例和空值群組。
 
 請點擊下方按鈕在 Colab 中執行範例：
 
@@ -30,23 +30,41 @@ Postprocessor:
 Constrainer:
   demo:
     nan_groups:
-      # 當 workclass 是空值時刪除整列
+      # 當 workclass 是 NA 時刪除整列
       workclass: 'delete'
-      # 當 occupation 是空值時，把 income 設為空值
+      # 當 occupation 是 NA 時，將 income 設為 NA
       occupation:
         'erase':
           - 'income'
-      # 當 age 有值但 educational-num 是空值時，複製 age 的值到 educational-num
+      # 當 age 是 NA 且 educational-num 有值時，複製 educational-num 的值到 age
       age:
         'copy':
           'educational-num'
     field_constraints:
-      - "age >= 18 & age <= 65" # 年齡限制在 18-65 歲
-      - "hours-per-week >= 20 & hours-per-week <= 60" # 每週工時限制在 20-60 小時
+      - "age >= 18 & age <= 65"
+      - "hours-per-week >= 20 & hours-per-week <= 60"
     field_combinations:
       -
-        - {'education': 'income'} # 教育程度和收入的對應關係
-        - {'Doctorate': ['>50K'], 'Masters': ['>50K', '<=50K']} # 博士只能高收入，碩士可以高低收入
+        - education: income
+        - Doctorate: ['>50K']
+          Masters: ['>50K', '<=50K']
+    field_proportions:
+      field_proportions:
+        # 維持教育程度分布，容忍度 10%
+        - education:
+            mode: 'all'
+            tolerance: 0.1
+        # 維持收入分布，容忍度 5%
+        - income:
+            mode: 'all'
+            tolerance: 0.05
+        # 維持工作類別缺失值比例，容忍度 3%
+        - workclass:
+            mode: 'missing'
+            tolerance: 0.03
+        # 維持教育程度-收入組合比例，容忍度 15%
+        # 注意：YAML 格式中尚未支援複雜的元組鍵
+        # 此功能將在未來版本中新增
 Reporter:
   output:
     method: 'save_data'
@@ -56,7 +74,7 @@ Reporter:
 
 ## 資料約束方法
 
-資料約束是一種精細控制合成資料品質和一致性的機制，允許使用者透過多層次的規則定義資料的可接受範圍。`PETsARD` 提供三種主要的約束類型：遺失值群組約束、欄位約束和欄位組合約束。這些約束共同確保生成的合成資料不僅在統計特性上忠實於原始資料，更能符合特定的領域邏輯和業務規範。
+資料約束是一種精細控制合成資料品質和一致性的機制，允許使用者透過多層次的規則定義資料的可接受範圍。`PETsARD` 提供四種主要的約束類型：遺失值群組約束、欄位約束、欄位組合約束和欄位比例約束。這些約束共同確保生成的合成資料不僅在統計特性上忠實於原始資料，更能符合特定的領域邏輯和業務規範。
 
 > 備註：
 > 1. 所有約束條件都以嚴格的「全部滿足」邏輯進行組合，這意味著一筆資料必須同時滿足所有已定義的約束條件，才會被最終保留。換言之，只有完全符合每一個約束規則的資料紀錄，才能通過篩選
@@ -146,3 +164,42 @@ Reporter:
               ('Doctorate', 'United-Kingdom'): [80000, 90000]      # 英國的博士，薪資範圍
             }
   ```
+
+### 欄位比例約束 (`field_proportions`)
+
+- 欄位比例約束在約束過濾過程中維護原始資料的分布比例
+- 支援的模式：
+  - `all`：維護欄位中所有值的分布
+  - `missing`：僅維護缺失值的比例
+- 容忍度參數控制與原始比例的可接受偏差（0.0-1.0）
+- 支援單一欄位和欄位組合
+- 目標行數在重新採樣過程中自動決定
+
+  ```yaml
+  Constrainer:
+    demo:
+      field_proportions:
+        field_proportions:
+          # 維持教育程度分布，容忍度 10%
+          - education:
+              mode: 'all'
+              tolerance: 0.1
+          # 維持收入分布，容忍度 5%
+          - income:
+              mode: 'all'
+              tolerance: 0.05
+          # 維持工作類別缺失值比例，容忍度 3%
+          - workclass:
+              mode: 'missing'
+              tolerance: 0.03
+          # 維持教育程度-收入組合比例，容忍度 15%
+          # 注意：YAML 格式中尚未支援複雜的元組鍵
+          # 此功能將在未來版本中新增
+  ```
+
+> **欄位比例約束注意事項：**
+> 1. 欄位比例約束使用迭代過濾來維護資料分布，同時移除過量資料
+> 2. 約束器保護代表性不足的資料群組，同時過濾掉過度代表的群組
+> 3. 容忍度值應根據可接受的原始比例偏差來設定
+> 4. 欄位組合會創建複雜的分布模式，在過濾過程中會被維護
+> 5. 目標行數由主要約束器在重新採樣期間自動提供

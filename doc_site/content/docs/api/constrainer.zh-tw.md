@@ -41,10 +41,17 @@ Constrainer(config)
       - 欄位映射：包含一個來源對目標欄位的映射字典
       - 允許值：來源值對應允許目標值的字典
 
+  - `field_proportions` (List[dict])：欄位比例維護規則列表
+    - 每個規則是一個字典，包含：
+      - `fields` (str 或 List[str])：要維護比例的欄位名稱，可以是單一欄位或欄位列表
+      - `mode` (str)：'all'（維護所有值分布）或 'missing'（僅維護缺失值比例）
+      - `tolerance` (float, 可選)：允許與原始比例的偏差範圍（0.0-1.0），預設為 0.1（10%）
+
 > 註：
 > 1. 所有約束條件都是以 AND 邏輯組合。一筆資料必須滿足所有約束條件才會被保留。
 > 2. 欄位組合規則採用正面表列方式，只影響指定的值。例如，若規定教育程度為 PhD 時績效需要是 [4,5]，這個規則只會過濾教育程度是 PhD 的資料，其他教育程度或空值都不受此規則影響。
-> 3. 當在 YAML 或 Python 設定中處理空值時，請一律使用字串 "pd.NA"（大小寫敏感）來表示，而非使用 None、np.nan 或 pd.NA 物件，以避免意外情況。
+> 3. 欄位比例規則透過迭代移除過量資料同時保護代表性不足的群體，來維護原始資料分布。
+> 4. 當在 YAML 或 Python 設定中處理空值時，請一律使用字串 "pd.NA"（大小寫敏感）來表示，而非使用 None、np.nan 或 pd.NA 物件，以避免意外情況。
 
 ## 範例
 
@@ -96,11 +103,50 @@ config = {
                 ('Master', 4): [70000, 80000]  # 碩士且績效 4 分的薪資範圍
             }
         )
+    ],
+
+    # 欄位比例規則 - 維護原始資料分布比例
+    'field_proportions': [
+        # 維護類別分布，使用預設容忍度 10%
+        {'fields': 'category', 'mode': 'all'},
+
+        # 維護收入欄位的缺失值比例，自定義容忍度 5%
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05},
+
+        # 維護欄位組合比例，使用預設容忍度 10%
+        {'fields': ['gender', 'age_group'], 'mode': 'all'}
     ]
 }
 
 cnst: Constrainer = Constrainer(config)
 result: pd.DataFrame = cnst.apply(df)
+```
+
+### 欄位比例範例
+
+```python
+# 範例 1：基本欄位比例（使用預設 tolerance 0.1）
+config = {
+    'field_proportions': [
+        {'fields': 'category', 'mode': 'all'}  # 維護類別分布，預設 10% 容忍度
+    ]
+}
+
+# 範例 2：缺失值比例（自定義 tolerance）
+config = {
+    'field_proportions': [
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05}  # 維護缺失比例，5% 容忍度
+    ]
+}
+
+# 範例 3：多欄位組合
+config = {
+    'field_proportions': [
+        {'fields': 'category', 'mode': 'all'},  # 預設 10% 容忍度
+        {'fields': 'income', 'mode': 'missing', 'tolerance': 0.05},  # 自定義 5% 容忍度
+        {'fields': ['gender', 'age_group'], 'mode': 'all', 'tolerance': 0.15}  # 自定義 15% 容忍度
+    ]
+}
 ```
 
 ## 方法

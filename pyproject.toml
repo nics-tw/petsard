@@ -3,7 +3,6 @@ name = "petsard"
 version = "1.4.0"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [
-    { name = "alexchen830", email = "alexchen830@gmail.com" },
     { name = "matheme-justyn", email = "matheme.justyn@gmail.com" },
 ]
 keywords = [
@@ -40,41 +39,42 @@ classifiers = [
     "Intended Audience :: Legal Industry",
 ]
 
-requires-python = ">=3.10,<3.12" # anonymeter only support ">=3.10,<3.12"
+requires-python = ">=3.10,<3.12" # Python 3.12 not supported due to anonymeter dependency conflicts
 
 dependencies = [
     "anonymeter>=1.0.0,<2",
     "jinja2>=3.1.6,<4",
     "python-dateutil>=2.9.0.post0,<3",
     "pyyaml>=6.0.2,<7",
-    "requests>=2.32.3,<3",
+    "requests>=2.32.4,<3",
     "sdmetrics>=0.21.0,<1",
-    "sdv>=1.22.1,<2",
+    "sdv>=1.24.0,<2",
     ###### ###### ######
     # SBOM dependency related
     ###### ###### ######
     # #739
-    "boto3>=1.38.30",
-    "botocore>=1.38.30",
-    "certifi>=2025.4.26",
+    "boto3>=1.39.3",
+    "botocore>=1.39.3",
+    "certifi>=2025.6.15",
     "charset-normalizer>=3.4.2",
-    "faker>=37.3.0",
+    "faker>=37.4.0",
     "filelock>=3.18.0",
     "fsspec>=2025.5.1",
     "joblib>=1.5.1",
-    "narwhals>=1.41.0",
+    "narwhals>=1.45.0",
     "numba>=0.61.2",
     "platformdirs>=4.3.8",
-    "plotly>=6.1.2",
+    "plotly>=6.2.0",
     "pytz>=2025.2",
     "s3transfer>=0.13.0",
-    "scipy>=1.15.3",
-    "sympy>=1.13.3",
+    "scipy>=1.15.3 ; python_full_version < '3.11'",
+    "scipy>=1.16.0 ; python_full_version >= '3.11'",
+    "sympy>=1.14.0",
     "threadpoolctl>=3.6.0",
     "torch>=2.7.1",
-    "typing-extensions>=4.14.0",
+    "typing-extensions>=4.14.1",
     "tzdata>=2025.2",
-    "urllib3>=2.4.0",
+    "urllib3>=2.5.0",
     "nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -95,6 +95,12 @@ dependencies = [
     "setuptools>=80.9.0",
     ###### ###### ######
     "numpy>=1.26.4", # block by Anonymeter, but already alert
+    # NetworkX version optimization for different Python versions
+    "networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
+    "networkx>=3.5 ; python_full_version >= '3.11'",
+    # Backward compatibility packages for Python 3.10
+    "exceptiongroup>=1.3.0 ; python_version < '3.11'",
+    "tomli>=2.2.1 ; python_version < '3.11'",
 ]
 
 [project.urls]
@@ -103,28 +109,36 @@ Documentation = "https://nics-tw.github.io/petsard/"
 "Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
+# Docker 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
+# Docker group - only core dependencies needed for Jupyter Notebook
+docker = [
+    "ipykernel>=6.29.5,<7",           # Jupyter kernel support
+    "jupyterlab>=4.4.4",              # Jupyter Lab interface
+    "ipython>=8.3.0 ; python_full_version < '3.11'", # IPython for Python 3.10
+    "ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
+    "prompt-toolkit>=3.0.51",         # IPython dependency
+    "pyzmq>=27.0.0",                  # Jupyter messaging
+    "debugpy>=1.8.14",                # Debugging support for notebooks
+    "decorator>=5.2.1",               # IPython dependency
+    "psutil>=7.0.0",                  # System monitoring for notebooks
+    # IPython enhancement for Python 3.11+
+    "ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
+]
+
+# 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
+# Development tools dependency group - dev tools that don't need to be in Docker
 dev = [
-    "ipykernel>=6.29.5,<7",
-    "pytest>=8.4.0,<9",
-    "python-semantic-release>=10.0.2,<11", # 770, 771
-    "ruff>=0.11.12,<1",
-    ###### ###### ######
-    # SBOM dependency related
-    ###### ###### ######
-    # #739
-    "click-option-group>=0.5.7",
-    "debugpy>=1.8.14",
-    "decorator>=5.2.1",
-    "iniconfig>=2.1.0",
-    "ipython>=8.3.0", # block by Python==3.10
-    "prompt-toolkit>=3.0.51",
-    "psutil>=7.0",
-    "pydantic>=2.11.5",
-    "python-gitlab>=5.6.0", # block by python-semantic-release<=10.0.2
-    "pyzmq>=26.4.0",
-    "rich>=14.0.0",
-    "trove-classifiers>=2025.5.1.12",
-    "pywin32>=310 ; sys_platform == 'win32'",
+    "pytest>=8.4.1,<9",                        # Testing framework
+    "python-semantic-release>=10.2.0,<11",     # Release automation
+    "ruff>=0.12.2,<1",                         # Linting and formatting
+    "pip-audit>=2.7.3,<3",                     # Security audit tool
+    "click-option-group>=0.5.7",               # CLI tools
+    "iniconfig>=2.1.0",                        # Configuration parsing
+    "pydantic>=2.11.7",                        # Data validation
+    "python-gitlab>=6.1.0",                    # GitLab API client
+    "rich>=14.0.0",                            # Rich text and beautiful formatting
+    "trove-classifiers>=2025.5.9.12",          # PyPI classifiers
+    "pywin32>=310 ; sys_platform == 'win32'",  # Windows-specific tools
 ]
 
 [build-system]
@@ -134,7 +148,7 @@ build-backend = "hatchling.build"  # 使用 Hatchling 的後端建置套件 Uses
 [tool.ruff]
 # 基本設定
 line-length = 88
-target-version = "py38"
+target-version = "py311"
 
 # 選擇要檢查的規則
 select = [

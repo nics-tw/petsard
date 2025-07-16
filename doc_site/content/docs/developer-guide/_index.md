@@ -38,3 +38,9 @@ sidebar:
 - [Test Coverage](./test-coverage)
   - Test organization and structure
   - Detailed test case documentation
+
+## Development Environment
+- [Docker Development](./docker-development)
+  - Docker container development and testing
+  - Multi-stage build optimization and security
+  - GitHub Container Registry integration

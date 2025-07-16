@@ -7,8 +7,8 @@ next: docs/tutorial/use-cases/ml-utility
 ---
 
 
-Constrain synthetic data through field value rules, field combinations, and NA handling strategies.
-Current implementation supports three types of constraints: field constraints, field combinations, and NA groups.
+Constrain synthetic data through field value rules, field combinations, field proportions, and NA handling strategies.
+Current implementation supports four types of constraints: field constraints, field combinations, field proportions, and NA groups.
 
 Click the below button to run this example in Colab:
 
@@ -42,12 +42,30 @@ Constrainer:
         'copy':
           'educational-num'
     field_constraints:
-      - "age >= 18 & age <= 65" # age limits to 18~65
-      - "hours-per-week >= 20 & hours-per-week <= 60" # hours per week limits to 20 ~ 60
+      - "age >= 18 & age <= 65"
+      - "hours-per-week >= 20 & hours-per-week <= 60"
     field_combinations:
       -
-        - {'education': 'income'}
-        - {'Doctorate': ['>50K'], 'Masters': ['>50K', '<=50K']}
+        - education: income
+        - Doctorate: ['>50K']
+          Masters: ['>50K', '<=50K']
+    field_proportions:
+      field_proportions:
+        # Maintain education distribution with 10% tolerance
+        - education:
+            mode: 'all'
+            tolerance: 0.1
+        # Maintain income distribution with 5% tolerance
+        - income:
+            mode: 'all'
+            tolerance: 0.05
+        # Maintain workclass missing value proportions with 3% tolerance
+        - workclass:
+            mode: 'missing'
+            tolerance: 0.03
+        # Maintain education-income combination proportions with 15% tolerance
+        # Note: Complex keys with tuples are not yet supported in YAML format
+        # This will be added in a future update
 Reporter:
   output:
     method: 'save_data'
@@ -57,7 +75,7 @@ Reporter:
 
 ## Data Constraint Methods
 
-Data constraint is a refined mechanism for controlling the quality and consistency of synthetic data, allowing users to define acceptable data ranges through multi-layered rules. `PETsARD` provides three primary constraint types: NaN group constraints, field constraints, and field combination constraints. These constraints collectively ensure that generated synthetic data is not only statistically faithful to the original data but also complies with specific domain logic and business regulations.
+Data constraint is a refined mechanism for controlling the quality and consistency of synthetic data, allowing users to define acceptable data ranges through multi-layered rules. `PETsARD` provides four primary constraint types: NaN group constraints, field constraints, field combination constraints, and field proportion constraints. These constraints collectively ensure that generated synthetic data is not only statistically faithful to the original data but also complies with specific domain logic and business regulations.
 
 > Notes:
 > 1. All constraint conditions are combined using a strict "all must be satisfied" logic, meaning a single data point must simultaneously satisfy all defined constraint conditions to be retained. In other words, only data records that fully comply with each constraint rule will pass the filter.
@@ -145,3 +163,38 @@ Data constraint is a refined mechanism for controlling the quality and consisten
               ('Doctorate', 'United-Kingdom'): [80000, 90000]      # Doctorate in the UK, salary range
             }
   ```
+
+### Field Proportion Constraints (`field_proportions`)
+
+- Field proportion constraints maintain the original data distribution proportions during constraint filtering
+- Supported modes:
+  - `all`: Maintain the distribution of all values in the field
+  - `missing`: Maintain only the proportion of missing values
+- Tolerance parameter controls the acceptable deviation from original proportions (0.0-1.0)
+- Supports both single fields and field combinations
+- The target number of rows is automatically determined during the resampling process
+
+  ```yaml
+  Constrainer:
+    demo:
+      field_proportions:
+        field_proportions:
+          # Maintain education distribution with 10% tolerance
+          - {'education': {'mode': 'all', 'tolerance': 0.1}}
+          
+          # Maintain income distribution with 5% tolerance
+          - {'income': {'mode': 'all', 'tolerance': 0.05}}
+          
+          # Maintain workclass missing value proportions with 3% tolerance
+          - {'workclass': {'mode': 'missing', 'tolerance': 0.03}}
+          
+          # Maintain education-income combination proportions with 15% tolerance
+          - {('education', 'income'): {'mode': 'all', 'tolerance': 0.15}}
+  ```
+
+> **Field Proportions Notes:**
+> 1. Field proportion constraints use iterative filtering to maintain data distributions while removing excess data
+> 2. The constrainer protects underrepresented data groups while filtering out overrepresented ones
+> 3. Tolerance values should be set based on the acceptable deviation from original proportions
+> 4. Field combinations create complex distribution patterns that are maintained during filtering
+> 5. The target number of rows is provided automatically by the main Constrainer during resampling

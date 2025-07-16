@@ -29,8 +29,26 @@ Constrainer:
       - "hours-per-week >= 20 & hours-per-week <= 60"
     field_combinations:
       -
-        - {'education': 'income'}
-        - {'Doctorate': ['>50K'], 'Masters': ['>50K', '<=50K']}
+        - education: income
+        - Doctorate: ['>50K']
+          Masters: ['>50K', '<=50K']
+    field_proportions:
+      # Maintain education distribution with default tolerance (10%)
+      - fields: 'education'
+        mode: 'all'
+        # tolerance 使用預設值 0.1 (10%)
+      # Maintain income distribution with 5% tolerance
+      - fields: 'income'
+        mode: 'all'
+        tolerance: 0.05
+      # Maintain workclass missing value proportions with default tolerance (10%)
+      - fields: 'workclass'
+        mode: 'missing'
+        # tolerance 使用預設值 0.1 (10%)
+      # Maintain education-income combination proportions with default tolerance (10%)
+      - fields: ['education', 'income']
+        mode: 'all'
+        # tolerance 使用預設值 0.1 (10%)
 Reporter:
   output:
     method: 'save_data'

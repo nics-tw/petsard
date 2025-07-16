@@ -3,7 +3,7 @@ title: 測試覆蓋範圍
 type: docs
 weight: 88
 prev: docs/developer-guide/experiment-name-in-reporter
-next: docs/developer-guide
+next: docs/developer-guide/docker-development
 ---
 
 
@@ -286,7 +286,7 @@ next: docs/developer-guide
 
 > tests/constrainer/test_constrainer.py
 
-測試主要約束器類別：
+測試主要約束器工廠類別（18 個測試）：
 
 - `test_basic_initialization`：測試基本約束器初始化和配置儲存
 - `test_nan_groups_constraints`：測試空值群組約束：
@@ -312,12 +312,38 @@ next: docs/developer-guide
 - `test_edge_cases`：測試邊界條件：
   - 空的資料框
   - 全部為空值
+- `test_empty_config`：測試空配置的約束器
+- `test_unknown_constraint_type_warning`：測試未知約束類型的警告
+- `test_resample_trails_attribute`：測試重新採樣軌跡追蹤功能
+- `test_register_custom_constraint`：測試自定義約束註冊
+- `test_register_invalid_constraint_class`：測試無效約束類別的錯誤處理
+
+**欄位比例整合測試（5 個測試）：**
+- `test_field_proportions_integration`：測試新架構下的欄位比例約束器整合：
+  - 更新配置格式的單一欄位比例
+  - 缺失值比例維護
+  - 欄位組合比例處理
+- `test_field_proportions_with_other_constraints`：測試欄位比例與其他約束類型的協同運作：
+  - 結合欄位比例和欄位約束
+  - 多約束互動驗證
+- `test_field_proportions_comprehensive_integration`：測試基於真實世界情境的全面欄位比例整合：
+  - 教育程度、收入和工作類別資料分布維護
+  - 多種約束模式（all、missing、欄位組合）
+  - 使用 `target_rows` 參數的新架構驗證
+- `test_field_proportions_multiple_modes`：測試多種約束模式的欄位比例：
+  - 類別比例（'all' 模式）
+  - 缺失值比例（'missing' 模式）
+  - 區域比例驗證
+- `test_field_proportions_edge_cases_integration`：測試欄位比例邊界情況：
+  - 小資料集處理
+  - 目標行數大於可用資料
+  - 空欄位比例列表處理
 
 #### `NaNGroupConstrainer`
 
 > tests/constrainer/test_nan_group_constrainer.py
 
-測試空值處理約束：
+測試空值處理約束（18 個測試）：
 
 - `test_invalid_config_initialization`：測試無效配置處理：
   - 非字典輸入
@@ -335,12 +361,19 @@ next: docs/developer-guide
 - `test_copy_action_compatible_types`：測試相容類型間的值複製
 - `test_copy_action_incompatible_types`：測試不相容類型複製的處理
 - `test_multiple_constraints`：測試多個約束同時運作
+- `test_delete_action_edge_case`：測試刪除動作邊界情況
+- `test_erase_action_multiple_targets`：測試清除動作多目標欄位
+- `test_copy_action_type_validation`：測試複製動作型別驗證
+- `test_invalid_action_type`：測試無效動作類型處理
+- `test_invalid_target_specification`：測試無效目標欄位設定
+- `test_empty_config_handling`：測試空配置處理
+- `test_mixed_action_validation`：測試混合動作配置驗證
 
 #### `FieldConstrainer`
 
 > tests/constrainer/test_field_constrainer.py
 
-測試欄位級別約束：
+測試欄位級別約束（12 個測試）：
 
 - `test_invalid_config_structure`：測試配置驗證：
   - 非列表輸入
@@ -356,12 +389,17 @@ next: docs/developer-guide
   - 空值檢查
   - 日期運算
 - `test_complex_expression_validation`：測試複雜約束組合
+- `test_empty_constraint_list`：測試空約束列表處理
+- `test_null_check_operations`：測試空值檢查操作
+- `test_date_operation_constraints`：測試日期約束操作
+- `test_parentheses_validation`：測試括號匹配驗證
+- `test_operator_validation`：測試運算子語法驗證
 
 #### `FieldCombinationConstrainer`
 
 > tests/constrainer/test_field_combination_constrainer.py
 
-測試欄位組合約束：
+測試欄位組合約束（15 個測試）：
 
 - `test_validate_config_existing_columns`：測試欄位存在性驗證
 - `test_invalid_constraints_not_list`：測試非列表約束處理
@@ -370,6 +408,65 @@ next: docs/developer-guide
 - `test_invalid_source_fields`：測試來源欄位類型驗證
 - `test_invalid_target_field`：測試目標欄位類型驗證
 - `test_multi_field_source_value_length_mismatch`：測試多欄位值匹配
+- `test_single_field_constraint`：測試單欄位約束驗證
+- `test_multi_field_constraint`：測試多欄位約束情境
+- `test_constraint_tuple_validation`：測試約束元組結構驗證
+- `test_field_mapping_edge_cases`：測試欄位映射邊界情況
+- `test_value_length_validation`：測試值長度匹配驗證
+- `test_complex_field_combinations`：測試複雜欄位組合情境
+
+#### `FieldProportionsConstrainer`
+
+> tests/constrainer/test_field_proportions_constrainer.py
+
+測試欄位比例維護約束（33 個測試）：
+
+**FieldProportionsConfig 測試（6 個測試）：**
+- `test_valid_config_initialization`：測試有效配置初始化，僅包含欄位比例
+- `test_invalid_field_proportions_structure`：測試無效的欄位比例結構（缺少容忍度、無效模式）
+- `test_invalid_tolerance_values`：測試無效的容忍度值（>1、<0）
+- `test_verify_data_with_valid_data`：測試有效資料框的資料驗證和提供的 target_n_rows
+- `test_verify_data_with_missing_columns`：測試資料中缺少欄位的錯誤處理
+- `test_check_proportions`：測試良好和不良過濾資料的比例檢查
+
+**FieldProportionsConstrainer 測試（14 個測試）：**
+- `test_constrainer_initialization`：測試有效配置的約束器初始化
+- `test_invalid_constrainer_config`：測試無效配置的約束器（無效模式）
+- `test_apply_with_empty_dataframe`：測試空資料框的 apply 方法
+- `test_apply_with_valid_data`：測試有效資料和已知比例的 apply 方法
+- `test_field_combination_proportions`：測試使用元組欄位鍵的欄位組合比例
+- `test_missing_value_proportions`：測試缺失值比例維護
+- `test_edge_case_all_same_values`：測試所有值相同的邊界情況
+- `test_edge_case_target_larger_than_data`：測試目標超過可用資料的邊界情況
+
+**極端邊界情況測試（19 個測試）：**
+- `test_extreme_case_single_row_data`：測試單列資料處理
+- `test_extreme_case_very_large_tolerance`：測試極大容忍度值（0.9）
+- `test_extreme_case_zero_tolerance`：測試零容忍度與完美比例
+- `test_extreme_case_all_missing_values`：測試全缺失值情境
+- `test_extreme_case_no_missing_values`：測試無缺失值情境
+- `test_extreme_case_very_small_target`：測試極小目標列數（1 列）
+- `test_extreme_case_huge_data_small_target`：測試大型資料集與小目標
+- `test_extreme_case_many_unique_values`：測試多個唯一值（每個僅出現一次）
+- `test_extreme_case_complex_field_combinations`：測試複雜多欄位組合
+- `test_extreme_case_mixed_data_types`：測試混合資料類型（int、string、float、None、bool）
+- `test_extreme_case_empty_field_proportions_list`：測試空欄位比例列表
+- `test_extreme_case_duplicate_field_rules`：測試重複欄位規則處理
+- `test_extreme_case_very_unbalanced_data`：測試極不平衡資料（99% vs 1%）
+- `test_extreme_case_numerical_precision`：測試小容忍度的數值精度問題
+- `test_extreme_case_unicode_and_special_characters`：測試 Unicode 和特殊字符
+- `test_extreme_case_datetime_objects`：測試日期時間物件作為欄位值
+- `test_extreme_case_large_string_values`：測試極大字串值（1000+ 字符）
+- `test_extreme_case_nested_tuple_combinations`：測試深度嵌套元組組合（5 個欄位）
+- `test_apply_without_target_rows_should_fail`：測試不提供 target_rows 參數時適當地失敗
+
+**架構整合：**
+- 欄位比例約束器現在遵循統一的 Constrainer 架構
+- 目標行數由主要 Constrainer 在重新採樣過程中提供
+- 移除日期名稱映射功能以簡化配置
+- 所有測試已更新以反映新的參數傳遞機制
+
+> **約束器測試總計**：97 個測試分佈在 5 個測試檔案中，涵蓋完整的約束功能，包括工廠模式實作、空值群組處理、欄位級別約束、欄位組合規則和欄位比例維護，具有廣泛的邊界情況覆蓋和整合測試。
 
 ## 資料評測
 

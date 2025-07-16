@@ -1,7 +1,7 @@
 ---
 title: 預設合成與預設評測
 type: docs
-weight: 13
+weight: 8
 prev: docs/tutorial/default-synthesis
 next: docs/tutorial/external-synthesis-default-evaluation
 ---

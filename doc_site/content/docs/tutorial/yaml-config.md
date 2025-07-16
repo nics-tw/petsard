@@ -1,7 +1,7 @@
 ---
 title: YAML Configuration
 type: docs
-weight: 11
+weight: 6
 prev: docs/tutorial
 next: docs/tutorial/default-synthesis
 ---
