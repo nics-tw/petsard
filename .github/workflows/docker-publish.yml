@@ -45,8 +45,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      # 這是用於 attestations
+      attestations: write
       id-token: write
+
 
     steps:
       - name: 📥 Checkout repository
