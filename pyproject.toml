@@ -109,32 +109,36 @@ Documentation = "https://nics-tw.github.io/petsard/"
 "Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
-dev = [
-    "ipykernel>=6.29.5,<7",
-    "pytest>=8.4.1,<9",
-    "python-semantic-release>=10.2.0,<11", # 770, 771
-    "ruff>=0.12.2,<1",
-    "pip-audit>=2.7.3,<3", # Security audit tool
-    ###### ###### ######
-    # SBOM dependency related
-    ###### ###### ######
-    # #739
-    "click-option-group>=0.5.7",
-    "debugpy>=1.8.14",
-    "decorator>=5.2.1",
-    "iniconfig>=2.1.0",
-    "ipython>=8.3.0 ; python_full_version < '3.11'", # for Python 3.10
-    "ipython>=9.4.0 ; python_full_version >= '3.11'", # for Python 3.11+
-    "prompt-toolkit>=3.0.51",
-    "psutil>=7.0.0",
-    "pydantic>=2.11.7",
-    "python-gitlab>=6.1.0", # upgraded from 5.6.0
-    "pyzmq>=27.0.0",
-    "rich>=14.0.0",
-    "trove-classifiers>=2025.5.9.12",
-    "pywin32>=310 ; sys_platform == 'win32'",
+# Docker 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
+# Docker group - only core dependencies needed for Jupyter Notebook
+docker = [
+    "ipykernel>=6.29.5,<7",           # Jupyter kernel support
+    "jupyterlab>=4.4.4",              # Jupyter Lab interface
+    "ipython>=8.3.0 ; python_full_version < '3.11'", # IPython for Python 3.10
+    "ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
+    "prompt-toolkit>=3.0.51",         # IPython dependency
+    "pyzmq>=27.0.0",                  # Jupyter messaging
+    "debugpy>=1.8.14",                # Debugging support for notebooks
+    "decorator>=5.2.1",               # IPython dependency
+    "psutil>=7.0.0",                  # System monitoring for notebooks
     # IPython enhancement for Python 3.11+
     "ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
+]
+
+# 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
+# Development tools dependency group - dev tools that don't need to be in Docker
+dev = [
+    "pytest>=8.4.1,<9",                        # Testing framework
+    "python-semantic-release>=10.2.0,<11",     # Release automation
+    "ruff>=0.12.2,<1",                         # Linting and formatting
+    "pip-audit>=2.7.3,<3",                     # Security audit tool
+    "click-option-group>=0.5.7",               # CLI tools
+    "iniconfig>=2.1.0",                        # Configuration parsing
+    "pydantic>=2.11.7",                        # Data validation
+    "python-gitlab>=6.1.0",                    # GitLab API client
+    "rich>=14.0.0",                            # Rich text and beautiful formatting
+    "trove-classifiers>=2025.5.9.12",          # PyPI classifiers
+    "pywin32>=310 ; sys_platform == 'win32'",  # Windows-specific tools
 ]
 
 [build-system]
