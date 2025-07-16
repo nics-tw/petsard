@@ -22,15 +22,22 @@ docker run -it --rm ghcr.io/nics-tw/petsard:latest
 
 ### 選項 2：本地開發環境
 
-如果您有 PETsARD 原始碼，可以使用開發環境：
+如果您有 PETsARD 原始碼，可以建置並運行容器：
 
 ```bash
 # 複製儲存庫（如果尚未完成）
 git clone https://github.com/nics-tw/petsard.git
 cd petsard
 
-# 啟動包含 Jupyter Lab 的開發環境
-./scripts/dev-docker.sh up
+# 建置標準版本（預設 - 不含 Jupyter）
+docker build -t petsard:latest .
+
+# 建置並運行包含 Jupyter Lab 的 Jupyter 版本
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 
 # 在 http://localhost:8888 存取 Jupyter Lab
 ```
@@ -38,15 +45,17 @@ cd petsard
 ### 使用您的資料運行
 
 ```bash
-# 使用預先建置的容器
-docker run -it --rm \
-  -v $(pwd)/data:/workspace/data \
-  -v $(pwd)/output:/workspace/output \
-  ghcr.io/nics-tw/petsard:latest \
-  bash
+# 使用預先建置的容器（標準版本）
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  ghcr.io/nics-tw/petsard:latest
 
-# 使用本地開發環境
-./scripts/dev-docker.sh up
+# 使用本地 Jupyter 環境
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 # 然後在 http://localhost:8888 存取 Jupyter Lab
 ```
 
@@ -74,15 +83,14 @@ docker run -it --rm \
 ### 互動式開發
 
 ```bash
-# 啟動互動式會話
-docker run -it --rm \
-  -v $(pwd):/workspace \
-  -w /workspace \
-  ghcr.io/nics-tw/petsard:latest \
-  bash
+# 啟動互動式 Python 會話
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  ghcr.io/nics-tw/petsard:latest
 
 # 在容器內，您可以運行：
-python -c "import petsard; print('PETsARD 已準備就緒！')"
+# import petsard
+# print('PETsARD 已準備就緒！')
 ```
 
 ### 批次處理
@@ -103,51 +111,62 @@ docker run -it --rm \
 
 ## 本地開發環境管理
 
-如果您正在使用 PETsARD 原始碼，可以使用內建的開發環境管理腳本：
+如果您正在使用 PETsARD 原始碼，可以直接建置和管理容器：
 
-### 可用指令
+### 可用建置選項
 
 ```bash
-# 啟動開發環境（包含 Jupyter Lab）
-./scripts/dev-docker.sh up
+# 建置標準版本（預設 - 不含 Jupyter）
+docker build -t petsard:latest .
 
-# 停止開發環境
-./scripts/dev-docker.sh down
+# 建置 Jupyter 版本（包含 Jupyter Lab）
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
 
-# 建置開發映像檔
-./scripts/dev-docker.sh build
-
-# 存取容器 shell
-./scripts/dev-docker.sh shell
-
-# 在容器中運行測試
-./scripts/dev-docker.sh test
-
-# 查看容器日誌
-./scripts/dev-docker.sh logs
-
-# 清理容器和映像檔
-./scripts/dev-docker.sh clean
+# 針對 ARM64 平台（Apple Silicon）
+docker buildx build --platform linux/arm64 --load --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter --no-cache .
 ```
 
-### 生產版 vs 開發版模式
+### 運行不同變體
 
 ```bash
-# 開發模式（預設）- 包含 Jupyter Lab 和開發工具
-./scripts/dev-docker.sh build
-./scripts/dev-docker.sh up
+# 運行包含 Jupyter Lab 的 Jupyter 版本
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 
-# 生產模式 - 最小運行時環境
-./scripts/dev-docker.sh prod build
-./scripts/dev-docker.sh prod up
+# 運行標準版本 Python REPL
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  petsard:latest
+
+# 在 Jupyter 容器中運行 Python REPL 模式
+docker run -it --entrypoint /opt/venv/bin/python3 petsard:jupyter
+```
+
+### Jupyter 版 vs 標準版模式
+
+```bash
+# Jupyter 模式 - 包含 Jupyter Lab 和開發工具
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
+
+# 標準模式 - 最小運行時環境（預設）
+docker build -t petsard:latest .
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  petsard:latest
 ```
 
 ### 開發功能
 
-- **Jupyter Lab**：可在 http://localhost:8888 存取
-- **即時程式碼重載**：原始碼的變更會立即反映
-- **完整開發堆疊**：包含測試、文檔和開發工具
-- **卷掛載**：您的本地檔案會掛載到容器中
+- **Jupyter Lab**：可在 http://localhost:8888 存取（使用 Jupyter 變體時）
+- **即時程式碼重載**：透過卷掛載，原始碼的變更會立即反映
+- **完整開發堆疊**：包含來自 pyproject.toml [docker] 群組的依賴
+- **卷掛載**：您的本地檔案會掛載到容器中以進行持久化開發
 
 ## 環境變數
 

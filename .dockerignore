@@ -95,15 +95,15 @@ Thumbs.db
 .env.production.local
 
 # 專案特定排除
+templates
 scripts/
 tests/
 module_functional_designs/
+requirements.txt
 
 # 保留重要檔案的註解
 # 包含的重要檔案：
 # - petsard/ (主要套件)
 # - demo/ (範例)
-# - templates/ (模板)
 # - pyproject.toml (專案設定)
-# - requirements.txt (依賴)
 # - README.md, LICENSE, CHANGELOG.md (文件)
