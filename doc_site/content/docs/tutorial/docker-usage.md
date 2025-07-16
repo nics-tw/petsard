@@ -22,15 +22,22 @@ docker run -it --rm ghcr.io/nics-tw/petsard:latest
 
 ### Option 2: Local Development Environment
 
-If you have the PETsARD source code locally, you can use the development environment:
+If you have the PETsARD source code locally, you can build and run containers:
 
 ```bash
 # Clone the repository (if not already done)
 git clone https://github.com/nics-tw/petsard.git
 cd petsard
 
-# Start development environment with Jupyter Lab
-./scripts/dev-docker.sh up
+# Build standard version (default - without Jupyter)
+docker build -t petsard:latest .
+
+# Build and run Jupyter version with Jupyter Lab
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 
 # Access Jupyter Lab at http://localhost:8888
 ```
@@ -38,15 +45,17 @@ cd petsard
 ### Run with Your Data
 
 ```bash
-# Using pre-built container
-docker run -it --rm \
-  -v $(pwd)/data:/workspace/data \
-  -v $(pwd)/output:/workspace/output \
-  ghcr.io/nics-tw/petsard:latest \
-  bash
+# Using pre-built container (standard version)
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  ghcr.io/nics-tw/petsard:latest
 
-# Using local development environment
-./scripts/dev-docker.sh up
+# Using local Jupyter environment
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 # Then access Jupyter Lab at http://localhost:8888
 ```
 
@@ -74,15 +83,14 @@ docker run -it --rm \
 ### Interactive Development
 
 ```bash
-# Start interactive session
-docker run -it --rm \
-  -v $(pwd):/workspace \
-  -w /workspace \
-  ghcr.io/nics-tw/petsard:latest \
-  bash
+# Start interactive Python session
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  ghcr.io/nics-tw/petsard:latest
 
 # Inside container, you can run:
-python -c "import petsard; print('PETsARD is ready!')"
+# import petsard
+# print('PETsARD is ready!')
 ```
 
 ### Batch Processing
@@ -103,51 +111,62 @@ docker run -it --rm \
 
 ## Local Development Environment Management
 
-If you're working with the PETsARD source code, you can use the built-in development environment management script:
+If you're working with the PETsARD source code, you can build and manage containers directly:
 
-### Available Commands
+### Available Build Options
 
 ```bash
-# Start development environment (includes Jupyter Lab)
-./scripts/dev-docker.sh up
+# Build standard version (default - without Jupyter)
+docker build -t petsard:latest .
 
-# Stop development environment
-./scripts/dev-docker.sh down
+# Build Jupyter version (includes Jupyter Lab)
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
 
-# Build development image
-./scripts/dev-docker.sh build
-
-# Access container shell
-./scripts/dev-docker.sh shell
-
-# Run tests in container
-./scripts/dev-docker.sh test
-
-# View container logs
-./scripts/dev-docker.sh logs
-
-# Clean up containers and images
-./scripts/dev-docker.sh clean
+# For ARM64 platforms (Apple Silicon)
+docker buildx build --platform linux/arm64 --load --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter --no-cache .
 ```
 
-### Production vs Development Mode
+### Running Different Variants
 
 ```bash
-# Development mode (default) - includes Jupyter Lab and dev tools
-./scripts/dev-docker.sh build
-./scripts/dev-docker.sh up
+# Run Jupyter version with Jupyter Lab
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
 
-# Production mode - minimal runtime environment
-./scripts/dev-docker.sh prod build
-./scripts/dev-docker.sh prod up
+# Run standard version Python REPL
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  petsard:latest
+
+# Run Jupyter container in Python REPL mode
+docker run -it --entrypoint /opt/venv/bin/python3 petsard:jupyter
+```
+
+### Jupyter vs Standard Mode
+
+```bash
+# Jupyter mode - includes Jupyter Lab and development tools
+docker build --build-arg INCLUDE_JUPYTER=true -t petsard:jupyter .
+docker run -it -p 8888:8888 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/notebooks:/app/notebooks \
+  petsard:jupyter
+
+# Standard mode - minimal runtime environment (default)
+docker build -t petsard:latest .
+docker run -it --entrypoint /opt/venv/bin/python3 \
+  -v $(pwd):/app/data \
+  petsard:latest
 ```
 
 ### Development Features
 
-- **Jupyter Lab**: Available at http://localhost:8888
-- **Live Code Reloading**: Changes in source code are immediately reflected
-- **Complete Development Stack**: Includes testing, documentation, and development tools
-- **Volume Mounting**: Your local files are mounted into the container
+- **Jupyter Lab**: Available at http://localhost:8888 (when using Jupyter variant)
+- **Live Code Reloading**: Changes in source code are immediately reflected through volume mounting
+- **Complete Development Stack**: Includes dependencies from pyproject.toml [docker] group
+- **Volume Mounting**: Your local files are mounted into the container for persistent development
 
 ## Environment Variables
 
