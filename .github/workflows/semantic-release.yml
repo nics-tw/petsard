@@ -88,6 +88,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
         with:
           repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
           skip-existing: true
           attestations: true
           # 使用 Trusted Publishing
@@ -96,6 +97,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         if: steps.release.outputs.released == 'true'
         with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
           attestations: true
           # 使用 Trusted Publishing
