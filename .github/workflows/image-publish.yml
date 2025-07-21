@@ -28,26 +28,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Debug - Check current version (after semantic release)
-      #   if: github.event_name == 'workflow_run'
-      #   run: |
-      #     echo "Building variant: ${{ matrix.variant.name }}"
-      #     echo "Event: ${{ github.event_name }}"
-      #     echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-      #     echo "Head branch: ${{ github.event.workflow_run.head_branch }}"
-      #     echo "Current ref: ${{ github.ref }}"
-      #     echo "Current SHA: ${{ github.sha }}"
-
-      #     # 檢查 pyproject.toml 中的版本號
-      #     if [ -f "pyproject.toml" ]; then
-      #       echo "=== pyproject.toml version ==="
-      #       grep -E "^version\s*=" pyproject.toml || echo "Version tag was not found in pyproject.toml"
-      #     fi
-
-      #     # 檢查最新的 Git 標籤
-      #     echo "=== Latest Git tags ==="
-      #     git tag --sort=-version:refname | head -5 || echo "No tags found"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -76,11 +56,6 @@ jobs:
           flavor: |
             latest=auto
 
-      - name: test
-        id: test
-        run: |
-          echo "meta: ${{ steps.meta.outputs.tags}}"
-
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v6
@@ -88,9 +63,10 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          sbom: true
+          provenance: mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -109,7 +85,6 @@ jobs:
           path: ${{ runner.temp }}/petsard.tar
 
       # - name: Generate artifact attestation
-      #   if: github.event_name != 'pull_request'
       #   uses: actions/attest-build-provenance@v2
       #   with:
       #     subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
