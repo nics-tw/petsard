@@ -1,15 +1,11 @@
 name: Image Building and Publishing
 
 on:
-  workflow_run:
-    workflows: ["Semantic Release"]
-    types:
-      - completed
-    branches:
-      - main
   push:
     branches:
+      - main
       - dev
+    tags: ["v*.*.*"]
   workflow_dispatch:
 
 env:
@@ -19,19 +15,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    strategy:
-      matrix:
-        variant:
-          - name: "standard"
-            include_jupyter: "false"
-            suffix: ""
-          - name: "jupyter"
-            include_jupyter: "true"
-            suffix: "jupyter"
+    if: github.repository == 'nics-tw/petsard'
     permissions:
       contents: read
       packages: write
@@ -90,7 +74,12 @@ jobs:
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}
 
-      - name: Build and push Docker image (${{ matrix.variant.name }})
+      - name: test
+        id: test
+        run: |
+          echo "meta: ${{ steps.meta.outputs.tags}}"
+
+      - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v6
         with:
@@ -100,10 +89,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: true
-          cache-from: type=gha,scope=${{ matrix.variant.name }}
-          cache-to: type=gha,scope=${{ matrix.variant.name }}
-          build-args: |
-            INCLUDE_JUPYTER=${{ matrix.variant.include_jupyter }}
 
       # - name: Generate artifact attestation
       #   if: github.event_name != 'pull_request'
