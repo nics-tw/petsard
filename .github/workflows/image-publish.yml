@@ -73,6 +73,8 @@ jobs:
             type=semver,pattern={{raw}}
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}
+          flavor: |
+            latest=auto
 
       - name: test
         id: test
