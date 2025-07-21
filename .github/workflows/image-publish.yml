@@ -75,6 +75,8 @@ jobs:
           context: .
           platforms: linux/amd64
           push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=oci,dest=${{ runner.temp }}/${{ github.event.repository.name }}-amd64.tar
