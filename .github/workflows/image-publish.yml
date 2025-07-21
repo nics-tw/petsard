@@ -77,7 +77,7 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=${{ runner.temp }}/${{ github.event.repository.name }}-amd64.tar
+          outputs: type=image,dest=${{ runner.temp }}/${{ github.event.repository.name }}-amd64.tar
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
