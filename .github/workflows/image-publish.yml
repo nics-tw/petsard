@@ -67,25 +67,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Build Docker image (Tar)
-        id: build-tar
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=oci,dest=${{ runner.temp }}/${{ github.event.repository.name }}-amd64.tar
+          outputs: type=oci,dest=${{ runner.temp }}/${{ github.event.repository.name }}-oci.tar
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: petsard-amd64
-          path: ${{ runner.temp }}/${{ github.event.repository.name }}-amd64.tar
+          name: petsard-oci
+          path: ${{ runner.temp }}/${{ github.event.repository.name }}-oci.tar
 
       - name: Generate artifact attestation
         id: attest
