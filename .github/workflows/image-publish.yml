@@ -85,22 +85,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Default tags
             type=ref,event=branch
-            # Versioning tags
             type=semver,pattern={{raw}}
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}
-
-            # type=ref,event=branch,suffix=${{ matrix.variant.suffix }}
-            # type=ref,event=pr,suffix=${{ matrix.variant.suffix }}
-            # type=semver,pattern={{version}},suffix=${{ matrix.variant.suffix }}
-            # type=semver,pattern={{major}}.{{minor}},suffix=${{ matrix.variant.suffix }}
-            # type=semver,pattern={{major}},suffix=${{ matrix.variant.suffix }}
-            # type=raw,value=latest${{ matrix.variant.suffix }},enable={{is_default_branch}}
-          flavor: |
-            prefix=v
-            onlatest=true
 
       - name: Build and push Docker image (${{ matrix.variant.name }})
         id: build-and-push
