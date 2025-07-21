@@ -2,6 +2,8 @@
 # 多階段優化建置開發環境
 FROM python:3.11-slim AS builder
 
+ARG TARGETPLATFORM
+
 # Install build dependencies
 # 安裝建置依賴
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -23,36 +25,28 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies based on build argument and platform
 # 根據建置參數和平台安裝依賴
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-	ARCH=$(uname -m) && \
-	echo "Architecture: $ARCH" && \
-	if [ "$ARCH" = "aarch64" ]; then \
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN case ${TARGETPLATFORM} in \
+	amd64) \
+	pip install --no-cache-dir -e . && \
+	pip install --no-cache-dir --dependency-groups=docker ;; \
+	arm64) \
 	echo "aarch64 detected - installing with CPU-only PyTorch..." && \
-	pip install --no-cache-dir \
-	torch==2.7.1 \
-	torchvision \
-	torchaudio \
-	--index-url https://download.pytorch.org/whl/cpu && \
+	pip install --no-cache-dir torch==2.7.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
 	pip install --no-cache-dir -e . && \
-	pip install --no-cache-dir --dependency-groups=docker || \
-	else \
-	echo "Installing standard dependencies..." && \
-	pip install --no-cache-dir -e . && \
-	pip install --no-cache-dir --dependency-groups=docker; \
-	fi && \
-	pip cache purge && \
-	find /opt/venv -name "*.pyc" -delete && \
-	find /opt/venv -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+	pip install --no-cache-dir --dependency-groups=docker ;;\
+	esac
 
 # Skip build-time testing for ARM64
 # ARM64 平台跳過建置時測試
-RUN ARCH=$(uname -m) && \
-	if [ "$ARCH" = "aarch64" ]; then \
-	echo "ARM64 platform - skipping build-time tests"; \
-	else \
+RUN case ${TARGETPLATFORM} in \
+	arm64) \
+	echo "ARM64 platform - skipping build-time tests" ;; \
+	amd64) \
 	python -c "import torch; print('✅ torch imported successfully')" && \
-	python -c "import petsard; print('✅ petsard imported successfully')"; \
-	fi
+	python -c "import petsard; print('✅ petsard imported successfully')" ;; \
+	esac
+
 
 # Production stage
 # 生產階段
@@ -98,21 +92,11 @@ import sys
 import subprocess
 import platform
 
-# ARM64 optimization
+# ARM64/aarch64 optimization
 if platform.machine() == 'aarch64':
     os.environ['TORCH_DISABLE_DISTRIBUTED'] = '1'
     os.environ['OMP_NUM_THREADS'] = '1'
 
-    cmd = [
-        '/opt/venv/bin/python', '-m', 'jupyter', 'lab',
-        '--ip=0.0.0.0',
-        '--port=8888',
-        '--no-browser',
-        '--allow-root',
-        '--ServerApp.token=',
-        '--ServerApp.password=',
-        '--ServerApp.allow_origin=*',
-        '--ServerApp.allow_remote_access=True'
 RUN /opt/venv/bin/python -m jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.token= --ServerApp.password= --ServerApp.allow_origin=* --ServerApp.allow_remote_access=True
 
 try:
