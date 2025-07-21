@@ -9,13 +9,6 @@ on:
       - main
   push:
     branches:
-      - main
-      - dev
-    tags:
-      - "v*"
-  pull_request:
-    branches:
-      - main
       - dev
   workflow_dispatch:
 
@@ -28,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     strategy:
@@ -39,11 +31,11 @@ jobs:
             suffix: ""
           - name: "jupyter"
             include_jupyter: "true"
-            suffix: "-jupyter"
+            suffix: "jupyter"
     permissions:
       contents: read
       packages: write
-      # attestations: write
+      attestations: write
       id-token: write
 
     steps:
@@ -52,25 +44,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug - Check current version (after semantic release)
-        if: github.event_name == 'workflow_run'
-        run: |
-          echo "Building variant: ${{ matrix.variant.name }}"
-          echo "Event: ${{ github.event_name }}"
-          echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-          echo "Head branch: ${{ github.event.workflow_run.head_branch }}"
-          echo "Current ref: ${{ github.ref }}"
-          echo "Current SHA: ${{ github.sha }}"
+      # - name: Debug - Check current version (after semantic release)
+      #   if: github.event_name == 'workflow_run'
+      #   run: |
+      #     echo "Building variant: ${{ matrix.variant.name }}"
+      #     echo "Event: ${{ github.event_name }}"
+      #     echo "Workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
+      #     echo "Head branch: ${{ github.event.workflow_run.head_branch }}"
+      #     echo "Current ref: ${{ github.ref }}"
+      #     echo "Current SHA: ${{ github.sha }}"
 
-          # 檢查 pyproject.toml 中的版本號
-          if [ -f "pyproject.toml" ]; then
-            echo "=== pyproject.toml version ==="
-            grep -E "^version\s*=" pyproject.toml || echo "Version tag was not found in pyproject.toml"
-          fi
+      #     # 檢查 pyproject.toml 中的版本號
+      #     if [ -f "pyproject.toml" ]; then
+      #       echo "=== pyproject.toml version ==="
+      #       grep -E "^version\s*=" pyproject.toml || echo "Version tag was not found in pyproject.toml"
+      #     fi
 
-          # 檢查最新的 Git 標籤
-          echo "=== Latest Git tags ==="
-          git tag --sort=-version:refname | head -5 || echo "No tags found"
+      #     # 檢查最新的 Git 標籤
+      #     echo "=== Latest Git tags ==="
+      #     git tag --sort=-version:refname | head -5 || echo "No tags found"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -95,9 +87,8 @@ jobs:
           tags: |
             # Default tags
             type=ref,event=branch
-            type=ref,event=tag
             # Versioning tags
-            type=semver,pattern=v{{version}}
+            type=semver,pattern={{raw}}
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}
 
@@ -108,7 +99,8 @@ jobs:
             # type=semver,pattern={{major}},suffix=${{ matrix.variant.suffix }}
             # type=raw,value=latest${{ matrix.variant.suffix }},enable={{is_default_branch}}
           flavor: |
-            latest=auto
+            prefix=v
+            onlatest=true
 
       - name: Build and push Docker image (${{ matrix.variant.name }})
         id: build-and-push
@@ -116,11 +108,12 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
           cache-from: type=gha,scope=${{ matrix.variant.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.variant.name }}
+          cache-to: type=gha,scope=${{ matrix.variant.name }}
           build-args: |
             INCLUDE_JUPYTER=${{ matrix.variant.include_jupyter }}
 
