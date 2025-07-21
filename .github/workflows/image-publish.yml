@@ -67,7 +67,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=${{ runner.temp }}/${{ github.event.repository.name }}.tar
+          outputs: type=tar,dest=${{ runner.temp }}/${{ github.event.repository.name }}.tar
 
       - name: Cleanup untagged images
         uses: actions/delete-package-versions@v5
