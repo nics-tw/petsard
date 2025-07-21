@@ -69,14 +69,6 @@ jobs:
           cache-to: type=gha,mode=max
           outputs: type=tar,dest=${{ runner.temp }}/${{ github.event.repository.name }}.tar
 
-      - name: Cleanup untagged images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: "petsard"
-          package-type: "container"
-          delete-only-untagged-versions: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build Docker image (Tar)
         id: build-tar
         uses: docker/build-push-action@v6
@@ -101,3 +93,11 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
           push-to-registry: true
+
+      - name: Cleanup untagged images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: "petsard"
+          package-type: "container"
+          delete-only-untagged-versions: true
+          token: ${{ secrets.GITHUB_TOKEN }}
