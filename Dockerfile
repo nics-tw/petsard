@@ -8,7 +8,7 @@ COPY demo/ ./demo/
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -e .
-RUN pip install --no-cache-dir --dependency-groups=docker
+RUN pip install --no-cache-dir --groups docker
 
 # Create user for security
 RUN groupadd -r petsard && useradd -r -g petsard -d /app petsard
