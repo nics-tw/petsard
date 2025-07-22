@@ -1,12 +1,14 @@
 FROM pytorch/pytorch:2.7.1-cuda11.8-cudnn9-runtime
 
 WORKDIR /app
-COPY pyproject.toml .
-COPY README.md .
-COPY petsard/ ./petsard
-COPY demo/ ./demo
+COPY pyproject.toml ./
+COPY README.md ./
+COPY petsard/ ./petsard/
+COPY demo/ ./demo/
 
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && pip install --no-cache-dir -e . && pip install --no-cache-dir --dependency-groups=docker
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir --dependency-groups=docker
 
 # Create user for security
 RUN groupadd -r petsard && useradd -r -g petsard -d /app petsard
