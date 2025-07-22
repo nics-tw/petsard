@@ -108,11 +108,10 @@ pytorch = [
 	# NetworkX version optimization for different Python versions
 	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
 	"networkx>=3.5 ; python_full_version >= '3.11'",
-
 ]
 
-# Docker 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
-# Docker group - only core dependencies needed for Jupyter Notebook
+# Jupyter 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
+# Jupyter group - only core dependencies needed for Jupyter Notebook
 jupyter = [
 	"debugpy>=1.8.14",                                # Debugging support for notebooks
 	"decorator>=5.2.1",                               # IPython dependency
@@ -141,45 +140,6 @@ dev = [
 	"rich>=14.0.0",                           # Rich text and beautiful formatting
 	"ruff>=0.12.2,<1",                        # Linting and formatting
 	"trove-classifiers>=2025.5.9.12",         # PyPI classifiers
-]
-
-all = [
-	"sdmetrics>=0.21.0,<1",
-	"sdv>=1.24.0,<2",
-	###### ###### ######
-	# SBOM dependency related
-	###### ###### ######
-	# #739
-	"boto3>=1.39.3",
-	"botocore>=1.39.3",
-	"certifi>=2025.6.15",
-	"charset-normalizer>=3.4.2",
-	"faker>=37.4.0",
-	"filelock>=3.18.0",
-	"joblib>=1.5.1",
-	"narwhals>=1.45.0",
-	"numba>=0.61.2",
-	"platformdirs>=4.3.8",
-	"plotly>=6.2.0",
-	"pytz>=2025.2",
-	"s3transfer>=0.13.0",
-	"scipy>=1.15.3 ; python_full_version < '3.11'",
-	"scipy>=1.16.0 ; python_full_version >= '3.11'",
-	"threadpoolctl>=3.6.0",
-	"typing-extensions>=4.14.1",
-	"tzdata>=2025.2",
-	"urllib3>=2.5.0",
-	###### ###### ######
-	# #775
-	"setuptools>=80.9.0",
-	###### ###### ######
-	"numpy>=1.26.4", # block by Anonymeter, but already alert
-	# Backward compatibility packages for Python 3.10
-	"exceptiongroup>=1.3.0 ; python_version < '3.11'",
-	"tomli>=2.2.1 ; python_version < '3.11'",
-	{ include-group = "pytorch" },
-	{ include-group = "docker" },
-	{ include-group = "dev" },
 ]
 
 [build-system]
