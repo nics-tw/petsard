@@ -13,16 +13,6 @@ RUN pip install --no-cache-dir --group jupyter
 # Create user for security
 RUN groupadd -r petsard && useradd -r -g petsard -d /app petsard
 
-# Set environment variables
-# 設定環境變數
-# ENV PYTHONPATH=/app \
-# 	PYTHONUNBUFFERED=1 \
-# 	PYTHONDONTWRITEBYTECODE=1 \
-# 	TORCH_DISABLE_DISTRIBUTED=1 \
-# 	OMP_NUM_THREADS=1 \
-# 	HOME=/app \
-# 	JUPYTER_CONFIG_DIR=/app/.jupyter \
-# 	JUPYTER_DATA_DIR=/app/.local/share/jupyter
 ENV JUPYTER_CONFIG_DIR=/app/.jupyter JUPYTER_DATA_DIR=/app/.local/share/jupyter
 
 # Create necessary directories for Jupyter
