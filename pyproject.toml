@@ -53,8 +53,8 @@ dependencies = [
     # SBOM dependency related
     ###### ###### ######
     # #739
-    "boto3>=1.39.3",
-    "botocore>=1.39.3",
+    "boto3>=1.39.4",
+    "botocore>=1.39.4",
     "certifi>=2025.6.15",
     "charset-normalizer>=3.4.2",
     "faker>=37.4.0",
@@ -90,6 +90,7 @@ dependencies = [
     "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+    # Note: NVIDIA dependencies above require Python 3.12 when torch > 2.7.1
     ###### ###### ######
     # #775
     "setuptools>=80.9.0",
@@ -130,7 +131,7 @@ docker = [
 dev = [
     "pytest>=8.4.1,<9",                        # Testing framework
     "python-semantic-release>=10.2.0,<11",     # Release automation
-    "ruff>=0.12.2,<1",                         # Linting and formatting
+    "ruff>=0.12.3,<1",                         # Linting and formatting
     "pip-audit>=2.7.3,<3",                     # Security audit tool
     "click-option-group>=0.5.7",               # CLI tools
     "iniconfig>=2.1.0",                        # Configuration parsing
@@ -139,6 +140,8 @@ dev = [
     "rich>=14.0.0",                            # Rich text and beautiful formatting
     "trove-classifiers>=2025.5.9.12",          # PyPI classifiers
     "pywin32>=310 ; sys_platform == 'win32'",  # Windows-specific tools
+    # Note: pydantic-core > 2.33.2 requires pydantic > 2.11.7 with Python 3.12 support
+    # click > 8.1.0 requires python-semantic-release > 10.2.0, and both require Python 3.12 support
 ]
 
 [build-system]

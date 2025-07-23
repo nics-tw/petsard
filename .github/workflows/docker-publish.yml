@@ -103,7 +103,7 @@ jobs:
 
       - name: 🐳 Build and push Docker image (${{ matrix.variant.name }})
         id: build-and-push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -117,7 +117,7 @@ jobs:
 
       - name: 🔏 Generate artifact attestation
         if: github.event_name != 'pull_request'
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
