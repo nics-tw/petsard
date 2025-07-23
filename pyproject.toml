@@ -90,7 +90,7 @@ dependencies = [
     "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
     "triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    # 上面 nvidia 開頭的全部卡 torch > 2.7.1 需要 Python 3.12
+    # Note: NVIDIA dependencies above require Python 3.12 when torch > 2.7.1
     ###### ###### ######
     # #775
     "setuptools>=80.9.0",
