@@ -129,7 +129,7 @@ docker = [
 # 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
 # Development tools dependency group - dev tools that don't need to be in Docker
 dev = [
-    "pytest>=8.4.1",                           # Testing framework
+    "pytest>=8.4.1,<9",                        # Testing framework
     "python-semantic-release>=10.2.0,<11",     # Release automation
     "ruff>=0.12.3",                            # Linting and formatting
     "pip-audit>=2.7.3,<3",                     # Security audit tool
