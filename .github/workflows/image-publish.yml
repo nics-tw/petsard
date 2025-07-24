@@ -23,6 +23,18 @@ jobs:
       id-token: write
 
     steps:
+      # Image with CUDA needs extra disk space
+      - name: Free disk space 🧹
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: false
+          swap-storage: false
+
       - name: Cleanup untagged images
         uses: actions/delete-package-versions@v5
         with:
@@ -87,5 +99,5 @@ jobs:
         id: attest
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}

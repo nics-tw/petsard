@@ -6,6 +6,7 @@ COPY README.md ./
 COPY petsard/ ./petsard/
 COPY demo/ ./demo/
 
+RUN apt-get update && apt-get install -y nvidia-utils-565-server && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -e .
 RUN pip install --no-cache-dir --group jupyter
@@ -60,6 +61,7 @@ ARG VCS_REF
 # Metadata labels
 LABEL maintainer="matheme.justyn@gmail.com" \
 	description="PETsARD Production Environment" \
+	com.nvidia.volumes.needed="nvidia_driver" \
 	org.opencontainers.image.source="https://github.com/nics-tw/petsard" \
 	org.opencontainers.image.documentation="https://nics-tw.github.io/petsard/" \
 	org.opencontainers.image.licenses="MIT" \
