@@ -34,7 +34,7 @@ jobs:
           large-packages: false
           docker-images: false
           swap-storage: false
-          
+
       - name: Cleanup untagged images
         uses: actions/delete-package-versions@v5
         with:
