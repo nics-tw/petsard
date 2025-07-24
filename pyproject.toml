@@ -2,105 +2,81 @@
 name = "petsard"
 version = "1.5.1"
 description = "Facilitates data generation algorithm and their evaluation processes"
-authors = [
-    { name = "matheme-justyn", email = "matheme.justyn@gmail.com" },
-]
+authors = [{ name = "matheme-justyn", email = "matheme.justyn@gmail.com" }]
 keywords = [
-    "petsard",
-    "data preprocessing",
-    "data generation",
-    "data evaluation",
-    "synthetic data",
-    "privacy",
-    "privacy enhancing technologies",
-    "PET",
-    "anonymization",
-    "differential privacy",
-    "data science",
-    "machine learning",
+	"petsard",
+	"data preprocessing",
+	"data generation",
+	"data evaluation",
+	"synthetic data",
+	"privacy",
+	"privacy enhancing technologies",
+	"PET",
+	"anonymization",
+	"differential privacy",
+	"data science",
+	"machine learning",
 ]
 readme = "README.md"
 
 classifiers = [
-    # 專案狀態 Project status：5 產品/穩定 Production/Stable
-    "Development Status :: 5 - Production/Stable",
-    # 自然語言 Natural language：英文與正體中文 English and Traditional Chinese
-    "Natural Language :: English",
-    "Natural Language :: Chinese (Traditional)",
-    # 程式語言 Programming language：Python 3.10 和 3.11
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    # 目標使用者 Target audience：
-    #   開發者 Developers、
-    #   金融和保險業 Financial and Insurance Industry、
-    #   法律業 Legal Industry
-    "Intended Audience :: Developers",
-    "Intended Audience :: Financial and Insurance Industry",
-    "Intended Audience :: Legal Industry",
+	# 專案狀態 Project status：5 產品/穩定 Production/Stable
+	"Development Status :: 5 - Production/Stable",
+	# 自然語言 Natural language：英文與正體中文 English and Traditional Chinese
+	"Natural Language :: English",
+	"Natural Language :: Chinese (Traditional)",
+	# 程式語言 Programming language：Python 3.10 和 3.11
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	# 目標使用者 Target audience：
+	#   開發者 Developers、
+	#   金融和保險業 Financial and Insurance Industry、
+	#   法律業 Legal Industry
+	"Intended Audience :: Developers",
+	"Intended Audience :: Financial and Insurance Industry",
+	"Intended Audience :: Legal Industry",
 ]
 
 requires-python = ">=3.10,<3.12" # Python 3.12 not supported due to anonymeter dependency conflicts
 
 dependencies = [
-    "anonymeter>=1.0.0,<2",
-    "jinja2>=3.1.6,<4",
-    "python-dateutil>=2.9.0.post0,<3",
-    "pyyaml>=6.0.2,<7",
-    "requests>=2.32.4,<3",
-    "sdmetrics>=0.21.0,<1",
-    "sdv>=1.24.0,<2",
-    ###### ###### ######
-    # SBOM dependency related
-    ###### ###### ######
-    # #739
-    "boto3>=1.39.3",
-    "botocore>=1.39.3",
-    "certifi>=2025.6.15",
-    "charset-normalizer>=3.4.2",
-    "faker>=37.4.0",
-    "filelock>=3.18.0",
-    "fsspec>=2025.5.1",
-    "joblib>=1.5.1",
-    "narwhals>=1.45.0",
-    "numba>=0.61.2",
-    "platformdirs>=4.3.8",
-    "plotly>=6.2.0",
-    "pytz>=2025.2",
-    "s3transfer>=0.13.0",
-    "scipy>=1.15.3 ; python_full_version < '3.11'",
-    "scipy>=1.16.0 ; python_full_version >= '3.11'",
-    "sympy>=1.14.0",
-    "threadpoolctl>=3.6.0",
-    "torch>=2.7.1",
-    "typing-extensions>=4.14.1",
-    "tzdata>=2025.2",
-    "urllib3>=2.5.0",
-    "nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cuda-runtime-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cudnn-cu12>=9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cufft-cu12>=11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cufile-cu12>=1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-curand-cu12>=10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cusolver-cu12>=11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cusparse-cu12>=12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-cusparselt-cu12>=0.6.3 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-    ###### ###### ######
-    # #775
-    "setuptools>=80.9.0",
-    ###### ###### ######
-    "numpy>=1.26.4", # block by Anonymeter, but already alert
-    # NetworkX version optimization for different Python versions
-    "networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
-    "networkx>=3.5 ; python_full_version >= '3.11'",
-    # Backward compatibility packages for Python 3.10
-    "exceptiongroup>=1.3.0 ; python_version < '3.11'",
-    "tomli>=2.2.1 ; python_version < '3.11'",
+	"anonymeter>=1.0.0,<2",
+	"python-dateutil>=2.9.0.post0,<3",
+	"pyyaml>=6.0.2,<7",
+	"requests>=2.32.4,<3",
+	"sdmetrics>=0.21.0,<1",
+	"sdv>=1.24.0,<2",
+	###### ###### ######
+	# SBOM dependency related
+	###### ###### ######
+	# #739
+	"boto3>=1.39.3",
+	"botocore>=1.39.3",
+	"certifi>=2025.6.15",
+	"charset-normalizer>=3.4.2",
+	"faker>=37.4.0",
+	"filelock>=3.18.0",
+	"joblib>=1.5.1",
+	"narwhals>=1.45.0",
+	"numba>=0.61.2",
+	"platformdirs>=4.3.8",
+	"plotly>=6.2.0",
+	"pytz>=2025.2",
+	"s3transfer>=0.13.0",
+	"scipy>=1.15.3 ; python_full_version < '3.11'",
+	"scipy>=1.16.0 ; python_full_version >= '3.11'",
+	"threadpoolctl>=3.6.0",
+	"typing-extensions>=4.14.1",
+	"tzdata>=2025.2",
+	"urllib3>=2.5.0",
+	###### ###### ######
+	# #775
+	"setuptools>=80.9.0",
+	###### ###### ######
+	"numpy>=1.26.4", # block by Anonymeter, but already alert
+	# Backward compatibility packages for Python 3.10
+	"exceptiongroup>=1.3.0 ; python_version < '3.11'",
+	"tomli>=2.2.1 ; python_version < '3.11'",
 ]
 
 [project.urls]
@@ -109,41 +85,70 @@ Documentation = "https://nics-tw.github.io/petsard/"
 "Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
-# Docker 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
-# Docker group - only core dependencies needed for Jupyter Notebook
-docker = [
-    "ipykernel>=6.29.5,<7",           # Jupyter kernel support
-    "jupyterlab>=4.4.4",              # Jupyter Lab interface
-    "ipython>=8.3.0 ; python_full_version < '3.11'", # IPython for Python 3.10
-    "ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
-    "prompt-toolkit>=3.0.51",         # IPython dependency
-    "pyzmq>=27.0.0",                  # Jupyter messaging
-    "debugpy>=1.8.14",                # Debugging support for notebooks
-    "decorator>=5.2.1",               # IPython dependency
-    "psutil>=7.0.0",                  # System monitoring for notebooks
-    # IPython enhancement for Python 3.11+
-    "ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
+# PyTorch 群組
+# PyTorch group
+pytorch = [
+	"fsspec>=2025.5.1",
+	"jinja2>=3.1.6,<4",
+	"nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-runtime-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cudnn-cu12>=9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cufft-cu12>=11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cufile-cu12>=1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-curand-cu12>=10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusolver-cu12>=11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusparse-cu12>=12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusparselt-cu12>=0.6.3 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"sympy>=1.14.0",
+	"torch>=2.7.1",
+	"triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	# NetworkX version optimization for different Python versions
+	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
+	"networkx>=3.5 ; python_full_version >= '3.11'",
+]
+
+# Jupyter 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
+# Jupyter group - only core dependencies needed for Jupyter Notebook
+jupyter = [
+	"debugpy>=1.8.14",                                # Debugging support for notebooks
+	"decorator>=5.2.1",                               # IPython dependency
+	"ipykernel>=6.29.5,<7",                           # Jupyter kernel support
+	"ipython>=8.3.0 ; python_full_version < '3.11'",  # IPython for Python 3.10
+	"ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
+	"jupyterlab>=4.4.4",                              # Jupyter Lab interface
+	"prompt-toolkit>=3.0.51",                         # IPython dependency
+	"psutil>=7.0.0",                                  # System monitoring for notebooks
+	"pyzmq>=27.0.0",                                  # Jupyter messaging
+	# IPython enhancement for Python 3.11+
+	"ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
 ]
 
 # 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
 # Development tools dependency group - dev tools that don't need to be in Docker
 dev = [
-    "pytest>=8.4.1,<9",                        # Testing framework
-    "python-semantic-release>=10.2.0,<11",     # Release automation
-    "ruff>=0.12.2,<1",                         # Linting and formatting
-    "pip-audit>=2.7.3,<3",                     # Security audit tool
-    "click-option-group>=0.5.7",               # CLI tools
-    "iniconfig>=2.1.0",                        # Configuration parsing
-    "pydantic>=2.11.7",                        # Data validation
-    "python-gitlab>=6.1.0",                    # GitLab API client
-    "rich>=14.0.0",                            # Rich text and beautiful formatting
-    "trove-classifiers>=2025.5.9.12",          # PyPI classifiers
-    "pywin32>=310 ; sys_platform == 'win32'",  # Windows-specific tools
+	"click-option-group>=0.5.7",              # CLI tools
+	"iniconfig>=2.1.0",                       # Configuration parsing
+	"pip-audit>=2.7.3,<3",                    # Security audit tool
+	"pydantic>=2.11.7",                       # Data validation
+	"pytest>=8.4.1,<9",                       # Testing framework
+	"python-gitlab>=6.1.0",                   # GitLab API client
+	"python-semantic-release>=10.2.0,<11",    # Release automation
+	"pywin32>=310 ; sys_platform == 'win32'", # Windows-specific tools
+	"rich>=14.0.0",                           # Rich text and beautiful formatting
+	"ruff>=0.12.2,<1",                        # Linting and formatting
+	"trove-classifiers>=2025.5.9.12",         # PyPI classifiers
 ]
 
 [build-system]
-requires = ["hatchling"]           # 指定 Hatchling 作為建置工具 Specifies Hatchling as the build tool
-build-backend = "hatchling.build"  # 使用 Hatchling 的後端建置套件 Uses Hatchling's build backend
+requires = [
+	"hatchling",
+] # 指定 Hatchling 作為建置工具 Specifies Hatchling as the build tool
+build-backend = "hatchling.build" # 使用 Hatchling 的後端建置套件 Uses Hatchling's build backend
 
 [tool.ruff]
 # 基本設定
@@ -152,18 +157,18 @@ target-version = "py311"
 
 # 選擇要檢查的規則
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
+	"E",  # pycodestyle errors
+	"W",  # pycodestyle warnings
+	"F",  # pyflakes
+	"I",  # isort
+	"B",  # flake8-bugbear
+	"C4", # flake8-comprehensions
+	"UP", # pyupgrade
 ]
 
 # 忽略的規則
 ignore = [
-    "E501",  # 行長度限制（已在 line-length 設定）
+	"E501", # 行長度限制（已在 line-length 設定）
 ]
 
 [tool.ruff.format]
@@ -174,22 +179,22 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.semantic_release]
-tag_format = "v{version}"                  # 版本標籤格式 Version tag format
-major_on_zero = false                      # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
-allow_zero_version = false                 # 不允許 0.x.x 版本 Do not allow 0.x.x versions
+tag_format = "v{version}"                          # 版本標籤格式 Version tag format
+major_on_zero = false                              # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
+allow_zero_version = false                         # 不允許 0.x.x 版本 Do not allow 0.x.x versions
 build_command = "pip install hatch && hatch build"
-                                           # 建置指令 Build command
-assets = []                                # 附加檔案 Additional assets
+# 建置指令 Build command
+assets = []                                                                        # 附加檔案 Additional assets
 commit_message = "{version}\n\nAutomatically generated by python-semantic-release"
-                                           # 提交訊息格式 Commit message format
-commit_parser = "conventional"             # 提交訊息解析器 Commit message parser, conventional = angular
-logging_use_named_masks = false            # 日誌輸出設定 Logging configuration
-version_variable = [                       # 版本位置 Version locations
-   "pyproject.toml:project.version",
+# 提交訊息格式 Commit message format
+commit_parser = "conventional" # 提交訊息解析器 Commit message parser, conventional = angular
+logging_use_named_masks = false # 日誌輸出設定 Logging configuration
+version_variable = [ # 版本位置 Version locations
+	"pyproject.toml:project.version",
 ]
-version_source = "commit"                  # 版本來源 Version source
-upload_to_pypi = true                      # 上傳至 PyPI Upload to PyPI
-upload_to_release = false                  # 不上傳至 GitHub Releases Do not upload to GitHub Releases
+version_source = "commit" # 版本來源 Version source
+upload_to_pypi = true # 上傳至 PyPI Upload to PyPI
+upload_to_release = false # 不上傳至 GitHub Releases Do not upload to GitHub Releases
 
 
 # 允許發布的分支 Branches allowed for release
@@ -207,53 +212,53 @@ prerelease_token = "rc"
 
 # 變更日誌生成設定 Changelog generation settings
 [tool.semantic_release.changelog.default_templates]
-template_dir = "templates"       # 自定義模板目錄 Custom templates directory
-changelog_file = "CHANGELOG.md"  # 變更日誌檔案 Changelog file path
-exclude_commit_patterns = []     # 排除的提交模式 Excluded commit patterns
+template_dir = "templates"      # 自定義模板目錄 Custom templates directory
+changelog_file = "CHANGELOG.md" # 變更日誌檔案 Changelog file path
+exclude_commit_patterns = []    # 排除的提交模式 Excluded commit patterns
 
 # 模板引擎設定 Template engine configurations
 [tool.semantic_release.changelog.environment]
-block_start_string = "{%"      # 模板區塊起始符號 Template block start
-block_end_string = "%}"        # 模板區塊結束符號 Template block end
-variable_start_string = "{{"   # 變數起始符號 Variable start
-variable_end_string = "}}"     # 變數結束符號 Variable end
-comment_start_string = "{#"    # 註解起始符號 Comment start
-comment_end_string = "#}"      # 註解結束符號 Comment end
-trim_blocks = false            # 是否移除尾隨換行 Remove trailing newlines
-lstrip_blocks = false          # 是否移除前導空白 Strip leading whitespace
-newline_sequence = "\n"        # 換行符號 Newline sequence
-keep_trailing_newline = false  # 保留尾隨換行 Keep trailing newline
-extensions = []                # 附加模板擴展 Additional template extensions
-autoescape = true              # 自動轉義變數 Auto-escape variables
+block_start_string = "{%"     # 模板區塊起始符號 Template block start
+block_end_string = "%}"       # 模板區塊結束符號 Template block end
+variable_start_string = "{{"  # 變數起始符號 Variable start
+variable_end_string = "}}"    # 變數結束符號 Variable end
+comment_start_string = "{#"   # 註解起始符號 Comment start
+comment_end_string = "#}"     # 註解結束符號 Comment end
+trim_blocks = false           # 是否移除尾隨換行 Remove trailing newlines
+lstrip_blocks = false         # 是否移除前導空白 Strip leading whitespace
+newline_sequence = "\n"       # 換行符號 Newline sequence
+keep_trailing_newline = false # 保留尾隨換行 Keep trailing newline
+extensions = []               # 附加模板擴展 Additional template extensions
+autoescape = true             # 自動轉義變數 Auto-escape variables
 
 # 提交作者設定 Commit author configuration
 [tool.semantic_release.commit_author]
-env = "GIT_COMMIT_AUTHOR"                        # 環境變數名稱 Environment variable
-default = "semantic-release <semantic-release>"  # 預設作者 Default author
+env = "GIT_COMMIT_AUTHOR"                       # 環境變數名稱 Environment variable
+default = "semantic-release <semantic-release>" # 預設作者 Default author
 
 # 提交訊息解析設定 Commit message parsing configuration
 [tool.semantic_release.commit_parser_options]
 allowed_tags = [ # 支援的提交類型 Supported commit types
-    "feat",        # 新功能 A new feature
-    "fix",         # 錯誤修復 A bug fix
-    "docs",        # 僅文檔變更 Documentation only changes
-    "style",       # 不影響代碼含義的變更 Changes that do not affect the meaning of the code
-    "refactor",    # 既不修復錯誤也不增加功能的代碼變更 A code change that neither fixes a bug nor adds a feature
-    "perf",        # 提高性能的代碼變更 A code change that improves performance
-    "test",        # 增加或修正現有測試 Adding missing or correcting existing tests
-    "chore",       # 構建過程或輔助工具的變更 Changes to the build process or auxiliary tools
-    "build",       # 影響構建系統的變更 Changes that affect the build system
-    "ci"           # CI 配置文件和腳本的變更 Changes to CI configuration files and scripts
+	"feat",     # 新功能 A new feature
+	"fix",      # 錯誤修復 A bug fix
+	"docs",     # 僅文檔變更 Documentation only changes
+	"style",    # 不影響代碼含義的變更 Changes that do not affect the meaning of the code
+	"refactor", # 既不修復錯誤也不增加功能的代碼變更 A code change that neither fixes a bug nor adds a feature
+	"perf",     # 提高性能的代碼變更 A code change that improves performance
+	"test",     # 增加或修正現有測試 Adding missing or correcting existing tests
+	"chore",    # 構建過程或輔助工具的變更 Changes to the build process or auxiliary tools
+	"build",    # 影響構建系統的變更 Changes that affect the build system
+	"ci",       # CI 配置文件和腳本的變更 Changes to CI configuration files and scripts
 ]
-minor_tags = ["feat"]         # 觸發次版本更新的類型 Tags for minor version bump
-patch_tags = ["fix", "perf"]  # 觸發修補版本更新的類型 Tags for patch version bump
-default_bump_level = 0        # 預設更新級別 Default bump level (0: patch, 1: minor, 2: major)
+minor_tags = ["feat"] # 觸發次版本更新的類型 Tags for minor version bump
+patch_tags = ["fix", "perf"] # 觸發修補版本更新的類型 Tags for patch version bump
+default_bump_level = 0 # 預設更新級別 Default bump level (0: patch, 1: minor, 2: major)
 
 # GitHub 倉庫設定 GitHub repository settings
 [tool.semantic_release.remote]
-name = "origin"                # 遠端名稱 Remote name
-type = "github"                # 倉庫類型 Repository type
-ignore_token_for_push = false  # 推送時不忽略認證令牌 Do not ignore token for push
+name = "origin"               # 遠端名稱 Remote name
+type = "github"               # 倉庫類型 Repository type
+ignore_token_for_push = false # 推送時不忽略認證令牌 Do not ignore token for push
 
 # GitHub 認證令牌設定 GitHub authentication token settings
 [tool.semantic_release.remote.token]
@@ -261,5 +266,5 @@ env = "GITHUB_TOKEN"
 
 # 發布設定 Publishing configuration
 [tool.semantic_release.publish]
-dist_glob_patterns = ["dist/*"]  # 發布檔案模式 Distribution file patterns
-upload_to_vcs_release = true     # 上傳到版本控制系統 Upload to VCS releases
+dist_glob_patterns = ["dist/*"] # 發布檔案模式 Distribution file patterns
+upload_to_vcs_release = true    # 上傳到版本控制系統 Upload to VCS releases
