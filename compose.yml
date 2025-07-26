@@ -22,7 +22,7 @@ services:
       - "127.0.0.1:8888:8888"
     volumes:
       - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi:ro
-      #- /usr/lib/x86_64-linux-gnp/libnvidia-ml.so:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:ro
       # MUST make a "data" dir alongside this "compose.yml" file
       - ./data:/app/data
     entrypoint: "bash /app/entrypoint.sh"
