@@ -4,9 +4,9 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     # privileged: true
-    security_opt:
-      - no-new-privileges:true
     ## docker gpu passthrough, not tested
+    ## https://docs.docker.com/compose/how-tos/gpu-support/
+
     ## https://docs.docker.com/compose/how-tos/gpu-support/
     deploy:
       resources:
