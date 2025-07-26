@@ -1,24 +1,28 @@
 services:
   petsard:
     image: ghcr.io/nics-tw/petsard:main
-    container_name: petsard
     platform: linux/amd64
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    # privileged: true
     ## docker gpu passthrough, not tested
     ## https://docs.docker.com/compose/how-tos/gpu-support/
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: ["gpu"]
-    #           driver: nvidia
+
+    ## https://docs.docker.com/compose/how-tos/gpu-support/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+              driver: nvidia
+              count: all
     ## podman gpu passthrough, tested
-    devices:
-      - nvidia.com/gpu=all
+    # devices:
+    #   - nvidia.com/gpu=all
     ports:
       - "127.0.0.1:8888:8888"
     volumes:
+      - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi:ro
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:ro
       # MUST make a "data" dir alongside this "compose.yml" file
       - ./data:/app/data
+    entrypoint: "bash /app/entrypoint.sh"
