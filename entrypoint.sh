@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 python -m jupyter lab \
        --ip=0.0.0.0 \
