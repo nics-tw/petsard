@@ -291,7 +291,7 @@ Transform categorical data into numerical data by assigning a series of integers
 
 Transform categorical data into a one-hot numeric data.
 
-#### `EncoderDate`
+#### `EncoderMinguoDate`
 
 Transform non-standard date-time data into datetime format with flexible handling of various date formats, including custom calendars like Taiwan's Minguo calendar.
 
@@ -321,7 +321,7 @@ Transform non-standard date-time data into datetime format with flexible handlin
 # Basic usage with standard dates
 config = {
     'encoder': {
-        'created_at': 'encoder_date'
+        'created_at': 'encoder_minguodate'
     }
 }
 
@@ -329,7 +329,7 @@ config = {
 config = {
     'encoder': {
         'doc_date': {
-            'method': 'encoder_date',
+            'method': 'encoder_minguodate',
             'input_format': '%MinguoY-%m-%d'
         }
     }
@@ -339,7 +339,7 @@ config = {
 config = {
     'encoder': {
         'event_time': {
-            'method': 'encoder_date',
+            'method': 'encoder_minguodate',
             'date_type': 'datetime_tz',
             'tz': 'Asia/Taipei',
             'invalid_handling': 'erase'

@@ -55,29 +55,29 @@ Preprocessor:
     sequence:
       - 'encoder'
     encoder:
-      workclass: 'encoding_uniform'
-      occupation: 'encoding_label'
-      native-country: 'encoding_onehot'
+      workclass: 'encoder_uniform'
+      occupation: 'encoder_label'
+      native-country: 'encoder_onehot'
 ```
 
 ## 編碼處理方法
 
-1. 均勻差補編碼（`encoding_uniform`）
+1. 均勻編碼（`encoder_uniform`）
   - 將類別值轉換為均勻分布的數值
   - 適用於一般類別變項
   - 預設的編碼方式
 
-2. 標籤編碼（`encoding_label`）
+2. 標籤編碼（`encoder_label`）
   - 將類別值轉換為連續整數
   - 適用於有序類別變項
   - 保留類別之間的順序關係
 
-3. 獨熱編碼（`encoding_onehot`）
+3. 獨熱編碼（`encoder_onehot`）
   - 將每個類別轉換為獨立的特徵欄位，每個欄位代表一個類別的存在與否
   - 類別資料在合成過程中以獨立特徵的形式處理，合成後再重新組合還原
   - 適用於類別數量較少的變項，因為每增加一個類別就會增加一個特徵維度
 
-4. 日期編碼（`encoder_date`）
+4. 民國日期編碼（`encoder_minguodate`）
    - 將日期時間值轉換為數值格式以進行合成
    - 支援多種輸出格式：
        - 純日期：基本日期資訊

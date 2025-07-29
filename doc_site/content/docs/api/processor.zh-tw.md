@@ -46,8 +46,7 @@ proc.fit(data=load.data)
 transformed_data = proc.transform(data=load.data)
 
 # 還原到原始型態
-proc.fit(data=load.data)
-transformed_data = proc.transform(data=load.data)
+inverse_transformed_data = proc.inverse_transform(data=synthetic_data)
 ```
 
 ## 方法
@@ -295,7 +294,7 @@ config = {
 
 將類別變數對應到一系列的獨熱編碼 (One-hot) 數值資料。
 
-#### `EncoderDate`
+#### `EncoderMinguoDate`
 
 將不標準的日期時間資料轉換為日期格式，支援各種日期格式，包含民國年等自訂曆法。
 
@@ -325,7 +324,7 @@ config = {
 # 基本使用方式
 config = {
     'encoder': {
-        'created_at': 'encoder_date'
+        'created_at': 'encoder_minguodate'
     }
 }
 
@@ -333,7 +332,7 @@ config = {
 config = {
     'encoder': {
         'doc_date': {
-            'method': 'encoder_date',
+            'method': 'encoder_minguodate',
             'input_format': '%MinguoY-%m-%d'
         }
     }
@@ -343,7 +342,7 @@ config = {
 config = {
     'encoder': {
         'event_time': {
-            'method': 'encoder_date',
+            'method': 'encoder_minguodate',
             'date_type': 'datetime_tz',
             'tz': 'Asia/Taipei',
             'invalid_handling': 'erase'
