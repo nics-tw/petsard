@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import pandas as pd
 import yaml
@@ -80,11 +80,11 @@ class LoaderConfig(BaseConfig):
     DEFAULT_METHOD_FILEPATH: str = "benchmark://adult-income"
     YAML_FILENAME: str = "benchmark_datasets.yaml"
 
-    filepath: Optional[str] = None
-    method: Optional[str] = None
-    column_types: Optional[dict[str, list[str]]] = None
-    header_names: Optional[list[str]] = None
-    na_values: Optional[Union[str, list[str], dict[str, str]]] = None
+    filepath: str | None = None
+    method: str | None = None
+    column_types: dict[str, list[str]] | None = None
+    header_names: list[str] | None = None
+    na_values: str | list[str] | dict[str, str] | None = None
 
     # 新增：處理容易誤判、型別判斷模糊資料的參數
     preserve_raw_data: bool = False  # 是否保留原始資料格式，避免 pandas 自動類型推斷
@@ -92,21 +92,21 @@ class LoaderConfig(BaseConfig):
     force_nullable_integers: bool = False  # 是否強制使用 nullable integers 避免 .0 後綴
 
     # Filepath related
-    dir_name: Optional[str] = None
-    base_name: Optional[str] = None
-    file_name: Optional[str] = None
-    file_ext: Optional[str] = None
-    file_ext_code: Optional[int] = None
+    dir_name: str | None = None
+    base_name: str | None = None
+    file_name: str | None = None
+    file_ext: str | None = None
+    file_ext_code: int | None = None
 
     # Benchmark related
     benchmark: bool = False
-    filepath_raw: Optional[str] = None
-    benchmark_name: Optional[str] = None
-    benchmark_filename: Optional[str] = None
-    benchmark_access: Optional[str] = None
-    benchmark_region_name: Optional[str] = None
-    benchmark_bucket_name: Optional[str] = None
-    benchmark_sha256: Optional[str] = None
+    filepath_raw: str | None = None
+    benchmark_name: str | None = None
+    benchmark_filename: str | None = None
+    benchmark_access: str | None = None
+    benchmark_region_name: str | None = None
+    benchmark_bucket_name: str | None = None
+    benchmark_sha256: str | None = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -250,9 +250,9 @@ class Loader:
         self,
         filepath: str = None,
         method: str = None,
-        column_types: Optional[dict[str, list[str]]] = None,
-        header_names: Optional[list[str]] = None,
-        na_values: Optional[Union[str, list[str], dict[str, str]]] = None,
+        column_types: dict[str, list[str]] | None = None,
+        header_names: list[str] | None = None,
+        na_values: str | list[str] | dict[str, str] | None = None,
         preserve_raw_data: bool = False,
         auto_detect_leading_zeros: bool = False,
         force_nullable_integers: bool = False,

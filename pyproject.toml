@@ -156,7 +156,7 @@ line-length = 88
 target-version = "py311"
 
 # 選擇要檢查的規則
-select = [
+lint.select = [
 	"E",  # pycodestyle errors
 	"W",  # pycodestyle warnings
 	"F",  # pyflakes
@@ -167,7 +167,7 @@ select = [
 ]
 
 # 忽略的規則
-ignore = [
+lint.ignore = [
 	"E501", # 行長度限制（已在 line-length 設定）
 ]
 
