@@ -77,6 +77,40 @@ next: docs/developer-guide/docker-development
   - 驗證新參數的預設值
   - 測試功能停用時的正常載入行為
 
+#### 壓力測試
+
+測試大型檔案處理和邊緣情況型別推斷：
+
+**TestLoaderStress** - 逐步檔案大小測試，包含超時機制：
+- `test_small_file_100mb`：測試 100MB 檔案（30秒超時）
+- `test_medium_file_1gb`：測試 1GB 檔案（120秒超時）
+- `test_large_file_3gb`：測試 3GB 檔案（300秒超時）
+- `test_xlarge_file_5gb`：測試 5GB 檔案（600秒超時）
+
+**TestLoaderTypeInference** - 邊緣情況型別推斷，99.9% 正常資料，0.1% 例外在最後：
+- `test_int_with_string_exception`：測試整數資料含字串例外
+- `test_float_with_null_exception`：測試浮點數資料含空值例外
+- `test_string_with_numeric_exception`：測試字串資料含數值例外
+
+**主要特色：**
+- **記憶體監控**：使用 psutil 進行即時記憶體使用追蹤
+- **超時保護**：載入超過時間限制時自動測試失敗
+- **型別推斷驗證**：確保 99.9% 正常資料，0.1% 例外放置在檔案末尾
+- **效能指標**：處理速度測量（MB/秒）和記憶體效率追蹤
+
+**使用方式：**
+```bash
+# 執行所有壓力測試
+pytest tests/loader/ -m stress -v
+
+# 執行特定壓力測試類別
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# 執行壓力測試示範
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py

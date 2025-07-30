@@ -77,6 +77,40 @@ Tests for processing data with ambiguous or easily misinterpreted types:
   - Verifies default values for new parameters
   - Tests normal loading behavior when features are disabled
 
+#### Stress Testing
+
+Tests for large file processing and edge case type inference:
+
+**TestLoaderStress** - Progressive file size testing with timeout mechanisms:
+- `test_small_file_100mb`: Tests 100MB files (30s timeout)
+- `test_medium_file_1gb`: Tests 1GB files (120s timeout)
+- `test_large_file_3gb`: Tests 3GB files (300s timeout)
+- `test_xlarge_file_5gb`: Tests 5GB files (600s timeout)
+
+**TestLoaderTypeInference** - Edge case type inference with 99.9% normal data, 0.1% exceptions at end:
+- `test_int_with_string_exception`: Tests integer data with string exceptions
+- `test_float_with_null_exception`: Tests float data with null exceptions
+- `test_string_with_numeric_exception`: Tests string data with numeric exceptions
+
+**Key Features:**
+- **Memory monitoring**: Real-time memory usage tracking with psutil
+- **Timeout protection**: Automatic test failure if loading exceeds time limits
+- **Type inference validation**: Ensures 99.9% normal data with 0.1% exceptions placed at file end
+- **Performance metrics**: Throughput measurement (MB/s) and memory efficiency tracking
+
+**Usage:**
+```bash
+# Run all stress tests
+pytest tests/loader/ -m stress -v
+
+# Run specific stress test categories
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# Run stress test demo
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py

@@ -271,7 +271,6 @@ class TestLoader:
                 header="infer",
                 names=None,
                 na_values=loader.config.na_values,
-                dtype=None,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -316,7 +315,6 @@ class TestLoader:
                 header="infer",
                 names=None,
                 na_values=loader.config.na_values,
-                dtype=None,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -409,7 +407,6 @@ class TestLoader:
                 header="infer",
                 names=None,
                 na_values=na_values,
-                dtype=None,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -452,7 +449,6 @@ class TestLoader:
                 header=0,
                 names=header_names,
                 na_values=loader.config.na_values,
-                dtype=None,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -666,3 +662,376 @@ class TestLoaderFileExt:
         """
         with pytest.raises(KeyError):
             LoaderFileExt.get(".unsupported")
+
+
+# ============================================================================
+# 壓力測試 Stress Tests
+# ============================================================================
+
+import gc
+import logging
+import os
+import tempfile
+import time
+from typing import Any
+
+import numpy as np
+import psutil
+
+
+class MemoryMonitor:
+    """記憶體使用監控器"""
+
+    def __init__(self):
+        self.process = psutil.Process()
+        self.initial_memory = self.get_memory_usage()
+        self.peak_memory = self.initial_memory
+
+    def get_memory_usage(self) -> float:
+        """取得當前記憶體使用量 (MB)"""
+        return self.process.memory_info().rss / 1024 / 1024
+
+    def record(self, label: str = ""):
+        """記錄當前記憶體使用量"""
+        current = self.get_memory_usage()
+        self.peak_memory = max(self.peak_memory, current)
+        return current
+
+    def get_peak_usage(self) -> float:
+        """取得峰值記憶體使用量"""
+        return self.peak_memory
+
+    def get_memory_increase(self) -> float:
+        """取得記憶體增長量"""
+        return self.get_memory_usage() - self.initial_memory
+
+
+class LargeFileGenerator:
+    """大型測試檔案生成器"""
+
+    def __init__(self, target_size_gb: float = 1.0):
+        self.target_size_gb = target_size_gb
+        self.target_size_bytes = int(target_size_gb * 1024 * 1024 * 1024)
+
+    def generate_test_csv(
+        self, filepath: str, scenario: str = "mixed_types"
+    ) -> dict[str, Any]:
+        """生成測試 CSV 檔案"""
+        logging.info(f"生成測試檔案: {filepath}, 情境: {scenario}")
+
+        estimated_rows = self.target_size_bytes // 100
+        chunk_size = 100000
+
+        file_info = {
+            "filepath": filepath,
+            "scenario": scenario,
+            "actual_rows": 0,
+            "columns": ["id", "amount", "code", "score"],
+            "file_size_bytes": 0,
+        }
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write("id,amount,code,score\n")
+
+            rows_written = 0
+            while rows_written < estimated_rows:
+                chunk_data = []
+                for i in range(min(chunk_size, estimated_rows - rows_written)):
+                    row_idx = rows_written + i
+                    progress = row_idx / estimated_rows
+
+                    # 99.9% 正常資料，0.1% 例外在最後
+                    if progress >= 0.999:
+                        # 例外資料
+                        row_data = [
+                            f"EXCEPTION_{row_idx}",
+                            "",
+                            str(row_idx),
+                            f"{row_idx}.99",
+                        ]
+                    else:
+                        # 正常資料
+                        row_data = [
+                            str(row_idx + 1),
+                            f"{np.random.uniform(1000, 999999):.2f}",
+                            f"CODE_{row_idx:06d}",
+                            str(np.random.randint(0, 100)),
+                        ]
+
+                    chunk_data.append(",".join(row_data))
+
+                f.write("\n".join(chunk_data) + "\n")
+                rows_written += len(chunk_data)
+
+                current_size = os.path.getsize(filepath)
+                if current_size >= self.target_size_bytes:
+                    break
+
+        file_info["actual_rows"] = rows_written
+        file_info["file_size_bytes"] = os.path.getsize(filepath)
+
+        logging.info(
+            f"檔案生成完成: {file_info['file_size_bytes'] / 1024 / 1024:.1f} MB, {file_info['actual_rows']} 行"
+        )
+        return file_info
+
+
+@pytest.mark.stress
+class TestLoaderStress:
+    """Loader 壓力測試"""
+
+    @pytest.fixture(scope="class")
+    def temp_dir(self):
+        """創建臨時目錄"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield temp_dir
+
+    def _run_stress_test(self, temp_dir, size_gb, test_name, timeout_seconds):
+        """執行壓力測試的通用方法"""
+        file_generator = LargeFileGenerator(target_size_gb=size_gb)
+        csv_path = os.path.join(temp_dir, f"stress_test_{size_gb}gb.csv")
+
+        # 生成測試檔案
+        file_info = file_generator.generate_test_csv(csv_path, "mixed_types")
+
+        memory_monitor = MemoryMonitor()
+        memory_monitor.record("測試開始")
+
+        success = False
+        error_msg = None
+        start_time = time.time()
+
+        try:
+            # 設置超時
+            import signal
+
+            def timeout_handler(signum, frame):
+                raise TimeoutError(f"測試超時 ({timeout_seconds} 秒)")
+
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout_seconds)
+
+            try:
+                loader = Loader(
+                    filepath=csv_path,
+                    preserve_raw_data=True,
+                    auto_detect_leading_zeros=True,
+                    force_nullable_integers=True,
+                )
+
+                memory_monitor.record("Loader 初始化完成")
+
+                data, schema = loader.load()
+                memory_monitor.record("資料載入完成")
+
+                assert data is not None
+                assert schema is not None
+                assert len(data) > 0
+
+                success = True
+
+            finally:
+                signal.alarm(0)  # 取消超時
+
+        except TimeoutError as e:
+            error_msg = str(e)
+            logging.error(f"測試超時: {error_msg}")
+        except Exception as e:
+            error_msg = str(e)
+            logging.error(f"測試失敗: {error_msg}")
+
+        finally:
+            load_time = time.time() - start_time
+
+            # 清理記憶體
+            if "data" in locals():
+                del data
+            if "schema" in locals():
+                del schema
+            gc.collect()
+
+            # 記錄測試結果
+            throughput = (
+                (file_info["file_size_bytes"] / 1024 / 1024) / load_time
+                if success
+                else 0
+            )
+            logging.info(
+                f"{test_name}: {'成功' if success else '失敗'}, "
+                f"載入時間: {load_time:.2f}秒, "
+                f"處理速度: {throughput:.1f} MB/秒, "
+                f"峰值記憶體: {memory_monitor.get_peak_usage():.1f} MB"
+            )
+
+            return success, error_msg
+
+    @pytest.mark.stress
+    def test_small_file_100mb(self, temp_dir):
+        """測試小檔案：100MB (30秒超時)"""
+        success, error_msg = self._run_stress_test(temp_dir, 0.1, "小檔案100MB測試", 30)
+        assert success, f"測試失敗: {error_msg}"
+
+    @pytest.mark.stress
+    def test_medium_file_1gb(self, temp_dir):
+        """測試中檔案：1GB (120秒超時)"""
+        success, error_msg = self._run_stress_test(temp_dir, 1.0, "中檔案1GB測試", 120)
+        assert success, f"測試失敗: {error_msg}"
+
+    @pytest.mark.stress
+    def test_large_file_3gb(self, temp_dir):
+        """測試大檔案：3GB (300秒超時)"""
+        success, error_msg = self._run_stress_test(temp_dir, 3.0, "大檔案3GB測試", 300)
+        assert success, f"測試失敗: {error_msg}"
+
+    @pytest.mark.stress
+    def test_xlarge_file_5gb(self, temp_dir):
+        """測試超大檔案：5GB (600秒超時)"""
+        success, error_msg = self._run_stress_test(
+            temp_dir, 5.0, "超大檔案5GB測試", 600
+        )
+        assert success, f"測試失敗: {error_msg}"
+
+
+@pytest.mark.stress
+class TestLoaderTypeInference:
+    """型別推斷邊緣情況測試 - 99.9% 在前，0.1% 例外在後"""
+
+    @pytest.fixture(scope="class")
+    def temp_dir(self):
+        """創建臨時目錄"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield temp_dir
+
+    def _create_type_test_file(self, temp_dir, test_type):
+        """創建型別測試檔案"""
+        csv_path = os.path.join(temp_dir, f"{test_type}_test.csv")
+
+        with open(csv_path, "w", encoding="utf-8") as f:
+            f.write("test_column\n")
+
+            # 生成 10000 行測試資料
+            total_rows = 10000
+            exception_start = int(total_rows * 0.999)  # 99.9% 後開始例外
+
+            for i in range(total_rows):
+                if i >= exception_start:
+                    # 最後 0.1% 是例外
+                    if test_type == "int_to_string":
+                        f.write(f"EXCEPTION_{i}\n")
+                    elif test_type == "float_to_null":
+                        f.write("\n")  # 空值會被 pandas 過濾掉
+                    elif test_type == "string_to_numeric":
+                        f.write(f"{i}\n")
+                else:
+                    # 前 99.9% 是正常資料
+                    if test_type == "int_to_string":
+                        f.write(f"{i + 1}\n")
+                    elif test_type == "float_to_null":
+                        f.write(f"{i * 1.5}\n")  # 移除 .2f 格式化，避免精度問題
+                    elif test_type == "string_to_numeric":
+                        f.write(f"STR_{i:04d}\n")
+
+        return csv_path
+
+    @pytest.mark.stress
+    def test_int_with_string_exception(self, temp_dir):
+        """測試：99.9% 整數，0.1% 字串例外"""
+        csv_path = self._create_type_test_file(temp_dir, "int_to_string")
+
+        loader = Loader(
+            filepath=csv_path,
+            preserve_raw_data=True,
+            force_nullable_integers=True,
+        )
+
+        data, schema = loader.load()
+        assert data is not None
+        assert len(data) == 10000
+        logging.info(f"整數轉字串例外測試完成，資料形狀: {data.shape}")
+
+    @pytest.mark.stress
+    def test_float_with_null_exception(self, temp_dir):
+        """測試：99.9% 浮點數，0.1% 空值例外"""
+        csv_path = self._create_type_test_file(temp_dir, "float_to_null")
+
+        loader = Loader(
+            filepath=csv_path,
+            preserve_raw_data=True,
+            force_nullable_integers=True,
+        )
+
+        data, schema = loader.load()
+        assert data is not None
+        # 空值會被 pandas 過濾掉，所以實際行數會少於 10000
+        assert len(data) > 9900  # 至少有 99% 的資料
+        logging.info(f"浮點數轉空值例外測試完成，資料形狀: {data.shape}")
+
+    @pytest.mark.stress
+    def test_string_with_numeric_exception(self, temp_dir):
+        """測試：99.9% 字串，0.1% 數值例外"""
+        csv_path = self._create_type_test_file(temp_dir, "string_to_numeric")
+
+        loader = Loader(
+            filepath=csv_path,
+            preserve_raw_data=True,
+        )
+
+        data, schema = loader.load()
+        assert data is not None
+        assert len(data) == 10000
+        logging.info(f"字串轉數值例外測試完成，資料形狀: {data.shape}")
+
+
+def run_stress_demo():
+    """執行壓力測試示範"""
+    print("🚀 PETsARD Loader 壓力測試示範")
+    print("=" * 50)
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        print(f"使用臨時目錄: {temp_dir}")
+
+        # 測試小檔案生成和載入
+        generator = LargeFileGenerator(target_size_gb=0.01)  # 10MB
+        csv_path = os.path.join(temp_dir, "demo_test.csv")
+
+        print("\n生成測試檔案...")
+        file_info = generator.generate_test_csv(csv_path, "mixed_types")
+
+        print(f"檔案大小: {file_info['file_size_bytes'] / 1024 / 1024:.1f} MB")
+        print(f"資料行數: {file_info['actual_rows']:,}")
+
+        print("\n測試 Loader 載入...")
+        memory_monitor = MemoryMonitor()
+        memory_monitor.record("開始")
+
+        start_time = time.time()
+        loader = Loader(
+            filepath=csv_path,
+            preserve_raw_data=True,
+            auto_detect_leading_zeros=True,
+            force_nullable_integers=True,
+        )
+        data, schema = loader.load()
+        load_time = time.time() - start_time
+
+        memory_monitor.record("完成")
+
+        print("✓ 載入成功")
+        print(f"資料形狀: {data.shape}")
+        print(f"載入時間: {load_time:.3f} 秒")
+        print(f"記憶體使用: {memory_monitor.get_memory_increase():.1f} MB")
+        print(
+            f"處理速度: {(file_info['file_size_bytes'] / 1024 / 1024) / load_time:.1f} MB/秒"
+        )
+
+    print("\n" + "=" * 50)
+    print("🎉 壓力測試示範完成!")
+    print("執行完整測試: pytest tests/loader/ -m stress -v")
+
+
+if __name__ == "__main__":
+    run_stress_demo()
