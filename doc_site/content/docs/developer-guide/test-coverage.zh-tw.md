@@ -130,6 +130,26 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 - `test_init_file_exists_hash_match`：測試初始化時檔案存在且哈希值匹配的處理邏輯
 - `test_file_content_change`：測試檔案內容變更後的哈希驗證機制，確保能正確檢測變更
 
+#### `BenchmarkerConfig`
+
+> tests/loader/test_loader.py::TestBenchmarkerConfig
+
+測試管理基準資料集配置的 BenchmarkerConfig 類別：
+
+- `test_benchmarker_config_requires_benchmark_name`：測試初始化時需要 benchmark_name 參數
+- `test_benchmarker_config_initialization`：測試 BenchmarkerConfig 初始化與正確的屬性設定：
+  - 基準名稱、檔案名稱、存取類型
+  - 區域名稱、儲存桶名稱、SHA256 雜湊值
+  - 與基準 YAML 配置載入的整合
+- `test_benchmarker_config_get_benchmarker_config`：測試 get_benchmarker_config 方法：
+  - 為 BenchmarkerRequests 返回正確的字典格式
+  - 包含所有必要的鍵值（benchmark_filename、benchmark_bucket_name、benchmark_sha256、filepath）
+  - 構建正確的本地基準檔案路徑
+- `test_benchmarker_config_unsupported_benchmark`：測試不支援的基準資料集的錯誤處理
+- `test_benchmarker_config_private_access_unsupported`：測試私有基準存取嘗試的錯誤處理
+
+> **架構重構**：BenchmarkerConfig 已從 LoaderConfig 中提取出來，提供清晰的關注點分離。LoaderConfig 現在包含一個可選的 benchmarker_config 屬性，允許兩種不同的狀態：有或沒有基準功能。這種重構提高了程式碼的可維護性，並遵循單一職責原則。
+
 ## 資料處理
 
 ### `Processor`

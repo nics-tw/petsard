@@ -13,7 +13,7 @@ import psutil
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.loader.loader import Loader, LoaderConfig, LoaderFileExt
+from petsard.loader.loader import BenchmarkerConfig, Loader, LoaderConfig, LoaderFileExt
 
 
 class TestLoaderConfig:
@@ -32,7 +32,9 @@ class TestLoaderConfig:
         """Test default method configuration
         測試默認方法配置
         """
-        with patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config:
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
             mock_load_config.return_value = {
                 "adult-income": {
                     "filename": "adult-income.csv",
@@ -50,10 +52,10 @@ class TestLoaderConfig:
             # 檢查 filepath 已被處理為本地路徑
             # Check that filepath has been processed to local path
             assert str(config.filepath).endswith("benchmark/adult-income.csv")
-            # 檢查 benchmark 標記已被設置
-            # Check that benchmark flag is set
-            assert config.benchmark
-            assert config.benchmark_name == "adult-income"
+            # 檢查 benchmarker_config 已被設置
+            # Check that benchmarker_config is set
+            assert config.benchmarker_config is not None
+            assert config.benchmarker_config.benchmark_name == "adult-income"
 
     def test_unsupported_method(self):
         """Test unsupported method raises error
@@ -66,7 +68,9 @@ class TestLoaderConfig:
         """Test parsing of benchmark path
         測試基準資料集路徑解析
         """
-        with patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config:
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
             mock_load_config.return_value = {
                 "adult-income": {
                     "filename": "adult.csv",
@@ -77,20 +81,22 @@ class TestLoaderConfig:
                 }
             }
             config = LoaderConfig(filepath="benchmark://adult-income")
-            assert config.benchmark
-            assert config.benchmark_name == "adult-income"
+            assert config.benchmarker_config is not None
+            assert config.benchmarker_config.benchmark_name == "adult-income"
             assert config.filepath == Path("benchmark").joinpath("adult.csv")
-            assert config.benchmark_filename == "adult.csv"
-            assert config.benchmark_access == "public"
-            assert config.benchmark_region_name == "us-west-2"
-            assert config.benchmark_bucket_name == "test-bucket"
-            assert config.benchmark_sha256 == "test-hash"
+            assert config.benchmarker_config.benchmark_filename == "adult.csv"
+            assert config.benchmarker_config.benchmark_access == "public"
+            assert config.benchmarker_config.benchmark_region_name == "us-west-2"
+            assert config.benchmarker_config.benchmark_bucket_name == "test-bucket"
+            assert config.benchmarker_config.benchmark_sha256 == "test-hash"
 
     def test_unsupported_benchmark(self):
         """Test unsupported benchmark raises error
         測試不支援的基準資料集會引發錯誤
         """
-        with patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config:
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
             mock_load_config.return_value = {}
             with pytest.raises(UnsupportedMethodError):
                 LoaderConfig(filepath="benchmark://nonexistent")
@@ -99,7 +105,9 @@ class TestLoaderConfig:
         """Test private benchmark access raises error
         測試私有基準資料集存取會引發錯誤
         """
-        with patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config:
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
             mock_load_config.return_value = {
                 "private-data": {
                     "filename": "private.csv",
@@ -155,6 +163,100 @@ class TestLoaderConfig:
         assert isinstance(config_dict, dict)
         assert config_dict["filepath"] == "path/to/file.csv"
         assert config_dict["file_ext"] == ".csv"
+
+
+class TestBenchmarkerConfig:
+    """Test cases for BenchmarkerConfig class
+    BenchmarkerConfig 類的測試案例
+    """
+
+    def test_benchmarker_config_requires_benchmark_name(self):
+        """Test that benchmark_name must be specified
+        測試必須指定 benchmark_name 參數
+        """
+        with pytest.raises(ConfigError):
+            BenchmarkerConfig()
+
+    def test_benchmarker_config_initialization(self):
+        """Test BenchmarkerConfig initialization
+        測試 BenchmarkerConfig 初始化
+        """
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
+            mock_load_config.return_value = {
+                "adult-income": {
+                    "filename": "adult.csv",
+                    "access": "public",
+                    "region_name": "us-west-2",
+                    "bucket_name": "test-bucket",
+                    "sha256": "test-hash",
+                }
+            }
+
+            config = BenchmarkerConfig(benchmark_name="adult-income")
+            assert config.benchmark_name == "adult-income"
+            assert config.benchmark_filename == "adult.csv"
+            assert config.benchmark_access == "public"
+            assert config.benchmark_region_name == "us-west-2"
+            assert config.benchmark_bucket_name == "test-bucket"
+            assert config.benchmark_sha256 == "test-hash"
+
+    def test_benchmarker_config_get_benchmarker_config(self):
+        """Test get_benchmarker_config method
+        測試 get_benchmarker_config 方法
+        """
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
+            mock_load_config.return_value = {
+                "adult-income": {
+                    "filename": "adult.csv",
+                    "access": "public",
+                    "region_name": "us-west-2",
+                    "bucket_name": "test-bucket",
+                    "sha256": "test-hash",
+                }
+            }
+
+            config = BenchmarkerConfig(benchmark_name="adult-income")
+            benchmarker_config = config.get_benchmarker_config()
+
+            assert isinstance(benchmarker_config, dict)
+            assert benchmarker_config["benchmark_filename"] == "adult.csv"
+            assert benchmarker_config["benchmark_bucket_name"] == "test-bucket"
+            assert benchmarker_config["benchmark_sha256"] == "test-hash"
+            assert str(benchmarker_config["filepath"]).endswith("benchmark/adult.csv")
+
+    def test_benchmarker_config_unsupported_benchmark(self):
+        """Test unsupported benchmark raises error
+        測試不支援的基準資料集會引發錯誤
+        """
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
+            mock_load_config.return_value = {}
+            with pytest.raises(UnsupportedMethodError):
+                BenchmarkerConfig(benchmark_name="nonexistent")
+
+    def test_benchmarker_config_private_access_unsupported(self):
+        """Test private benchmark access raises error
+        測試私有基準資料集存取會引發錯誤
+        """
+        with patch.object(
+            BenchmarkerConfig, "_load_benchmark_config"
+        ) as mock_load_config:
+            mock_load_config.return_value = {
+                "private-data": {
+                    "filename": "private.csv",
+                    "access": "private",
+                    "region_name": "us-west-2",
+                    "bucket_name": "private-bucket",
+                    "sha256": "test-hash",
+                }
+            }
+            with pytest.raises(UnsupportedMethodError):
+                BenchmarkerConfig(benchmark_name="private-data")
 
 
 class TestLoader:
@@ -224,7 +326,9 @@ class TestLoader:
         """
         with (
             patch("petsard.loader.loader.BenchmarkerRequests") as mock_benchmarker,
-            patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config,
+            patch.object(
+                BenchmarkerConfig, "_load_benchmark_config"
+            ) as mock_load_config,
         ):
             mock_load_config.return_value = {
                 "adult-income": {
@@ -241,8 +345,8 @@ class TestLoader:
             # 初始化期間不應調用 Benchmarker
             mock_benchmarker.assert_not_called()
 
-            assert loader.config.benchmark
-            assert loader.config.benchmark_name == "adult-income"
+            assert loader.config.benchmarker_config is not None
+            assert loader.config.benchmarker_config.benchmark_name == "adult-income"
 
     def test_load_csv(self, sample_csv_path):
         """Test loading CSV file
@@ -270,7 +374,7 @@ class TestLoader:
 
             # Call load method
             # 調用 load 方法
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Assertions
             # 斷言
@@ -283,7 +387,7 @@ class TestLoader:
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
 
     def test_load_excel(self):
         """Test loading Excel file
@@ -314,7 +418,7 @@ class TestLoader:
 
             # Call load method
             # 調用 load 方法
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Assertions
             # 斷言
@@ -327,14 +431,16 @@ class TestLoader:
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
 
     def test_benchmark_data_load(self):
         """Test loading benchmark data
         測試載入基準資料
         """
         with (
-            patch.object(LoaderConfig, "_load_benchmark_config") as mock_load_config,
+            patch.object(
+                BenchmarkerConfig, "_load_benchmark_config"
+            ) as mock_load_config,
             patch("petsard.loader.loader.BenchmarkerRequests") as mock_benchmarker,
             patch("pandas.read_csv") as mock_read_csv,
             patch(
@@ -367,7 +473,7 @@ class TestLoader:
             # Create and load benchmark data
             # 創建和載入基準資料
             loader = Loader(filepath="benchmark://adult-income")
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Assertions
             # 斷言
@@ -377,7 +483,7 @@ class TestLoader:
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
 
     def test_custom_na_values(self, sample_csv_path):
         """Test loading with custom NA values
@@ -406,7 +512,7 @@ class TestLoader:
 
             # Call load method
             # 調用 load 方法
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Assertions
             # 斷言
@@ -419,7 +525,7 @@ class TestLoader:
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
 
     def test_custom_header_names(self, sample_csv_path):
         """Test loading with custom header names
@@ -448,7 +554,7 @@ class TestLoader:
 
             # Call load method
             # 調用 load 方法
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Assertions
             # 斷言
@@ -461,7 +567,300 @@ class TestLoader:
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
+
+
+class TestLoaderMetadataFeature:
+    """Test cases for new schema parameter functionality
+    新 schema 參數功能的測試案例
+    """
+
+    @pytest.fixture
+    def sample_csv_with_schema_needs(self, tmp_path):
+        """Create a CSV file that needs schema transformations
+        創建需要 schema 轉換的 CSV 檔案
+        """
+        csv_file = tmp_path / "schema_test.csv"
+        test_data = {
+            "age": [25, 30, "unknown", 45, "N/A"],  # Integer with custom NA values
+            "salary": [
+                50000.123,
+                60000.456,
+                70000.789,
+                80000.999,
+                90000.111,
+            ],  # Float needing precision
+            "score": ["85", "90", "78", "92", "88"],  # String that should be int
+            "active": ["true", "false", "yes", "no", "1"],  # Boolean conversion
+            "category": ["A", "B", "C", "A", "B"],  # Category data
+        }
+        pd.DataFrame(test_data).to_csv(csv_file, index=False)
+        return str(csv_file)
+
+    def test_schema_parameter_validation(self):
+        """Test schema parameter validation in LoaderConfig
+        測試 LoaderConfig 中的 schema 參數驗證
+        """
+        # Valid schema configuration
+        valid_schema = {
+            "age": {"type": "int", "na_values": ["unknown", "N/A"]},
+            "salary": {"type": "float", "precision": 2},
+            "score": {"type": "int"},
+        }
+
+        # Should not raise any exception
+        config = LoaderConfig(filepath="test.csv", schema=valid_schema)
+        assert config.schema == valid_schema
+
+    def test_schema_parameter_validation_invalid_structure(self):
+        """Test schema parameter validation with invalid structure
+        測試無效結構的 schema 參數驗證
+        """
+        # Invalid: schema is not a dict
+        with pytest.raises(ConfigError, match="schema must be a dictionary"):
+            LoaderConfig(filepath="test.csv", schema="invalid")
+
+        # Invalid: field config is not a dict
+        with pytest.raises(ConfigError, match="must be a dictionary"):
+            LoaderConfig(filepath="test.csv", schema={"field1": "invalid"})
+
+    def test_schema_parameter_validation_invalid_keys(self):
+        """Test schema parameter validation with invalid keys
+        測試無效鍵值的 schema 參數驗證
+        """
+        # Invalid: unknown key
+        invalid_schema = {"age": {"type": "int", "invalid_key": "value"}}
+        with pytest.raises(ConfigError, match="contains invalid keys"):
+            LoaderConfig(filepath="test.csv", schema=invalid_schema)
+
+    def test_schema_parameter_validation_invalid_values(self):
+        """Test schema parameter validation with invalid values
+        測試無效值的 schema 參數驗證
+        """
+        # Invalid: type is not string
+        with pytest.raises(ConfigError, match="must be a string"):
+            LoaderConfig(filepath="test.csv", schema={"age": {"type": 123}})
+
+        # Invalid: na_values is not str or list
+        with pytest.raises(ConfigError, match="must be str or list"):
+            LoaderConfig(filepath="test.csv", schema={"age": {"na_values": 123}})
+
+        # Invalid: precision is not non-negative integer
+        with pytest.raises(ConfigError, match="must be a non-negative integer"):
+            LoaderConfig(filepath="test.csv", schema={"salary": {"precision": -1}})
+
+        with pytest.raises(ConfigError, match="must be a non-negative integer"):
+            LoaderConfig(
+                filepath="test.csv", schema={"salary": {"precision": "invalid"}}
+            )
+
+    def test_schema_transformations_applied(self, sample_csv_with_schema_needs):
+        """Test that schema transformations are applied during load
+        測試在載入過程中應用 schema 轉換
+        """
+        schema_config = {
+            "age": {"type": "int", "na_values": ["unknown", "N/A"]},
+            "salary": {"type": "float", "precision": 2},
+            "score": {"type": "int"},
+            "active": {"type": "boolean"},
+        }
+
+        loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+            patch(
+                "petsard.metadater.field.field_functions.apply_field_transformations"
+            ) as mock_field_transform,
+        ):
+            # Setup mock returns
+            original_df = pd.DataFrame(
+                {
+                    "age": [25, 30, "unknown", 45, "N/A"],
+                    "salary": [50000.123, 60000.456, 70000.789, 80000.999, 90000.111],
+                    "score": ["85", "90", "78", "92", "88"],
+                    "active": ["true", "false", "yes", "no", "1"],
+                    "category": ["A", "B", "C", "A", "B"],
+                }
+            )
+            mock_read_csv.return_value = original_df.fillna(pd.NA)
+
+            # Mock field transformations to return modified series
+            def mock_transform_side_effect(series, config, field_name):
+                if field_name == "age":
+                    # Simulate NA value replacement and type conversion
+                    return pd.Series([25, 30, pd.NA, 45, pd.NA], dtype="Int64")
+                elif field_name == "salary":
+                    # Simulate precision rounding
+                    return pd.Series([50000.12, 60000.46, 70000.79, 80001.00, 90000.11])
+                elif field_name == "score":
+                    # Simulate string to int conversion
+                    return pd.Series([85, 90, 78, 92, 88], dtype="Int64")
+                elif field_name == "active":
+                    # Simulate boolean conversion
+                    return pd.Series([True, False, True, False, True], dtype="boolean")
+                return series
+
+            mock_field_transform.side_effect = mock_transform_side_effect
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = original_df
+
+            # Call load method
+            data, schema = loader.load()
+
+            # Verify that field transformations were called for each configured field
+            assert mock_field_transform.call_count == 4  # age, salary, score, active
+
+            # Verify the calls were made with correct field names
+            called_field_names = [
+                call[0][2] for call in mock_field_transform.call_args_list
+            ]
+            expected_fields = {"age", "salary", "score", "active"}
+            assert set(called_field_names) == expected_fields
+
+    def test_schema_field_not_in_data_warning(self, sample_csv_with_schema_needs):
+        """Test warning when schema field is not found in data
+        測試當 schema 欄位在資料中找不到時的警告
+        """
+        schema_config = {
+            "nonexistent_field": {"type": "int"},
+            "age": {"type": "int"},
+        }
+
+        loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+            patch(
+                "petsard.metadater.field.field_functions.apply_field_transformations"
+            ) as mock_field_transform,
+        ):
+            # Setup mock returns
+            original_df = pd.DataFrame(
+                {
+                    "age": [25, 30, 35, 45, 50],
+                    "other_field": ["A", "B", "C", "D", "E"],
+                }
+            )
+            mock_read_csv.return_value = original_df.fillna(pd.NA)
+            mock_field_transform.return_value = original_df["age"]
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = original_df
+
+            # Call load method - should not raise exception but log warning
+            data, schema = loader.load()
+
+            # Verify that field transformation was only called for existing field
+            assert mock_field_transform.call_count == 1
+            called_field_name = mock_field_transform.call_args_list[0][0][2]
+            assert called_field_name == "age"
+
+    def test_schema_transformation_error_handling(self, sample_csv_with_schema_needs):
+        """Test error handling during schema transformations
+        測試 schema 轉換過程中的錯誤處理
+        """
+        schema_config = {
+            "age": {"type": "int"},
+        }
+
+        loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+            patch(
+                "petsard.metadater.field.field_functions.apply_field_transformations"
+            ) as mock_field_transform,
+        ):
+            # Setup mock returns
+            original_df = pd.DataFrame(
+                {
+                    "age": [25, 30, 35, 45, 50],
+                }
+            )
+            mock_read_csv.return_value = original_df.fillna(pd.NA)
+
+            # Make field transformation raise an exception
+            mock_field_transform.side_effect = Exception("Transformation failed")
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = original_df
+
+            # Call load method - should not raise exception but continue with other processing
+            data, schema = loader.load()
+
+            # Verify that the load completed despite transformation error
+            assert data is not None
+            assert schema is not None
+
+    def test_schema_precedence_over_column_types(self, sample_csv_with_schema_needs):
+        """Test that schema parameter takes precedence over column_types
+        測試 schema 參數優先於 column_types
+        """
+        schema_config = {
+            "age": {"type": "int", "na_values": ["unknown"]},
+        }
+        column_types = {
+            "category": ["age"],  # This should be overridden by schema
+        }
+
+        loader = Loader(
+            filepath=sample_csv_with_schema_needs,
+            schema=schema_config,
+            column_types=column_types,
+        )
+
+        with (
+            patch("pandas.read_csv") as mock_read_csv,
+            patch(
+                "petsard.metadater.metadater.Metadater.create_schema"
+            ) as mock_create_schema,
+            patch(
+                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
+            ) as mock_apply_transformations,
+        ):
+            # Setup mock returns
+            original_df = pd.DataFrame({"age": [25, 30, 35]})
+            mock_read_csv.return_value = original_df.fillna(pd.NA)
+
+            mock_schema_instance = MagicMock()
+            mock_create_schema.return_value = mock_schema_instance
+            mock_apply_transformations.return_value = original_df
+
+            # Call load method
+            data, schema = loader.load()
+
+            # Verify that create_schema was called with schema configuration
+            # The schema should override column_types for the 'age' field
+            call_args = mock_create_schema.call_args
+            schema_config = call_args[1]["config"]  # keyword argument 'config'
+
+            # Check that the field config for 'age' comes from schema, not column_types
+            age_field_config = schema_config.fields["age"]
+            assert age_field_config.type_hint == "int"
+            assert age_field_config.na_values == ["unknown"]
 
 
 class TestLoaderAmbiguousDataFeatures:
@@ -516,7 +915,7 @@ class TestLoaderAmbiguousDataFeatures:
             mock_apply_transformations.return_value = mock_df
 
             # Call load method
-            data, metadata = loader.load()
+            data, schema = loader.load()
 
             # Verify normal behavior (no dtype parameter when no column_types specified)
             mock_read_csv.assert_called_once_with(
@@ -527,7 +926,7 @@ class TestLoaderAmbiguousDataFeatures:
                 # No dtype parameter should be passed when no column_types specified
             )
             assert data is not None
-            assert metadata is not None
+            assert schema is not None
 
 
 class TestLoaderFileExt:

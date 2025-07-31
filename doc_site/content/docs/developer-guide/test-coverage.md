@@ -130,6 +130,26 @@ Tests for benchmark dataset handling:
 - `test_init_file_exists_hash_match`: Tests initialization logic when file exists with matching hash
 - `test_file_content_change`: Tests hash verification mechanism after file content changes, ensuring changes are properly detected
 
+#### `BenchmarkerConfig`
+
+> tests/loader/test_loader.py::TestBenchmarkerConfig
+
+Tests for the BenchmarkerConfig class that manages benchmark dataset configuration:
+
+- `test_benchmarker_config_requires_benchmark_name`: Tests that benchmark_name parameter is required for initialization
+- `test_benchmarker_config_initialization`: Tests BenchmarkerConfig initialization with proper attribute setting:
+  - Benchmark name, filename, access type
+  - Region name, bucket name, SHA256 hash
+  - Integration with benchmark YAML configuration loading
+- `test_benchmarker_config_get_benchmarker_config`: Tests get_benchmarker_config method:
+  - Returns proper dictionary format for BenchmarkerRequests
+  - Includes all required keys (benchmark_filename, benchmark_bucket_name, benchmark_sha256, filepath)
+  - Constructs correct local benchmark file path
+- `test_benchmarker_config_unsupported_benchmark`: Tests error handling for unsupported benchmark datasets
+- `test_benchmarker_config_private_access_unsupported`: Tests error handling for private benchmark access attempts
+
+> **Architecture Refactoring**: BenchmarkerConfig has been extracted from LoaderConfig to provide clear separation of concerns. LoaderConfig now contains an optional benchmarker_config attribute, allowing for two distinct states: with or without benchmark functionality. This refactoring improves code maintainability and follows the single responsibility principle.
+
 ## Data Processing
 
 ### `Processor`
