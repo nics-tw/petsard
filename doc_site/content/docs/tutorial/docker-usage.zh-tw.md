@@ -77,7 +77,7 @@ docker run -it --rm \
   -v $(pwd):/workspace \
   -w /workspace \
   ghcr.io/nics-tw/petsard:latest \
-  python -m petsard.executor demo/use-cases/data-constraining.yaml
+  python -m petsard.executor demo/tutorial/use-cases/data-constraining.yaml
 ```
 
 ### 互動式開發

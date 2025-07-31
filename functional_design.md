@@ -162,7 +162,6 @@ metadata = Metadater.create_metadata(metadata_id)
 - 使用 `petsard.metadater.Metadater` 進行詮釋資料管理
 - **外部模組載入**:
   - **核心功能**: `petsard.utils.load_external_module` 提供通用的外部模組載入功能
-  - **Demo 特定功能**: `demo.utils.load_demo_module` 提供 demo 目錄的智能搜索
   - **智能回退**: CustomSynthesizer 和 CustomEvaluator 優先使用 demo 功能，回退至核心功能
 
 ### 6. Reporter 模組 (結果報告)
@@ -346,7 +345,6 @@ final_metadata = pipeline.process(data, initial_metadata)
 
 ### 外部模組載入架構
 - **核心功能**: `petsard.utils.load_external_module` 提供通用的外部模組載入
-- **Demo 特定功能**: `demo.utils.load_demo_module` 提供 demo 目錄智能搜索
 - **關注點分離**: 核心 utils 不包含 demo 特定的硬編碼路徑
 - **智能回退**: CustomSynthesizer 和 CustomEvaluator 優先使用 demo 功能，失敗時回退至核心功能
 

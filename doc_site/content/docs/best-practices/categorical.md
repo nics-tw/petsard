@@ -85,7 +85,7 @@ The main advantages of Uniform Encoding lie in simultaneously solving multiple d
 
 Click the button below to run the example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practice/categorical.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practices/categorical.ipynb)
 
 In fact, PETsARD uses Uniform Encoding as the default encoding method for categorical variables. The settings here are only meant to skip outlier processing ('outlier') in the default workflow, which would remove too many records in this simulated dataset. You only need to use the default mode with Preprocessor, and it will automatically apply Uniform Encoding to your categorical variables.
 

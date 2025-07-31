@@ -13,7 +13,8 @@ Loader(
     method=None,
     column_types=None,
     header_names=None,
-    na_values=None
+    na_values=None,
+    schema=None
 )
 ```
 
@@ -40,6 +41,16 @@ Loader(
   - 若為字串或列表：套用於所有欄位
   - 若為字典：以 `{colname: na_values}` 格式指定各欄位
   - 範例：`{'workclass': '?', 'age': [-1]}`
+- `schema` (`dict`, optional)：進階資料處理的欄位詮釋資料設定
+  - 預設值：無
+  - 格式：`{field_name: {config_options}}`
+  - 每個欄位可用的設定選項：
+    - `'type'` (`str`)：資料型別轉換提示
+      - 支援型別：'int', 'integer', 'float', 'string', 'str', 'category', 'boolean', 'datetime', 'date'
+    - `'na_values'` (`str` | `list`)：此特定欄位的自訂 NA 值
+    - `'precision'` (`int`)：數值欄位的小數精度（≥ 0）
+  - 範例：`{'age': {'type': 'int', 'na_values': ['unknown', 'N/A']}, 'salary': {'type': 'float', 'precision': 2}}`
+  - 優先於已棄用的 `column_types` 和 `na_values` 參數
 
 ## 範例
 
@@ -53,6 +64,36 @@ data, meta = load.load()
 
 # 使用基準資料集
 load = Loader('benchmark://adult-income')
+data, meta = load.load()
+
+# 使用 schema 進行進階欄位處理
+schema_config = {
+    'age': {
+        'type': 'int',
+        'na_values': ['unknown', 'N/A', '?']
+    },
+    'salary': {
+        'type': 'float',
+        'precision': 2,
+        'na_values': ['missing']
+    },
+    'active': {
+        'type': 'boolean'
+    },
+    'category': {
+        'type': 'category'
+    }
+}
+
+load = Loader('data.csv', schema=schema_config)
+data, meta = load.load()
+
+# schema 優先於已棄用的參數
+load = Loader(
+    'data.csv',
+    column_types={'category': ['age']},  # 這將被覆蓋
+    schema={'age': {'type': 'int'}}    # 這個優先
+)
 data, meta = load.load()
 ```
 
@@ -69,7 +110,7 @@ data, meta = load.load()
 **回傳值**
 
 - `data` (`pd.DataFrame`)：載入的 DataFrame
-- `metadata` (`SchemaMetadata`)：包含欄位資訊和統計資料的資料集架構詮釋資料
+- `schema` (`SchemaMetadata`)：包含欄位資訊和統計資料的資料集架構詮釋資料
 
 ```python
 loader = Loader('data.csv')
