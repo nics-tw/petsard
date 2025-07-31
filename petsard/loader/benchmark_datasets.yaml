@@ -14,7 +14,7 @@ datasets:
   adult-income_ori:
     filename: adult-income_ori.csv
     access: public
-    sha256: 8083c670ea64393aba26610896e694604be2bd6e0e506d908831d697ebf26d3f
+    sha256: c46a4564ce5ce419876180883ac886a6e2a9fbd744c25941c4d684e866a145ae
   adult-income_control:
     filename: adult-income_control.csv
     access: public
