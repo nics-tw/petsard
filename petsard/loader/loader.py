@@ -82,14 +82,13 @@ class LoaderConfig(BaseConfig):
 
     filepath: str | None = None
     method: str | None = None
-    column_types: dict[str, list[str]] | None = None
+    column_types: dict[str, list[str]] | None = (
+        None  # TODO: Deprecated in v2.0.0 - will be removed
+    )
     header_names: list[str] | None = None
-    na_values: str | list[str] | dict[str, str] | None = None
-
-    # 新增：處理容易誤判、型別判斷模糊資料的參數
-    preserve_raw_data: bool = False  # 是否保留原始資料格式，避免 pandas 自動類型推斷
-    auto_detect_leading_zeros: bool = False  # 是否自動檢測前導零並保留為字串
-    force_nullable_integers: bool = False  # 是否強制使用 nullable integers 避免 .0 後綴
+    na_values: str | list[str] | dict[str, str] | None = (
+        None  # TODO: Deprecated in v2.0.0 - will be removed
+    )
 
     # Filepath related
     dir_name: str | None = None
@@ -250,19 +249,19 @@ class Loader:
         self,
         filepath: str = None,
         method: str = None,
-        column_types: dict[str, list[str]] | None = None,
+        column_types: dict[str, list[str]] | None = None,  # TODO: Deprecated in v2.0.0
         header_names: list[str] | None = None,
-        na_values: str | list[str] | dict[str, str] | None = None,
-        preserve_raw_data: bool = False,
-        auto_detect_leading_zeros: bool = False,
-        force_nullable_integers: bool = False,
+        na_values: str
+        | list[str]
+        | dict[str, str]
+        | None = None,  # TODO: Deprecated in v2.0.0
     ):
         """
         Args:
             filepath (str, optional): The fullpath of dataset.
             method (str, optional): The method of Loader.
                 Default is None, indicating only filepath is specified.
-            column_types (dict ,optional):
+            column_types (dict ,optional): **DEPRECATED in v2.0.0 - will be removed**
                 The dictionary of column types and their corresponding column names,
                 formatted as {type: [colname]}
                 Only the following types are supported (case-insensitive):
@@ -272,22 +271,12 @@ class Loader:
             header_names (list ,optional):
                 Specifies a list of headers for the data without header.
                 Default is None, indicating no custom headers will be applied.
-            na_values (str | list | dict ,optional):
+            na_values (str | list | dict ,optional): **DEPRECATED in v2.0.0 - will be removed**
                 Extra string to recognized as NA/NaN.
                 If dictionary passed, value will be specific per-column NA values.
                 Format as {colname: na_values}.
                 Default is None, means no extra.
                 Check pandas document for Default NA string list.
-            preserve_raw_data (bool, optional):
-                Whether to preserve raw data format and avoid pandas automatic type inference.
-                When True, all columns are initially loaded as object type to prevent misinterpretation.
-                Useful for data with ambiguous types. Default is False.
-            auto_detect_leading_zeros (bool, optional):
-                Whether to automatically detect and preserve leading zeros in string data.
-                Prevents codes like "001" from being converted to integer 1. Default is False.
-            force_nullable_integers (bool, optional):
-                Whether to force use of nullable integer types for integer data with missing values.
-                Prevents integers with NaN from becoming floats with .0 suffixes. Default is False.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -307,9 +296,6 @@ class Loader:
             column_types=column_types,
             header_names=header_names,
             na_values=na_values,
-            preserve_raw_data=preserve_raw_data,
-            auto_detect_leading_zeros=auto_detect_leading_zeros,
-            force_nullable_integers=force_nullable_integers,
         )
         self._logger.debug("LoaderConfig successfully initialized")
 
@@ -345,26 +331,17 @@ class Loader:
             LoaderFileExt.EXCELTYPE: pd.read_excel,
         }
 
-        # 2.5 Prepare dtype dictionary based on configuration
-        dtype_dict = {}
-
-        if self.config.preserve_raw_data:
-            # 當 preserve_raw_data=True 時，強制所有欄位為 object 類型
-            # 這樣可以避免 pandas 自動類型推斷
-            self._logger.debug(
-                "Preserving raw data format - loading all columns as object type"
-            )
-            dtype_dict = "object"  # 這會讓所有欄位都載入為 object
-        else:
-            # 傳統模式：只對指定的 category 欄位設定類型
-            if self.config.column_types and "category" in self.config.column_types:
-                category_columns = self.config.column_types["category"]
-                if isinstance(category_columns, list) and category_columns:
-                    self._logger.debug(
-                        f"Setting category columns to string type: {category_columns}"
-                    )
-                    for col in category_columns:
-                        dtype_dict[col] = str
+        # 2.5 Prepare dtype dictionary for category columns only
+        dtype_dict = None
+        if self.config.column_types and "category" in self.config.column_types:
+            category_columns = self.config.column_types["category"]
+            if isinstance(category_columns, list) and category_columns:
+                dtype_dict = {}
+                self._logger.debug(
+                    f"Setting category columns to string type: {category_columns}"
+                )
+                for col in category_columns:
+                    dtype_dict[col] = str
 
         try:
             if self.config.header_names:
@@ -391,11 +368,6 @@ class Loader:
 
             self._logger.info(f"Successfully loaded data with shape: {data.shape}")
 
-            if self.config.preserve_raw_data:
-                self._logger.debug(
-                    "Raw data preserved - all columns loaded as object type"
-                )
-
         except Exception as e:
             error_msg = f"Failed to load data: {str(e)}"
             self._logger.error(error_msg)
@@ -412,7 +384,7 @@ class Loader:
                     # Create FieldConfig with type_hint directly since it's frozen
                     fields_config[col] = FieldConfig(type_hint=col_type)
 
-        # Create schema configuration
+        # Create schema configuration - Metadater 使用自己的預設值
         schema_config = SchemaConfig(
             schema_id=self.config.file_name or "default_schema",
             name=self.config.base_name or "default Schema",
@@ -420,9 +392,6 @@ class Loader:
             compute_stats=True,
             infer_logical_types=True,
             optimize_dtypes=True,
-            # 傳遞新的配置參數
-            auto_detect_leading_zeros=self.config.auto_detect_leading_zeros,
-            force_nullable_integers=self.config.force_nullable_integers,
         )
 
         # 4. Build schema metadata using Metadater public API

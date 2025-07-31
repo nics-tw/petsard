@@ -27,7 +27,7 @@ Module for loading tabular data.
 - `method` (`str`, optional): Loading method. Cannot be used with `filepath`
   - Default: None
   - Values: 'default'- loads PETsARD's default dataset 'adult-income'
-- `column_types` (`dict`, optional): Column type definitions
+- `column_types` (`dict`, optional): **⚠️ DEPRECATED in v2.0.0 - will be removed** Column type definitions
   - Default: None
   - Format: `{type: [colname]}`
   - Available types (case-insensitive):
@@ -35,7 +35,7 @@ Module for loading tabular data.
     - 'datetime': Datetime columns
 - `header_names` (`list`, optional): Column names for data without headers
   - Default: None
-- `na_values` (`str` | `list` | `dict`, optional): Values to be recognized as NA/NaN
+- `na_values` (`str` | `list` | `dict`, optional): **⚠️ DEPRECATED in v2.0.0 - will be removed** Values to be recognized as NA/NaN
   - Default: None
   - If str or list: Apply to all columns
   - If dict: Apply per-column with format `{colname: na_values}`
@@ -49,11 +49,11 @@ from petsard import Loader
 
 # Basic usage
 load = Loader('data.csv')
-load.load()
+data, meta = load.load()
 
 # Using benchmark dataset
 load = Loader('benchmark://adult-income')
-load.load()
+data, meta = load.load()
 ```
 
 ## Methods
@@ -73,7 +73,7 @@ None.
 
 ```python
 loader = Loader('data.csv')
-data, metadata = loader.load() # get loaded DataFrame
+data, meta = loader.load() # get loaded DataFrame
 ```
 
 ## Attributes

@@ -1,7 +1,15 @@
+import gc
+import logging
+import os
+import tempfile
+import time
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pandas as pd
+import psutil
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
@@ -483,121 +491,12 @@ class TestLoaderAmbiguousDataFeatures:
         pd.DataFrame(test_data).to_csv(csv_file, index=False)
         return str(csv_file)
 
-    def test_preserve_raw_data_feature(self, ambiguous_sample_csv):
-        """Test preserve_raw_data feature prevents automatic type inference
-        測試 preserve_raw_data 功能阻止自動類型推斷
-        """
-        loader = Loader(
-            filepath=ambiguous_sample_csv,
-            preserve_raw_data=True,
-            auto_detect_leading_zeros=True,
-            force_nullable_integers=True,
-        )
-
-        with (
-            patch("pandas.read_csv") as mock_read_csv,
-            patch(
-                "petsard.metadater.metadater.Metadater.create_schema"
-            ) as mock_create_schema,
-            patch(
-                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
-            ) as mock_apply_transformations,
-        ):
-            # Setup mock returns
-            mock_df = pd.DataFrame(
-                {
-                    "id_code": ["001", "002", "010", "099"],
-                    "age": ["25", "30", "", "45"],
-                    "amount": ["50000.5", "60000.7", "", "75000.3"],
-                    "score": ["85", "90", "78", "92"],
-                    "category": ["A級", "B級", "C級", "A級"],
-                }
-            )
-            mock_read_csv.return_value = mock_df.fillna(pd.NA)
-
-            mock_schema_instance = MagicMock()
-            mock_create_schema.return_value = mock_schema_instance
-            mock_apply_transformations.return_value = mock_df
-
-            # Call load method
-            data, metadata = loader.load()
-
-            # Verify that dtype="object" was used to preserve raw data
-            mock_read_csv.assert_called_once_with(
-                ambiguous_sample_csv,
-                header="infer",
-                names=None,
-                na_values=loader.config.na_values,
-                dtype="object",  # This should be "object" string when preserve_raw_data=True
-            )
-            mock_create_schema.assert_called_once()
-            mock_apply_transformations.assert_called_once()
-            assert data is not None
-            assert metadata is not None
-
-    def test_leading_zero_detection_config(self, ambiguous_sample_csv):
-        """Test auto_detect_leading_zeros configuration
-        測試 auto_detect_leading_zeros 配置
-        """
-        # Test with leading zero detection enabled
-        loader_on = Loader(
-            filepath=ambiguous_sample_csv,
-            auto_detect_leading_zeros=True,
-        )
-        assert loader_on.config.auto_detect_leading_zeros is True
-
-        # Test with leading zero detection disabled
-        loader_off = Loader(
-            filepath=ambiguous_sample_csv,
-            auto_detect_leading_zeros=False,
-        )
-        assert loader_off.config.auto_detect_leading_zeros is False
-
-    def test_nullable_integer_config(self, ambiguous_sample_csv):
-        """Test force_nullable_integers configuration
-        測試 force_nullable_integers 配置
-        """
-        # Test with nullable integers enabled
-        loader_on = Loader(
-            filepath=ambiguous_sample_csv,
-            force_nullable_integers=True,
-        )
-        assert loader_on.config.force_nullable_integers is True
-
-        # Test with nullable integers disabled
-        loader_off = Loader(
-            filepath=ambiguous_sample_csv,
-            force_nullable_integers=False,
-        )
-        assert loader_off.config.force_nullable_integers is False
-
-    def test_ambiguous_data_config_combination(self, ambiguous_sample_csv):
-        """Test combination of ambiguous data processing configurations
-        測試容易誤判資料處理配置的組合
-        """
-        loader = Loader(
-            filepath=ambiguous_sample_csv,
-            preserve_raw_data=True,
-            auto_detect_leading_zeros=True,
-            force_nullable_integers=True,
-        )
-
-        # Verify all configurations are set correctly
-        assert loader.config.preserve_raw_data is True
-        assert loader.config.auto_detect_leading_zeros is True
-        assert loader.config.force_nullable_integers is True
-
     def test_backward_compatibility(self, ambiguous_sample_csv):
-        """Test that new features don't break existing functionality
-        測試新功能不會破壞現有功能
+        """Test that Loader maintains backward compatibility
+        測試 Loader 保持向後相容性
         """
-        # Test with default settings (all new features disabled)
+        # Test with default settings - Loader should focus on basic file reading
         loader = Loader(filepath=ambiguous_sample_csv)
-
-        # Verify default values
-        assert loader.config.preserve_raw_data is False
-        assert loader.config.auto_detect_leading_zeros is False
-        assert loader.config.force_nullable_integers is False
 
         with (
             patch("pandas.read_csv") as mock_read_csv,
@@ -619,13 +518,13 @@ class TestLoaderAmbiguousDataFeatures:
             # Call load method
             data, metadata = loader.load()
 
-            # Verify normal behavior (no dtype parameter when preserve_raw_data=False)
+            # Verify normal behavior (no dtype parameter when no column_types specified)
             mock_read_csv.assert_called_once_with(
                 ambiguous_sample_csv,
                 header="infer",
                 names=None,
                 na_values=loader.config.na_values,
-                # No dtype parameter should be passed when preserve_raw_data=False
+                # No dtype parameter should be passed when no column_types specified
             )
             assert data is not None
             assert metadata is not None
@@ -667,16 +566,6 @@ class TestLoaderFileExt:
 # ============================================================================
 # 壓力測試 Stress Tests
 # ============================================================================
-
-import gc
-import logging
-import os
-import tempfile
-import time
-from typing import Any
-
-import numpy as np
-import psutil
 
 
 class MemoryMonitor:
@@ -812,12 +701,7 @@ class TestLoaderStress:
             signal.alarm(timeout_seconds)
 
             try:
-                loader = Loader(
-                    filepath=csv_path,
-                    preserve_raw_data=True,
-                    auto_detect_leading_zeros=True,
-                    force_nullable_integers=True,
-                )
+                loader = Loader(filepath=csv_path)
 
                 memory_monitor.record("Loader 初始化完成")
 
@@ -863,7 +747,7 @@ class TestLoaderStress:
                 f"峰值記憶體: {memory_monitor.get_peak_usage():.1f} MB"
             )
 
-            return success, error_msg
+        return success, error_msg
 
     @pytest.mark.stress
     def test_small_file_100mb(self, temp_dir):
@@ -938,11 +822,7 @@ class TestLoaderTypeInference:
         """測試：99.9% 整數，0.1% 字串例外"""
         csv_path = self._create_type_test_file(temp_dir, "int_to_string")
 
-        loader = Loader(
-            filepath=csv_path,
-            preserve_raw_data=True,
-            force_nullable_integers=True,
-        )
+        loader = Loader(filepath=csv_path)
 
         data, schema = loader.load()
         assert data is not None
@@ -954,11 +834,7 @@ class TestLoaderTypeInference:
         """測試：99.9% 浮點數，0.1% 空值例外"""
         csv_path = self._create_type_test_file(temp_dir, "float_to_null")
 
-        loader = Loader(
-            filepath=csv_path,
-            preserve_raw_data=True,
-            force_nullable_integers=True,
-        )
+        loader = Loader(filepath=csv_path)
 
         data, schema = loader.load()
         assert data is not None
@@ -971,10 +847,7 @@ class TestLoaderTypeInference:
         """測試：99.9% 字串，0.1% 數值例外"""
         csv_path = self._create_type_test_file(temp_dir, "string_to_numeric")
 
-        loader = Loader(
-            filepath=csv_path,
-            preserve_raw_data=True,
-        )
+        loader = Loader(filepath=csv_path)
 
         data, schema = loader.load()
         assert data is not None
@@ -1009,12 +882,7 @@ def run_stress_demo():
         memory_monitor.record("開始")
 
         start_time = time.time()
-        loader = Loader(
-            filepath=csv_path,
-            preserve_raw_data=True,
-            auto_detect_leading_zeros=True,
-            force_nullable_integers=True,
-        )
+        loader = Loader(filepath=csv_path)
         data, schema = loader.load()
         load_time = time.time() - start_time
 
