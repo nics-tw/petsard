@@ -132,6 +132,57 @@ Tests for benchmark dataset handling:
 
 ## Data Processing
 
+### `Processor`
+
+#### Missing Value Handlers
+
+> tests/processor/test_missing.py
+
+Tests for missing value handling with comprehensive type compatibility:
+
+**MissingMean Tests (4 tests):**
+- `test_mean_no_missing_values`: Tests mean imputation with no missing values
+- `test_mean_with_missing_values`: Tests mean imputation with missing values
+- `test_mean_with_integer_dtype`: Tests mean imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of mean values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_mean_with_integer_dtype_fractional_mean`: Tests mean imputation when mean has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional means
+
+**MissingMedian Tests (4 tests):**
+- `test_median_no_missing_values`: Tests median imputation with no missing values
+- `test_median_with_missing_values`: Tests median imputation with missing values
+- `test_median_with_integer_dtype`: Tests median imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of median values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_median_with_integer_dtype_fractional_median`: Tests median imputation when median has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional medians
+
+**MissingSimple Tests (2 tests):**
+- `test_simple_no_missing_values`: Tests simple value imputation with no missing values
+- `test_simple_with_missing_values`: Tests simple value imputation with missing values
+
+**MissingDrop Tests (2 tests):**
+- `test_drop_no_missing_values`: Tests drop strategy with no missing values
+- `test_drop_with_missing_values`: Tests drop strategy with missing values
+
+> **Integer Type Compatibility**: Enhanced missing value handlers now properly support pandas nullable integer types (Int8, Int16, Int32, Int64) by automatically rounding float imputation values to integers, preventing TypeError during fillna operations. This ensures seamless integration with schema-specified integer types while maintaining data integrity.
+
+#### Outlier Detection Handlers
+
+Enhanced outlier detection with pandas nullable integer array compatibility:
+
+**OutlierHandler Base Class:**
+- Enhanced `fit()` and `transform()` methods with `np.asarray()` conversion
+- Proper handling of pandas nullable integer arrays to prevent broadcasting errors
+- Maintains compatibility with numpy operations in outlier detection algorithms
+
+> **Pandas Array Compatibility**: Outlier handlers now use `np.asarray()` instead of `.values` to ensure proper conversion of pandas nullable integer arrays to numpy arrays, preventing ValueError during logical operations in outlier detection algorithms.
+
 ### `Metadater`
 
 #### Field Functions
