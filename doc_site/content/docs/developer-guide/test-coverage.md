@@ -77,6 +77,40 @@ Tests for processing data with ambiguous or easily misinterpreted types:
   - Verifies default values for new parameters
   - Tests normal loading behavior when features are disabled
 
+#### Stress Testing
+
+Tests for large file processing and edge case type inference:
+
+**TestLoaderStress** - Progressive file size testing with timeout mechanisms:
+- `test_small_file_100mb`: Tests 100MB files (30s timeout)
+- `test_medium_file_1gb`: Tests 1GB files (120s timeout)
+- `test_large_file_3gb`: Tests 3GB files (300s timeout)
+- `test_xlarge_file_5gb`: Tests 5GB files (600s timeout)
+
+**TestLoaderTypeInference** - Edge case type inference with 99.9% normal data, 0.1% exceptions at end:
+- `test_int_with_string_exception`: Tests integer data with string exceptions
+- `test_float_with_null_exception`: Tests float data with null exceptions
+- `test_string_with_numeric_exception`: Tests string data with numeric exceptions
+
+**Key Features:**
+- **Memory monitoring**: Real-time memory usage tracking with psutil
+- **Timeout protection**: Automatic test failure if loading exceeds time limits
+- **Type inference validation**: Ensures 99.9% normal data with 0.1% exceptions placed at file end
+- **Performance metrics**: Throughput measurement (MB/s) and memory efficiency tracking
+
+**Usage:**
+```bash
+# Run all stress tests
+pytest tests/loader/ -m stress -v
+
+# Run specific stress test categories
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# Run stress test demo
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -97,6 +131,57 @@ Tests for benchmark dataset handling:
 - `test_file_content_change`: Tests hash verification mechanism after file content changes, ensuring changes are properly detected
 
 ## Data Processing
+
+### `Processor`
+
+#### Missing Value Handlers
+
+> tests/processor/test_missing.py
+
+Tests for missing value handling with comprehensive type compatibility:
+
+**MissingMean Tests (4 tests):**
+- `test_mean_no_missing_values`: Tests mean imputation with no missing values
+- `test_mean_with_missing_values`: Tests mean imputation with missing values
+- `test_mean_with_integer_dtype`: Tests mean imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of mean values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_mean_with_integer_dtype_fractional_mean`: Tests mean imputation when mean has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional means
+
+**MissingMedian Tests (4 tests):**
+- `test_median_no_missing_values`: Tests median imputation with no missing values
+- `test_median_with_missing_values`: Tests median imputation with missing values
+- `test_median_with_integer_dtype`: Tests median imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of median values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_median_with_integer_dtype_fractional_median`: Tests median imputation when median has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional medians
+
+**MissingSimple Tests (2 tests):**
+- `test_simple_no_missing_values`: Tests simple value imputation with no missing values
+- `test_simple_with_missing_values`: Tests simple value imputation with missing values
+
+**MissingDrop Tests (2 tests):**
+- `test_drop_no_missing_values`: Tests drop strategy with no missing values
+- `test_drop_with_missing_values`: Tests drop strategy with missing values
+
+> **Integer Type Compatibility**: Enhanced missing value handlers now properly support pandas nullable integer types (Int8, Int16, Int32, Int64) by automatically rounding float imputation values to integers, preventing TypeError during fillna operations. This ensures seamless integration with schema-specified integer types while maintaining data integrity.
+
+#### Outlier Detection Handlers
+
+Enhanced outlier detection with pandas nullable integer array compatibility:
+
+**OutlierHandler Base Class:**
+- Enhanced `fit()` and `transform()` methods with `np.asarray()` conversion
+- Proper handling of pandas nullable integer arrays to prevent broadcasting errors
+- Maintains compatibility with numpy operations in outlier detection algorithms
+
+> **Pandas Array Compatibility**: Outlier handlers now use `np.asarray()` instead of `.values` to ensure proper conversion of pandas nullable integer arrays to numpy arrays, preventing ValueError during logical operations in outlier detection algorithms.
 
 ### `Metadater`
 

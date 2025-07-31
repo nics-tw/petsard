@@ -11,7 +11,7 @@ next: docs/tutorial/use-cases/custom-synthesis
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/comparing-synthesizers.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/tutorial/use-cases/comparing-synthesizers.ipynb)
 
 ```yaml
 ---

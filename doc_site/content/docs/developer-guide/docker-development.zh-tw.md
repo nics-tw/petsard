@@ -186,7 +186,7 @@ INCLUDE_JUPYTER=true/false
    docker run -it -v $(pwd):/app/data --entrypoint /opt/venv/bin/python3 petsard:jupyter
    
    # 在容器內測試 PETsARD 功能
-   # python -m petsard.executor demo/use-cases/data-constraining.yaml
+   # python -m petsard.executor demo/tutorial/use-cases/data-constraining.yaml
    ```
 
 3. **測試兩種建置變體**
@@ -247,7 +247,7 @@ docker run --rm \
   -v $(pwd):/workspace \
   -w /workspace \
   petsard:latest \
-  python -m petsard.executor demo/use-cases/data-constraining.yaml
+  python -m petsard.executor demo/tutorial/use-cases/data-constraining.yaml
 
 # 測試 Jupyter 變體
 docker run --rm \

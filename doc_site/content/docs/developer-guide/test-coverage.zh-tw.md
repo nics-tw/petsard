@@ -77,6 +77,40 @@ next: docs/developer-guide/docker-development
   - 驗證新參數的預設值
   - 測試功能停用時的正常載入行為
 
+#### 壓力測試
+
+測試大型檔案處理和邊緣情況型別推斷：
+
+**TestLoaderStress** - 逐步檔案大小測試，包含超時機制：
+- `test_small_file_100mb`：測試 100MB 檔案（30秒超時）
+- `test_medium_file_1gb`：測試 1GB 檔案（120秒超時）
+- `test_large_file_3gb`：測試 3GB 檔案（300秒超時）
+- `test_xlarge_file_5gb`：測試 5GB 檔案（600秒超時）
+
+**TestLoaderTypeInference** - 邊緣情況型別推斷，99.9% 正常資料，0.1% 例外在最後：
+- `test_int_with_string_exception`：測試整數資料含字串例外
+- `test_float_with_null_exception`：測試浮點數資料含空值例外
+- `test_string_with_numeric_exception`：測試字串資料含數值例外
+
+**主要特色：**
+- **記憶體監控**：使用 psutil 進行即時記憶體使用追蹤
+- **超時保護**：載入超過時間限制時自動測試失敗
+- **型別推斷驗證**：確保 99.9% 正常資料，0.1% 例外放置在檔案末尾
+- **效能指標**：處理速度測量（MB/秒）和記憶體效率追蹤
+
+**使用方式：**
+```bash
+# 執行所有壓力測試
+pytest tests/loader/ -m stress -v
+
+# 執行特定壓力測試類別
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# 執行壓力測試示範
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -97,6 +131,57 @@ next: docs/developer-guide/docker-development
 - `test_file_content_change`：測試檔案內容變更後的哈希驗證機制，確保能正確檢測變更
 
 ## 資料處理
+
+### `Processor`
+
+#### 缺失值處理器
+
+> tests/processor/test_missing.py
+
+測試缺失值處理的全面類型相容性：
+
+**MissingMean 測試（4 個測試）：**
+- `test_mean_no_missing_values`：測試無缺失值的平均值填補
+- `test_mean_with_missing_values`：測試有缺失值的平均值填補
+- `test_mean_with_integer_dtype`：測試 pandas 可空整數類型（Int32、Int64）的平均值填補：
+  - 驗證整數資料類型的正確處理，不會出現 TypeError
+  - 測試平均值的自動四捨五入以符合整數相容性
+  - 驗證轉換後的資料類型保持
+- `test_mean_with_integer_dtype_fractional_mean`：測試平均值有小數部分時的填補：
+  - 測試整數類型的銀行家舍入法（20.5 → 20）
+  - 確保小數平均值的正確類型轉換
+
+**MissingMedian 測試（4 個測試）：**
+- `test_median_no_missing_values`：測試無缺失值的中位數填補
+- `test_median_with_missing_values`：測試有缺失值的中位數填補
+- `test_median_with_integer_dtype`：測試 pandas 可空整數類型（Int32、Int64）的中位數填補：
+  - 驗證整數資料類型的正確處理，不會出現 TypeError
+  - 測試中位數的自動四捨五入以符合整數相容性
+  - 驗證轉換後的資料類型保持
+- `test_median_with_integer_dtype_fractional_median`：測試中位數有小數部分時的填補：
+  - 測試整數類型的銀行家舍入法（20.5 → 20）
+  - 確保小數中位數的正確類型轉換
+
+**MissingSimple 測試（2 個測試）：**
+- `test_simple_no_missing_values`：測試無缺失值的簡單值填補
+- `test_simple_with_missing_values`：測試有缺失值的簡單值填補
+
+**MissingDrop 測試（2 個測試）：**
+- `test_drop_no_missing_values`：測試無缺失值的刪除策略
+- `test_drop_with_missing_values`：測試有缺失值的刪除策略
+
+> **整數類型相容性**：增強的缺失值處理器現在正確支援 pandas 可空整數類型（Int8、Int16、Int32、Int64），透過自動將浮點填補值四捨五入為整數，防止 fillna 操作期間的 TypeError。這確保與 schema 指定的整數類型無縫整合，同時維持資料完整性。
+
+#### 異常值檢測處理器
+
+增強異常值檢測，具有 pandas 可空整數陣列相容性：
+
+**OutlierHandler 基礎類別：**
+- 增強 `fit()` 和 `transform()` 方法，使用 `np.asarray()` 轉換
+- 正確處理 pandas 可空整數陣列，防止廣播錯誤
+- 維持與異常值檢測演算法中 numpy 操作的相容性
+
+> **Pandas 陣列相容性**：異常值處理器現在使用 `np.asarray()` 而非 `.values`，確保 pandas 可空整數陣列正確轉換為 numpy 陣列，防止異常值檢測演算法中邏輯操作期間的 ValueError。
 
 ### `Metadater`
 

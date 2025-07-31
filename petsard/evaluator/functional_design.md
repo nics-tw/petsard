@@ -80,8 +80,6 @@ class UtilityMetrics:
 ### 內部依賴
 - **Utils**: 使用核心工具函數進行外部模組載入
   - `petsard.utils.load_external_module` 提供通用的外部模組載入功能
-- **Demo Utils**: 使用 demo 特定的模組載入功能 (優先選擇)
-  - `demo.utils.load_demo_module` 提供 demo 目錄的智能搜索
 - **Metadater**: 使用公開介面進行資料分析
   - 統計計算和資料驗證
   - 型別推斷和結構分析

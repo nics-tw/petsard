@@ -24,7 +24,9 @@ class OutlierHandler:
             data (pd.Series): The data needed to be fitted.
         """
         if isinstance(data, pd.Series):
-            data = data.values.reshape(-1, 1)
+            # Convert to numpy array to ensure compatibility with numpy operations
+            # This handles pandas nullable integer types properly
+            data = np.asarray(data).reshape(-1, 1)
 
         self._fit(data)
 
@@ -56,7 +58,9 @@ class OutlierHandler:
             raise UnfittedError("The object is not fitted. Use .fit() first.")
 
         if isinstance(data, pd.Series):
-            data = data.values.reshape(-1, 1)
+            # Convert to numpy array to ensure compatibility with numpy operations
+            # This handles pandas nullable integer types properly
+            data = np.asarray(data).reshape(-1, 1)
 
         return self._transform(data)
 

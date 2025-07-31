@@ -14,5 +14,5 @@ Postprocessor:
 Reporter:
   output:
     method: 'save_data'
-    source: 'Postprocessor'
+    source: 'Synthesizer'
 ...

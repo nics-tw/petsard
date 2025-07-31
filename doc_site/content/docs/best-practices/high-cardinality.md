@@ -371,7 +371,7 @@ Similarly, we have not yet governed the reasonableness of admission methods, and
 
 Click the button below to run the example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practice/high-cardinality.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practices/high-cardinality.ipynb)
 
 ```yaml
 Constrainer:

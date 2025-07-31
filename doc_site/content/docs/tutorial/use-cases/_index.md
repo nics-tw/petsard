@@ -13,6 +13,12 @@ When developing privacy-preserving data synthesis workflows, you may encounter s
 
 ## **Data Understanding**:
 
+### **Data Loading: [Specify Data Schema](./specify-schema)**
+
+  - Precisely control field processing during data loading
+  - Support custom missing value markers, data type conversion, and numeric precision settings
+  - Ensure data quality is guaranteed from the source
+
 ### **Data Insights: [Data Description](./data-description)**
 
   - Understand your data before synthesis
