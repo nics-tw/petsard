@@ -1,7 +1,5 @@
-"""Core data type definitions and utilities"""
-
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 
 class DataType(Enum):
@@ -56,7 +54,7 @@ class LogicalType(Enum):
     FOREIGN_KEY = "foreign_key"
 
 
-def safe_round(value: Any, decimals: int = 2) -> Optional[Union[int, float]]:
+def safe_round(value: Any, decimals: int = 2) -> int | float | None:
     """
     安全的四捨五入函數，處理 None 和非數值類型
 

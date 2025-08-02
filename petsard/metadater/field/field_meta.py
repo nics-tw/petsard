@@ -1,7 +1,7 @@
 """Field-level metadata classes and data structures"""
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -32,10 +32,10 @@ class FieldStats:
     distinct_count: int = 0
     min_value: Any = None
     max_value: Any = None
-    mean_value: Optional[float] = None
-    std_value: Optional[float] = None
+    mean_value: float | None = None
+    std_value: float | None = None
     quantiles: dict[float, Any] = field(default_factory=dict)
-    most_frequent: Optional[list[tuple[Any, int]]] = None
+    most_frequent: list[tuple[Any, int]] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with proper serialization"""
@@ -70,14 +70,14 @@ class FieldMetadata:
     name: str
     data_type: DataType
     nullable: bool = True
-    stats: Optional[FieldStats] = None
-    description: Optional[str] = None
-    logical_type: Optional[LogicalType] = None
+    stats: FieldStats | None = None
+    description: str | None = None
+    logical_type: LogicalType | None = None
     properties: dict[str, Any] = field(default_factory=dict)
 
     # Type conversion settings
-    source_dtype: Optional[str] = None
-    target_dtype: Optional[str] = None
+    source_dtype: str | None = None
+    target_dtype: str | None = None
     cast_error: str = "raise"  # 'raise', 'coerce', 'ignore'
 
 
@@ -87,7 +87,7 @@ class FieldConfig:
     Configuration for a field in the schema
 
     Attr.:
-        type_hint (Optional[str]): Type hint for the field
+        type (Optional[str]): Type hint for the field
         cast_error (str): Error handling strategy for type casting
         description (Optional[str]): Description of the field
         logical_type (Optional[str]): Logical type hint
@@ -95,11 +95,11 @@ class FieldConfig:
         properties (dict[str, Any]): Additional custom properties
     """
 
-    type_hint: Optional[str] = None
+    type: str | None = None
     cast_error: str = "raise"
-    description: Optional[str] = None
-    logical_type: Optional[str] = None
-    nullable: Optional[bool] = None
+    description: str | None = None
+    logical_type: str | None = None
+    nullable: bool | None = None
     properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):

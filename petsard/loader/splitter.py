@@ -1,5 +1,4 @@
 import random
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -21,11 +20,11 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        num_samples: Optional[int] = 1,
-        train_split_ratio: Optional[float] = 0.8,
-        random_state: Optional[Union[int, float, str]] = None,
-        max_overlap_ratio: Optional[float] = 1.0,
-        max_attempts: Optional[int] = 30,
+        num_samples: int | None = 1,
+        train_split_ratio: float | None = 0.8,
+        random_state: int | float | str | None = None,
+        max_overlap_ratio: float | None = 1.0,
+        max_attempts: int | None = 30,
         **kwargs,
     ):
         """
