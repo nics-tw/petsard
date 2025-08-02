@@ -56,6 +56,65 @@ Tests for the main Loader functionality:
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
 - `test_custom_header_names`: Tests loading data with custom column headers
 
+#### Schema Parameters Testing
+
+Tests for comprehensive functionality of the schema parameter system:
+
+**Global Parameters Tests (`TestSchemaGlobalParameters`):**
+- `test_compute_stats_parameter`: Tests `compute_stats` global parameter boolean validation
+- `test_optimize_dtypes_parameter`: Tests `optimize_dtypes` global parameter boolean validation
+- `test_sample_size_parameter`: Tests `sample_size` global parameter positive integer validation
+- `test_sample_size_null`: Tests `sample_size` parameter accepts null values
+- `test_leading_zeros_parameter`: Tests `leading_zeros` global parameter valid values ("never", "num-auto", "leading_n")
+- `test_leading_zeros_invalid`: Tests `leading_zeros` parameter invalid value handling
+- `test_nullable_int_parameter`: Tests `nullable_int` global parameter boolean validation
+- `test_nullable_int_invalid`: Tests `nullable_int` parameter invalid value handling
+- `test_infer_logical_types_parameter`: Tests `infer_logical_types` global parameter boolean validation
+- `test_descriptive_parameters`: Tests descriptive parameters (`title`, `description`, `version`) string validation
+
+**Field Parameters Tests (`TestSchemaFieldParameters`):**
+- `test_logical_type_parameter`: Tests field-level `logical_type` parameter valid value validation
+- `test_leading_zeros_field_level`: Tests field-level `leading_zeros` parameter overriding global settings
+- `test_leading_zeros_field_invalid`: Tests field-level `leading_zeros` parameter invalid value handling
+
+**Parameter Conflicts Tests (`TestSchemaParameterConflicts`):**
+- `test_infer_logical_types_conflict`: Tests conflict detection between `infer_logical_types=true` and field-level `logical_type`
+
+**Loader Schema Parameters Tests (`tests/loader/test_loader.py`):**
+- `TestLoaderSchemaParameters`: Tests global schema parameters in Loader
+- `TestLoaderSchemaFieldParameters`: Tests field-level schema parameters in Loader
+- `TestLoaderSchemaParameterConflicts`: Tests parameter conflict detection in Loader
+- `TestLoaderSchemaEdgeCases`: Tests schema edge cases in Loader
+
+**SchemaConfig Validation Tests (`tests/metadater/test_schema_types.py`):**
+- `test_schema_config_with_parameters`: Tests SchemaConfig initialization with parameters
+- `test_schema_config_invalid_leading_zeros`: Tests SchemaConfig error handling for invalid `leading_zeros` values
+- `test_schema_config_invalid_nullable_int`: Tests SchemaConfig error handling for invalid `nullable_int` values
+- `test_schema_config_logical_type_conflict`: Tests SchemaConfig logical type conflict detection
+
+**FieldConfig Validation Tests (`tests/metadater/field/test_field_types.py`):**
+- `test_field_config_with_parameters`: Tests FieldConfig initialization with parameters
+- `test_field_config_invalid_logical_type`: Tests FieldConfig error handling for invalid `logical_type` values
+- `test_field_config_invalid_leading_zeros`: Tests FieldConfig error handling for invalid `leading_zeros` values
+- `test_field_config_invalid_category_method`: Tests FieldConfig error handling for invalid `category_method` values
+- `test_field_config_invalid_datetime_precision`: Tests FieldConfig error handling for invalid `datetime_precision` values
+
+**Edge Cases Tests (`TestEdgeCases`):**
+- `test_empty_schema`: Tests empty schema handling
+- `test_schema_with_only_global_params`: Tests schema with only global parameters
+- `test_invalid_global_parameter`: Tests invalid global parameter error handling
+- `test_invalid_field_parameter`: Tests invalid field parameter error handling
+- `test_mixed_legacy_and_schema`: Tests compatibility with mixed legacy and schema syntax
+
+**Key Features:**
+- **Two-layer Architecture Validation**: Tests hierarchical structure of global and field parameters
+- **Parameter Conflict Detection**: Automatic detection and reporting of logical conflicts (e.g., `infer_logical_types` vs field `logical_type`)
+- **Backward Compatibility**: Ensures parameter system is fully compatible with legacy schema syntax
+- **Comprehensive Validation**: Covers parameter value ranges, types, and logical consistency checks
+- **Edge Case Coverage**: Tests empty schemas, mixed syntax, invalid parameter combinations, and other extreme scenarios
+
+> **Schema Parameter System**: Implements a two-layer schema parameter architecture providing flexible configuration through global parameters (such as `compute_stats`, `optimize_dtypes`, `sample_size`) and field-level parameters (such as `logical_type`, `leading_zeros`), with complete parameter conflict detection and backward compatibility guarantees.
+
 #### Ambiguous Data Type Processing Features
 
 Tests for processing data with ambiguous or easily misinterpreted types:

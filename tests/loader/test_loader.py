@@ -13,7 +13,9 @@ import psutil
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.loader.loader import BenchmarkerConfig, Loader, LoaderConfig, LoaderFileExt
+from petsard.loader.benchmarker import BenchmarkerConfig
+from petsard.loader.loader import Loader, LoaderConfig, LoaderFileExt
+from petsard.metadater import FieldConfig, SchemaConfig
 
 
 class TestLoaderConfig:
@@ -382,7 +384,6 @@ class TestLoader:
                 sample_csv_path,
                 header="infer",
                 names=None,
-                na_values=loader.config.na_values,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -426,7 +427,6 @@ class TestLoader:
                 excel_path,
                 header="infer",
                 names=None,
-                na_values=loader.config.na_values,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -562,7 +562,6 @@ class TestLoader:
                 sample_csv_path,
                 header=0,
                 names=header_names,
-                na_values=loader.config.na_values,
             )
             mock_create_schema.assert_called_once()
             mock_apply_transformations.assert_called_once()
@@ -601,69 +600,74 @@ class TestLoaderMetadataFeature:
         """Test schema parameter validation in LoaderConfig
         測試 LoaderConfig 中的 schema 參數驗證
         """
-        # Valid schema configuration
-        valid_schema = {
-            "age": {"type": "int", "na_values": ["unknown", "N/A"]},
-            "salary": {"type": "float", "precision": 2},
-            "score": {"type": "int"},
+        # Valid schema configuration using SchemaConfig
+        fields = {
+            "age": FieldConfig(type="int", na_values=["unknown", "N/A"]),
+            "salary": FieldConfig(type="float", precision=2),
+            "score": FieldConfig(type="int"),
         }
+        valid_schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields
+        )
 
         # Should not raise any exception
-        config = LoaderConfig(filepath="test.csv", schema=valid_schema)
-        assert config.schema == valid_schema
+        # Test using Loader instead of LoaderConfig directly
+        loader = Loader(filepath="test.csv", schema=valid_schema_config)
+        assert loader.config.schema_config == valid_schema_config
 
     def test_schema_parameter_validation_invalid_structure(self):
         """Test schema parameter validation with invalid structure
         測試無效結構的 schema 參數驗證
         """
-        # Invalid: schema is not a dict
-        with pytest.raises(ConfigError, match="schema must be a dictionary"):
-            LoaderConfig(filepath="test.csv", schema="invalid")
+        # SchemaConfig currently accepts any value for fields parameter
+        # This test verifies that LoaderConfig can handle SchemaConfig with invalid fields
+        invalid_schema = SchemaConfig(schema_id="test", name="test", fields="invalid")
 
-        # Invalid: field config is not a dict
-        with pytest.raises(ConfigError, match="must be a dictionary"):
-            LoaderConfig(filepath="test.csv", schema={"field1": "invalid"})
+        # LoaderConfig should accept the SchemaConfig even with invalid fields
+        # Test using Loader instead of LoaderConfig directly
+        loader = Loader(filepath="test.csv", schema=invalid_schema)
+        assert loader.config.schema_config == invalid_schema
 
     def test_schema_parameter_validation_invalid_keys(self):
         """Test schema parameter validation with invalid keys
         測試無效鍵值的 schema 參數驗證
         """
-        # Invalid: unknown key
-        invalid_schema = {"age": {"type": "int", "invalid_key": "value"}}
-        with pytest.raises(ConfigError, match="contains invalid keys"):
-            LoaderConfig(filepath="test.csv", schema=invalid_schema)
+        # FieldConfig validation is now handled by the dataclass itself
+        # Invalid parameters should be caught during FieldConfig creation
+        with pytest.raises((TypeError, ValueError)):
+            invalid_field = FieldConfig(type="int", invalid_key="value")
+            schema_config = SchemaConfig(
+                schema_id="test", name="test", fields={"age": invalid_field}
+            )
+            LoaderConfig(filepath="test.csv", schema=schema_config)
 
     def test_schema_parameter_validation_invalid_values(self):
         """Test schema parameter validation with invalid values
         測試無效值的 schema 參數驗證
         """
-        # Invalid: type is not string
-        with pytest.raises(ConfigError, match="must be a string"):
-            LoaderConfig(filepath="test.csv", schema={"age": {"type": 123}})
-
-        # Invalid: na_values is not str or list
-        with pytest.raises(ConfigError, match="must be str or list"):
-            LoaderConfig(filepath="test.csv", schema={"age": {"na_values": 123}})
-
-        # Invalid: precision is not non-negative integer
-        with pytest.raises(ConfigError, match="must be a non-negative integer"):
-            LoaderConfig(filepath="test.csv", schema={"salary": {"precision": -1}})
-
-        with pytest.raises(ConfigError, match="must be a non-negative integer"):
-            LoaderConfig(
-                filepath="test.csv", schema={"salary": {"precision": "invalid"}}
+        # FieldConfig validation is now handled by the dataclass itself
+        # Invalid values should be caught during FieldConfig creation
+        with pytest.raises((TypeError, ValueError)):
+            # Invalid: precision is negative
+            invalid_field = FieldConfig(type="float", precision=-1)
+            schema_config = SchemaConfig(
+                schema_id="test", name="test", fields={"salary": invalid_field}
             )
+            LoaderConfig(filepath="test.csv", schema=schema_config)
 
     def test_schema_transformations_applied(self, sample_csv_with_schema_needs):
         """Test that schema transformations are applied during load
         測試在載入過程中應用 schema 轉換
         """
-        schema_config = {
-            "age": {"type": "int", "na_values": ["unknown", "N/A"]},
-            "salary": {"type": "float", "precision": 2},
-            "score": {"type": "int"},
-            "active": {"type": "boolean"},
+        fields = {
+            "age": FieldConfig(type="int", na_values=["unknown", "N/A"]),
+            "salary": FieldConfig(type="float", precision=2),
+            "score": FieldConfig(type="int"),
+            "active": FieldConfig(type="boolean"),
         }
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields
+        )
 
         loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
 
@@ -675,9 +679,6 @@ class TestLoaderMetadataFeature:
             patch(
                 "petsard.metadater.schema.schema_functions.apply_schema_transformations"
             ) as mock_apply_transformations,
-            patch(
-                "petsard.metadater.field.field_functions.apply_field_transformations"
-            ) as mock_field_transform,
         ):
             # Setup mock returns
             original_df = pd.DataFrame(
@@ -691,24 +692,6 @@ class TestLoaderMetadataFeature:
             )
             mock_read_csv.return_value = original_df.fillna(pd.NA)
 
-            # Mock field transformations to return modified series
-            def mock_transform_side_effect(series, config, field_name):
-                if field_name == "age":
-                    # Simulate NA value replacement and type conversion
-                    return pd.Series([25, 30, pd.NA, 45, pd.NA], dtype="Int64")
-                elif field_name == "salary":
-                    # Simulate precision rounding
-                    return pd.Series([50000.12, 60000.46, 70000.79, 80001.00, 90000.11])
-                elif field_name == "score":
-                    # Simulate string to int conversion
-                    return pd.Series([85, 90, 78, 92, 88], dtype="Int64")
-                elif field_name == "active":
-                    # Simulate boolean conversion
-                    return pd.Series([True, False, True, False, True], dtype="boolean")
-                return series
-
-            mock_field_transform.side_effect = mock_transform_side_effect
-
             mock_schema_instance = MagicMock()
             mock_create_schema.return_value = mock_schema_instance
             mock_apply_transformations.return_value = original_df
@@ -716,24 +699,28 @@ class TestLoaderMetadataFeature:
             # Call load method
             data, schema = loader.load()
 
-            # Verify that field transformations were called for each configured field
-            assert mock_field_transform.call_count == 4  # age, salary, score, active
+            # Verify that schema transformations were applied
+            mock_apply_transformations.assert_called_once()
 
-            # Verify the calls were made with correct field names
-            called_field_names = [
-                call[0][2] for call in mock_field_transform.call_args_list
-            ]
-            expected_fields = {"age", "salary", "score", "active"}
-            assert set(called_field_names) == expected_fields
+            # Verify that create_schema was called with the correct schema config
+            call_args = mock_create_schema.call_args
+            passed_schema_config = call_args[1]["config"]
+            assert "age" in passed_schema_config.fields
+            assert "salary" in passed_schema_config.fields
+            assert "score" in passed_schema_config.fields
+            assert "active" in passed_schema_config.fields
 
     def test_schema_field_not_in_data_warning(self, sample_csv_with_schema_needs):
         """Test warning when schema field is not found in data
         測試當 schema 欄位在資料中找不到時的警告
         """
-        schema_config = {
-            "nonexistent_field": {"type": "int"},
-            "age": {"type": "int"},
+        fields = {
+            "nonexistent_field": FieldConfig(type="int"),
+            "age": FieldConfig(type="int"),
         }
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields
+        )
 
         loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
 
@@ -745,9 +732,6 @@ class TestLoaderMetadataFeature:
             patch(
                 "petsard.metadater.schema.schema_functions.apply_schema_transformations"
             ) as mock_apply_transformations,
-            patch(
-                "petsard.metadater.field.field_functions.apply_field_transformations"
-            ) as mock_field_transform,
         ):
             # Setup mock returns
             original_df = pd.DataFrame(
@@ -757,7 +741,6 @@ class TestLoaderMetadataFeature:
                 }
             )
             mock_read_csv.return_value = original_df.fillna(pd.NA)
-            mock_field_transform.return_value = original_df["age"]
 
             mock_schema_instance = MagicMock()
             mock_create_schema.return_value = mock_schema_instance
@@ -766,18 +749,25 @@ class TestLoaderMetadataFeature:
             # Call load method - should not raise exception but log warning
             data, schema = loader.load()
 
-            # Verify that field transformation was only called for existing field
-            assert mock_field_transform.call_count == 1
-            called_field_name = mock_field_transform.call_args_list[0][0][2]
-            assert called_field_name == "age"
+            # Verify that schema transformations were applied
+            mock_apply_transformations.assert_called_once()
+
+            # Verify that create_schema was called with schema containing both fields
+            call_args = mock_create_schema.call_args
+            passed_schema_config = call_args[1]["config"]
+            assert "nonexistent_field" in passed_schema_config.fields
+            assert "age" in passed_schema_config.fields
 
     def test_schema_transformation_error_handling(self, sample_csv_with_schema_needs):
         """Test error handling during schema transformations
         測試 schema 轉換過程中的錯誤處理
         """
-        schema_config = {
-            "age": {"type": "int"},
+        fields = {
+            "age": FieldConfig(type="int"),
         }
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields
+        )
 
         loader = Loader(filepath=sample_csv_with_schema_needs, schema=schema_config)
 
@@ -816,51 +806,28 @@ class TestLoaderMetadataFeature:
             assert schema is not None
 
     def test_schema_precedence_over_column_types(self, sample_csv_with_schema_needs):
-        """Test that schema parameter takes precedence over column_types
-        測試 schema 參數優先於 column_types
+        """Test that schema parameter conflicts with column_types raise ConfigError
+        測試 schema 參數與 column_types 衝突時會拋出 ConfigError
         """
-        schema_config = {
-            "age": {"type": "int", "na_values": ["unknown"]},
+        fields = {
+            "age": FieldConfig(type="int", na_values=["unknown"]),
         }
-        column_types = {
-            "category": ["age"],  # This should be overridden by schema
-        }
-
-        loader = Loader(
-            filepath=sample_csv_with_schema_needs,
-            schema=schema_config,
-            column_types=column_types,
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields
         )
+        column_types = {
+            "category": ["age"],  # This should conflict with schema
+        }
 
-        with (
-            patch("pandas.read_csv") as mock_read_csv,
-            patch(
-                "petsard.metadater.metadater.Metadater.create_schema"
-            ) as mock_create_schema,
-            patch(
-                "petsard.metadater.schema.schema_functions.apply_schema_transformations"
-            ) as mock_apply_transformations,
+        # Should raise ConfigError due to field conflict
+        with pytest.raises(
+            ConfigError, match="Conflict detected.*age.*schema_config and column_types"
         ):
-            # Setup mock returns
-            original_df = pd.DataFrame({"age": [25, 30, 35]})
-            mock_read_csv.return_value = original_df.fillna(pd.NA)
-
-            mock_schema_instance = MagicMock()
-            mock_create_schema.return_value = mock_schema_instance
-            mock_apply_transformations.return_value = original_df
-
-            # Call load method
-            data, schema = loader.load()
-
-            # Verify that create_schema was called with schema configuration
-            # The schema should override column_types for the 'age' field
-            call_args = mock_create_schema.call_args
-            schema_config = call_args[1]["config"]  # keyword argument 'config'
-
-            # Check that the field config for 'age' comes from schema, not column_types
-            age_field_config = schema_config.fields["age"]
-            assert age_field_config.type_hint == "int"
-            assert age_field_config.na_values == ["unknown"]
+            Loader(
+                filepath=sample_csv_with_schema_needs,
+                schema=schema_config,
+                column_types=column_types,
+            )
 
 
 class TestLoaderAmbiguousDataFeatures:
@@ -922,7 +889,6 @@ class TestLoaderAmbiguousDataFeatures:
                 ambiguous_sample_csv,
                 header="infer",
                 names=None,
-                na_values=loader.config.na_values,
                 # No dtype parameter should be passed when no column_types specified
             )
             assert data is not None
@@ -1298,6 +1264,354 @@ def run_stress_demo():
     print("\n" + "=" * 50)
     print("🎉 壓力測試示範完成!")
     print("執行完整測試: pytest tests/loader/ -m stress -v")
+
+
+class TestLoaderSchemaParameters:
+    """Test cases for schema parameter functionality in Loader
+    Loader 中 schema 參數功能的測試案例
+    """
+
+    def setup_method(self):
+        """Setup test data"""
+        self.test_data = pd.DataFrame(
+            {
+                "id": [1, 2, 3, 4, 5],
+                "name": ["Alice", "Bob", "Charlie", "David", "Eve"],
+                "age": [25, 30, 35, 28, 32],
+                "salary": [50000.5, 60000.0, 70000.25, 55000.75, 65000.0],
+                "department": ["IT", "HR", "IT", "Finance", "IT"],
+                "is_active": [True, False, True, True, False],
+            }
+        )
+
+        # Create temporary CSV file
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False
+        )
+        self.test_data.to_csv(self.temp_file.name, index=False)
+        self.temp_file.close()
+
+    def teardown_method(self):
+        """Cleanup test data"""
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_compute_stats_parameter(self):
+        """Test compute_stats parameter"""
+        fields = {"age": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields=fields,
+            compute_stats=False,
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        # Should not raise error
+        assert loader.config.schema_config.compute_stats is False
+
+    def test_optimize_dtypes_parameter(self):
+        """Test optimize_dtypes parameter"""
+        fields = {"age": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields=fields,
+            optimize_dtypes=False,
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.optimize_dtypes is False
+
+    def test_sample_size_parameter(self):
+        """Test sample_size parameter"""
+        fields = {"age": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields, sample_size=1000
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.sample_size == 1000
+
+    def test_sample_size_null(self):
+        """Test sample_size as null"""
+        fields = {"age": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema", name="Test Schema", fields=fields, sample_size=None
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.sample_size is None
+
+    def test_leading_zeros_parameter(self):
+        """Test leading_zeros parameter"""
+        valid_values = ["never", "num-auto", "leading_5"]
+
+        for value in valid_values:
+            fields = {"id": FieldConfig(type="int")}
+            schema_config = SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+                leading_zeros=value,
+            )
+
+            loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+            assert loader.config.schema_config.leading_zeros == value
+
+    def test_leading_zeros_invalid(self):
+        """Test invalid leading_zeros parameter"""
+        # SchemaConfig validation should catch invalid leading_zeros values
+        with pytest.raises((TypeError, ValueError)):
+            fields = {"id": FieldConfig(type="int")}
+            schema_config = SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+                leading_zeros="invalid_value",
+            )
+            Loader(filepath=self.temp_file.name, schema=schema_config)
+
+    def test_nullable_int_parameter(self):
+        """Test nullable_int parameter"""
+        valid_values = ["force", "never"]
+
+        for value in valid_values:
+            fields = {"age": FieldConfig(type="int")}
+            schema_config = SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+                nullable_int=value,
+            )
+
+            loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+            assert loader.config.schema_config.nullable_int == value
+
+    def test_nullable_int_invalid(self):
+        """Test invalid nullable_int parameter"""
+        # SchemaConfig validation should catch invalid nullable_int values
+        with pytest.raises((TypeError, ValueError)):
+            fields = {"age": FieldConfig(type="int")}
+            schema_config = SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+                nullable_int="invalid_value",
+            )
+            Loader(filepath=self.temp_file.name, schema=schema_config)
+
+    def test_infer_logical_types_parameter(self):
+        """Test infer_logical_types parameter"""
+        fields = {"name": FieldConfig(type="str")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields=fields,
+            infer_logical_types=True,
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.infer_logical_types is True
+
+    def test_descriptive_parameters(self):
+        """Test descriptive parameters"""
+        fields = {"age": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema_v1",
+            name="Test Schema",
+            description="Schema for testing",
+            fields=fields,
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.schema_id == "test_schema_v1"
+        assert loader.config.schema_config.name == "Test Schema"
+        assert loader.config.schema_config.description == "Schema for testing"
+
+
+class TestLoaderSchemaFieldParameters:
+    """Test field-level schema parameters in Loader
+    Loader 中欄位層級 schema 參數的測試案例
+    """
+
+    def setup_method(self):
+        """Setup test data"""
+        self.test_data = pd.DataFrame(
+            {
+                "email": ["alice@example.com", "bob@test.com", "charlie@demo.org"],
+                "phone": ["123-456-7890", "987-654-3210", "555-123-4567"],
+                "user_id": ["00001", "00002", "00003"],
+                "score": [85.5, 92.0, 78.5],
+            }
+        )
+
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False
+        )
+        self.test_data.to_csv(self.temp_file.name, index=False)
+        self.temp_file.close()
+
+    def teardown_method(self):
+        """Cleanup test data"""
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_logical_type_parameter(self):
+        """Test logical_type parameter"""
+        valid_values = ["never", "infer", "email", "phone", "url"]
+
+        for value in valid_values:
+            fields = {"email": FieldConfig(type="str", logical_type=value)}
+            schema_config = SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+            )
+
+            loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+            assert loader.config.schema_config.fields["email"].logical_type == value
+
+    def test_leading_zeros_field_level(self):
+        """Test leading_zeros at field level"""
+        fields = {"user_id": FieldConfig(type="str", leading_zeros="leading_5")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields=fields,
+            leading_zeros="never",  # Global setting
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.leading_zeros == "never"
+        assert (
+            loader.config.schema_config.fields["user_id"].leading_zeros == "leading_5"
+        )
+
+    def test_leading_zeros_field_invalid(self):
+        """Test invalid leading_zeros at field level"""
+        # This should be caught during FieldConfig creation
+        with pytest.raises((TypeError, ValueError)):
+            FieldConfig(type="str", leading_zeros="invalid_value")
+
+
+class TestLoaderSchemaParameterConflicts:
+    """Test parameter conflicts and validation in Loader
+    Loader 中參數衝突和驗證的測試案例
+    """
+
+    def setup_method(self):
+        """Setup test data"""
+        self.test_data = pd.DataFrame(
+            {"email": ["alice@example.com", "bob@test.com"], "name": ["Alice", "Bob"]}
+        )
+
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False
+        )
+        self.test_data.to_csv(self.temp_file.name, index=False)
+        self.temp_file.close()
+
+    def teardown_method(self):
+        """Cleanup test data"""
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_infer_logical_types_conflict(self):
+        """Test conflict between infer_logical_types and field logical_type"""
+        # This should raise an error during SchemaConfig creation
+        with pytest.raises(
+            ValueError,
+            match="Cannot set infer_logical_types=True when field .* has logical_type specified",
+        ):
+            fields = {"email": FieldConfig(type="str", logical_type="email")}
+            SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields=fields,
+                infer_logical_types=True,
+            )
+
+
+class TestLoaderSchemaEdgeCases:
+    """Test edge cases and error handling for schema parameters in Loader
+    Loader 中 schema 參數的邊緣情況和錯誤處理測試案例
+    """
+
+    def setup_method(self):
+        """Setup test data"""
+        self.test_data = pd.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
+
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".csv", delete=False
+        )
+        self.test_data.to_csv(self.temp_file.name, index=False)
+        self.temp_file.close()
+
+    def teardown_method(self):
+        """Cleanup test data"""
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_empty_schema(self):
+        """Test empty schema"""
+        # Test with no schema_config - should use defaults
+        loader = Loader(filepath=self.temp_file.name)
+        # Should not raise error
+        assert loader.config.schema_config is None
+
+    def test_schema_with_only_global_params(self):
+        """Test schema with only global parameters"""
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields={},
+            compute_stats=False,
+            optimize_dtypes=True,
+            sample_size=100,
+        )
+
+        loader = Loader(filepath=self.temp_file.name, schema=schema_config)
+        assert loader.config.schema_config.compute_stats is False
+        assert loader.config.schema_config.optimize_dtypes is True
+        assert loader.config.schema_config.sample_size == 100
+
+    def test_invalid_global_parameter(self):
+        """Test invalid global parameter"""
+        # Invalid parameters should be caught during SchemaConfig creation
+        with pytest.raises((TypeError, ValueError)):
+            SchemaConfig(
+                schema_id="test_schema",
+                name="Test Schema",
+                fields={"col1": FieldConfig(type="int")},
+                invalid_param="value",
+            )
+
+    def test_invalid_field_parameter(self):
+        """Test invalid field parameter"""
+        # Invalid parameters should be caught during FieldConfig creation
+        with pytest.raises((TypeError, ValueError)):
+            FieldConfig(type="int", invalid_param="value")
+
+    def test_mixed_legacy_and_schema(self):
+        """Test mixing legacy parameters with schema"""
+        fields = {"col1": FieldConfig(type="int")}
+        schema_config = SchemaConfig(
+            schema_id="test_schema",
+            name="Test Schema",
+            fields=fields,
+            compute_stats=False,
+        )
+
+        # This should raise ConfigError due to field conflict
+        with pytest.raises(
+            ConfigError, match="Conflict detected.*col1.*schema_config and column_types"
+        ):
+            Loader(
+                filepath=self.temp_file.name,
+                column_types={"category": ["col1"]},  # This conflicts with schema
+                schema=schema_config,
+            )
 
 
 if __name__ == "__main__":

@@ -56,6 +56,65 @@ next: docs/developer-guide/docker-development
 - `test_custom_na_values`：測試自定義空值的處理
 - `test_custom_header_names`：測試使用自定義欄位標題載入資料
 
+#### Schema 參數測試
+
+測試 schema 參數系統的全面功能：
+
+**全域參數測試（`TestSchemaGlobalParameters`）：**
+- `test_compute_stats_parameter`：測試 `compute_stats` 全域參數的布林值驗證
+- `test_optimize_dtypes_parameter`：測試 `optimize_dtypes` 全域參數的布林值驗證
+- `test_sample_size_parameter`：測試 `sample_size` 全域參數的正整數驗證
+- `test_sample_size_null`：測試 `sample_size` 參數接受 null 值
+- `test_leading_zeros_parameter`：測試 `leading_zeros` 全域參數的有效值（"never", "num-auto", "leading_n"）
+- `test_leading_zeros_invalid`：測試 `leading_zeros` 參數的無效值處理
+- `test_nullable_int_parameter`：測試 `nullable_int` 全域參數的布林值驗證
+- `test_nullable_int_invalid`：測試 `nullable_int` 參數的無效值處理
+- `test_infer_logical_types_parameter`：測試 `infer_logical_types` 全域參數的布林值驗證
+- `test_descriptive_parameters`：測試描述性參數（`title`, `description`, `version`）的字串驗證
+
+**欄位參數測試（`TestSchemaFieldParameters`）：**
+- `test_logical_type_parameter`：測試欄位層級 `logical_type` 參數的有效值驗證
+- `test_leading_zeros_field_level`：測試欄位層級 `leading_zeros` 參數覆蓋全域設定
+- `test_leading_zeros_field_invalid`：測試欄位層級 `leading_zeros` 參數的無效值處理
+
+**參數衝突測試（`TestSchemaParameterConflicts`）：**
+- `test_infer_logical_types_conflict`：測試 `infer_logical_types=true` 與欄位層級 `logical_type` 的衝突檢測
+
+**Loader Schema 參數測試（`tests/loader/test_loader.py`）：**
+- `TestLoaderSchemaParameters`：測試 Loader 中全域 schema 參數
+- `TestLoaderSchemaFieldParameters`：測試 Loader 中欄位層級 schema 參數
+- `TestLoaderSchemaParameterConflicts`：測試 Loader 中參數衝突檢測
+- `TestLoaderSchemaEdgeCases`：測試 Loader 中 schema 邊界情況
+
+**SchemaConfig 驗證測試（`tests/metadater/test_schema_types.py`）：**
+- `test_schema_config_with_parameters`：測試 SchemaConfig 使用參數的初始化
+- `test_schema_config_invalid_leading_zeros`：測試 SchemaConfig 無效 `leading_zeros` 值的錯誤處理
+- `test_schema_config_invalid_nullable_int`：測試 SchemaConfig 無效 `nullable_int` 值的錯誤處理
+- `test_schema_config_logical_type_conflict`：測試 SchemaConfig 中邏輯類型衝突的檢測
+
+**FieldConfig 驗證測試（`tests/metadater/field/test_field_types.py`）：**
+- `test_field_config_with_parameters`：測試 FieldConfig 使用參數的初始化
+- `test_field_config_invalid_logical_type`：測試 FieldConfig 無效 `logical_type` 值的錯誤處理
+- `test_field_config_invalid_leading_zeros`：測試 FieldConfig 無效 `leading_zeros` 值的錯誤處理
+- `test_field_config_invalid_category_method`：測試 FieldConfig 無效 `category_method` 值的錯誤處理
+- `test_field_config_invalid_datetime_precision`：測試 FieldConfig 無效 `datetime_precision` 值的錯誤處理
+
+**邊界情況測試（`TestEdgeCases`）：**
+- `test_empty_schema`：測試空 schema 的處理
+- `test_schema_with_only_global_params`：測試僅含全域參數的 schema
+- `test_invalid_global_parameter`：測試無效全域參數的錯誤處理
+- `test_invalid_field_parameter`：測試無效欄位參數的錯誤處理
+- `test_mixed_legacy_and_schema`：測試混合舊版和 schema 語法的相容性
+
+**主要特色：**
+- **兩層架構驗證**：測試全域參數與欄位參數的分層結構
+- **參數衝突檢測**：自動檢測並報告邏輯衝突（如 `infer_logical_types` 與欄位 `logical_type`）
+- **向後相容性**：確保參數系統與舊版 schema 語法完全相容
+- **全面驗證**：涵蓋參數值範圍、型別、邏輯一致性檢查
+- **邊界情況覆蓋**：測試空 schema、混合語法、無效參數組合等極端情況
+
+> **Schema 參數系統**：實現了基於兩層架構的 schema 參數系統，提供全域參數（如 `compute_stats`, `optimize_dtypes`, `sample_size`）和欄位層級參數（如 `logical_type`, `leading_zeros`）的靈活配置，同時具備完整的參數衝突檢測和向後相容性保證。
+
 #### 容易誤判資料類型處理功能
 
 測試處理容易誤判、型別判斷模糊的資料：
