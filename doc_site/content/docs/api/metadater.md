@@ -99,7 +99,7 @@ from petsard.metadater import SchemaConfig, FieldConfig
 
 config = SchemaConfig(
     schema_id="my_schema",
-    compute_stats=True,
+    optimize_dtypes=True,
     infer_logical_types=True
 )
 schema = Metadater.create_schema(df, "my_data", config)

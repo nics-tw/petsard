@@ -1,7 +1,8 @@
 """Pure functions for field-level operations"""
 
 import re
-from typing import Any, Callable, Dict, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -19,11 +20,11 @@ from petsard.metadater.types.data_types import DataType, LogicalType
 def build_field_metadata(
     field_data: pd.Series,
     field_name: str,
-    config: Optional[FieldConfig] = None,
+    config: FieldConfig | None = None,
     compute_stats: bool = True,
     infer_logical_type: bool = True,
     optimize_dtype: bool = True,
-    sample_size: Optional[int] = 1000,
+    sample_size: int | None = 1000,
 ) -> FieldMetadata:
     """
     Pure function to build FieldMetadata from a pandas Series
@@ -48,7 +49,7 @@ def build_field_metadata(
     data_type = _map_pandas_to_metadater_type(pandas_dtype)
 
     # 檢查前導零情況，如果發現前導零則強制設為字串類型
-    if config.auto_detect_leading_zeros:
+    if config.leading_zeros != "never":
         if (
             data_type in [DataType.INT8, DataType.INT16, DataType.INT32, DataType.INT64]
             or pandas_dtype == "object"
@@ -57,8 +58,8 @@ def build_field_metadata(
                 data_type = DataType.STRING
 
     # Override with type hint if provided
-    if config.type_hint:
-        data_type = _apply_type_hint(config.type_hint, data_type)
+    if config.type:
+        data_type = _apply_type_hint(config.type, data_type)
 
     # Determine nullable
     nullable = (
@@ -66,6 +67,27 @@ def build_field_metadata(
     )
 
     # Build base metadata
+    properties = config.properties.copy()
+
+    # Determine category setting based on category_method
+    should_be_category = False
+
+    if config.category_method == "force":
+        should_be_category = True
+    elif config.category_method == "never":
+        should_be_category = False
+    elif config.category_method == "str-auto":
+        # Only consider category for string types
+        if data_type == DataType.STRING:
+            should_be_category = _should_use_category_aspl(field_data)
+    elif config.category_method == "auto":
+        # Auto-detect for any type that could benefit from categorical encoding
+        should_be_category = _should_use_category_aspl(field_data)
+
+    # Set category property based on determination
+    if should_be_category:
+        properties["category"] = True
+
     field_metadata = FieldMetadata(
         name=field_name,
         data_type=data_type,
@@ -73,7 +95,7 @@ def build_field_metadata(
         source_dtype=pandas_dtype,
         description=config.description,
         cast_error=config.cast_error,
-        properties=config.properties.copy(),
+        properties=properties,
     )
 
     # Infer logical type
@@ -106,6 +128,166 @@ def build_field_metadata(
         field_metadata = field_metadata.with_target_dtype(target_dtype)
 
     return field_metadata
+
+
+def apply_field_transformations(
+    field_data: pd.Series, field_config: FieldConfig, field_name: str
+) -> pd.Series:
+    """
+    Apply field-level transformations based on configuration
+
+    Args:
+        field_data: The pandas Series to transform
+        field_config: Field configuration with transformation settings
+        field_name: Name of the field for logging
+
+    Returns:
+        Transformed pandas Series
+    """
+    transformed_data = field_data.copy()
+
+    # Apply custom na_values if specified
+    if field_config.na_values is not None:
+        from datetime import datetime
+
+        if isinstance(field_config.na_values, (str, int, float, bool, datetime)):
+            na_values_list = [field_config.na_values]
+        else:
+            na_values_list = field_config.na_values
+
+        # Replace custom NA values with pandas NA
+        for na_value in na_values_list:
+            transformed_data = transformed_data.replace(na_value, pd.NA)
+
+    # Apply type conversion if type is provided
+    if field_config.type:
+        transformed_data = _apply_type_conversion(
+            transformed_data, field_config.type, field_config.cast_error
+        )
+
+    # Apply precision rounding for numeric fields
+    if field_config.precision is not None and _is_numeric_field(transformed_data):
+        transformed_data = _apply_precision_rounding(
+            transformed_data, field_config.precision
+        )
+
+    return transformed_data
+
+
+def _apply_type_conversion(
+    series: pd.Series, type_hint: str, cast_error: str = "coerce"
+) -> pd.Series:
+    """
+    Apply type conversion based on type hint
+
+    Args:
+        series: Series to convert
+        type_hint: Target type hint
+        cast_error: Error handling strategy
+
+    Returns:
+        Converted series
+    """
+    type_hint = type_hint.lower()
+
+    try:
+        if type_hint in ["int", "integer"]:
+            if cast_error == "coerce":
+                return pd.to_numeric(series, errors="coerce").astype(
+                    "Int64", errors="ignore"
+                )
+            elif cast_error == "ignore":
+                return pd.to_numeric(series, errors="ignore").astype(
+                    "Int64", errors="ignore"
+                )
+            else:
+                return pd.to_numeric(series).astype("Int64")
+
+        elif type_hint == "float":
+            if cast_error == "coerce":
+                return pd.to_numeric(series, errors="coerce").astype(
+                    "float64", errors="ignore"
+                )
+            elif cast_error == "ignore":
+                return pd.to_numeric(series, errors="ignore").astype(
+                    "float64", errors="ignore"
+                )
+            else:
+                return pd.to_numeric(series).astype("float64")
+
+        elif type_hint in ["string", "str"]:
+            return series.astype("string", errors="ignore")
+
+        elif type_hint == "category":
+            return series.astype("category", errors="ignore")
+
+        elif type_hint in ["boolean", "bool"]:
+            if cast_error == "coerce":
+                # Convert common boolean representations
+                bool_map = {
+                    "true": True,
+                    "false": False,
+                    "yes": True,
+                    "no": False,
+                    "1": True,
+                    "0": False,
+                    "y": True,
+                    "n": False,
+                }
+                converted = series.astype(str).str.lower().map(bool_map)
+                return converted.astype("boolean", errors="ignore")
+            else:
+                return series.astype("boolean", errors="ignore")
+
+        elif type_hint in ["datetime", "date"]:
+            if cast_error == "coerce":
+                return pd.to_datetime(series, errors="coerce")
+            elif cast_error == "ignore":
+                return pd.to_datetime(series, errors="ignore")
+            else:
+                return pd.to_datetime(series)
+
+        else:
+            # Unknown type hint, return as is
+            return series
+
+    except Exception:
+        if cast_error == "raise":
+            raise
+        return series
+
+
+def _apply_precision_rounding(series: pd.Series, precision: int) -> pd.Series:
+    """
+    Apply precision rounding to numeric series
+
+    Args:
+        series: Numeric series to round
+        precision: Number of decimal places
+
+    Returns:
+        Rounded series
+    """
+    try:
+        # Only apply to numeric data
+        if pd.api.types.is_numeric_dtype(series):
+            return series.round(precision)
+        return series
+    except Exception:
+        return series
+
+
+def _is_numeric_field(series: pd.Series) -> bool:
+    """
+    Check if series contains numeric data
+
+    Args:
+        series: Series to check
+
+    Returns:
+        True if numeric, False otherwise
+    """
+    return pd.api.types.is_numeric_dtype(series)
 
 
 def calculate_field_stats(
@@ -168,7 +350,7 @@ def calculate_field_stats(
     # Most frequent values
     value_counts = field_data.value_counts().head(10)
     if not value_counts.empty:
-        most_frequent = list(zip(value_counts.index, value_counts.values))
+        most_frequent = list(zip(value_counts.index, value_counts.values, strict=False))
         stats = FieldStats(
             row_count=stats.row_count,
             na_count=stats.na_count,
@@ -187,7 +369,7 @@ def calculate_field_stats(
 
 def infer_field_logical_type(
     field_data: pd.Series, field_metadata: FieldMetadata
-) -> Optional[LogicalType]:
+) -> LogicalType | None:
     """
     Pure function to infer logical type from data patterns
 
@@ -253,7 +435,7 @@ def infer_field_logical_type(
 def optimize_field_dtype(
     field_data: pd.Series,
     field_metadata: FieldMetadata,
-    config: Optional[FieldConfig] = None,
+    config: FieldConfig | None = None,
 ) -> str:
     """
     Pure function to determine optimal dtype for storage
@@ -344,6 +526,7 @@ def _apply_type_hint(type_hint: str, current_type: DataType) -> DataType:
         "float": DataType.FLOAT64,
         "string": DataType.STRING,
         "boolean": DataType.BOOLEAN,
+        "bool": DataType.BOOLEAN,
     }
     return type_mapping.get(type_hint, current_type)
 
@@ -363,7 +546,7 @@ def _is_string_compatible(series: pd.Series) -> bool:
     return False
 
 
-def _get_logical_type_patterns() -> Dict[LogicalType, Tuple[str, float]]:
+def _get_logical_type_patterns() -> dict[LogicalType, tuple[str, float]]:
     """Get logical type detection patterns with confidence thresholds"""
     return {
         LogicalType.EMAIL: (r"^[\w\.-]+@[\w\.-]+\.\w+$", 0.95),
@@ -473,7 +656,7 @@ def _is_float_with_integer_values(field_data: pd.Series) -> bool:
 
 
 def _comprehensive_type_analysis(
-    field_data: pd.Series, config: Optional[FieldConfig] = None
+    field_data: pd.Series, config: FieldConfig | None = None
 ) -> str:
     """
     完整的類型分析邏輯，按照以下順序：
@@ -493,7 +676,7 @@ def _comprehensive_type_analysis(
         config = FieldConfig()
 
     # 1. 首先檢查前導零（無論原始類型為何）
-    if config.auto_detect_leading_zeros and _has_leading_zeros(field_data):
+    if config.leading_zeros != "never" and _has_leading_zeros(field_data):
         return "string"
 
     # 2. 統一嘗試數值轉換（無論原始類型為何）
@@ -626,7 +809,7 @@ def _optimize_regular_integer_dtype(integer_data: pd.Series) -> str:
 
 
 def _optimize_numeric_dtype(
-    field_data: pd.Series, config: Optional[FieldConfig] = None
+    field_data: pd.Series, config: FieldConfig | None = None
 ) -> str:
     """Optimize numeric dtype"""
     if config is None:
@@ -881,8 +1064,41 @@ def _has_leading_zeros(field_data: pd.Series) -> bool:
     return False
 
 
+def _should_use_category_aspl(field_data: pd.Series, aspl_threshold: int = 100) -> bool:
+    """
+    Determine if a field should use category based on ASPL (Average Samples Per Level)
+
+    Based on: Zhu, W., Qiu, R., & Fu, Y. (2024). Comparative study on the performance
+    of categorical variable encoders in classification and regression tasks.
+    arXiv preprint arXiv:2401.09682.
+
+    Args:
+        field_data: The pandas Series to analyze
+        aspl_threshold: ASPL threshold for sufficient data (default: 100)
+
+    Returns:
+        True if field should use category, False otherwise
+    """
+    if len(field_data) == 0:
+        return False
+
+    # Calculate unique values (cardinality)
+    unique_count = field_data.nunique()
+
+    # If only one unique value, not useful as category
+    if unique_count <= 1:
+        return False
+
+    # Calculate ASPL (Average Samples Per Level)
+    # ASPL = total_samples / cardinality
+    aspl = len(field_data) / unique_count
+
+    # Use category only if ASPL >= threshold (sufficient data per category)
+    return aspl >= aspl_threshold
+
+
 def _optimize_object_dtype(
-    field_data: pd.Series, config: Optional[FieldConfig] = None
+    field_data: pd.Series, config: FieldConfig | None = None
 ) -> str:
     """Optimize object dtype"""
     if config is None:
@@ -894,7 +1110,7 @@ def _optimize_object_dtype(
     field_data_clean = field_data.dropna()
 
     # 首先檢查是否有前導零，如果有則保持為字串
-    if config.auto_detect_leading_zeros and _has_leading_zeros(field_data):
+    if config.leading_zeros != "never" and _has_leading_zeros(field_data):
         return "string"
 
     # Pre-check if data might be datetime before attempting conversion

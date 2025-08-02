@@ -14,7 +14,7 @@ Loader(
     column_types=None,
     header_names=None,
     na_values=None,
-    schema=None
+    schema_config=None
 )
 ```
 
@@ -41,16 +41,12 @@ Module for loading tabular data.
   - If str or list: Apply to all columns
   - If dict: Apply per-column with format `{colname: na_values}`
   - Example: `{'workclass': '?', 'age': [-1]}`
-- `schema` (`dict`, optional): Field schema configuration for advanced data processing
+- `schema_config` (`SchemaConfig`, optional): Schema configuration object for advanced data processing
   - Default: None
-  - Format: `{field_name: {config_options}}`
-  - Available configuration options per field:
-    - `'type'` (`str`): Data type hint for conversion
-      - Supported types: 'int', 'integer', 'float', 'string', 'str', 'category', 'boolean', 'datetime', 'date'
-    - `'na_values'` (`str` | `list`): Custom NA values for this specific field
-    - `'precision'` (`int`): Decimal precision for numeric fields (≥ 0)
-  - Example: `{'age': {'type': 'int', 'na_values': ['unknown', 'N/A']}, 'salary': {'type': 'float', 'precision': 2}}`
+  - Use `SchemaConfig` and `FieldConfig` objects to define field-level processing rules
+  - Provides type-safe configuration with validation
   - Takes precedence over deprecated `column_types` and `na_values` parameters
+  - **Conflict Detection**: If both `schema_config` and `column_types` define the same field, a `ConfigError` will be raised
 
 ## Examples
 
@@ -66,35 +62,45 @@ data, meta = load.load()
 load = Loader('benchmark://adult-income')
 data, meta = load.load()
 
-# Using schema for advanced field processing
-schema_config = {
-    'age': {
-        'type': 'int',
-        'na_values': ['unknown', 'N/A', '?']
-    },
-    'salary': {
-        'type': 'float',
-        'precision': 2,
-        'na_values': ['missing']
-    },
-    'active': {
-        'type': 'boolean'
-    },
-    'category': {
-        'type': 'category'
-    }
+# Using SchemaConfig for advanced field processing
+from petsard.metadater import SchemaConfig, FieldConfig
+
+fields = {
+    'age': FieldConfig(
+        type_hint='int',
+        na_values=['unknown', 'N/A', '?']
+    ),
+    'salary': FieldConfig(
+        type_hint='float',
+        precision=2,
+        na_values=['missing']
+    ),
+    'active': FieldConfig(
+        type_hint='boolean'
+    ),
+    'category': FieldConfig(
+        type_hint='category'
+    )
 }
 
-load = Loader('data.csv', schema=schema_config)
+schema_config = SchemaConfig(
+    schema_id='my_schema',
+    name='My Data Schema',
+    fields=fields
+)
+
+load = Loader('data.csv', schema_config=schema_config)
 data, meta = load.load()
 
-# Metadata takes precedence over deprecated parameters
-load = Loader(
-    'data.csv',
-    column_types={'category': ['age']},  # This will be overridden
-    schema={'age': {'type': 'int'}}    # This takes precedence
-)
-data, meta = load.load()
+# Conflict detection - this will raise ConfigError
+try:
+    load = Loader(
+        'data.csv',
+        column_types={'category': ['age']},  # Conflicts with schema_config
+        schema_config=schema_config          # Both define 'age' field
+    )
+except ConfigError as e:
+    print(f"Conflict detected: {e}")
 ```
 
 ## Methods
@@ -119,15 +125,16 @@ data, meta = loader.load() # get loaded DataFrame
 
 ## Attributes
 
-- `config` (`LoaderConfig`): Configuration dictionary containing：
+- `config` (`LoaderConfig`): Configuration object containing：
   - `filepath` (`str`): Local data file path
   - `method` (`str`): Loading method
   - `file_ext` (`str`): File extension
   - `benchmark` (`bool`): Whether using benchmark dataset
   - `dtypes` (`dict`): Column data types
-  - `column_types` (`dict`): User-defined column types
+  - `column_types` (`dict`): User-defined column types (deprecated)
   - `header_names` (`list`): Column headers
-  - `na_values` (`str` | `list` | `dict`): NA value definitions
+  - `na_values` (`str` | `list` | `dict`): NA value definitions (deprecated)
+  - `schema_config` (`SchemaConfig` | `None`): Schema configuration object
   - For benchmark datasets only:
     - `filepath_raw` (`str`): Original input filepath
     - `benchmark_name` (`str`): Benchmark dataset name

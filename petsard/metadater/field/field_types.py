@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from petsard.metadater.types.data_types import DataType, LogicalType
 
@@ -29,12 +29,12 @@ class FieldStats:
     na_count: int = 0
     na_percentage: float = 0.0
     distinct_count: int = 0
-    min_value: Optional[Union[int, float]] = None
-    max_value: Optional[Union[int, float]] = None
-    mean_value: Optional[float] = None
-    std_value: Optional[float] = None
-    quantiles: Optional[Dict[float, Union[int, float]]] = None
-    most_frequent: Optional[List[Tuple[Any, int]]] = None
+    min_value: int | float | None = None
+    max_value: int | float | None = None
+    mean_value: float | None = None
+    std_value: float | None = None
+    quantiles: dict[float, int | float] | None = None
+    most_frequent: list[tuple[Any, int]] | None = None
 
 
 @dataclass(frozen=True)
@@ -43,29 +43,105 @@ class FieldConfig:
     Immutable configuration for field processing
 
     Attributes:
-        type_hint: Hint for data type inference
-        logical_type: Logical type for the field
+        type: Hint for data type inference
+        logical_type: Logical type for the field ('never', 'infer', or specific type like 'email')
         nullable: Whether the field can contain null values
         description: Human-readable description
         cast_error: Error handling strategy ('raise', 'coerce', 'ignore')
-        auto_detect_leading_zeros: Whether to automatically detect and preserve leading zeros
-        force_nullable_integers: Whether to force use of nullable integer types
+        leading_zeros: How to handle leading zeros/characters ('never', 'num-auto', 'leading_n')
+        na_values: Custom NA values for this field (str, list, or None)
+        precision: Decimal precision for numeric fields (int or None)
+        datetime_precision: Precision for datetime fields ('s', 'ms', 'us', 'ns')
+        datetime_format: Format string for parsing datetime fields ('auto' or strftime format)
+        category: Whether this field is categorical (internal use only)
+        category_method: Category detection method ('str-auto', 'auto', 'force', 'never')
         properties: Additional field properties
     """
 
-    type_hint: Optional[str] = None
-    logical_type: Optional[Union[LogicalType, str]] = None
-    nullable: Optional[bool] = None
-    description: Optional[str] = None
+    type: str | None = None
+    logical_type: str = "never"
+    nullable: bool | None = None
+    description: str | None = None
     cast_error: str = "coerce"
-    auto_detect_leading_zeros: bool = True
-    force_nullable_integers: bool = True
-    properties: Dict[str, Any] = field(default_factory=dict)
+    leading_zeros: str = "never"
+    na_values: (
+        str
+        | int
+        | float
+        | bool
+        | datetime
+        | list[str | int | float | bool | datetime]
+        | None
+    ) = None
+    precision: int | None = None
+    datetime_precision: str = "s"
+    datetime_format: str = "auto"
+    category: bool = False
+    category_method: str = "str-auto"
+    properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Validate configuration after initialization"""
         if self.cast_error not in ["raise", "coerce", "ignore"]:
             raise ValueError(f"Invalid cast_error: {self.cast_error}")
+
+        # Validate logical_type parameter
+        valid_logical_types = ["never", "infer"]
+        if not (
+            self.logical_type in valid_logical_types
+            or isinstance(self.logical_type, str)
+        ):
+            raise ValueError(
+                "logical_type must be 'never', 'infer', or a specific logical type string"
+            )
+
+        # Validate leading_zeros parameter
+        valid_leading_zeros = ["never", "num-auto"]
+        if not (
+            self.leading_zeros in valid_leading_zeros
+            or self.leading_zeros.startswith("leading_")
+        ):
+            raise ValueError(
+                f"leading_zeros must be one of {valid_leading_zeros} or 'leading_n' format"
+            )
+
+        # Validate category_method parameter
+        if self.category_method not in ["str-auto", "auto", "force", "never"]:
+            raise ValueError(f"Invalid category_method: {self.category_method}")
+
+        # Validate datetime_precision parameter
+        if self.datetime_precision not in ["s", "ms", "us", "ns"]:
+            raise ValueError(
+                "datetime_precision must be one of ['s', 'ms', 'us', 'ns']"
+            )
+
+        # Validate precision parameter
+        if self.precision is not None:
+            if not isinstance(self.precision, int) or self.precision < 0:
+                raise ValueError(
+                    f"precision must be a non-negative integer, got: {self.precision}"
+                )
+            # Check if precision is used with integer types (which is invalid)
+            if self.type and self.type.lower() in ["int", "integer"]:
+                raise ValueError(
+                    f"precision parameter cannot be used with integer types (type: {self.type}). "
+                    "precision is only valid for float and decimal types."
+                )
+
+        # Validate na_values parameter
+        if self.na_values is not None:
+            if not isinstance(self.na_values, (str, int, float, bool, datetime, list)):
+                raise ValueError(
+                    f"na_values must be str, int, float, bool, datetime, or list, got: {type(self.na_values)}"
+                )
+            if isinstance(self.na_values, list):
+                if not all(
+                    isinstance(val, (str, int, float, bool, datetime))
+                    for val in self.na_values
+                ):
+                    raise ValueError(
+                        "All values in na_values list must be str, int, float, bool, or datetime"
+                    )
 
 
 @dataclass(frozen=True)
@@ -90,14 +166,14 @@ class FieldMetadata:
 
     name: str
     data_type: DataType
-    logical_type: Optional[LogicalType] = None
+    logical_type: LogicalType | None = None
     nullable: bool = True
-    source_dtype: Optional[str] = None
-    target_dtype: Optional[str] = None
-    description: Optional[str] = None
+    source_dtype: str | None = None
+    target_dtype: str | None = None
+    description: str | None = None
     cast_error: str = "coerce"
-    stats: Optional[FieldStats] = None
-    properties: Dict[str, Any] = field(default_factory=dict)
+    stats: FieldStats | None = None
+    properties: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -154,5 +230,5 @@ class FieldMetadata:
 
 
 # Type aliases
-FieldConfigDict = Dict[str, Any]
-FieldMetadataDict = Dict[str, FieldMetadata]
+FieldConfigDict = dict[str, Any]
+FieldMetadataDict = dict[str, FieldMetadata]

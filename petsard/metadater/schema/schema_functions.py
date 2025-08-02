@@ -1,6 +1,6 @@
 """Pure functions for schema-level operations"""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -27,8 +27,22 @@ def build_schema_metadata(
     Returns:
         SchemaMetadata object
     """
+    # Ensure config is a SchemaConfig object
+    if isinstance(config, dict):
+        # Convert dict to SchemaConfig if needed
+        # Provide default schema_id if not present
+        if "schema_id" not in config:
+            config["schema_id"] = "default_schema"
+
+        # Convert boolean nullable_int to string format
+        if "nullable_int" in config and isinstance(config["nullable_int"], bool):
+            config["nullable_int"] = "force" if config["nullable_int"] else "never"
+
+        # Use from_dict method to properly handle field configurations
+        config = SchemaConfig.from_dict(config)
+
     # Build field metadata for each column
-    fields: List[FieldMetadata] = []
+    fields: list[FieldMetadata] = []
 
     for field_name in data.columns:
         field_config = config.get_field_config(field_name)
@@ -38,22 +52,31 @@ def build_schema_metadata(
             from petsard.metadater.field.field_types import FieldConfig
 
             field_config = FieldConfig(
-                auto_detect_leading_zeros=config.auto_detect_leading_zeros,
-                force_nullable_integers=config.force_nullable_integers,
+                leading_zeros=config.leading_zeros,
             )
         else:
             # 如果有 field_config，但沒有設定這些參數，則使用全域設定
-            if not hasattr(field_config, "auto_detect_leading_zeros"):
+            if (
+                not hasattr(field_config, "leading_zeros")
+                or field_config.leading_zeros is None
+            ):
                 # 創建新的 field_config 包含全域設定
+                from petsard.metadater.field.field_types import FieldConfig
+
                 field_config = FieldConfig(
-                    type_hint=field_config.type_hint,
+                    type=field_config.type,
                     logical_type=field_config.logical_type,
                     nullable=field_config.nullable,
                     description=field_config.description,
                     cast_error=field_config.cast_error,
                     properties=field_config.properties,
-                    auto_detect_leading_zeros=config.auto_detect_leading_zeros,
-                    force_nullable_integers=config.force_nullable_integers,
+                    leading_zeros=config.leading_zeros,
+                    na_values=field_config.na_values,
+                    precision=field_config.precision,
+                    category=field_config.category,
+                    category_method=field_config.category_method,
+                    datetime_precision=field_config.datetime_precision,
+                    datetime_format=field_config.datetime_format,
                 )
 
         # Build field metadata
@@ -88,7 +111,7 @@ def build_schema_metadata(
 
 
 def calculate_schema_stats(
-    data: pd.DataFrame, fields: List[FieldMetadata]
+    data: pd.DataFrame, fields: list[FieldMetadata]
 ) -> SchemaStats:
     """
     Pure function to calculate schema-level statistics
@@ -120,7 +143,7 @@ def validate_schema_data(
     data: pd.DataFrame,
     schema: SchemaMetadata,
     strict: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pure function to validate DataFrame against schema
 
@@ -207,8 +230,8 @@ def validate_schema_data(
 def apply_schema_transformations(
     data: pd.DataFrame,
     schema: SchemaMetadata,
-    include_fields: Optional[List[str]] = None,
-    exclude_fields: Optional[List[str]] = None,
+    include_fields: list[str] | None = None,
+    exclude_fields: list[str] | None = None,
 ) -> pd.DataFrame:
     """
     Pure function to apply schema transformations to DataFrame
@@ -241,6 +264,16 @@ def apply_schema_transformations(
     # Apply transformations to each field (simplified version)
     for field_metadata in fields_to_process:
         try:
+            # Check if field should be converted to category based on properties
+            should_be_category = field_metadata.properties.get("category", False)
+
+            if should_be_category:
+                # Convert to category while preserving the underlying data type
+                result[field_metadata.name] = result[field_metadata.name].astype(
+                    "category"
+                )
+                continue
+
             # Apply target dtype if specified
             if field_metadata.target_dtype and field_metadata.target_dtype != str(
                 result[field_metadata.name].dtype
@@ -267,7 +300,7 @@ def apply_schema_transformations(
 def compare_schemas(
     schema1: SchemaMetadata,
     schema2: SchemaMetadata,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pure function to compare two schemas
 

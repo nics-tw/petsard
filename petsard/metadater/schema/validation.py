@@ -1,6 +1,6 @@
 """Pure functions for validation operations"""
 
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 
@@ -9,7 +9,7 @@ from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 from petsard.metadater.types.data_types import DataType, LogicalType
 
 
-def validate_field_config(config: FieldConfig) -> Dict[str, Any]:
+def validate_field_config(config: FieldConfig) -> dict[str, Any]:
     """
     Pure function to validate field configuration
 
@@ -54,9 +54,9 @@ def validate_field_config(config: FieldConfig) -> Dict[str, Any]:
                 }
             )
 
-    # Validate type_hint if specified
-    if config.type_hint is not None:
-        valid_type_hints = [
+    # Validate type if specified
+    if config.type is not None:
+        valid_types = [
             "category",
             "datetime",
             "date",
@@ -67,12 +67,12 @@ def validate_field_config(config: FieldConfig) -> Dict[str, Any]:
             "string",
             "boolean",
         ]
-        if config.type_hint.lower() not in valid_type_hints:
+        if config.type.lower() not in valid_types:
             warnings.append(
                 {
-                    "type": "unknown_type_hint",
-                    "value": config.type_hint,
-                    "message": f"Unknown type_hint: {config.type_hint}. Valid hints: {valid_type_hints}",
+                    "type": "unknown_type",
+                    "value": config.type,
+                    "message": f"Unknown type: {config.type}. Valid types: {valid_types}",
                 }
             )
 
@@ -83,7 +83,7 @@ def validate_field_config(config: FieldConfig) -> Dict[str, Any]:
     }
 
 
-def validate_schema_config(config: SchemaConfig) -> Dict[str, Any]:
+def validate_schema_config(config: SchemaConfig) -> dict[str, Any]:
     """
     Pure function to validate schema configuration
 
@@ -148,7 +148,7 @@ def validate_data_against_field(
     data: pd.Series,
     field_metadata: FieldMetadata,
     strict: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pure function to validate data against field metadata
 
@@ -240,7 +240,7 @@ def validate_dataframe_against_schema(
     data: pd.DataFrame,
     schema: SchemaMetadata,
     strict: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pure function to validate DataFrame against schema
 
@@ -328,7 +328,7 @@ def validate_dataframe_against_schema(
 
 def validate_field_metadata_consistency(
     field_metadata: FieldMetadata,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pure function to validate internal consistency of field metadata
 
@@ -380,7 +380,7 @@ def validate_field_metadata_consistency(
 
 def _validate_logical_type_constraints(
     data: pd.Series, logical_type: LogicalType
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Validate data against logical type constraints"""
     violations = []
 
@@ -425,7 +425,7 @@ def _validate_logical_type_constraints(
 
 def _validate_numeric_ranges(
     data: pd.Series, field_metadata: FieldMetadata
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Validate numeric data against expected ranges"""
     violations = []
 
@@ -454,7 +454,7 @@ def _validate_numeric_ranges(
 
 def _check_datatype_logical_type_compatibility(
     data_type: DataType, logical_type: LogicalType
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Check compatibility between data type and logical type"""
     violations = []
 
@@ -509,7 +509,7 @@ def _check_datatype_logical_type_compatibility(
     return violations
 
 
-def _validate_field_stats_consistency(stats) -> List[Dict[str, Any]]:
+def _validate_field_stats_consistency(stats) -> list[dict[str, Any]]:
     """Validate internal consistency of field statistics"""
     violations = []
 
@@ -561,7 +561,7 @@ def _are_dtypes_compatible(source_dtype: str, target_dtype: str) -> bool:
     return target_dtype in safe_conversions.get(source_dtype, [target_dtype])
 
 
-def _find_invalid_emails(data: pd.Series) -> List[str]:
+def _find_invalid_emails(data: pd.Series) -> list[str]:
     """Find invalid email addresses in series"""
     import re
 
@@ -575,7 +575,7 @@ def _find_invalid_emails(data: pd.Series) -> List[str]:
     return invalid_emails
 
 
-def _find_invalid_urls(data: pd.Series) -> List[str]:
+def _find_invalid_urls(data: pd.Series) -> list[str]:
     """Find invalid URLs in series"""
     import re
 
@@ -589,7 +589,7 @@ def _find_invalid_urls(data: pd.Series) -> List[str]:
     return invalid_urls
 
 
-def _find_invalid_coordinates(data: pd.Series, coord_type: LogicalType) -> List[float]:
+def _find_invalid_coordinates(data: pd.Series, coord_type: LogicalType) -> list[float]:
     """Find invalid coordinate values"""
     invalid_coords = []
 

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
 
@@ -36,25 +36,25 @@ class SchemaConfig:
         description: Description of the schema
         fields: Field-specific configurations
         compute_stats: Whether to compute statistics for fields
-        infer_logical_types: Whether to automatically infer logical types
+        infer_logical_types: Whether to automatically infer logical types (conflicts with field-level logical_type)
         optimize_dtypes: Whether to optimize data types for storage
-        sample_size: Sample size for type inference
-        auto_detect_leading_zeros: Whether to automatically detect and preserve leading zeros
-        force_nullable_integers: Whether to force use of nullable integer types
+        sample_size: Sample size for type inference (None means use all data)
+        leading_zeros: How to handle leading zeros/characters ("never", "num-auto", "leading_n")
+        nullable_int: How to handle nullable integers ("force", "never")
         properties: Additional schema-level properties
     """
 
     schema_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    fields: Dict[str, FieldConfig] = field(default_factory=dict)
+    name: str | None = None
+    description: str | None = None
+    fields: dict[str, FieldConfig] = field(default_factory=dict)
     compute_stats: bool = True
-    infer_logical_types: bool = True
+    infer_logical_types: bool = False
     optimize_dtypes: bool = True
-    sample_size: Optional[int] = 1000
-    auto_detect_leading_zeros: bool = True
-    force_nullable_integers: bool = True
-    properties: Dict[str, Any] = field(default_factory=dict)
+    sample_size: int | None = None
+    leading_zeros: str = "never"
+    nullable_int: str = "force"
+    properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Validate configuration values"""
@@ -64,11 +64,37 @@ class SchemaConfig:
         if self.sample_size is not None and self.sample_size <= 0:
             raise ValueError("sample_size must be positive or None")
 
+        # Validate leading_zeros parameter
+        valid_leading_zeros = ["never", "num-auto"]
+        if not (
+            self.leading_zeros in valid_leading_zeros
+            or self.leading_zeros.startswith("leading_")
+        ):
+            raise ValueError(
+                f"leading_zeros must be one of {valid_leading_zeros} or 'leading_n' format"
+            )
+
+        # Validate nullable_int parameter
+        if self.nullable_int not in ["force", "never"]:
+            raise ValueError("nullable_int must be 'force' or 'never'")
+
+        # Check for conflicts between infer_logical_types and field-level logical_type
+        if self.infer_logical_types:
+            for field_name, field_config in self.fields.items():
+                if (
+                    hasattr(field_config, "logical_type")
+                    and getattr(field_config, "logical_type", "never") != "never"
+                ):
+                    raise ValueError(
+                        f"Cannot set infer_logical_types=True when field '{field_name}' has logical_type specified. "
+                        "Use either global infer_logical_types or field-level logical_type, not both."
+                    )
+
         # Set default name if not provided
         if not self.name:
             object.__setattr__(self, "name", self.schema_id)
 
-    def get_field_config(self, field_name: str) -> Optional[FieldConfig]:
+    def get_field_config(self, field_name: str) -> FieldConfig | None:
         """Get field configuration by name"""
         return self.fields.get(field_name)
 
@@ -88,13 +114,13 @@ class SchemaConfig:
             infer_logical_types=self.infer_logical_types,
             optimize_dtypes=self.optimize_dtypes,
             sample_size=self.sample_size,
-            auto_detect_leading_zeros=self.auto_detect_leading_zeros,
-            force_nullable_integers=self.force_nullable_integers,
+            leading_zeros=self.leading_zeros,
+            nullable_int=self.nullable_int,
             properties=self.properties,
         )
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> "SchemaConfig":
+    def from_dict(cls, config_dict: dict[str, Any]) -> "SchemaConfig":
         """Create SchemaConfig from dictionary"""
         fields_dict = config_dict.pop("fields", {})
         field_configs = {}
@@ -130,22 +156,22 @@ class SchemaMetadata:
     """
 
     schema_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    fields: List[FieldMetadata] = field(default_factory=list)
-    stats: Optional[SchemaStats] = None
-    properties: Dict[str, Any] = field(default_factory=dict)
+    name: str | None = None
+    description: str | None = None
+    fields: list[FieldMetadata] = field(default_factory=list)
+    stats: SchemaStats | None = None
+    properties: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
-    def get_field(self, name: str) -> Optional[FieldMetadata]:
+    def get_field(self, name: str) -> FieldMetadata | None:
         """Get field metadata by name"""
         for field_metadata in self.fields:
             if field_metadata.name == name:
                 return field_metadata
         return None
 
-    def get_field_names(self) -> List[str]:
+    def get_field_names(self) -> list[str]:
         """Get list of all field names"""
         return [field_metadata.name for field_metadata in self.fields]
 
@@ -202,7 +228,7 @@ class SchemaMetadata:
             updated_at=datetime.now(),
         )
 
-    def to_sdv(self) -> Dict[str, Any]:
+    def to_sdv(self) -> dict[str, Any]:
         """
         Convert SchemaMetadata to SDV format.
 
@@ -216,5 +242,5 @@ class SchemaMetadata:
 
 
 # Type aliases
-SchemaConfigDict = Dict[str, Any]
-SchemaMetadataDict = Dict[str, SchemaMetadata]
+SchemaConfigDict = dict[str, Any]
+SchemaMetadataDict = dict[str, SchemaMetadata]

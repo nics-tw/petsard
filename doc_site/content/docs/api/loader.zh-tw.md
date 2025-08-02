@@ -41,16 +41,11 @@ Loader(
   - 若為字串或列表：套用於所有欄位
   - 若為字典：以 `{colname: na_values}` 格式指定各欄位
   - 範例：`{'workclass': '?', 'age': [-1]}`
-- `schema` (`dict`, optional)：進階資料處理的欄位詮釋資料設定
+- `schema` (`SchemaConfig`, optional)：架構設定物件
   - 預設值：無
-  - 格式：`{field_name: {config_options}}`
-  - 每個欄位可用的設定選項：
-    - `'type'` (`str`)：資料型別轉換提示
-      - 支援型別：'int', 'integer', 'float', 'string', 'str', 'category', 'boolean', 'datetime', 'date'
-    - `'na_values'` (`str` | `list`)：此特定欄位的自訂 NA 值
-    - `'precision'` (`int`)：數值欄位的小數精度（≥ 0）
-  - 範例：`{'age': {'type': 'int', 'na_values': ['unknown', 'N/A']}, 'salary': {'type': 'float', 'precision': 2}}`
-  - 優先於已棄用的 `column_types` 和 `na_values` 參數
+  - 用於定義欄位型別、處理規則和驗證邏輯
+  - 詳細用法請參考 [Metadater API 文檔](../metadater)
+  - **衝突檢測**：若 `schema` 和 `column_types` 同時定義相同欄位，將拋出 `ConfigError`
 
 ## 範例
 
@@ -66,34 +61,19 @@ data, meta = load.load()
 load = Loader('benchmark://adult-income')
 data, meta = load.load()
 
-# 使用 schema 進行進階欄位處理
-schema_config = {
-    'age': {
-        'type': 'int',
-        'na_values': ['unknown', 'N/A', '?']
-    },
-    'salary': {
-        'type': 'float',
-        'precision': 2,
-        'na_values': ['missing']
-    },
-    'active': {
-        'type': 'boolean'
-    },
-    'category': {
-        'type': 'category'
+# 使用 schema 參數進行進階欄位處理
+from petsard.metadater import SchemaConfig, FieldConfig
+
+# 建立 schema 配置（詳細用法請參考 Metadater 文檔）
+schema_config = SchemaConfig(
+    schema_id='my_schema',
+    fields={
+        'age': FieldConfig(type='int'),
+        'salary': FieldConfig(type='float', precision=2)
     }
-}
+)
 
 load = Loader('data.csv', schema=schema_config)
-data, meta = load.load()
-
-# schema 優先於已棄用的參數
-load = Loader(
-    'data.csv',
-    column_types={'category': ['age']},  # 這將被覆蓋
-    schema={'age': {'type': 'int'}}    # 這個優先
-)
 data, meta = load.load()
 ```
 
@@ -119,15 +99,16 @@ data, meta = loader.load()  # 得到載入的資料
 
 ## 屬性
 
-- `config` (`LoaderConfig`)：設定字典，包含：
+- `config` (`LoaderConfig`)：設定物件，包含：
   - `filepath` (`str`)：本地端資料檔案路徑
   - `method` (`str`)：載入方法
   - `file_ext` (`str`)：檔案副檔名
   - `benchmark` (`bool`)：是否使用基準資料集
   - `dtypes` (`dict`)：欄位資料型態
-  - `column_types` (`dict`)：使用者定義的欄位型態
+  - `column_types` (`dict`)：使用者定義的欄位型態（已棄用）
   - `header_names` (`list`)：欄位標題
-  - `na_values` (`str` | `list` | `dict`)：NA 值定義
+  - `na_values` (`str` | `list` | `dict`)：NA 值定義（已棄用）
+  - `schema_config` (`SchemaConfig` | `None`)：架構設定物件
   - 僅用於基準資料集：
     - `filepath_raw` (`str`)：原始輸入檔案路徑
     - `benchmark_name` (`str`)：基準資料集名稱
