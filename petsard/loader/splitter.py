@@ -45,7 +45,11 @@ class Splitter:
             max_attempts (int, optional):
                 Maximum number of attempts for sampling. Default is 30.
             **kwargs (optional):
-                For method 'custom_data' only. Apply Loader's config.
+                For method 'custom_data' only. Parameters can be:
+                - Dictionary parameters (like filepath, schema): must contain 'ori' and 'control' keys
+                - Non-dictionary parameters: passed directly to both Loaders
+                Example: filepath={'ori': 'file1.csv', 'control': 'file2.csv'},
+                        schema={'ori': 'schema1.yaml', 'control': 'schema2.yaml'}
 
         Attr:
             config (dict):
@@ -53,7 +57,7 @@ class Splitter:
                 If method is None,
                     it contains num_samples, train_split_ratio, random_state, max_overlap_ratio, max_attempts.
                 If method is 'custom_data',
-                    it contains method, filepath, and Loader's config.
+                    it only contains method.
 
         """
         self.config: dict = {}
@@ -81,32 +85,25 @@ class Splitter:
             if method.lower() != "custom_data":
                 raise ConfigError
 
-            filepath = kwargs.get("filepath", None)
-            if filepath is None or not isinstance(filepath, dict):
-                raise ConfigError
-            if not all(k in filepath for k in ("ori", "control")):
-                raise ConfigError
-
-            config = kwargs
+            self.config = {"method": method}
             self.loader: dict = {}
 
+            # 純粹的分拆：將第一層配置按 ori/control 分拆給對應的 Loader
             for key in ["ori", "control"]:
-                self.loader[key] = Loader(
-                    filepath=filepath[key],
-                    **{
-                        k: config.get(k)
-                        for k in [
-                            "column_types",
-                            "header_names",
-                            "na_values",
-                        ]
-                        if config.get(k) is not None
-                    },
-                )
+                # 準備該 Loader 的配置
+                loader_config = {}
 
-            config["method"] = method
-            config["filepath"] = filepath
-            self.config = config
+                # 處理所有第一層參數，如果是字典且包含對應 key，則取出對應值
+                for param_name, param_value in kwargs.items():
+                    if param_name == "method":
+                        continue  # 跳過 method
+                    elif isinstance(param_value, dict) and key in param_value:
+                        loader_config[param_name] = param_value[key]
+                    elif not isinstance(param_value, dict):
+                        # 非字典參數直接傳遞
+                        loader_config[param_name] = param_value
+
+                self.loader[key] = Loader(**loader_config)
 
     def split(
         self,

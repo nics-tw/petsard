@@ -14,7 +14,11 @@ from pandas.api.types import (
 )
 
 from petsard.metadater.field.field_types import FieldConfig, FieldMetadata, FieldStats
-from petsard.metadater.types.data_types import DataType, LogicalType
+from petsard.metadater.types.data_types import (
+    DataType,
+    LogicalType,
+    validate_logical_type_compatibility,
+)
 
 
 def build_field_metadata(
@@ -98,12 +102,39 @@ def build_field_metadata(
         properties=properties,
     )
 
-    # Infer logical type
+    # Infer logical type with compatibility validation
     if infer_logical_type:
-        if config.logical_type:
+        if config.logical_type and config.logical_type != "never":
             try:
                 logical_type = LogicalType(config.logical_type)
-                field_metadata = field_metadata.with_logical_type(logical_type)
+
+                # Validate compatibility between data type and logical type
+                if validate_logical_type_compatibility(logical_type, data_type):
+                    field_metadata = field_metadata.with_logical_type(logical_type)
+
+                    # Add primary key uniqueness validation
+                    if logical_type == LogicalType.PRIMARY_KEY:
+                        if not _validate_primary_key_uniqueness(field_data):
+                            # Log warning but still assign the logical type
+                            import logging
+
+                            logger = logging.getLogger("PETsARD.Metadater")
+                            logger.warning(
+                                f"Field '{field_name}' marked as PRIMARY_KEY but contains duplicate values"
+                            )
+                else:
+                    # Log compatibility error and fall back to inference
+                    import logging
+
+                    logger = logging.getLogger("PETsARD.Metadater")
+                    logger.warning(
+                        f"Logical type '{logical_type.value}' is not compatible with data type '{data_type.value}' "
+                        f"for field '{field_name}'. Falling back to automatic inference."
+                    )
+                    logical_type = infer_field_logical_type(field_data, field_metadata)
+                    if logical_type:
+                        field_metadata = field_metadata.with_logical_type(logical_type)
+
             except ValueError:
                 # Invalid logical type, infer from data
                 logical_type = infer_field_logical_type(field_data, field_metadata)
@@ -380,18 +411,38 @@ def infer_field_logical_type(
     Returns:
         Inferred LogicalType or None
     """
-    # Only process string-like data
-    if field_metadata.data_type not in [DataType.STRING, DataType.BINARY]:
-        return None
-
     sample = field_data.dropna()
     if len(sample) == 0:
         return None
 
-    # Limit sample size
+    # Limit sample size for performance
     if len(sample) > 1000:
         sample = sample.sample(n=1000, random_state=42)
 
+    # Check patterns based on data type
+    if field_metadata.data_type == DataType.STRING:
+        return _infer_string_logical_type(sample, field_data)
+    elif field_metadata.data_type in [
+        DataType.FLOAT32,
+        DataType.FLOAT64,
+        DataType.DECIMAL,
+    ]:
+        return _infer_numeric_logical_type(sample)
+    elif field_metadata.data_type in [
+        DataType.INT8,
+        DataType.INT16,
+        DataType.INT32,
+        DataType.INT64,
+    ]:
+        return _infer_integer_logical_type(sample, field_data)
+
+    return None
+
+
+def _infer_string_logical_type(
+    sample: pd.Series, full_data: pd.Series
+) -> LogicalType | None:
+    """Infer logical type for string data"""
     # Ensure string operations are possible
     if not _is_string_compatible(sample):
         return None
@@ -402,7 +453,7 @@ def infer_field_logical_type(
     except Exception:
         return None
 
-    # Check patterns
+    # Check text-based patterns
     patterns = _get_logical_type_patterns()
     for logical_type, (pattern, threshold) in patterns.items():
         try:
@@ -410,24 +461,57 @@ def infer_field_logical_type(
             match_ratio = matches.sum() / len(matches)
 
             if match_ratio >= threshold:
-                # Special validation for certain types
-                if logical_type in [
-                    LogicalType.LATITUDE,
-                    LogicalType.LONGITUDE,
-                    LogicalType.PERCENTAGE,
-                    LogicalType.CURRENCY,
-                ]:
-                    validator = _get_special_validator(logical_type)
-                    if not _validate_with_function(sample, validator, threshold):
-                        continue
                 return logical_type
         except Exception:
             continue
 
-    # Check categorical
-    unique_ratio = field_data.nunique() / len(field_data)
-    if unique_ratio < 0.05:  # 5% threshold
+    # Check categorical using ASPL
+    if _should_use_category_aspl(full_data):
         return LogicalType.CATEGORICAL
+
+    return None
+
+
+def _infer_numeric_logical_type(sample: pd.Series) -> LogicalType | None:
+    """Infer logical type for numeric data"""
+    try:
+        # Check for percentage (0-100 range)
+        if all(0 <= val <= 100 for val in sample):
+            return LogicalType.PERCENTAGE
+
+        # Check for latitude (-90 to 90)
+        if all(-90 <= val <= 90 for val in sample):
+            return LogicalType.LATITUDE
+
+        # Check for longitude (-180 to 180)
+        if all(-180 <= val <= 180 for val in sample):
+            return LogicalType.LONGITUDE
+
+        # Check for currency (positive values, could have decimal places)
+        if all(val >= 0 for val in sample):
+            return LogicalType.CURRENCY
+
+    except (TypeError, ValueError):
+        pass
+
+    return None
+
+
+def _infer_integer_logical_type(
+    sample: pd.Series, full_data: pd.Series
+) -> LogicalType | None:
+    """Infer logical type for integer data"""
+    try:
+        # Check for primary key (all unique values)
+        if _validate_primary_key_uniqueness(full_data):
+            return LogicalType.PRIMARY_KEY
+
+        # Check for percentage (0-100 range)
+        if all(0 <= val <= 100 for val in sample):
+            return LogicalType.PERCENTAGE
+
+    except (TypeError, ValueError):
+        pass
 
     return None
 
@@ -549,15 +633,15 @@ def _is_string_compatible(series: pd.Series) -> bool:
 def _get_logical_type_patterns() -> dict[LogicalType, tuple[str, float]]:
     """Get logical type detection patterns with confidence thresholds"""
     return {
-        LogicalType.EMAIL: (r"^[\w\.-]+@[\w\.-]+\.\w+$", 0.95),
-        LogicalType.URL: (r"^https?://[^\s]+$", 0.95),
+        LogicalType.EMAIL: (r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", 0.8),
+        LogicalType.URL: (r"^https?://[^\s/$.?#].[^\s]*$", 0.8),
         LogicalType.IP_ADDRESS: (
-            r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-            0.95,
+            r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
+            0.9,
         ),
         LogicalType.UUID: (
             r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-            0.98,
+            0.95,
         ),
     }
 
@@ -628,6 +712,26 @@ def _validate_currency(value: str) -> bool:
         r"^[A-Z]{3}\s?[\d,]+\.?\d*$",
     ]
     return any(re.match(pattern, value) for pattern in currency_patterns)
+
+
+def _validate_primary_key_uniqueness(field_data: pd.Series) -> bool:
+    """
+    Validate that primary key field has no duplicate values
+
+    Args:
+        field_data: The pandas Series to validate
+
+    Returns:
+        True if all non-null values are unique, False otherwise
+    """
+    # Remove null values for uniqueness check
+    non_null_data = field_data.dropna()
+
+    if len(non_null_data) == 0:
+        return True  # Empty data is considered valid
+
+    # Check if all values are unique
+    return len(non_null_data) == non_null_data.nunique()
 
 
 def _is_float_with_integer_values(field_data: pd.Series) -> bool:

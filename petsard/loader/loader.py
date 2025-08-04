@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+import yaml
 
 from petsard.config_base import BaseConfig
 from petsard.exceptions import (
@@ -57,7 +58,8 @@ class LoaderConfig(BaseConfig):
         column_types (dict): The dictionary of column types and their corresponding column names.
         header_names (list): Specifies a list of headers for the data without header.
         na_values (str | list | dict): Extra string to recognized as NA/NaN.
-        schema_config (SchemaConfig): Schema configuration object with field definitions and global parameters.
+        schema (SchemaConfig): Schema configuration object with field definitions and global parameters.
+        schema_path (str): The path to schema file if loaded from YAML file.
         dir_name (str): The directory name of the file path.
         base_name (str): The base name of the file path.
         file_name (str): The file name of the file path.
@@ -77,7 +79,8 @@ class LoaderConfig(BaseConfig):
     na_values: str | list[str] | dict[str, str] | None = (
         None  # TODO: Deprecated in v2.0.0 - will be removed
     )
-    schema_config: SchemaConfig | None = None
+    schema: SchemaConfig | None = None
+    schema_path: str | None = None  # 記錄 schema 來源路徑（如果從檔案載入）
 
     # Filepath related
     dir_name: str | None = None
@@ -157,20 +160,20 @@ class LoaderConfig(BaseConfig):
                     raise UnsupportedMethodError(error_msg)
             self._logger.debug("Column types validation passed")
 
-        # 5. validate schema_config parameter and check for conflicts
-        if self.schema_config is not None:
+        # 5. validate schema parameter and check for conflicts
+        if self.schema is not None:
             self._logger.debug("Schema configuration provided")
             # SchemaConfig validation is handled by its own dataclass validation
             self._logger.debug("Schema configuration validation passed")
 
-            # Check for conflicts between schema_config and column_types
+            # Check for conflicts between schema and column_types
             if self.column_types is not None:
                 self._logger.debug(
-                    "Checking for conflicts between schema_config and column_types"
+                    "Checking for conflicts between schema and column_types"
                 )
                 # Use hasattr to avoid depending on schema internal structure
-                if hasattr(self.schema_config, "fields") and self.schema_config.fields:
-                    schema_fields = set(self.schema_config.fields.keys())
+                if hasattr(self.schema, "fields") and self.schema.fields:
+                    schema_fields = set(self.schema.fields.keys())
                     column_type_fields = set()
                     for columns in self.column_types.values():
                         column_type_fields.update(columns)
@@ -179,12 +182,12 @@ class LoaderConfig(BaseConfig):
                     if conflicting_fields:
                         error_msg = (
                             f"Conflict detected: Fields {list(conflicting_fields)} are defined in both "
-                            f"schema_config and column_types. Please use only schema_config for these fields."
+                            f"schema and column_types. Please use only schema for these fields."
                         )
                         self._logger.error(error_msg)
                         raise ConfigError(error_msg)
                     self._logger.debug(
-                        "No conflicts found between schema_config and column_types"
+                        "No conflicts found between schema and column_types"
                     )
 
 
@@ -210,7 +213,7 @@ class Loader:
         | list[str]
         | dict[str, str]
         | None = None,  # TODO: Deprecated in v2.0.0
-        schema: SchemaConfig | None = None,
+        schema: SchemaConfig | dict | str | None = None,
     ):
         """
         Args:
@@ -233,9 +236,12 @@ class Loader:
                 Format as {colname: na_values}.
                 Default is None, means no extra.
                 Check pandas document for Default NA string list.
-            schema (SchemaConfig, optional): Schema configuration object.
+            schema (SchemaConfig | dict | str, optional): Schema configuration.
+                Can be one of:
+                - SchemaConfig object: Direct schema configuration
+                - dict: Dictionary that will be converted to SchemaConfig using from_dict()
+                - str: Path to YAML file containing schema configuration
                 Contains field definitions and global parameters for data processing.
-                Use SchemaConfig to define field types, validation rules, and processing options.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -249,15 +255,101 @@ class Loader:
             f"Loader parameters - filepath: {filepath}, method: {method}, column_types: {column_types}"
         )
 
+        # Process schema parameter - handle different input types
+        processed_schema, schema_path = self._process_schema_parameter(schema)
+
         self.config: LoaderConfig = LoaderConfig(
             filepath=filepath,
             method=method,
             column_types=column_types,
             header_names=header_names,
             na_values=na_values,
-            schema_config=schema,
+            schema=processed_schema,
+            schema_path=schema_path,
         )
         self._logger.debug("LoaderConfig successfully initialized")
+
+    def _process_schema_parameter(
+        self, schema: SchemaConfig | dict | str | None
+    ) -> tuple[SchemaConfig | None, str | None]:
+        """
+        Process schema parameter and convert it to SchemaConfig object.
+
+        Args:
+            schema: Schema parameter that can be SchemaConfig, dict, str (path), or None
+
+        Returns:
+            tuple: (processed_schema, schema_path)
+                - processed_schema: SchemaConfig object or None
+                - schema_path: Path to schema file if loaded from file, None otherwise
+        """
+        if schema is None:
+            self._logger.debug("No schema provided")
+            return None, None
+
+        if isinstance(schema, SchemaConfig):
+            self._logger.debug("Schema provided as SchemaConfig object")
+            return schema, None
+
+        if isinstance(schema, dict):
+            self._logger.debug(
+                "Schema provided as dictionary, converting to SchemaConfig"
+            )
+            try:
+                # Ensure schema_id is present - generate one if missing
+                schema_dict = schema.copy()
+                if "schema_id" not in schema_dict:
+                    schema_dict["schema_id"] = "auto_generated_schema"
+                    self._logger.debug("Auto-generated schema_id for dictionary schema")
+
+                schema_config = SchemaConfig.from_dict(schema_dict)
+                return schema_config, None
+            except Exception as e:
+                error_msg = f"Failed to convert dictionary to SchemaConfig: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+
+        if isinstance(schema, str):
+            self._logger.info(f"Loading schema from YAML file: {schema}")
+            try:
+                schema_path = Path(schema)
+                if not schema_path.exists():
+                    error_msg = f"Schema file not found: {schema}"
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
+
+                with open(schema_path, encoding="utf-8") as f:
+                    schema_dict = yaml.safe_load(f)
+
+                if not isinstance(schema_dict, dict):
+                    error_msg = f"Schema file must contain a dictionary, got {type(schema_dict)}"
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
+
+                # Ensure schema_id is present - generate one if missing
+                if "schema_id" not in schema_dict:
+                    # Use filename (without extension) as schema_id
+                    schema_dict["schema_id"] = schema_path.stem
+                    self._logger.debug(
+                        f"Auto-generated schema_id from filename: {schema_path.stem}"
+                    )
+
+                schema_config = SchemaConfig.from_dict(schema_dict)
+                self._logger.debug(f"Successfully loaded schema from {schema}")
+                return schema_config, str(schema_path)
+
+            except yaml.YAMLError as e:
+                error_msg = f"Failed to parse YAML file {schema}: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+            except Exception as e:
+                error_msg = f"Failed to load schema from file {schema}: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+
+        error_msg = f"Unsupported schema type: {type(schema)}"
+        self._logger.error(error_msg)
+        raise ConfigError(error_msg)
 
     def load(self) -> tuple[pd.DataFrame, SchemaMetadata]:
         """
@@ -313,11 +405,11 @@ class Loader:
         Returns:
             SchemaConfig: Merged schema configuration
         """
-        # Start with existing schema_config or create a new one
-        if self.config.schema_config:
-            # Use existing schema_config as base - avoid accessing internal structure
+        # Start with existing schema or create a new one
+        if self.config.schema:
+            # Use existing schema as base - avoid accessing internal structure
             self._logger.debug("Using existing schema configuration")
-            return self.config.schema_config
+            return self.config.schema
         else:
             # Create new schema_config with defaults
             fields_config = {}
