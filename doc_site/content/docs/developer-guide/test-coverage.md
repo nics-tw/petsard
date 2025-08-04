@@ -7,6 +7,121 @@ next: docs/developer-guide/docker-development
 ---
 
 
+## PETsARD End-to-End Functional Tests
+
+### `PETsARD Functional Workflows`
+
+> tests/test_petsard.py
+
+Tests for complete PETsARD end-to-end workflows using realistic YAML configurations. These tests verify that the entire system works correctly from data loading through synthesis and evaluation.
+
+#### Core Workflow Tests
+
+**`test_default_synthesis_workflow`**: Tests basic data synthesis pipeline
+- **YAML Configuration**:
+  - `Loader`: Loads benchmark adult-income dataset
+  - `Preprocessor`: Uses default preprocessing method
+  - `Synthesizer`: Uses default synthesis method
+  - `Postprocessor`: Uses default postprocessing method
+  - `Reporter`: Saves synthesized data to output directory
+- **Expected Results**:
+  - Execution completes successfully with `is_execution_completed() == True`
+  - Synthesized data contains all 15 expected columns (age, workclass, fnlwgt, education, etc.)
+  - Output data is a valid pandas DataFrame with >0 rows
+  - Data maintains adult-income dataset structure
+
+**`test_data_preprocessing_workflow`**: Tests data preprocessing with missing value handling
+- **YAML Configuration**:
+  - `Loader`: Loads adult-income with custom NA values ('?')
+  - `Preprocessor`: Custom sequence with missing value handling and encoding
+  - `Synthesizer`: Default synthesis method
+  - `Postprocessor`: Default postprocessing
+  - `Reporter`: Saves processed data
+- **Expected Results**:
+  - Missing values are properly handled before synthesis
+  - Encoding is applied to categorical variables
+  - Final synthetic data maintains data quality
+
+**`test_data_constraining_workflow`**: Tests synthesis with data constraints
+- **YAML Configuration**:
+  - `Loader`: Standard adult-income dataset
+  - `Preprocessor`: Default preprocessing
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Constrainer`: Field constraints (age 18-65, hours-per-week 20-60) and field proportions for education
+  - `Reporter`: Saves constrained data
+- **Expected Results**:
+  - Age values are constrained to 18-65 range
+  - Hours-per-week values are constrained to 20-60 range
+  - Education field proportions are maintained within tolerance
+  - Constraints are properly applied to synthetic data
+
+**`test_evaluation_workflow`**: Tests synthesis with evaluation metrics
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset
+  - `Splitter`: 80/20 train/test split with 1 sample
+  - `Preprocessor`: Default preprocessing
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Evaluator`: SDMetrics quality report evaluation
+  - `Reporter`: Saves evaluation report with global granularity
+- **Expected Results**:
+  - Data is properly split for evaluation
+  - Quality metrics are computed and available
+  - Timing information is captured and accessible
+  - Evaluation report is generated successfully
+
+**`test_minimal_workflow`**: Tests minimal pipeline with just data loading
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset only
+  - `Reporter`: Saves loaded data directly
+- **Expected Results**:
+  - Data loads successfully without processing
+  - Original dataset structure is preserved
+  - Demonstrates minimal viable PETsARD workflow
+
+**`test_custom_sequence_preprocessing`**: Tests custom preprocessing pipeline
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset
+  - `Preprocessor`: Custom 4-step sequence (missing → outlier → scaler → encoder)
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Reporter`: Saves final processed data
+- **Expected Results**:
+  - All preprocessing steps execute in correct order
+  - Data transformations are applied sequentially
+  - Final data is ready for downstream analysis
+
+#### Parameterized Module Execution Tests
+
+**`test_workflow_module_execution`**: Tests different workflow configurations
+- **Test Cases**:
+  - `default-synthesis`: Full pipeline (Loader → Preprocessor → Synthesizer → Postprocessor)
+  - `minimal`: Basic pipeline (Loader only)
+  - `with-splitter`: Extended pipeline (Loader → Splitter → Preprocessor → Synthesizer → Postprocessor)
+- **Expected Results**: Each workflow executes expected modules and produces valid results
+
+#### Configuration Validation Tests
+
+**`test_invalid_yaml_config`**: Tests error handling for invalid configurations
+- **YAML Configuration**: Contains invalid module (InvalidModule) that doesn't exist
+- **Expected Results**: Raises NameError, ValueError, KeyError, or AttributeError appropriately
+
+**`test_missing_required_config`**: Tests error handling for empty configurations
+- **YAML Configuration**: Empty configuration file
+- **Expected Results**: Raises appropriate error for missing required components
+
+#### Key Features
+
+- **Executor API Integration**: Tests use new `is_execution_completed()` method to check execution status
+- **Result Extraction**: Uses helper method `_extract_module_data()` to handle nested result structures
+- **Real Data Testing**: Uses actual benchmark datasets (adult-income) for realistic testing
+- **Configuration Variety**: Tests multiple YAML configuration patterns and module combinations
+- **Error Handling**: Validates proper error handling for invalid configurations
+- **End-to-End Validation**: Ensures complete workflows work from configuration to final output
+
+> **Architecture Note**: These tests validate the complete PETsARD system using the new Executor API with `is_execution_completed()` status tracking. The `run()` method returns `None` in the current version, with plans to return success/failed status codes in v2.0.0. Results are accessed via `get_result()` method and processed through nested workflow structures.
+
 ### `Executor`
 
 > tests/test_executor.py
@@ -196,9 +311,7 @@ Tests for processing data with ambiguous or easily misinterpreted types:
 Tests for large file processing and edge case type inference:
 
 **TestLoaderStress** - Progressive file size testing with timeout mechanisms:
-- `test_small_file_100mb`: Tests 100MB files (30s timeout)
 - `test_medium_file_1gb`: Tests 1GB files (120s timeout)
-- `test_large_file_3gb`: Tests 3GB files (300s timeout)
 - `test_xlarge_file_5gb`: Tests 5GB files (600s timeout)
 
 **TestLoaderTypeInference** - Edge case type inference with 99.9% normal data, 0.1% exceptions at end:
