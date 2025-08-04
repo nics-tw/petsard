@@ -82,6 +82,10 @@ class Executor:
         self.status = Status(config=self.config)
         self.result: dict = {}
 
+        # Execution state tracking
+        # NOTE: This attribute will be removed in v2.0.0 and replaced with run() return value
+        self._execution_completed: bool = False
+
     def _setup_logger(self, reconfigure=False):
         """
         Setting up the logger based on ExecutorConfig settings.
@@ -164,7 +168,13 @@ class Executor:
     def run(self):
         """
         run(): Runs the operators based on the configuration.
+
+        Note: In v2.0.0, this method will return execution status (success/failed)
+        instead of None. Use is_execution_completed() to check completion status
+        in the current version.
         """
+        # Reset execution state
+        self._execution_completed = False
         start_time: time = time.time()
         self._logger.info("Starting PETsARD execution workflow")
         while self.config.config.qsize() > 0:
@@ -185,6 +195,12 @@ class Executor:
         self._logger.info(
             f"Completed PETsARD execution workflow (elapsed: {formatted_elapsed_time})"
         )
+
+        # Mark execution as completed
+        self._execution_completed = True
+
+        # TODO: In v2.0.0, return execution status here
+        # return "success"  # or "failed" based on execution result
 
     def _set_result(self, module: str):
         """
@@ -218,3 +234,15 @@ class Executor:
             pd.DataFrame: 包含所有模組執行時間的 DataFrame
         """
         return self.status.get_timing_report_data()
+
+    def is_execution_completed(self) -> bool:
+        """
+        Check if the execution workflow has completed.
+
+        Returns:
+            bool: True if execution completed, False otherwise
+
+        Note: This method will be deprecated in v2.0.0.
+        Use the return value of run() method instead.
+        """
+        return self._execution_completed
