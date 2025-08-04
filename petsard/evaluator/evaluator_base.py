@@ -125,19 +125,68 @@ class EvaluatorInputConfig(BaseConfig):
                 self._logger.error(error_msg)
                 raise ConfigError(error_msg)
 
-            # 5. align dtypes using schema functions
+            # 5. Check dtype consistency - do not auto-align at evaluator level
+            # Data type alignment should be handled at earlier stages (e.g., in Executor)
+            dtype_mismatches = {}
+
+            try:
+                reference_dtypes = dict(
+                    zip(
+                        reference_data.columns,
+                        reference_data.dtypes.astype(str),
+                        strict=True,
+                    )
+                )
+            except ValueError as e:
+                error_msg = (
+                    f"Data structure inconsistency in reference data '{self.major_key}': "
+                    f"columns count ({len(reference_data.columns)}) does not match "
+                    f"dtypes count ({len(reference_data.dtypes)}). {str(e)}"
+                )
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
+
             for other_key in other_keys:
                 other_data = getattr(self, other_key)
-                # Apply schema transformations to align dtypes
-                from petsard.metadater.schema.schema_functions import (
-                    apply_schema_transformations,
-                )
+                try:
+                    other_dtypes = dict(
+                        zip(
+                            other_data.columns,
+                            other_data.dtypes.astype(str),
+                            strict=True,
+                        )
+                    )
+                except ValueError as e:
+                    error_msg = (
+                        f"Data structure inconsistency in '{other_key}' data: "
+                        f"columns count ({len(other_data.columns)}) does not match "
+                        f"dtypes count ({len(other_data.dtypes)}). {str(e)}"
+                    )
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
 
-                aligned_data = apply_schema_transformations(
-                    data=other_data,
-                    schema=schema_metadata,
+                mismatched_columns = []
+                for col in reference_columns:
+                    if reference_dtypes[col] != other_dtypes[col]:
+                        mismatched_columns.append(
+                            {
+                                "column": col,
+                                "reference_dtype": reference_dtypes[col],
+                                f"{other_key}_dtype": other_dtypes[col],
+                            }
+                        )
+
+                if mismatched_columns:
+                    dtype_mismatches[other_key] = mismatched_columns
+
+            if dtype_mismatches:
+                error_msg = (
+                    f"Data type mismatches detected between '{self.major_key}' and other datasets. "
+                    f"Please ensure data types are aligned before evaluation using Executor or other preprocessing steps. "
+                    f"Mismatches: {dtype_mismatches}"
                 )
-                setattr(self, other_key, aligned_data)
+                self._logger.error(error_msg)
+                raise ValueError(error_msg)
 
 
 @dataclass
