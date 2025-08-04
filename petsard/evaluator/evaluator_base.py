@@ -128,19 +128,42 @@ class EvaluatorInputConfig(BaseConfig):
             # 5. Check dtype consistency - do not auto-align at evaluator level
             # Data type alignment should be handled at earlier stages (e.g., in Executor)
             dtype_mismatches = {}
-            reference_dtypes = dict(
-                zip(
-                    reference_data.columns,
-                    reference_data.dtypes.astype(str),
-                    strict=False,
+
+            try:
+                reference_dtypes = dict(
+                    zip(
+                        reference_data.columns,
+                        reference_data.dtypes.astype(str),
+                        strict=True,
+                    )
                 )
-            )
+            except ValueError as e:
+                error_msg = (
+                    f"Data structure inconsistency in reference data '{self.major_key}': "
+                    f"columns count ({len(reference_data.columns)}) does not match "
+                    f"dtypes count ({len(reference_data.dtypes)}). {str(e)}"
+                )
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg)
 
             for other_key in other_keys:
                 other_data = getattr(self, other_key)
-                other_dtypes = dict(
-                    zip(other_data.columns, other_data.dtypes.astype(str), strict=False)
-                )
+                try:
+                    other_dtypes = dict(
+                        zip(
+                            other_data.columns,
+                            other_data.dtypes.astype(str),
+                            strict=True,
+                        )
+                    )
+                except ValueError as e:
+                    error_msg = (
+                        f"Data structure inconsistency in '{other_key}' data: "
+                        f"columns count ({len(other_data.columns)}) does not match "
+                        f"dtypes count ({len(other_data.dtypes)}). {str(e)}"
+                    )
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
 
                 mismatched_columns = []
                 for col in reference_columns:
