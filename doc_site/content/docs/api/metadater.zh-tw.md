@@ -140,6 +140,165 @@ Metadater.analyze_series(series, field_name, config=None)
 
 - `FieldMetadata`：包含統計資料和型態資訊的詳細欄位分析
 
+## 邏輯型態系統
+
+Metadater 包含一套自主開發的**邏輯型態推斷系統**，超越基本資料型態，能識別資料中的語意意義。此系統自動檢測模式並驗證資料以指派適當的邏輯型態。
+
+> **重要說明**：此邏輯型態系統是我們的自主開發實作。詳細的實現方法請查閱 Metadater 原始碼和本文件。
+
+### 可用的邏輯型態
+
+我們的系統專注於不與基本資料型態重疊的語意型態，提供清晰的職責分離：
+
+#### 文字語意型態（需要 `string` 資料型態）
+- **`email`**：具有格式驗證的電子郵件地址
+- **`url`**：具有協定驗證的網址連結
+- **`uuid`**：標準格式的 UUID 識別碼
+- **`categorical`**：透過基數分析檢測的分類文字資料
+- **`ip_address`**：具有模式驗證的 IPv4/IPv6 位址
+
+#### 數值語意型態（需要數值資料型態）
+- **`percentage`**：具有 0-100 範圍驗證的百分比數值
+- **`currency`**：具有貨幣符號檢測的金額數值
+- **`latitude`**：具有 -90 到 90 範圍驗證的緯度座標
+- **`longitude`**：具有 -180 到 180 範圍驗證的經度座標
+
+#### 識別碼型態
+- **`primary_key`**：具有唯一性驗證的主鍵欄位
+
+### 詳細檢測邏輯
+
+每種邏輯型態使用特定的檢測模式、驗證規則和信心閾值：
+
+#### 電子郵件檢測（`email`）
+```
+相容資料型態: string
+模式: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+信心閾值: 80% 的非空值必須符合模式
+驗證方法: 完整的電子郵件格式正則表達式驗證
+說明: 標準電子郵件地址格式驗證
+```
+
+#### 網址檢測（`url`）
+```
+相容資料型態: string
+模式: ^https?://[^\s/$.?#].[^\s]*$
+信心閾值: 80% 的非空值必須符合模式
+驗證方法: 協定和網域結構驗證
+說明: 具有 HTTP/HTTPS 協定驗證的網址
+```
+
+#### UUID 檢測（`uuid`）
+```
+相容資料型態: string
+模式: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+信心閾值: 95% 的非空值必須符合模式
+驗證方法: 標準 UUID 格式驗證
+說明: 8-4-4-4-12 十六進位格式的 UUID 識別碼
+```
+
+#### IP 位址檢測（`ip_address`）
+```
+相容資料型態: string
+模式: IPv4 和 IPv6 位址模式
+信心閾值: 90% 的非空值必須符合模式
+驗證方法: IPv4/IPv6 模式驗證
+說明: 網路 IP 位址（IPv4 和 IPv6）
+```
+
+#### 分類檢測（`categorical`）
+```
+相容資料型態: string
+驗證方法: ASPL（適應性統計模式學習）基數分析
+邏輯: 使用平均每級樣本數（ASPL）閾值
+閾值: 根據資料大小和分佈動態調整
+說明: 透過基數分析檢測的分類資料，每個類別有足夠的樣本數
+```
+
+#### 百分比檢測（`percentage`）
+```
+相容資料型態: int8, int16, int32, int64, float32, float64, decimal
+範圍驗證: 0 ≤ 數值 ≤ 100
+信心閾值: 95% 的數值必須在有效範圍內
+驗證方法: 數值範圍驗證與精度檢查
+說明: 0-100 範圍內的百分比數值
+```
+
+#### 貨幣檢測（`currency`）
+```
+相容資料型態: float32, float64, decimal
+驗證方法: 貨幣符號檢測和正值驗證
+信心閾值: 80% 的數值必須符合貨幣模式
+說明: 具有貨幣符號檢測的金額數值
+```
+
+#### 地理座標
+```
+緯度（latitude）:
+  相容資料型態: float32, float64, decimal
+  範圍驗證: -90 ≤ 數值 ≤ 90
+  信心閾值: 95% 的數值必須在有效範圍內
+  說明: 具有地理範圍驗證的緯度座標
+
+經度（longitude）:
+  相容資料型態: float32, float64, decimal
+  範圍驗證: -180 ≤ 數值 ≤ 180
+  信心閾值: 95% 的數值必須在有效範圍內
+  說明: 具有地理範圍驗證的經度座標
+```
+
+#### 主鍵檢測（`primary_key`）
+```
+相容資料型態: int8, int16, int32, int64, string
+驗證方法: 唯一性檢查（需要 100% 唯一值）
+額外檢查: 非空值約束驗證
+信心閾值: 100%（不允許重複）
+說明: 具有唯一性保證的資料庫主鍵識別
+```
+
+### 型態相容性系統
+
+系統維持基本資料型態和邏輯型態之間的嚴格相容性規則：
+
+#### 相容組合 ✅
+- `string` + `email`, `url`, `uuid`, `categorical`, `ip_address`
+- `數值型態` + `percentage`, `currency`, `latitude`, `longitude`
+- `int/string` + `primary_key`
+
+#### 不相容組合 ❌
+- `數值型態` + `email`, `url`, `uuid`, `ip_address`
+- `string` + `percentage`, `currency`, `latitude`, `longitude`
+
+### 設定選項
+
+```python
+from petsard.metadater import FieldConfig
+
+# 停用邏輯型態推斷
+config = FieldConfig(logical_type="never")
+
+# 啟用自動推斷
+config = FieldConfig(logical_type="infer")
+
+# 強制指定邏輯型態（具有相容性驗證）
+config = FieldConfig(logical_type="email")
+```
+
+### 錯誤處理和衝突解決
+
+當 `type` 和 `logical_type` 不相容時，系統遵循以下優先順序：
+
+1. **相容性檢查**：驗證指定的邏輯型態是否與資料型態相容
+2. **警告產生**：記錄關於不相容性的詳細警告
+3. **自動回退**：回退到基於資料模式的自動推斷
+4. **優先級系統**：資料型態約束優先於邏輯型態提示
+
+警告訊息範例：
+```
+WARNING: Logical type 'email' is not compatible with data type 'int64' for field 'user_id'.
+Falling back to automatic inference.
+```
+
 ### `analyze_dataset()`
 
 ```python

@@ -6,7 +6,6 @@ Loader:
     filepath: 'benchmark/adult-income.csv'
     schema:
       # 全域參數
-      compute_stats: true
       optimize_dtypes: true
       nullable_int: 'force'
 
