@@ -368,7 +368,7 @@ Constrainer:
 
 請點擊下方按鈕在 Colab 中執行範例：
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practice/high-cardinality.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practices/high-cardinality.ipynb)
 
 ```yaml
 Constrainer:

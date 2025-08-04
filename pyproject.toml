@@ -46,10 +46,10 @@ dependencies = [
 	"requests>=2.32.4,<3",
 	"sdmetrics>=0.21.0,<1",
 	"sdv>=1.24.0,<2",
+	"openpyxl>=3.1.5",
 	###### ###### ######
 	# SBOM dependency related
 	###### ###### ######
-	# #739
 	"boto3>=1.39.3",
 	"botocore>=1.39.3",
 	"certifi>=2025.6.15",
@@ -69,12 +69,14 @@ dependencies = [
 	"typing-extensions>=4.14.1",
 	"tzdata>=2025.2",
 	"urllib3>=2.5.0",
-	###### ###### ######
-	# #775
 	"setuptools>=80.9.0",
 	###### ###### ######
-	"numpy>=1.26.4", # block by Anonymeter, but already alert
+	# block by Anonymeter, but already alert
+	###### ###### ######
+	"numpy>=1.26.4",
+	###### ###### ######
 	# Backward compatibility packages for Python 3.10
+	###### ###### ######
 	"exceptiongroup>=1.3.0 ; python_version < '3.11'",
 	"tomli>=2.2.1 ; python_version < '3.11'",
 ]
@@ -156,7 +158,7 @@ line-length = 88
 target-version = "py311"
 
 # 選擇要檢查的規則
-select = [
+lint.select = [
 	"E",  # pycodestyle errors
 	"W",  # pycodestyle warnings
 	"F",  # pyflakes
@@ -167,7 +169,7 @@ select = [
 ]
 
 # 忽略的規則
-ignore = [
+lint.ignore = [
 	"E501", # 行長度限制（已在 line-length 設定）
 ]
 
@@ -268,3 +270,17 @@ env = "GITHUB_TOKEN"
 [tool.semantic_release.publish]
 dist_glob_patterns = ["dist/*"] # 發布檔案模式 Distribution file patterns
 upload_to_vcs_release = true    # 上傳到版本控制系統 Upload to VCS releases
+
+# pytest 配置 pytest configuration
+[tool.pytest.ini_options]
+markers = [
+    "stress: Stress test marker, used to identify tests requiring significant resources",
+    "stress_zh: 壓力測試標記，用於標識需要大量資源的測試",
+    "excel: Excel file test marker, used to identify tests requiring openpyxl",
+    "excel_zh: Excel 檔案測試標記，用於標識需要 openpyxl 的測試"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

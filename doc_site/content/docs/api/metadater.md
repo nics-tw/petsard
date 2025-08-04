@@ -99,7 +99,7 @@ from petsard.metadater import SchemaConfig, FieldConfig
 
 config = SchemaConfig(
     schema_id="my_schema",
-    compute_stats=True,
+    optimize_dtypes=True,
     infer_logical_types=True
 )
 schema = Metadater.create_schema(df, "my_data", config)
@@ -178,6 +178,165 @@ Analyze series data and generate comprehensive field metadata.
 **Returns**
 
 - `FieldMetadata`: Detailed field analysis with statistics and type information
+
+## Logical Type System
+
+The Metadater includes a sophisticated **logical type inference system** developed in-house that goes beyond basic data types to identify semantic meaning in your data. This system automatically detects patterns and validates data to assign appropriate logical types.
+
+> **Important**: This logical type system is our proprietary implementation. For detailed implementation methods, please refer to the Metadater source code and this documentation.
+
+### Available Logical Types
+
+Our system focuses on semantic types that don't overlap with basic data types, providing clear separation of concerns:
+
+#### Text-based Semantic Types (require `string` data type)
+- **`email`**: Email addresses with format validation
+- **`url`**: Web URLs with protocol validation
+- **`uuid`**: UUID identifiers in standard format
+- **`categorical`**: Categorical text data detected via cardinality analysis
+- **`ip_address`**: IPv4/IPv6 addresses with pattern validation
+
+#### Numeric Semantic Types (require numeric data types)
+- **`percentage`**: Percentage values with 0-100 range validation
+- **`currency`**: Monetary values with currency symbol detection
+- **`latitude`**: Latitude coordinates with -90 to 90 range validation
+- **`longitude`**: Longitude coordinates with -180 to 180 range validation
+
+#### Identifier Types
+- **`primary_key`**: Primary key fields with uniqueness validation
+
+### Detailed Detection Logic
+
+Each logical type uses specific detection patterns, validation rules, and confidence thresholds:
+
+#### Email Detection (`email`)
+```
+Compatible Data Types: string
+Pattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+Confidence Threshold: 80% of non-null values must match
+Validation Method: Full regex validation for email format
+Description: Standard email address format validation
+```
+
+#### URL Detection (`url`)
+```
+Compatible Data Types: string
+Pattern: ^https?://[^\s/$.?#].[^\s]*$
+Confidence Threshold: 80% of non-null values must match
+Validation Method: Protocol and domain structure validation
+Description: Web URLs with HTTP/HTTPS protocol validation
+```
+
+#### UUID Detection (`uuid`)
+```
+Compatible Data Types: string
+Pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+Confidence Threshold: 95% of non-null values must match
+Validation Method: Standard UUID format validation
+Description: UUID identifiers in 8-4-4-4-12 hexadecimal format
+```
+
+#### IP Address Detection (`ip_address`)
+```
+Compatible Data Types: string
+Pattern: IPv4 and IPv6 address patterns
+Confidence Threshold: 90% of non-null values must match
+Validation Method: IPv4/IPv6 pattern validation
+Description: Network IP addresses (both IPv4 and IPv6)
+```
+
+#### Categorical Detection (`categorical`)
+```
+Compatible Data Types: string
+Validation Method: ASPL (Adaptive Statistical Pattern Learning) cardinality analysis
+Logic: Uses Average Samples Per Level (ASPL) threshold
+Threshold: Dynamic adjustment based on data size and distribution
+Description: Categorical data detected via cardinality analysis with sufficient samples per category
+```
+
+#### Percentage Detection (`percentage`)
+```
+Compatible Data Types: int8, int16, int32, int64, float32, float64, decimal
+Range Validation: 0 ≤ value ≤ 100
+Confidence Threshold: 95% of values must be within valid range
+Validation Method: Numeric range validation with precision checks
+Description: Percentage values in 0-100 range
+```
+
+#### Currency Detection (`currency`)
+```
+Compatible Data Types: float32, float64, decimal
+Validation Method: Currency symbol detection and positive value validation
+Confidence Threshold: 80% of values must match currency patterns
+Description: Monetary values with currency symbol detection
+```
+
+#### Geographic Coordinates
+```
+Latitude:
+  Compatible Data Types: float32, float64, decimal
+  Range Validation: -90 ≤ value ≤ 90
+  Confidence Threshold: 95% of values must be within valid range
+  Description: Latitude coordinates with geographic range validation
+
+Longitude:
+  Compatible Data Types: float32, float64, decimal
+  Range Validation: -180 ≤ value ≤ 180
+  Confidence Threshold: 95% of values must be within valid range
+  Description: Longitude coordinates with geographic range validation
+```
+
+#### Primary Key Detection (`primary_key`)
+```
+Compatible Data Types: int8, int16, int32, int64, string
+Validation Method: Uniqueness check (100% unique values required)
+Additional Checks: Non-null constraint validation
+Confidence Threshold: 100% (no duplicates allowed)
+Description: Database primary key identification with uniqueness guarantee
+```
+
+### Type Compatibility System
+
+The system maintains strict compatibility rules between basic data types and logical types:
+
+#### Compatible Combinations ✅
+- `string` + `email`, `url`, `uuid`, `categorical`, `ip_address`
+- `numeric types` + `percentage`, `currency`, `latitude`, `longitude`
+- `int/string` + `primary_key`
+
+#### Incompatible Combinations ❌
+- `numeric types` + `email`, `url`, `uuid`, `ip_address`
+- `string` + `percentage`, `currency`, `latitude`, `longitude`
+
+### Configuration Options
+
+```python
+from petsard.metadater import FieldConfig
+
+# Disable logical type inference
+config = FieldConfig(logical_type="never")
+
+# Enable automatic inference
+config = FieldConfig(logical_type="infer")
+
+# Force specific logical type (with compatibility validation)
+config = FieldConfig(logical_type="email")
+```
+
+### Error Handling and Conflict Resolution
+
+When `type` and `logical_type` are incompatible, the system follows this priority order:
+
+1. **Compatibility Check**: Validates if the specified logical type is compatible with the data type
+2. **Warning Generation**: Logs a detailed warning about the incompatibility
+3. **Automatic Fallback**: Falls back to automatic inference based on data patterns
+4. **Priority System**: Data type constraints take precedence over logical type hints
+
+Example warning message:
+```
+WARNING: Logical type 'email' is not compatible with data type 'int64' for field 'user_id'.
+Falling back to automatic inference.
+```
 
 ### `analyze_dataset()`
 

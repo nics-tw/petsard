@@ -3,7 +3,7 @@ SDV metadata adapter for converting between PETsARD metadata and SDV format.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 from sdv.metadata import Metadata as SDV_Metadata
@@ -25,7 +25,7 @@ class SDVMetadataAdapter:
         """Initialize the SDV metadata adapter."""
         self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
 
-    def convert_to_sdv_dict(self, metadata: SchemaMetadata) -> Dict[str, Any]:
+    def convert_to_sdv_dict(self, metadata: SchemaMetadata) -> dict[str, Any]:
         """
         Convert PETsARD SchemaMetadata to SDV metadata dictionary format.
 
@@ -77,8 +77,8 @@ class SDVMetadataAdapter:
 
     def create_sdv_metadata(
         self,
-        metadata: Optional[SchemaMetadata] = None,
-        data: Optional[pd.DataFrame] = None,
+        metadata: SchemaMetadata | None = None,
+        data: pd.DataFrame | None = None,
     ) -> SDV_Metadata:
         """
         Create or convert metadata for SDV compatibility.

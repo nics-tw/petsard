@@ -324,7 +324,6 @@ def detect_anomalies(df: pd.DataFrame) -> dict:
 
 ### 注意事項
 - **外部模組載入**: `load_external_module` 函數已移至 `petsard.utils` 模組
-- **Demo 特定功能**: demo 相關的模組載入由 `demo.utils.load_demo_module` 提供
 
 ### 輸入依賴
 - **標準函式庫**: pandas, numpy, importlib 等

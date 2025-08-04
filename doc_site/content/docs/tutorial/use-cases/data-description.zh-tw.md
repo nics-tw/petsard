@@ -1,8 +1,8 @@
 ---
 title: 資料描述
 type: docs
-weight: 16
-prev: docs/tutorial/use-cases
+weight: 17
+prev: docs/tutorial/use-cases/specify-schema
 next: docs/tutorial/use-cases/data-preprocessing
 ---
 
@@ -11,7 +11,7 @@ next: docs/tutorial/use-cases/data-preprocessing
 
 請點擊下方按鈕在 Colab 中執行範例：
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/data-description.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/tutorial/use-cases/data-description.ipynb)
 
 ```yaml
 ---

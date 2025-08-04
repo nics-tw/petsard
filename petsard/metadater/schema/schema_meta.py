@@ -44,7 +44,7 @@ class SchemaMetadata:
     fields: list[FieldMetadata] = field(default_factory=list)
     properties: dict[str, Any] = field(default_factory=dict)
 
-    def get_field(self, name: str) -> Optional[FieldMetadata]:
+    def get_field(self, name: str) -> FieldMetadata | None:
         """Get field metadata by name"""
         for field_metadata in self.fields:
             if field_metadata.name == name:
@@ -130,13 +130,13 @@ class SchemaConfig:
     """
 
     schema_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
     fields: dict[str, Any] = field(default_factory=dict)  # Will store FieldConfig
     compute_stats: bool = True
     infer_logical_types: bool = True
     optimize_dtypes: bool = True
-    sample_size: Optional[int] = 1000
+    sample_size: int | None = 1000
     properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -154,7 +154,7 @@ class SchemaConfig:
         """Add or update field configuration"""
         self.fields[field_name] = field_config
 
-    def get_field_config(self, field_name: str) -> Optional[Any]:
+    def get_field_config(self, field_name: str) -> Any | None:
         """Get field configuration by name"""
         return self.fields.get(field_name)
 

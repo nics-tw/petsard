@@ -195,7 +195,6 @@ denorm_data = denorm_data\
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practices/multi-table.ipynb)
 
-
 PETsARD 簡單地用最預設的設定執行
 
 ```yaml

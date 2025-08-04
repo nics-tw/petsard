@@ -189,13 +189,13 @@ class TestBenchmarker:
                 if not already_exist:
                     try:
                         os.remove(self.config["filepath"])
-                    except OSError:
+                    except OSError as e:
                         self.logger.error(
                             f"Failed to remove file: {self.config['filepath']}"
                         )
                         raise OSError(
                             f"Failed to remove file: {self.config['filepath']}"
-                        )
+                        ) from e
 
         with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = False

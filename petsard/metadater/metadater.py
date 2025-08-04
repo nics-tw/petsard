@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -38,7 +38,7 @@ class Metadater:
     # Metadata 層 (多表格資料集)
     @classmethod
     def create_metadata(
-        cls, metadata_id: str, config: Optional[MetadataConfig] = None
+        cls, metadata_id: str, config: MetadataConfig | None = None
     ) -> Metadata:
         """
         建立多表格元資料容器
@@ -60,9 +60,9 @@ class Metadater:
     @classmethod
     def analyze_dataset(
         cls,
-        tables: Dict[str, pd.DataFrame],
+        tables: dict[str, pd.DataFrame],
         metadata_id: str,
-        config: Optional[MetadataConfig] = None,
+        config: MetadataConfig | None = None,
     ) -> Metadata:
         """
         分析多表格資料集
@@ -88,7 +88,7 @@ class Metadater:
         cls,
         dataframe: pd.DataFrame,
         schema_id: str,
-        config: Optional[SchemaConfig] = None,
+        config: SchemaConfig | None = None,
     ) -> SchemaMetadata:
         """
         建立單表格結構描述
@@ -114,7 +114,7 @@ class Metadater:
         cls,
         dataframe: pd.DataFrame,
         schema_id: str,
-        config: Optional[SchemaConfig] = None,
+        config: SchemaConfig | None = None,
     ) -> SchemaMetadata:
         """
         分析單表格結構 (create_schema 的別名，語意更清楚)
@@ -132,7 +132,7 @@ class Metadater:
     # Field 層 (單欄位分析)
     @classmethod
     def create_field(
-        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+        cls, series: pd.Series, field_name: str, config: FieldConfig | None = None
     ) -> FieldMetadata:
         """
         建立單欄位元資料
@@ -151,7 +151,7 @@ class Metadater:
 
     @classmethod
     def analyze_series(
-        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+        cls, series: pd.Series, field_name: str, config: FieldConfig | None = None
     ) -> FieldMetadata:
         """
         分析單欄位資料 (create_field 的別名，語意更清楚)
