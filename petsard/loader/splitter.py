@@ -93,7 +93,7 @@ class Splitter:
                 # 準備該 Loader 的配置
                 loader_config = {}
 
-                # 處理所有第一層參數，如果是字典且包含對應 key，則取出對應值
+                # Process all first-level parameters; if it's a dict containing the corresponding key, extract the corresponding value
                 for param_name, param_value in kwargs.items():
                     if param_name == "method":
                         continue  # 跳過 method
