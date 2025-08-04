@@ -42,7 +42,7 @@ class Config:
 class Status:
     """執行狀態管理器"""
     
-    def put(self, module: str, expt: str, operator: BaseOperator)
+    def put(self, module: str, expt: str, adapter: BaseAdapter)
     def get_result(self, module: str) -> Union[dict, pd.DataFrame]
     def get_metadata(self, module: str = "Loader") -> SchemaMetadata
     def set_metadata(self, module: str, metadata: SchemaMetadata)
@@ -76,7 +76,7 @@ config.sequence    # 模組執行順序
 ### Status 類別 API
 ```python
 # 狀態管理
-status.put(module, expt, operator)           # 儲存模組狀態
+status.put(module, expt, adapter)            # 儲存模組狀態
 status.get_result(module)                    # 取得模組結果
 status.get_metadata(module)                  # 取得模組元資料
 status.set_metadata(module, metadata)        # 設定模組元資料
@@ -107,13 +107,13 @@ status = Status(config)
 
 # 執行流程
 while config.config.qsize() > 0:
-    operator = config.config.get()
+    adapter = config.config.get()
     module = config.module_flow.get()
     expt = config.expt_flow.get()
     
     # 執行模組
-    operator.run(operator.set_input(status))
-    status.put(module, expt, operator)
+    adapter.run(adapter.set_input(status))
+    status.put(module, expt, adapter)
 ```
 
 ### 元資料管理
