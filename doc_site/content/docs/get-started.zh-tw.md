@@ -34,6 +34,52 @@ next: docs/tutorial
    pip install -r requirements.txt
    ```
 
+### 離線環境準備
+
+對於無法連接網路的環境，我們提供了輪子下載工具來預先準備所有依賴套件：
+
+```bash
+# 僅下載核心依賴套件
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
+
+# 下載額外的依賴群組
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+```
+
+**參數說明：**
+- `--branch`：Git 分支名稱（如：main, dev）
+- `--python-version`：Python 版本（如：3.10, 3.11, 3.11.5）
+- `--os`：目標作業系統，支援：
+  - `linux`：Linux 64位元
+  - `windows`：Windows 64位元
+  - `macos`：macOS Intel
+  - `macos-arm`：macOS Apple Silicon
+- `--groups`：可選的依賴群組（可用空格分隔指定多個群組）
+  - `pytorch`：PyTorch 和 CUDA 相關套件，用於深度學習
+  - `jupyter`：Jupyter Notebook 和 IPython 套件，用於互動式開發
+  - `dev`：開發工具如 pytest、ruff 等實用工具
+
+**依賴群組範例：**
+
+```bash
+# 僅下載核心依賴套件
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
+
+# 下載 PyTorch 支援
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch
+
+# 下載 Jupyter 支援
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups jupyter
+
+# 下載多個群組
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+
+# 下載所有可用群組
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter dev
+```
+
+此工具會下載 PETsARD 及其所有依賴項的輪子檔案，並產生詳細的安裝日誌。
+
 ## 快速開始
 
 PETsARD 是一個隱私強化資料合成與評估框架。要開始使用 PETsARD：
@@ -62,19 +108,6 @@ PETsARD 是一個隱私強化資料合成與評估框架。要開始使用 PETsA
    exec = Executor(config='config.yaml')
    exec.run()
    ```
-
-## 框架結構
-
-PETsARD 依照以下流程運作：
-
-1. `Loader`：從檔案或基準資料集載入資料
-2. `Splitter`：將資料分割成訓練/驗證集（選用）
-3. `Preprocessor`：準備資料進行合成（如：類別值編碼）
-4. `Synthesizer`：創建隱私強化的合成資料
-5. `Postprocessor`：將合成資料格式化回原始結構
-6. `Evaluator`：測量合成品質與隱私指標
-7. `Describer`：產生資料集統計與分析
-8. `Reporter`：儲存結果並產生報告
 
 ## 基本設定
 
