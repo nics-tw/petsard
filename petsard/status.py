@@ -8,13 +8,13 @@ import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 
+from petsard.adapter import BaseAdapter
 from petsard.exceptions import UnexecutedError
 from petsard.metadater import Metadater, SchemaMetadata
-from petsard.operator import BaseOperator
 from petsard.processor import Processor
 from petsard.synthesizer import Synthesizer
 
@@ -38,9 +38,9 @@ class ExecutionSnapshot:
     module_name: str
     experiment_name: str
     timestamp: datetime
-    metadata_before: Optional[SchemaMetadata] = None
-    metadata_after: Optional[SchemaMetadata] = None
-    execution_context: Dict[str, Any] = field(default_factory=dict)
+    metadata_before: SchemaMetadata | None = None
+    metadata_after: SchemaMetadata | None = None
+    execution_context: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -63,8 +63,8 @@ class MetadataChange:
     change_type: str  # 'create', 'update', 'delete'
     target_type: str  # 'schema', 'field'
     target_id: str
-    before_state: Optional[Any] = None
-    after_state: Optional[Any] = None
+    before_state: Any | None = None
+    after_state: Any | None = None
     timestamp: datetime = field(default_factory=datetime.now)
     module_context: str = ""
 
@@ -91,15 +91,15 @@ class TimingRecord:
     experiment_name: str
     step_name: str
     start_time: datetime
-    end_time: Optional[datetime] = None
-    duration_seconds: Optional[float] = None
-    context: Dict[str, Any] = field(default_factory=dict)
+    end_time: datetime | None = None
+    duration_seconds: float | None = None
+    context: dict[str, Any] = field(default_factory=dict)
     duration_precision: int = 2
 
     def complete(
         self,
-        end_time: Optional[datetime] = None,
-        duration_precision: Optional[int] = None,
+        end_time: datetime | None = None,
+        duration_precision: int | None = None,
     ) -> "TimingRecord":
         """完成計時記錄"""
         if end_time is None:
@@ -221,15 +221,15 @@ class Status:
         self.metadata: dict[str, SchemaMetadata] = {}
 
         # 新增的快照和變更追蹤功能
-        self.snapshots: List[ExecutionSnapshot] = []
-        self.change_history: List[MetadataChange] = []
+        self.snapshots: list[ExecutionSnapshot] = []
+        self.change_history: list[MetadataChange] = []
         self._snapshot_counter = 0
         self._change_counter = 0
 
         # 新增的時間記錄功能
-        self.timing_records: List[TimingRecord] = []
+        self.timing_records: list[TimingRecord] = []
         self._timing_counter = 0
-        self._active_timings: Dict[str, TimingRecord] = {}  # 追蹤進行中的計時
+        self._active_timings: dict[str, TimingRecord] = {}  # 追蹤進行中的計時
 
         # 原有功能的相容性支援
         if "Splitter" in self.sequence:
@@ -246,7 +246,7 @@ class Status:
         petsard_logger.addHandler(self._timing_handler)
 
         # 儲存當前實驗名稱的映射
-        self._current_experiments: Dict[str, str] = {}
+        self._current_experiments: dict[str, str] = {}
 
     def _generate_snapshot_id(self) -> str:
         """生成快照 ID"""
@@ -267,9 +267,9 @@ class Status:
         self,
         module: str,
         expt: str,
-        metadata_before: Optional[SchemaMetadata] = None,
-        metadata_after: Optional[SchemaMetadata] = None,
-        context: Optional[Dict[str, Any]] = None,
+        metadata_before: SchemaMetadata | None = None,
+        metadata_after: SchemaMetadata | None = None,
+        context: dict[str, Any] | None = None,
     ) -> ExecutionSnapshot:
         """
         建立執行快照
@@ -303,8 +303,8 @@ class Status:
         change_type: str,
         target_type: str,
         target_id: str,
-        before_state: Optional[Any] = None,
-        after_state: Optional[Any] = None,
+        before_state: Any | None = None,
+        after_state: Any | None = None,
         module_context: str = "",
     ) -> MetadataChange:
         """
@@ -342,7 +342,7 @@ class Status:
         module: str,
         expt: str,
         step: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> str:
         """
         開始計時
@@ -379,8 +379,8 @@ class Status:
         module: str,
         expt: str,
         step: str,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> Optional[TimingRecord]:
+        context: dict[str, Any] | None = None,
+    ) -> TimingRecord | None:
         """
         結束計時
 
@@ -463,8 +463,8 @@ class Status:
         expt: str,
         step: str,
         timestamp: float,
-        duration: Optional[float],
-        context: Dict[str, Any],
+        duration: float | None,
+        context: dict[str, Any],
     ):
         """
         處理從 logging 解析的結束計時資訊
@@ -526,7 +526,7 @@ class Status:
             f"從 logging 結束計時: {timing_key} - 耗時: {formatted_duration}"
         )
 
-    def put(self, module: str, expt: str, operator: BaseOperator):
+    def put(self, module: str, expt: str, operator: BaseAdapter):
         """
         新增模組狀態和操作器到狀態字典
 
@@ -627,7 +627,7 @@ class Status:
         else:
             return self.sequence[module_idx - 1]
 
-    def get_result(self, module: str) -> Union[dict, pd.DataFrame]:
+    def get_result(self, module: str) -> dict | pd.DataFrame:
         """取得特定模組的結果"""
         return self.status[module]["operator"].get_result()
 
@@ -701,7 +701,7 @@ class Status:
 
     # === 新增的快照和變更追蹤方法 ===
 
-    def get_snapshots(self, module: str = None) -> List[ExecutionSnapshot]:
+    def get_snapshots(self, module: str = None) -> list[ExecutionSnapshot]:
         """
         取得快照列表
 
@@ -716,7 +716,7 @@ class Status:
         else:
             return [s for s in self.snapshots if s.module_name == module]
 
-    def get_snapshot_by_id(self, snapshot_id: str) -> Optional[ExecutionSnapshot]:
+    def get_snapshot_by_id(self, snapshot_id: str) -> ExecutionSnapshot | None:
         """
         根據 ID 取得特定快照
 
@@ -731,7 +731,7 @@ class Status:
                 return snapshot
         return None
 
-    def get_change_history(self, module: str = None) -> List[MetadataChange]:
+    def get_change_history(self, module: str = None) -> list[MetadataChange]:
         """
         取得變更歷史
 
@@ -746,7 +746,7 @@ class Status:
         else:
             return [c for c in self.change_history if module in c.module_context]
 
-    def get_metadata_evolution(self, module: str = "Loader") -> List[SchemaMetadata]:
+    def get_metadata_evolution(self, module: str = "Loader") -> list[SchemaMetadata]:
         """
         取得特定模組的元資料演進歷史
 
@@ -794,7 +794,7 @@ class Status:
 
         return False
 
-    def get_status_summary(self) -> Dict[str, Any]:
+    def get_status_summary(self) -> dict[str, Any]:
         """
         取得狀態摘要資訊
 
@@ -813,7 +813,7 @@ class Status:
             else None,
         }
 
-    def get_timing_records(self, module: str = None) -> List[TimingRecord]:
+    def get_timing_records(self, module: str = None) -> list[TimingRecord]:
         """
         取得特定模組的時間記錄
 

@@ -16,7 +16,7 @@ from petsard.reporter import Reporter
 from petsard.synthesizer import Synthesizer
 
 
-class BaseOperator:
+class BaseAdapter:
     """
     The interface of the objects used by Executor.run()
     """
@@ -88,7 +88,7 @@ class BaseOperator:
             except Exception as e:
                 self._logger.error(f"Configuration error in {func.__name__}: {str(e)}")
                 self._logger.debug("Error details: ", exc_info=True)
-                raise ConfigError(f"Config error in {func.__name__}: {str(e)}")
+                raise ConfigError(f"Config error in {func.__name__}: {str(e)}") from e
 
         return wrapper
 
@@ -106,7 +106,7 @@ class BaseOperator:
                 )
                 raise NotImplementedError(
                     f"Method {func.__name__} must be implemented in {self.module_name}"
-                )
+                ) from None
 
         return wrapper
 
@@ -150,9 +150,9 @@ class BaseOperator:
         raise NotImplementedError
 
 
-class LoaderOperator(BaseOperator):
+class LoaderAdapter(BaseAdapter):
     """
-    LoaderOperator is responsible for loading data using the configured Loader instance as a decorator.
+    LoaderAdapter is responsible for loading data using the configured Loader instance as a decorator.
     """
 
     def __init__(self, config: dict):
@@ -190,7 +190,7 @@ class LoaderOperator(BaseOperator):
 
     def set_input(self, status) -> dict:
         """
-        Sets the input for the LoaderOperator.
+        Sets the input for the LoaderAdapter.
 
         Args:
             status (Status): The current status object.
@@ -216,9 +216,9 @@ class LoaderOperator(BaseOperator):
         return self.metadata
 
 
-class SplitterOperator(BaseOperator):
+class SplitterAdapter(BaseAdapter):
     """
-    SplitterOperator is responsible for splitting data
+    SplitterAdapter is responsible for splitting data
         using the configured Loader instance as a decorator.
     """
 
@@ -264,10 +264,10 @@ class SplitterOperator(BaseOperator):
         )
         self._logger.debug("Data splitting completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the SplitterOperator.
+        Sets the input for the SplitterAdapter.
 
         Args:
             status (Status): The current status object.
@@ -314,9 +314,9 @@ class SplitterOperator(BaseOperator):
         return deepcopy(self.train_indices)
 
 
-class PreprocessorOperator(BaseOperator):
+class PreprocessorAdapter(BaseAdapter):
     """
-    PreprocessorOperator is responsible for pre-processing data
+    PreprocessorAdapter is responsible for pre-processing data
         using the configured Processor instance as a decorator.
     """
 
@@ -377,10 +377,10 @@ class PreprocessorOperator(BaseOperator):
         self._logger.debug("Transforming data")
         self.data_preproc = self.processor.transform(data=input["data"])
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the PreprocessorOperator.
+        Sets the input for the PreprocessorAdapter.
 
         Args:
             status (Status): The current status object.
@@ -424,9 +424,9 @@ class PreprocessorOperator(BaseOperator):
         return metadata
 
 
-class SynthesizerOperator(BaseOperator):
+class SynthesizerAdapter(BaseAdapter):
     """
-    SynthesizerOperator is responsible for synthesizing data
+    SynthesizerAdapter is responsible for synthesizing data
         using the configured Synthesizer instance as a decorator.
     """
 
@@ -460,10 +460,10 @@ class SynthesizerOperator(BaseOperator):
         self.data_syn = self.synthesizer.fit_sample(data=input["data"])
         self._logger.debug("Train and sampling Synthesizing model completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the SynthesizerOperator.
+        Sets the input for the SynthesizerAdapter.
 
         Args:
             status (Status): The current status object.
@@ -502,9 +502,9 @@ class SynthesizerOperator(BaseOperator):
         return deepcopy(self.data_syn)
 
 
-class PostprocessorOperator(BaseOperator):
+class PostprocessorAdapter(BaseAdapter):
     """
-    PostprocessorOperator is responsible for post-processing data
+    PostprocessorAdapter is responsible for post-processing data
         using the configured Processor instance as a decorator.
     """
 
@@ -541,10 +541,10 @@ class PostprocessorOperator(BaseOperator):
         self.data_postproc = self.processor.inverse_transform(data=input["data"])
         self._logger.debug("Data postprocessing completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the PostprocessorOperator.
+        Sets the input for the PostprocessorAdapter.
 
         Args:
             status (Status): The current status object.
@@ -566,15 +566,15 @@ class PostprocessorOperator(BaseOperator):
         return result
 
 
-class ConstrainerOperator(BaseOperator):
+class ConstrainerAdapter(BaseAdapter):
     """
-    ConstrainerOperator is responsible for applying constraints to data
+    ConstrainerAdapter is responsible for applying constraints to data
     using the configured Constrainer instance as a decorator.
     """
 
     def __init__(self, config: dict):
         """
-        Initialize ConstrainerOperator with given configuration.
+        Initialize ConstrainerAdapter with given configuration.
 
         Args:
             config (dict): Configuration parameters for the Constrainer.
@@ -638,10 +638,10 @@ class ConstrainerOperator(BaseOperator):
 
         self._logger.debug("Data constraining completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Set the input for the ConstrainerOperator.
+        Set the input for the ConstrainerAdapter.
 
         Args:
             status (Status): The current status object.
@@ -698,9 +698,9 @@ class ConstrainerOperator(BaseOperator):
         return config
 
 
-class EvaluatorOperator(BaseOperator):
+class EvaluatorAdapter(BaseAdapter):
     """
-    EvaluatorOperator is responsible for evaluating data
+    EvaluatorAdapter is responsible for evaluating data
         using the configured Evaluator instance as a decorator.
     """
 
@@ -732,10 +732,10 @@ class EvaluatorOperator(BaseOperator):
         self.evaluations = self.evaluator.eval(**input)
         self._logger.debug("Data evaluating completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the EvaluatorOperator.
+        Sets the input for the EvaluatorAdapter.
 
         Args:
             status (Status): The current status object.
@@ -768,9 +768,9 @@ class EvaluatorOperator(BaseOperator):
         return deepcopy(self.evaluations)
 
 
-class DescriberOperator(BaseOperator):
+class DescriberAdapter(BaseAdapter):
     """
-    DescriberOperator is responsible for describing data
+    DescriberAdapter is responsible for describing data
         using the configured Describer instance as a decorator.
     """
 
@@ -810,10 +810,10 @@ class DescriberOperator(BaseOperator):
         self.description = self.describer.eval(**input)
         self._logger.debug("Data describing completed")
 
-    @BaseOperator.log_and_raise_config_error
+    @BaseAdapter.log_and_raise_config_error
     def set_input(self, status) -> dict:
         """
-        Sets the input for the DescriberOperator.
+        Sets the input for the DescriberAdapter.
 
         Args:
             status (Status): The current status object.
@@ -844,7 +844,7 @@ class DescriberOperator(BaseOperator):
         return deepcopy(self.description)
 
 
-class ReporterOperator(BaseOperator):
+class ReporterAdapter(BaseAdapter):
     """
     Operator class for generating reports using the Reporter class.
 
