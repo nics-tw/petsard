@@ -24,7 +24,12 @@ class BaseScalerTest:
     def test_unfitted_error(self):
         """Test that unfitted scaler raises proper error"""
         df_data = pd.DataFrame({"col1": [1.0, 2.0, 3.0]})
-        scaler = self.scaler_class()
+
+        # Handle ScalerTimeAnchor which requires reference parameter
+        if self.scaler_class == ScalerTimeAnchor:
+            scaler = self.scaler_class(reference="dummy", unit="D")
+        else:
+            scaler = self.scaler_class()
 
         with pytest.raises(UnfittedError):
             scaler.transform(df_data["col1"])
@@ -132,7 +137,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         target_dates = pd.Series(pd.date_range(start="2024-01-02", periods=3, freq="D"))
 
         # Create scaler with days unit
-        scaler = self.scaler_class(unit="D")
+        scaler = self.scaler_class(reference="dummy", unit="D")
 
         # Set reference series and fit
         scaler.set_reference_time(reference_dates)
@@ -161,7 +166,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         )
 
         # Create scaler with seconds unit
-        scaler = self.scaler_class(unit="S")
+        scaler = self.scaler_class(reference="dummy", unit="S")
 
         # Set reference series and fit
         scaler.set_reference_time(reference_dates)
@@ -183,7 +188,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         """Test error when reference is not set"""
         dates = pd.Series(pd.date_range(start="2024-01-01", periods=3, freq="D"))
 
-        scaler = self.scaler_class(unit="D")
+        scaler = self.scaler_class(reference="dummy", unit="D")
 
         with pytest.raises(ValueError, match="Reference series not set"):
             scaler.fit(dates)
@@ -195,7 +200,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         )
         target_dates = pd.Series(pd.date_range(start="2024-01-01", periods=4, freq="D"))
 
-        scaler = self.scaler_class(unit="D")
+        scaler = self.scaler_class(reference="dummy", unit="D")
         scaler.set_reference_time(reference_dates)
 
         with pytest.raises(
@@ -208,7 +213,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         with pytest.raises(
             ValueError, match="unit must be either 'D'\\(days\\) or 'S'\\(seconds\\)"
         ):
-            self.scaler_class(unit="H")
+            self.scaler_class(reference="dummy", unit="H")
 
     def test_invalid_data_type(self):
         """Test error with non-datetime data"""
@@ -217,7 +222,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         )
         invalid_data = pd.Series([1, 2, 3])
 
-        scaler = self.scaler_class(unit="D")
+        scaler = self.scaler_class(reference="dummy", unit="D")
         scaler.set_reference_time(reference_dates)
 
         with pytest.raises(ValueError, match="Data must be in datetime format"):
@@ -228,7 +233,7 @@ class Test_ScalerTimeAnchor(BaseScalerTest):
         invalid_reference = pd.Series([1, 2, 3])
         dates = pd.Series(pd.date_range(start="2024-01-01", periods=3, freq="D"))
 
-        scaler = self.scaler_class(unit="D")
+        scaler = self.scaler_class(reference="dummy", unit="D")
 
         with pytest.raises(ValueError, match="Reference data must be datetime type"):
             scaler.set_reference_time(invalid_reference)

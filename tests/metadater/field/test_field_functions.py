@@ -49,6 +49,7 @@ class TestComprehensiveTypeAnalysis:
         config = FieldConfig(nullable=True)
 
         result = _comprehensive_type_analysis(int_with_na, config)
+        # 修復後的邏輯會正確識別為 nullable integer
         assert result.startswith("Int"), f"含空值整數應該返回 Int，但得到 {result}"
 
     def test_integer_without_nulls(self):

@@ -18,7 +18,7 @@ class TestFieldConfigValidation:
     def test_field_config_with_parameters(self):
         """Test FieldConfig creation with parameters"""
         field_config = FieldConfig(
-            type_hint="str",
+            type="str",
             logical_type="email",
             leading_zeros="leading_5",
             category_method="auto",

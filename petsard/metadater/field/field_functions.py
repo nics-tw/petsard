@@ -816,7 +816,7 @@ def _comprehensive_type_analysis(
 
                     if all_integers:
                         # 整數資料，檢查是否有空值
-                        if field_data.isna().any() and config.force_nullable_integers:
+                        if field_data.isna().any():
                             return _optimize_nullable_integer_dtype(
                                 valid_numeric_values
                             )
@@ -921,7 +921,7 @@ def _optimize_numeric_dtype(
 
     if is_integer_dtype(field_data):
         # 如果有空值且啟用 force_nullable_integers，使用 nullable integer 避免轉為 float
-        if field_data.isna().any() and config.force_nullable_integers:
+        if field_data.isna().any():
             if field_data.isna().all():
                 return "Int64"
 

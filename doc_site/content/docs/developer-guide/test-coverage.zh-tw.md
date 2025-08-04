@@ -7,6 +7,121 @@ next: docs/developer-guide/docker-development
 ---
 
 
+## PETsARD 端到端功能測試
+
+### `PETsARD 功能工作流程`
+
+> tests/test_petsard.py
+
+測試完整的 PETsARD 端到端工作流程，使用真實的 YAML 配置。這些測試驗證整個系統從資料載入到合成和評估的正確運作。
+
+#### 核心工作流程測試
+
+**`test_default_synthesis_workflow`**：測試基本資料合成管道
+- **YAML 配置**：
+  - `Loader`：載入基準 adult-income 資料集
+  - `Preprocessor`：使用預設預處理方法
+  - `Synthesizer`：使用預設合成方法
+  - `Postprocessor`：使用預設後處理方法
+  - `Reporter`：將合成資料儲存到輸出目錄
+- **預期結果**：
+  - 執行成功完成，`is_execution_completed() == True`
+  - 合成資料包含所有 15 個預期欄位（age、workclass、fnlwgt、education 等）
+  - 輸出資料是有效的 pandas DataFrame，行數 >0
+  - 資料維持 adult-income 資料集結構
+
+**`test_data_preprocessing_workflow`**：測試含缺失值處理的資料預處理
+- **YAML 配置**：
+  - `Loader`：載入含自定義空值（'?'）的 adult-income
+  - `Preprocessor`：含缺失值處理和編碼的自定義序列
+  - `Synthesizer`：預設合成方法
+  - `Postprocessor`：預設後處理
+  - `Reporter`：儲存處理後的資料
+- **預期結果**：
+  - 缺失值在合成前得到適當處理
+  - 編碼應用於類別變數
+  - 最終合成資料維持資料品質
+
+**`test_data_constraining_workflow`**：測試含資料約束的合成
+- **YAML 配置**：
+  - `Loader`：標準 adult-income 資料集
+  - `Preprocessor`：預設預處理
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Constrainer`：欄位約束（年齡 18-65、每週工時 20-60）和教育欄位比例
+  - `Reporter`：儲存約束後的資料
+- **預期結果**：
+  - 年齡值約束在 18-65 範圍內
+  - 每週工時值約束在 20-60 範圍內
+  - 教育欄位比例在容忍度內維持
+  - 約束正確應用於合成資料
+
+**`test_evaluation_workflow`**：測試含評估指標的合成
+- **YAML 配置**：
+  - `Loader`：Adult-income 資料集
+  - `Splitter`：80/20 訓練/測試分割，1 個樣本
+  - `Preprocessor`：預設預處理
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Evaluator`：SDMetrics 品質報告評估
+  - `Reporter`：儲存全域粒度的評估報告
+- **預期結果**：
+  - 資料正確分割以進行評估
+  - 品質指標計算完成且可用
+  - 時間資訊被捕獲且可存取
+  - 評估報告成功生成
+
+**`test_minimal_workflow`**：測試僅含資料載入的最小管道
+- **YAML 配置**：
+  - `Loader`：僅 Adult-income 資料集
+  - `Reporter`：直接儲存載入的資料
+- **預期結果**：
+  - 資料成功載入，無需處理
+  - 原始資料集結構得到保留
+  - 展示最小可行的 PETsARD 工作流程
+
+**`test_custom_sequence_preprocessing`**：測試自定義預處理管道
+- **YAML 配置**：
+  - `Loader`：Adult-income 資料集
+  - `Preprocessor`：自定義 4 步序列（missing → outlier → scaler → encoder）
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Reporter`：儲存最終處理的資料
+- **預期結果**：
+  - 所有預處理步驟按正確順序執行
+  - 資料轉換依序應用
+  - 最終資料準備好進行下游分析
+
+#### 參數化模組執行測試
+
+**`test_workflow_module_execution`**：測試不同工作流程配置
+- **測試案例**：
+  - `default-synthesis`：完整管道（Loader → Preprocessor → Synthesizer → Postprocessor）
+  - `minimal`：基本管道（僅 Loader）
+  - `with-splitter`：擴展管道（Loader → Splitter → Preprocessor → Synthesizer → Postprocessor）
+- **預期結果**：每個工作流程執行預期的模組並產生有效結果
+
+#### 配置驗證測試
+
+**`test_invalid_yaml_config`**：測試無效配置的錯誤處理
+- **YAML 配置**：包含不存在的無效模組（InvalidModule）
+- **預期結果**：適當拋出 NameError、ValueError、KeyError 或 AttributeError
+
+**`test_missing_required_config`**：測試空配置的錯誤處理
+- **YAML 配置**：空配置檔案
+- **預期結果**：對缺少必要組件拋出適當錯誤
+
+#### 主要特色
+
+- **Executor API 整合**：測試使用新的 `is_execution_completed()` 方法檢查執行狀態
+- **結果提取**：使用輔助方法 `_extract_module_data()` 處理嵌套結果結構
+- **真實資料測試**：使用實際基準資料集（adult-income）進行真實測試
+- **配置多樣性**：測試多種 YAML 配置模式和模組組合
+- **錯誤處理**：驗證無效配置的適當錯誤處理
+- **端到端驗證**：確保從配置到最終輸出的完整工作流程運作
+
+> **架構說明**：這些測試使用新的 Executor API 與 `is_execution_completed()` 狀態追蹤來驗證完整的 PETsARD 系統。`run()` 方法在當前版本返回 `None`，計劃在 v2.0.0 中返回成功/失敗狀態碼。結果透過 `get_result()` 方法存取，並透過嵌套工作流程結構處理。
+
 ### `Executor`
 
 > tests/test_executor.py

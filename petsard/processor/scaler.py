@@ -237,6 +237,20 @@ class ScalerTimeAnchor(Scaler):
 
     def _fit(self, data: np.ndarray) -> None:
         """Validate data type and reference"""
+        # Check if reference series is set
+        if not hasattr(self, "reference_series"):
+            raise ValueError(
+                "Reference series not set. Use set_reference_time() first."
+            )
+
+        # Convert data to pandas Series for datetime validation
+        data_series = pd.Series(data.ravel())
+        if not pd.api.types.is_datetime64_any_dtype(data_series):
+            raise ValueError("Data must be in datetime format")
+
+        # Check length match
+        if len(data) != len(self.reference_series):
+            raise ValueError("Target and reference must have same length")
 
     def _transform(self, data: np.ndarray) -> np.ndarray:
         """Transform to time differences"""
