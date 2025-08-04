@@ -74,16 +74,16 @@ Main Types: Status, StatusSummary
 #### `put()`
 
 ```python
-status.put(module, experiment_name, operator)
+status.put(module, experiment_name, adapter)
 ```
 
-Add module status and operator to the status dictionary with automatic snapshot creation.
+Add module status and adapter to the status dictionary with automatic snapshot creation.
 
 **Parameters**
 
 - `module` (str): Current module name
 - `experiment_name` (str): Current experiment name  
-- `operator` (BaseOperator): Current operator instance
+- `adapter` (BaseAdapter): Current adapter instance
 
 **Enhanced Behavior**
 - Creates execution snapshots automatically
@@ -293,7 +293,7 @@ config = Config(config_dict)
 status = Status(config)
 
 # Traditional usage (unchanged)
-# status.put(module, experiment, operator)  # Called by Executor
+# status.put(module, experiment, adapter)  # Called by Executor
 result = status.get_result("Loader")
 metadata = status.get_metadata("Loader")
 ```
@@ -397,7 +397,7 @@ The new Status is fully backward compatible. Existing code continues to work unc
 
 ```python
 # Existing code (no changes needed)
-status.put(module, experiment, operator)
+status.put(module, experiment, adapter)
 result = status.get_result(module)
 metadata = status.get_metadata(module)
 

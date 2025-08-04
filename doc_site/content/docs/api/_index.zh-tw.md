@@ -23,7 +23,7 @@ sidebar:
 | [Evaluator](./evaluator) | `Evaluator` | `Evaluator(**kwargs)` | `create()`, `eval()` |
 | [Describer](./describer) | `Describer` | `Describer(**kwargs)` | `create()`, `eval()` |
 | [Reporter](./reporter) | `Reporter` | `Reporter(method, **kwargs)` | `create()`, `report()` |
-| [Operator](./operator) | `*Operator` | `*Operator(config)` | `run()`, `set_input()`, `get_result()` |
+| [Adapter](./adapter) | `*Adapter` | `*Adapter(config)` | `run()`, `set_input()`, `get_result()` |
 | [Config](./config) | `Config` | `Config(config_dict)` | 初始化時自動處理 |
 | [Status](./status) | `Status` | `Status(config)` | `put()`, `get_result()`, `create_snapshot()` |
 | [Utils](./utils) | 函式 | 直接匯入 | `load_external_module()` |
@@ -45,7 +45,7 @@ sidebar:
 - [Reporter](./reporter) - 結果匯出和報告
 
 ## 系統組件
-- [Operator](./operator) - 所有模組的標準化執行包裝器
+- [Adapter](./adapter) - 所有模組的標準化執行包裝器
 - [Config](./config) - 實驗配置管理
 - [Status](./status) - 管線狀態和進度追蹤
 - [Utils](./utils) - 核心工具函式和外部模組載入

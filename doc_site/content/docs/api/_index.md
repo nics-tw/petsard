@@ -23,7 +23,7 @@ sidebar:
 | [Evaluator](./evaluator) | `Evaluator` | `Evaluator(**kwargs)` | `create()`, `eval()` |
 | [Describer](./describer) | `Describer` | `Describer(**kwargs)` | `create()`, `eval()` |
 | [Reporter](./reporter) | `Reporter` | `Reporter(method, **kwargs)` | `create()`, `report()` |
-| [Operator](./operator) | `*Operator` | `*Operator(config)` | `run()`, `set_input()`, `get_result()` |
+| [Adapter](./adapter) | `*Adapter` | `*Adapter(config)` | `run()`, `set_input()`, `get_result()` |
 | [Config](./config) | `Config` | `Config(config_dict)` | Auto-processing during init |
 | [Status](./status) | `Status` | `Status(config)` | `put()`, `get_result()`, `create_snapshot()` |
 | [Utils](./utils) | Functions | Direct import | `load_external_module()` |
@@ -45,7 +45,7 @@ sidebar:
 - [Reporter](./reporter) - Results export and reporting
 
 ## System Components
-- [Operator](./operator) - Standardized execution wrappers for all modules
+- [Adapter](./adapter) - Standardized execution wrappers for all modules
 - [Config](./config) - Experiment configuration management
 - [Status](./status) - Pipeline state and progress tracking
 - [Utils](./utils) - Core utility functions and external module loading

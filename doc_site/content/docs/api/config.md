@@ -2,7 +2,7 @@
 title: Config
 type: docs
 weight: 62
-prev: docs/api/operator
+prev: docs/api/adapter
 next: docs/api/status
 ---
 
@@ -10,16 +10,16 @@ next: docs/api/status
 Config(config)
 ```
 
-The Config class manages experiment configuration and creates operator execution flows for the PETsARD pipeline. It parses configuration dictionaries, validates settings, and generates queues of operators for sequential execution.
+The Config class manages experiment configuration and creates adapter execution flows for the PETsARD pipeline. It parses configuration dictionaries, validates settings, and generates queues of adapters for sequential execution.
 
 ## Design Overview
 
-The Config system transforms declarative configuration into executable pipeline flows. It handles module sequencing, experiment naming, and operator instantiation while providing validation and error checking.
+The Config system transforms declarative configuration into executable pipeline flows. It handles module sequencing, experiment naming, and adapter instantiation while providing validation and error checking.
 
 ### Key Principles
 
 1. **Declarative Configuration**: Define experiments through structured dictionaries
-2. **Automatic Flow Generation**: Convert configuration into executable operator sequences
+2. **Automatic Flow Generation**: Convert configuration into executable adapter sequences
 3. **Validation**: Comprehensive configuration validation and error reporting
 4. **Flexibility**: Support for complex experiment configurations and custom naming
 
@@ -81,9 +81,9 @@ config_dict = {
 
 ### Core Attributes
 
-- `config` (queue.Queue): Queue of instantiated operators ready for execution
-- `module_flow` (queue.Queue): Queue of module names corresponding to each operator
-- `expt_flow` (queue.Queue): Queue of experiment names corresponding to each operator
+- `config` (queue.Queue): Queue of instantiated adapters ready for execution
+- `module_flow` (queue.Queue): Queue of module names corresponding to each adapter
+- `expt_flow` (queue.Queue): Queue of experiment names corresponding to each adapter
 - `sequence` (list): List of module names in execution order
 - `yaml` (dict): The processed configuration dictionary
 
@@ -95,7 +95,7 @@ The Config class automatically processes the configuration during initialization
 
 1. **Validation**: Checks for invalid experiment naming patterns
 2. **Splitter Expansion**: Handles multi-sample splitting configurations
-3. **Operator Creation**: Instantiates operators for each experiment
+3. **Adapter Creation**: Instantiates adapters for each experiment
 4. **Flow Generation**: Creates execution queues using depth-first search
 
 ## Special Handling
@@ -148,7 +148,7 @@ config = Config(config_dict)
 
 # Access configuration attributes
 print(f"Module sequence: {config.sequence}")
-print(f"Number of operators: {config.config.qsize()}")
+print(f"Number of adapters: {config.config.qsize()}")
 ```
 
 ### Complex Multi-Module Configuration
@@ -212,12 +212,12 @@ The Config class performs several validation checks:
 
 - **Naming validation**: Ensures experiment names don't use reserved patterns
 - **Structure validation**: Verifies proper configuration hierarchy
-- **Parameter validation**: Delegates to individual operators for parameter checking
+- **Parameter validation**: Delegates to individual adapters for parameter checking
 
 ### Error Types
 
 - `ConfigError`: Raised for invalid configuration structures or naming violations
-- Module-specific errors: Propagated from individual operator initialization
+- Module-specific errors: Propagated from individual adapter initialization
 
 ## Architecture Benefits
 
@@ -239,6 +239,6 @@ The Config class performs several validation checks:
 ### 4. Integration
 - **Executor compatibility**: Seamless integration with execution system
 - **Status management**: Compatible with Status tracking system
-- **Operator abstraction**: Clean interface to underlying operators
+- **Adapter abstraction**: Clean interface to underlying adapters
 
 The Config system provides the foundation for PETsARD's flexible and robust experiment configuration, enabling complex data processing pipelines through simple declarative specifications.
