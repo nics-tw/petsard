@@ -9,15 +9,18 @@ Evaluator 模組負責評估合成資料的品質和隱私保護程度，提供�
 ```
 petsard/evaluator/
 ├── __init__.py              # 模組匯出介面
-├── evaluator.py            # 主要評估器類別
-├── base_evaluator.py       # 基礎評估器抽象類別
-├── metrics/                # 評估指標模組
-│   ├── __init__.py
-│   ├── statistical.py     # 統計指標
-│   ├── privacy.py          # 隱私指標
-│   ├── utility.py          # 效用指標
-│   └── similarity.py       # 相似度指標
-└── utils.py                # 評估工具函數
+├── evaluator.py            # 主要評估器類別 (Evaluator, EvaluatorConfig)
+├── evaluator_base.py       # 基礎評估器抽象類別 (BaseEvaluator, EvaluatorInputConfig, EvaluatorScoreConfig)
+├── describer.py            # 描述器評估 (Describer, DescriberConfig)
+├── data_describer.py       # 資料描述器 (DataDescriber, DataDescriberConfig)
+├── data_describer_base.py  # 資料描述器基底類別 (BaseDataDescriber 及各種實現)
+├── stats.py                # 統計評估 (Stats, StatsConfig)
+├── stats_base.py           # 統計基底類別 (BaseStats 及各種統計實現)
+├── mlutlity.py             # 機器學習效用評估 (MLUtility, MLUtilityConfig)
+├── mpuccs.py               # mpUCCs 指認性攻擊評估 (MPUCCs)
+├── anonymeter.py           # Anonymeter 隱私評估 (Anonymeter, AnonymeterConfig)
+├── sdmetrics.py            # SDMetrics 評估 (SDMetricsSingleTable, SDMetricsSingleTableConfig)
+└── customer_evaluator.py  # 自訂評估器 (CustomEvaluator)
 ```
 
 ## 🔧 核心設計原則
@@ -29,40 +32,62 @@ petsard/evaluator/
 
 ## 📋 公開 API
 
+### EvaluatorConfig 類別
+```python
+@dataclass
+class EvaluatorConfig(BaseConfig):
+    eval_method: str
+    def _init_eval_method(self) -> None
+```
+
 ### Evaluator 類別
 ```python
 class Evaluator:
-    def __init__(self, granularity: str, **kwargs)
-    def evaluate(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> dict
-    def get_supported_metrics(self) -> list
-    def get_evaluation_summary(self) -> dict
+    def __init__(self, method: str, **kwargs)
+    def _configure_implementation(self, method: str, **kwargs) -> None
+    def _create_evaluator_class(self) -> BaseEvaluator
+    def create(self) -> None
+    def eval(self, data: dict[str, pd.DataFrame]) -> None
 ```
 
 ### BaseEvaluator 抽象類別
 ```python
 class BaseEvaluator(ABC):
+    def __init__(self, config: dict)
     @abstractmethod
-    def evaluate(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> dict
-    def validate_data(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> bool
-    def get_metric_descriptions(self) -> dict
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+    def eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
 ```
 
-### 指標類別
+### 具體評估器類別
 ```python
-class StatisticalMetrics:
-    def calculate_distribution_similarity(self, original: pd.Series, synthetic: pd.Series) -> float
-    def calculate_correlation_preservation(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> float
-    def calculate_statistical_tests(self, original: pd.Series, synthetic: pd.Series) -> dict
+class Anonymeter(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+    def _extract_scores(self) -> dict[str, Any]
 
-class PrivacyMetrics:
-    def calculate_membership_inference_risk(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> float
-    def calculate_attribute_inference_risk(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> float
-    def calculate_reconstruction_risk(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> float
+class MLUtility(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict
+    def _classification(self, X_train, X_test, y_train, y_test) -> dict[str, float]
+    def _regression(self, X_train, X_test, y_train, y_test) -> dict[str, float]
+    def _cluster(self, X_train, X_test) -> dict[str, float]
 
-class UtilityMetrics:
-    def calculate_ml_utility(self, original: pd.DataFrame, synthetic: pd.DataFrame, task: str) -> dict
-    def calculate_query_utility(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> dict
-    def calculate_downstream_task_performance(self, original: pd.DataFrame, synthetic: pd.DataFrame) -> dict
+class MPUCCs(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+    def _progressive_field_search(self, data: pd.DataFrame) -> tuple
+
+class Stats(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+    def _process_columnwise(self, data: dict[str, pd.DataFrame]) -> pd.DataFrame
+    def _process_percolumn(self, data: dict[str, pd.DataFrame]) -> pd.DataFrame
+
+class DataDescriber(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+
+class SDMetricsSingleTable(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
+
+class CustomEvaluator(BaseEvaluator):
+    def _eval(self, data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]
 ```
 
 ## 🔄 與其他模組的互動
