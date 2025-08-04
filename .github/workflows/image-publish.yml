@@ -2,11 +2,15 @@ name: Image Building and Publishing
 
 on:
   push:
+    tags: ["v*.*.*"]  # 只在標籤推送時觸發，確保版本已更新
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Semantic Release"]  # 在 semantic release 完成後觸發
+    types:
+      - completed
     branches:
       - main
       - dev
-    tags: ["v*.*.*"]
-  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -15,7 +19,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.repository == 'nics-tw/petsard'
+    if: github.repository == 'nics-tw/petsard' && (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch')
     permissions:
       contents: read
       packages: write
