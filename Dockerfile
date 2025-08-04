@@ -8,7 +8,7 @@ COPY pyproject.toml ./
 COPY README.md ./
 COPY petsard/ ./petsard/
 COPY demo/ ./demo/
-COPY entrypoint.sh ./
+COPY .release/docker/entrypoint.sh ./
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -e .
