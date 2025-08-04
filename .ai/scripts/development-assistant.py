@@ -377,6 +377,8 @@ def main():
             ),
         }
         print(json.dumps(ci_data))
+        # CI 模式應該總是返回 0，除非發生錯誤
+        return 0
 
     elif args.mode == "report":
         # 報告模式：生成 Markdown 報告
