@@ -48,7 +48,9 @@ class Test_Discretizing:
             indices_to_replace = random.sample(list(sample_data.index), n_replace)
             modified_data.iloc[indices_to_replace] = setting["value"]
 
-            postproc_data = pd.Series(proc.inverse_transform(modified_data).ravel())
+            # First transform the data, then inverse transform
+            transformed_data = proc.transform(modified_data)
+            postproc_data = pd.Series(proc.inverse_transform(transformed_data).ravel())
             assert postproc_data.isna().sum() == 0
 
             modified_data = sample_data.copy()

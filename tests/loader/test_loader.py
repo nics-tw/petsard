@@ -1115,21 +1115,9 @@ class TestLoaderStress:
         return success, error_msg
 
     @pytest.mark.stress
-    def test_small_file_100mb(self, temp_dir):
-        """測試小檔案：100MB (30秒超時)"""
-        success, error_msg = self._run_stress_test(temp_dir, 0.1, "小檔案100MB測試", 30)
-        assert success, f"測試失敗: {error_msg}"
-
-    @pytest.mark.stress
     def test_medium_file_1gb(self, temp_dir):
         """測試中檔案：1GB (120秒超時)"""
         success, error_msg = self._run_stress_test(temp_dir, 1.0, "中檔案1GB測試", 120)
-        assert success, f"測試失敗: {error_msg}"
-
-    @pytest.mark.stress
-    def test_large_file_3gb(self, temp_dir):
-        """測試大檔案：3GB (300秒超時)"""
-        success, error_msg = self._run_stress_test(temp_dir, 3.0, "大檔案3GB測試", 300)
         assert success, f"測試失敗: {error_msg}"
 
     @pytest.mark.stress

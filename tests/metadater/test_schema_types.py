@@ -19,7 +19,7 @@ class TestSchemaConfigValidation:
     def test_schema_config_with_parameters(self):
         """Test SchemaConfig creation with parameters"""
         field_config = FieldConfig(
-            type_hint="str", logical_type="email", leading_zeros="never"
+            type="str", logical_type="email", leading_zeros="never"
         )
 
         schema_config = SchemaConfig(
@@ -52,7 +52,7 @@ class TestSchemaConfigValidation:
 
     def test_schema_config_logical_type_conflict(self):
         """Test SchemaConfig with logical type conflict"""
-        field_config = FieldConfig(type_hint="str", logical_type="email")
+        field_config = FieldConfig(type="str", logical_type="email")
 
         with pytest.raises(ValueError, match="Cannot set infer_logical_types=True"):
             SchemaConfig(

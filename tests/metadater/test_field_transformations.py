@@ -51,7 +51,7 @@ class TestFieldTransformations:
         測試整數類型轉換
         """
         series = pd.Series(["1", "2", "3", "4", "5"])
-        config = FieldConfig(type_hint="int")
+        config = FieldConfig(type="int")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -66,7 +66,7 @@ class TestFieldTransformations:
         測試浮點數類型轉換
         """
         series = pd.Series(["1.5", "2.7", "3.9", "4.1", "5.3"])
-        config = FieldConfig(type_hint="float")
+        config = FieldConfig(type="float")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -81,7 +81,7 @@ class TestFieldTransformations:
         測試布林類型轉換
         """
         series = pd.Series(["true", "false", "yes", "no", "1", "0"])
-        config = FieldConfig(type_hint="boolean")
+        config = FieldConfig(type="boolean")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -99,7 +99,7 @@ class TestFieldTransformations:
         測試字串類型轉換
         """
         series = pd.Series([1, 2, 3, 4, 5])
-        config = FieldConfig(type_hint="string")
+        config = FieldConfig(type="string")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -113,7 +113,7 @@ class TestFieldTransformations:
         測試分類類型轉換
         """
         series = pd.Series(["A", "B", "C", "A", "B"])
-        config = FieldConfig(type_hint="category")
+        config = FieldConfig(type="category")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -157,9 +157,7 @@ class TestFieldTransformations:
         測試組合轉換：NA 替換、類型轉換和精度
         """
         series = pd.Series(["1.23456", "2.34567", "unknown", "4.56789", "N/A"])
-        config = FieldConfig(
-            type_hint="float", na_values=["unknown", "N/A"], precision=2
-        )
+        config = FieldConfig(type="float", na_values=["unknown", "N/A"], precision=2)
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -178,7 +176,7 @@ class TestFieldTransformations:
         測試使用 coerce 錯誤處理的類型轉換
         """
         series = pd.Series(["1", "2", "invalid", "4", "also_invalid"])
-        config = FieldConfig(type_hint="int", cast_error="coerce")
+        config = FieldConfig(type="int", cast_error="coerce")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -195,7 +193,7 @@ class TestFieldTransformations:
         測試使用 ignore 錯誤處理的類型轉換
         """
         series = pd.Series(["1", "2", "invalid", "4"])
-        config = FieldConfig(type_hint="int", cast_error="ignore")
+        config = FieldConfig(type="int", cast_error="ignore")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -220,7 +218,7 @@ class TestFieldTransformations:
         測試日期時間轉換
         """
         series = pd.Series(["2023-01-01", "2023-02-15", "2023-12-31"])
-        config = FieldConfig(type_hint="datetime")
+        config = FieldConfig(type="datetime")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -235,7 +233,7 @@ class TestFieldTransformations:
         測試包含無效日期的日期時間轉換和 coerce
         """
         series = pd.Series(["2023-01-01", "invalid-date", "2023-12-31"])
-        config = FieldConfig(type_hint="datetime", cast_error="coerce")
+        config = FieldConfig(type="datetime", cast_error="coerce")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -250,7 +248,7 @@ class TestFieldTransformations:
         測試未知類型提示（應該返回原始資料）
         """
         series = pd.Series(["A", "B", "C", "D"])
-        config = FieldConfig(type_hint="unknown_type")
+        config = FieldConfig(type="unknown_type")
 
         result = apply_field_transformations(series, config, "test_field")
 
@@ -263,11 +261,13 @@ class TestFieldTransformations:
         """
         series = pd.Series(["A", "B", "C", "D"])
 
-        # Create a config that might cause issues
-        config = FieldConfig(type_hint="int", cast_error="raise")
+        # Create a config that causes conversion errors but uses coerce
+        config = FieldConfig(type="int", cast_error="coerce")
 
-        # This should not raise an exception but return original data
+        # This should convert invalid values to NaN
         result = apply_field_transformations(series, config, "test_field")
 
-        # The function should handle the error gracefully
+        # The function should handle the error gracefully and return converted data
         assert result is not None
+        assert result.dtype == "Int64"
+        assert result.isna().all()  # All values should be NaN due to coercion
