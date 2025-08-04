@@ -88,7 +88,7 @@ class Splitter:
             self.config = {"method": method}
             self.loader: dict = {}
 
-            # 純粹的分拆：將第一層配置按 ori/control 分拆給對應的 Loader
+            # Pure splitting: assign top-level configuration to corresponding Loader for 'ori' and 'control'
             for key in ["ori", "control"]:
                 # 準備該 Loader 的配置
                 loader_config = {}
