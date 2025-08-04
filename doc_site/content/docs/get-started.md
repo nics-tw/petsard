@@ -34,6 +34,52 @@ next: docs/tutorial
    pip install -r requirements.txt
    ```
 
+### Offline Environment Preparation
+
+For environments without internet access, we provide a wheel downloader tool to prepare all dependencies in advance:
+
+```bash
+# Download core dependencies only
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
+
+# Download with additional dependency groups
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+```
+
+**Parameter descriptions:**
+- `--branch`: Git branch name (e.g., main, dev)
+- `--python-version`: Python version (e.g., 3.10, 3.11, 3.11.5)
+- `--os`: Target operating system, supports:
+  - `linux`: Linux 64-bit
+  - `windows`: Windows 64-bit
+  - `macos`: macOS Intel
+  - `macos-arm`: macOS Apple Silicon
+- `--groups`: Optional dependency groups (can specify multiple groups separated by spaces)
+  - `pytorch`: PyTorch and CUDA-related packages for deep learning
+  - `jupyter`: Jupyter Notebook and IPython packages for interactive development
+  - `dev`: Development tools like pytest, ruff, and other utilities
+
+**Dependency Groups Examples:**
+
+```bash
+# Download only core dependencies
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
+
+# Download with PyTorch support
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch
+
+# Download with Jupyter support
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups jupyter
+
+# Download with multiple groups
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+
+# Download with all available groups
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter dev
+```
+
+This tool downloads PETsARD and all its dependency wheel files, and generates detailed installation logs.
+
 ## Quick Start
 
 PETsARD is a privacy-enhancing data synthesis and evaluation framework. To start using PETsARD:
@@ -62,19 +108,6 @@ PETsARD is a privacy-enhancing data synthesis and evaluation framework. To start
    exec = Executor(config='config.yaml')
    exec.run()
    ```
-
-## Framework Structure
-
-PETsARD follows this workflow:
-
-1. `Loader`: Loads data from files or benchmark datasets
-2. `Splitter`: Splits data into training/validation sets (optional)
-3. `Preprocessor`: Prepares data for synthesis (e.g., encoding categorical values)
-4. `Synthesizer`: Creates privacy-enhanced synthetic data
-5. `Postprocessor`: Formats synthetic data back to original structure
-6. `Evaluator`: Measures synthesis quality and privacy metrics
-7. `Describer`: Generates dataset statistics and insights
-8. `Reporter`: Saves results and generates reports
 
 ## Basic Configuration
 
