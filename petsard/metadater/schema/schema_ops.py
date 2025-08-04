@@ -24,7 +24,7 @@ class SchemaOperations:
     def build_schema_from_dataframe(
         cls,
         data: pd.DataFrame,
-        config: Optional[Union[SchemaConfig, dict[str, Any]]] = None,
+        config: SchemaConfig | dict[str, Any] | None = None,
     ) -> SchemaMetadata:
         """Build SchemaMetadata from DataFrame"""
         instance = cls()
@@ -86,8 +86,8 @@ class SchemaOperations:
         cls,
         data: pd.DataFrame,
         schema: SchemaMetadata,
-        include_fields: Optional[list[str]] = None,
-        exclude_fields: Optional[list[str]] = None,
+        include_fields: list[str] | None = None,
+        exclude_fields: list[str] | None = None,
         raise_on_error: bool = False,
     ) -> pd.DataFrame:
         """Apply field configurations to transform data"""

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Union
+from typing import Any
 
 
 class DataType(Enum):
@@ -219,7 +219,7 @@ def safe_round(value: Any, decimals: int = 2) -> int | float | None:
         return None
 
     try:
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             rounded = round(float(value), decimals)
             # 如果小數位數為 0 且結果是整數，返回 int
             if decimals == 0:
@@ -257,5 +257,5 @@ EvaluationScoreGranularityMap = {
 
 
 # Type aliases
-DataTypeValue = Union[DataType, str]
-LogicalTypeValue = Union[LogicalType, str]
+DataTypeValue = DataType | str
+LogicalTypeValue = LogicalType | str

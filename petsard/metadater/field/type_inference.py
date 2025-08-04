@@ -1,7 +1,7 @@
 """Pure functions for type inference operations"""
 
 import re
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -81,9 +81,9 @@ def map_pandas_to_metadater_type(pandas_dtype: str) -> DataType:
 
 def detect_logical_type_patterns(
     series: pd.Series,
-    sample_size: Optional[int] = 1000,
+    sample_size: int | None = 1000,
     confidence_threshold: float = 0.95,
-) -> Optional[LogicalType]:
+) -> LogicalType | None:
     """
     Pure function to detect logical type from data patterns
 
@@ -149,8 +149,8 @@ def detect_logical_type_patterns(
 
 def infer_optimal_dtype(
     series: pd.Series,
-    current_dtype: Optional[str] = None,
-    logical_type: Optional[LogicalType] = None,
+    current_dtype: str | None = None,
+    logical_type: LogicalType | None = None,
 ) -> str:
     """
     Pure function to infer optimal dtype for storage
@@ -183,7 +183,7 @@ def infer_optimal_dtype(
     return current_dtype or str(series.dtype)
 
 
-def detect_datetime_format(series: pd.Series, sample_size: int = 100) -> Optional[str]:
+def detect_datetime_format(series: pd.Series, sample_size: int = 100) -> str | None:
     """
     Pure function to detect datetime format from string data
 
@@ -238,7 +238,7 @@ def detect_datetime_format(series: pd.Series, sample_size: int = 100) -> Optiona
     return None
 
 
-def analyze_cardinality(series: pd.Series) -> Dict[str, Any]:
+def analyze_cardinality(series: pd.Series) -> dict[str, Any]:
     """
     Pure function to analyze cardinality characteristics
 
@@ -294,7 +294,7 @@ def _is_string_compatible(series: pd.Series) -> bool:
     return False
 
 
-def _get_logical_type_patterns() -> Dict[LogicalType, Tuple[str, float]]:
+def _get_logical_type_patterns() -> dict[LogicalType, tuple[str, float]]:
     """Get logical type detection patterns with confidence thresholds"""
     return {
         LogicalType.EMAIL: (r"^[\w\.-]+@[\w\.-]+\.\w+$", 0.95),

@@ -130,13 +130,13 @@ class FieldConfig:
 
         # Validate na_values parameter
         if self.na_values is not None:
-            if not isinstance(self.na_values, (str, int, float, bool, datetime, list)):
+            if not isinstance(self.na_values, str | int | float | bool | datetime | list):
                 raise ValueError(
                     f"na_values must be str, int, float, bool, datetime, or list, got: {type(self.na_values)}"
                 )
             if isinstance(self.na_values, list):
                 if not all(
-                    isinstance(val, (str, int, float, bool, datetime))
+                    isinstance(val, str | int | float | bool | datetime)
                     for val in self.na_values
                 ):
                     raise ValueError(

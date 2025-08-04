@@ -38,7 +38,7 @@ class SchemaRelation:
     from_schema_id: str
     to_schema_id: str
     relation_type: RelationType
-    description: Optional[str] = None
+    description: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
     properties: dict[str, Any] = field(default_factory=dict)
 
@@ -63,7 +63,7 @@ class Metadata:
     name: str
     schemas: dict[str, SchemaMetadata] = field(default_factory=dict)
     relations: list[SchemaRelation] = field(default_factory=list)
-    description: Optional[str] = None
+    description: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     properties: dict[str, Any] = field(default_factory=dict)
@@ -108,7 +108,7 @@ class Metadata:
         from_schema_id: str,
         to_schema_id: str,
         relation_type: RelationType,
-        description: Optional[str] = None,
+        description: str | None = None,
         **properties,
     ) -> None:
         """
@@ -152,7 +152,7 @@ class Metadata:
                     f"Reverse relationship already exists from '{to_schema_id}' to '{from_schema_id}' "
                     f"with type '{existing_relation.relation_type.value}'. "
                     f"Consider if this new relationship is necessary.",
-                    UserWarning,
+                    UserWarning, stacklevel=2,
                 )
 
         # Create relation
@@ -289,7 +289,7 @@ class MetadataConfig:
 
     metadata_id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     schemas: dict[str, SchemaConfig] = field(default_factory=dict)
     auto_detect_relations: bool = False
     relation_inference_threshold: float = 0.8
@@ -313,7 +313,7 @@ class MetadataConfig:
         """Add or update schema configuration"""
         self.schemas[schema_config.schema_id] = schema_config
 
-    def get_schema_config(self, schema_id: str) -> Optional[SchemaConfig]:
+    def get_schema_config(self, schema_id: str) -> SchemaConfig | None:
         """Get schema configuration by ID"""
         return self.schemas.get(schema_id)
 

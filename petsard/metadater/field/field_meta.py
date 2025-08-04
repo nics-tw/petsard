@@ -42,7 +42,7 @@ class FieldStats:
         result = asdict(self)
         # Convert numpy types to Python types
         for key, value in result.items():
-            if isinstance(value, (np.integer, np.floating)):
+            if isinstance(value, np.integer | np.floating):
                 result[key] = value.item()
             elif isinstance(value, np.ndarray):
                 result[key] = value.tolist()
@@ -127,5 +127,5 @@ class FieldConfig:
 
             warnings.warn(
                 f"Unknown type_hint '{self.type_hint}'. "
-                f"Standard hints are: {valid_type_hints}"
+                f"Standard hints are: {valid_type_hints}", stacklevel=2
             )

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
 
@@ -26,15 +26,15 @@ class MetadataConfig:
     """
 
     metadata_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    schemas: Dict[str, SchemaConfig] = field(default_factory=dict)
+    name: str | None = None
+    description: str | None = None
+    schemas: dict[str, SchemaConfig] = field(default_factory=dict)
     auto_detect_relations: bool = False
     global_compute_stats: bool = True
     global_infer_logical_types: bool = True
     global_optimize_dtypes: bool = True
-    global_sample_size: Optional[int] = 1000
-    properties: Dict[str, Any] = field(default_factory=dict)
+    global_sample_size: int | None = 1000
+    properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Validate configuration values"""
@@ -48,7 +48,7 @@ class MetadataConfig:
         if not self.name:
             object.__setattr__(self, "name", self.metadata_id)
 
-    def get_schema_config(self, schema_id: str) -> Optional[SchemaConfig]:
+    def get_schema_config(self, schema_id: str) -> SchemaConfig | None:
         """Get schema configuration by ID"""
         return self.schemas.get(schema_id)
 
@@ -56,10 +56,10 @@ class MetadataConfig:
         self, schema_id: str, inherit_globals: bool = True, **kwargs: Any
     ) -> SchemaConfig:
         """Create a new schema configuration with optional global inheritance"""
-        config_dict: Dict[str, Any] = {"schema_id": schema_id}
+        config_dict: dict[str, Any] = {"schema_id": schema_id}
 
         if inherit_globals:
-            global_settings: Dict[str, Any] = {
+            global_settings: dict[str, Any] = {
                 "compute_stats": self.global_compute_stats,
                 "infer_logical_types": self.global_infer_logical_types,
                 "optimize_dtypes": self.global_optimize_dtypes,
@@ -93,7 +93,7 @@ class MetadataConfig:
         )
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> "MetadataConfig":
+    def from_dict(cls, config_dict: dict[str, Any]) -> "MetadataConfig":
         """Create MetadataConfig from dictionary"""
         schemas_dict = config_dict.pop("schemas", {})
         schema_configs = {}
@@ -134,7 +134,7 @@ class SchemaRelation:
     to_field: str
     relation_type: str = "one_to_many"
     confidence: float = 1.0
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Validate relation values"""
@@ -164,19 +164,19 @@ class Metadata:
     """
 
     metadata_id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    schemas: Dict[str, SchemaMetadata] = field(default_factory=dict)
-    relations: List[SchemaRelation] = field(default_factory=list)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    name: str | None = None
+    description: str | None = None
+    schemas: dict[str, SchemaMetadata] = field(default_factory=dict)
+    relations: list[SchemaRelation] = field(default_factory=list)
+    properties: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
-    def get_schema(self, schema_id: str) -> Optional[SchemaMetadata]:
+    def get_schema(self, schema_id: str) -> SchemaMetadata | None:
         """Get schema metadata by ID"""
         return self.schemas.get(schema_id)
 
-    def get_schema_ids(self) -> List[str]:
+    def get_schema_ids(self) -> list[str]:
         """Get list of all schema IDs"""
         return list(self.schemas.keys())
 
@@ -235,5 +235,5 @@ class Metadata:
 
 
 # Type aliases
-MetadataConfigDict = Dict[str, Any]
-RelationDict = Dict[str, Any]
+MetadataConfigDict = dict[str, Any]
+RelationDict = dict[str, Any]

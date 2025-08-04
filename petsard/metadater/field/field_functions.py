@@ -181,7 +181,7 @@ def apply_field_transformations(
     if field_config.na_values is not None:
         from datetime import datetime
 
-        if isinstance(field_config.na_values, (str, int, float, bool, datetime)):
+        if isinstance(field_config.na_values, str | int | float | bool | datetime):
             na_values_list = [field_config.na_values]
         else:
             na_values_list = field_config.na_values
