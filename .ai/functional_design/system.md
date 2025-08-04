@@ -16,11 +16,11 @@ PETsARD 採用模組化設計，每個模組都遵循以下核心設計原則：
 PETsARD/
 ├── petsard/
 │   ├── loader/                 # 資料載入模組
-│   │   ├── functional_design.md  # 模組功能設計文件
-│   │   ├── loader.py          # 主要載入器
-│   │   ├── metadata.py        # 詮釋資料處理 (向後相容，內部使用 Metadater)
-│   │   ├── splitter.py        # 資料分割器
-│   │   └── benchmarker.py     # 基準資料集管理
+│   │   ├── loader.py          # 主要載入器 (LoaderConfig, Loader)
+│   │   ├── loader_base.py     # 載入器基底類別 (LoaderBase)
+│   │   ├── loader_pandas.py   # Pandas 載入器實現
+│   │   ├── splitter.py        # 資料分割器 (Splitter)
+│   │   └── benchmarker.py     # 基準資料集管理 (BenchmarkerConfig, BaseBenchmarker, BenchmarkerRequests)
 │   ├── metadater/             # 詮釋資料管理核心
 │   │   ├── functional_design.md  # 模組功能設計文件
 │   │   ├── __init__.py        # 公開 API 介面

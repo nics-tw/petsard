@@ -31,19 +31,18 @@ Metadater 模組是 PETsARD 系統的核心基礎模組，採用三層架構設�
 
 ```
 petsard/metadater/
-├── __init__.py                    # 簡化的公開 API (9 個介面)
+├── __init__.py                    # 簡化的公開 API
 ├── metadater.py                   # 統一的 Metadater 主類別
-├── api.py                         # API 介面定義
-├── datatype.py                    # 資料型別定義
-├── utils.py                       # 工具函數
+├── api.py                         # API 介面定義 (FieldPipeline, analyze_field, create_field_analyzer)
+├── datatype.py                    # 資料型別定義 (DataType, LogicalType)
 ├── adapters/                      # 外部適配器
 │   ├── __init__.py
 │   └── sdv_adapter.py             # SDV 適配器
 ├── metadata/                      # Metadata 層 (多表格)
 │   ├── __init__.py
-│   ├── metadata_types.py          # Metadata, MetadataConfig
+│   ├── metadata_types.py          # MetadataConfig, SchemaRelation, Metadata
 │   ├── metadata_ops.py            # MetadataOperations
-│   └── metadata.py                # 核心實作
+│   └── metadata.py                # 核心實作 (RelationType, SchemaRelation, Metadata, MetadataConfig)
 ├── schema/                        # Schema 層 (單表格)
 │   ├── __init__.py
 │   ├── schema_types.py            # SchemaMetadata, SchemaConfig
@@ -53,12 +52,12 @@ petsard/metadater/
 │   └── validation.py              # 驗證函數
 ├── field/                         # Field 層 (單欄位)
 │   ├── __init__.py
-│   ├── field_types.py             # FieldMetadata, FieldConfig
-│   ├── field_ops.py               # FieldOperations
-│   ├── field_functions.py         # build_field_metadata
-│   ├── field_meta.py              # Field 元資料
-│   ├── type_inference.py          # 型別推斷
-│   └── transformation.py          # 資料轉換
+│   ├── field_types.py             # FieldStats, FieldConfig, FieldMetadata
+│   ├── field_ops.py               # TypeMapper, FieldOperations
+│   ├── field_functions.py         # build_field_metadata, calculate_field_stats, infer_field_logical_type
+│   ├── field_meta.py              # FieldStats, FieldMetadata, FieldConfig
+│   ├── type_inference.py          # 型別推斷函數
+│   └── transformation.py          # 資料轉換函數
 └── types/                         # 共用型別定義
     ├── __init__.py
     └── data_types.py              # DataType, LogicalType, safe_round

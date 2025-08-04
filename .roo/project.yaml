@@ -1,0 +1,129 @@
+# PETsARD Roo 專案配置
+name: "PETsARD"
+description: "Privacy Enhancing Technologies Synthetic and Real Data - 隱私增強技術合成資料框架"
+
+# 專案基本資訊
+project:
+  type: "python_package"
+  version: "1.6.0-rc.1"
+  main_language: "python"
+  framework: "pandas"
+
+# 自動載入的上下文文件
+context_files:
+  - ".ai/roo-config/project-context.md"
+  - ".ai/roo-config/architecture-rules.md"
+  - ".ai/functional_design/system.md"
+
+# 開發流程規則
+development_rules:
+  - name: "functional_design_sync"
+    description: "確保功能設計文檔與代碼同步"
+    trigger: "file_modified"
+    pattern: "petsard/**/*.py"
+    action: "check_documentation"
+    
+  - name: "api_compatibility_check"
+    description: "檢查 API 向後相容性"
+    trigger: "public_interface_changed"
+    action: "compatibility_review"
+    
+  - name: "architecture_compliance"
+    description: "檢查架構規範遵循"
+    trigger: "module_modified"
+    action: "architecture_review"
+
+# 模組對應的文檔映射
+module_documentation_map:
+  "petsard/loader/": ".ai/functional_design/loader.md"
+  "petsard/metadater/": ".ai/functional_design/metadater.md"
+  "petsard/evaluator/": ".ai/functional_design/evaluator.md"
+  "petsard/processor/": ".ai/functional_design/processor.md"
+  "petsard/synthesizer/": ".ai/functional_design/synthesizer.md"
+  "petsard/reporter/": ".ai/functional_design/reporter.md"
+  "petsard/constrainer/": ".ai/functional_design/constrainer.md"
+  "petsard/executor/": ".ai/functional_design/executor.md"
+  "petsard/operator/": ".ai/functional_design/operator.md"
+  "petsard/config/": ".ai/functional_design/config.md"
+
+# 架構約束
+architecture_constraints:
+  # 依賴方向規則
+  dependency_rules:
+    - "metadater 不能依賴其他 PETsARD 模組"
+    - "utils 不能依賴其他 PETsARD 模組"
+    - "禁止循環依賴"
+    
+  # API 設計規範
+  api_patterns:
+    - "create_*(): 建立新物件"
+    - "analyze_*(): 分析和推斷"
+    - "validate_*(): 驗證和檢查"
+    - "load(): 載入資料，回傳 tuple[pd.DataFrame, SchemaMetadata]"
+    - "_eval(): 評估方法，回傳 dict[str, pd.DataFrame]"
+
+# 代碼品質標準
+quality_standards:
+  type_checking: true
+  docstring_required: true
+  test_coverage_min: 80
+  immutable_data_structures: true
+  pure_functions_preferred: true
+
+# 開發工具配置
+tools:
+  linter: "ruff"
+  formatter: "ruff"
+  type_checker: "mypy"
+  test_framework: "pytest"
+  
+# 自動提醒設定
+reminders:
+  - trigger: "modify_public_api"
+    message: "請檢查向後相容性並更新相關文檔"
+    
+  - trigger: "add_new_class"
+    message: "請確保新類別遵循架構設計原則"
+    
+  - trigger: "modify_metadater"
+    message: "Metadater 是核心模組，請特別注意不可變設計和純函數原則"
+    
+  - trigger: "modify_evaluator"
+    message: "請確保新評估器繼承 BaseEvaluator 並實現 _eval() 方法"
+
+# 常用命令快捷方式
+shortcuts:
+  check_docs: "python3 .ai/scripts/development-assistant.py"
+  run_tests: "pytest tests/"
+  type_check: "mypy petsard/"
+  lint: "ruff check petsard/"
+  format: "ruff format petsard/"
+
+# 專案特定的 AI 助手指令
+ai_instructions: |
+  當協助 PETsARD 開發時，請遵循以下原則：
+  
+  1. **架構原則**：
+     - 優先使用函數式程式設計
+     - 保持模組間的清晰邊界
+     - 使用不可變資料結構
+     - 確保向後相容性
+  
+  2. **代碼風格**：
+     - 所有公開 API 都要有型別註解
+     - 使用 Google 風格的 docstring
+     - 遵循 PEP 8 編碼規範
+     - 優先使用純函數
+  
+  3. **模組特定規則**：
+     - Metadater: 核心模組，不依賴其他模組，使用三層架構
+     - Loader: 回傳 (data, metadata) 元組
+     - Evaluator: 繼承 BaseEvaluator，實現 _eval() 方法
+     - 所有模組: 使用統一的配置模式和錯誤處理
+  
+  4. **文檔同步**：
+     - 修改代碼時提醒更新對應的功能設計文檔
+     - 新增功能時提醒更新使用範例
+     - API 變更時提醒檢查向後相容性
+  
+  請在每次協助開發時自動載入相關的功能設計文檔，並提醒開發者遵循既定的架構原則。
