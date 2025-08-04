@@ -1,4 +1,4 @@
-<p align="center"><img width=75% src="https://github.com/nics-tw/petsard/blob/main/.github/assets/PETsARD-logo.png"></p>
+<p align="center"><img width=75% src="https://raw.githubusercontent.com/nics-tw/petsard/main/.github/assets/PETsARD-logo.png"></p>
 
 ![Python 3.10](https://img.shields.io/badge/python-v3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/python-v3.11-blue.svg)
@@ -17,8 +17,11 @@ The main functionalities include dataset description, various dataset generation
 
 ## [**🏠 Main Site 主要網站: PETsARD**](https://nics-tw.github.io/petsard/)
 
-- Project homepage with overview and foundation information
-- 專案首頁，提供專案概觀與基礎資訊
+Project homepage with overview and foundation information
+Website: https://nics-tw.github.io/petsard/
+
+專案首頁，提供專案概觀與基礎資訊
+網站：https://nics-tw.github.io/petsard/
 
 ## [**📖 Docs 文件**](https://nics-tw.github.io/petsard/docs/)
 
