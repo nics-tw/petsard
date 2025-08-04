@@ -80,13 +80,13 @@ status = Status(config)
 ```python
 # 按順序執行所有模組
 while config.config.qsize() > 0:
-    operator = config.config.get()
+    adapter = config.config.get()
     module = config.module_flow.get()
     expt = config.expt_flow.get()
     
     # 執行模組
-    operator.run(operator.set_input(status))
-    status.put(module, expt, operator)
+    adapter.run(adapter.set_input(status))
+    status.put(module, expt, adapter)
     
     # 收集結果
     _set_result(module)

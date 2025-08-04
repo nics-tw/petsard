@@ -2,7 +2,7 @@
 title: Config
 type: docs
 weight: 62
-prev: docs/api/operator
+prev: docs/api/adapter
 next: docs/api/status
 ---
 

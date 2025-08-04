@@ -30,7 +30,7 @@ The `.ai/` directory provides:
 │   ├── reporter.md             # Reporting module design
 │   ├── constrainer.md          # Data constraint module design
 │   ├── executor.md             # Execution orchestration design
-│   ├── operator.md             # Data operation module design
+│   ├── adapter.md              # Data operation module design
 │   └── config.md               # Configuration module design
 ├── scripts/                     # Development automation scripts
 │   ├── development-assistant.py # Code-documentation sync checker

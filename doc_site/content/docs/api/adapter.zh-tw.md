@@ -1,5 +1,5 @@
 ---
-title: Operator
+title: Adapter
 type: docs
 weight: 61
 prev: docs/api/reporter
@@ -7,47 +7,47 @@ next: docs/api/config
 ---
 
 ```python
-petsard.operator
+petsard.adapter
 ```
 
-Operator 模組提供包裝類別，為所有 PETsARD 管線組件標準化執行介面。每個操作器封裝特定模組（Loader、Synthesizer 等），並提供一致的配置、執行和結果檢索方法。
+Adapter 模組提供包裝類別，為所有 PETsARD 管線組件標準化執行介面。每個適配器封裝特定模組（Loader、Synthesizer 等），並提供一致的配置、執行和結果檢索方法。
 
 ## 設計概覽
 
-Operator 系統遵循裝飾器模式，以標準化介面包裝核心模組進行管線執行。此設計確保所有管線組件的一致行為，同時保持模組特定功能的靈活性。
+Adapter 系統遵循裝飾器模式，以標準化介面包裝核心模組進行管線執行。此設計確保所有管線組件的一致行為，同時保持模組特定功能的靈活性。
 
 ### 核心原則
 
-1. **標準化**：所有操作器實作相同的基礎介面，確保管線執行的一致性
-2. **封裝**：每個操作器包裝對應的模組，處理配置和執行細節
-3. **錯誤處理**：跨所有操作器的全面錯誤記錄和例外處理
+1. **標準化**：所有適配器實作相同的基礎介面，確保管線執行的一致性
+2. **封裝**：每個適配器包裝對應的模組，處理配置和執行細節
+3. **錯誤處理**：跨所有適配器的全面錯誤記錄和例外處理
 4. **詮釋資料管理**：使用 Metadater 系統進行一致的詮釋資料處理
 
 ## 基礎類別
 
-### `BaseOperator`
+### `BaseAdapter`
 
 ```python
-BaseOperator(config)
+BaseAdapter(config)
 ```
 
-定義所有操作器標準介面的抽象基礎類別。
+定義所有適配器標準介面的抽象基礎類別。
 
 **參數**
-- `config` (dict)：操作器的配置參數
+- `config` (dict)：適配器的配置參數
 
 **方法**
-- `run(input)`：執行操作器的功能
+- `run(input)`：執行適配器的功能
 - `set_input(status)`：從管線狀態配置輸入資料
-- `get_result()`：檢索操作器的輸出資料
+- `get_result()`：檢索適配器的輸出資料
 - `get_metadata()`：檢索與輸出相關的詮釋資料
 
-## 操作器類別
+## 適配器類別
 
-### `LoaderOperator`
+### `LoaderAdapter`
 
 ```python
-LoaderOperator(config)
+LoaderAdapter(config)
 ```
 
 包裝 Loader 模組進行資料載入操作。
@@ -63,10 +63,10 @@ LoaderOperator(config)
 - `get_result()`：回傳載入的 DataFrame
 - `get_metadata()`：回傳載入資料的 SchemaMetadata
 
-### `SplitterOperator`
+### `SplitterAdapter`
 
 ```python
-SplitterOperator(config)
+SplitterAdapter(config)
 ```
 
 包裝 Splitter 模組進行資料分割操作。
@@ -81,10 +81,10 @@ SplitterOperator(config)
 - `get_result()`：回傳包含 'train' 和 'validation' DataFrame 的字典
 - `get_metadata()`：回傳包含分割資訊的更新 SchemaMetadata
 
-### `PreprocessorOperator`
+### `PreprocessorAdapter`
 
 ```python
-PreprocessorOperator(config)
+PreprocessorAdapter(config)
 ```
 
 包裝 Processor 模組進行資料前處理操作。
@@ -98,10 +98,10 @@ PreprocessorOperator(config)
 - `get_result()`：回傳前處理的 DataFrame
 - `get_metadata()`：回傳更新的 SchemaMetadata
 
-### `SynthesizerOperator`
+### `SynthesizerAdapter`
 
 ```python
-SynthesizerOperator(config)
+SynthesizerAdapter(config)
 ```
 
 包裝 Synthesizer 模組進行合成資料生成。
@@ -114,10 +114,10 @@ SynthesizerOperator(config)
 **主要方法**
 - `get_result()`：回傳合成的 DataFrame
 
-### `PostprocessorOperator`
+### `PostprocessorAdapter`
 
 ```python
-PostprocessorOperator(config)
+PostprocessorAdapter(config)
 ```
 
 包裝 Processor 模組進行資料後處理操作。
@@ -128,10 +128,10 @@ PostprocessorOperator(config)
 **主要方法**
 - `get_result()`：回傳後處理的 DataFrame
 
-### `ConstrainerOperator`
+### `ConstrainerAdapter`
 
 ```python
-ConstrainerOperator(config)
+ConstrainerAdapter(config)
 ```
 
 包裝 Constrainer 模組應用資料約束。
@@ -145,10 +145,10 @@ ConstrainerOperator(config)
 **主要方法**
 - `get_result()`：回傳約束後的 DataFrame
 
-### `EvaluatorOperator`
+### `EvaluatorAdapter`
 
 ```python
-EvaluatorOperator(config)
+EvaluatorAdapter(config)
 ```
 
 包裝 Evaluator 模組進行資料品質評估。
@@ -160,10 +160,10 @@ EvaluatorOperator(config)
 **主要方法**
 - `get_result()`：回傳按指標類型分類的評估結果字典
 
-### `DescriberOperator`
+### `DescriberAdapter`
 
 ```python
-DescriberOperator(config)
+DescriberAdapter(config)
 ```
 
 包裝 Describer 模組進行描述性資料分析。
@@ -175,10 +175,10 @@ DescriberOperator(config)
 **主要方法**
 - `get_result()`：回傳描述性分析結果字典
 
-### `ReporterOperator`
+### `ReporterAdapter`
 
 ```python
-ReporterOperator(config)
+ReporterAdapter(config)
 ```
 
 包裝 Reporter 模組進行結果匯出和報告。
@@ -194,24 +194,24 @@ ReporterOperator(config)
 
 ## 使用範例
 
-### 基本操作器使用
+### 基本適配器使用
 
 ```python
-from petsard.operator import LoaderOperator
+from petsard.adapter import LoaderAdapter
 
-# 建立和配置操作器
+# 建立和配置適配器
 config = {"filepath": "data.csv"}
-loader_op = LoaderOperator(config)
+loader_adapter = LoaderAdapter(config)
 
 # 設定輸入（通常由 Executor 完成）
-input_data = loader_op.set_input(status)
+input_data = loader_adapter.set_input(status)
 
 # 執行操作
-loader_op.run(input_data)
+loader_adapter.run(input_data)
 
 # 檢索結果
-data = loader_op.get_result()
-metadata = loader_op.get_metadata()
+data = loader_adapter.get_result()
+metadata = loader_adapter.get_metadata()
 ```
 
 ### 管線整合
@@ -220,7 +220,7 @@ metadata = loader_op.get_metadata()
 from petsard.config import Config
 from petsard.executor import Executor
 
-# 操作器通常透過 Config 和 Executor 使用
+# 適配器通常透過 Config 和 Executor 使用
 config_dict = {
     "Loader": {"load_data": {"filepath": "data.csv"}},
     "Synthesizer": {"synth": {"method": "sdv", "model": "GaussianCopula"}},
@@ -235,7 +235,7 @@ executor.run()
 ## 架構優勢
 
 ### 1. 一致介面
-- **標準化方法**：所有操作器實作相同的基礎介面
+- **標準化方法**：所有適配器實作相同的基礎介面
 - **可預測行為**：跨所有模組的一致執行模式
 
 ### 2. 錯誤處理
@@ -247,7 +247,7 @@ executor.run()
 - **資料流**：管線階段間的標準化資料傳遞
 
 ### 4. 模組化
-- **關注點分離**：每個操作器處理一個特定功能
-- **可擴展性**：容易為新模組添加新操作器
+- **關注點分離**：每個適配器處理一個特定功能
+- **可擴展性**：容易為新模組添加新適配器
 
-Operator 系統為 PETsARD 的模組化管線架構提供基礎，確保所有資料處理階段的一致和可靠執行。
+Adapter 系統為 PETsARD 的模組化管線架構提供基礎，確保所有資料處理階段的一致和可靠執行。

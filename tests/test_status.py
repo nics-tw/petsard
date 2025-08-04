@@ -6,9 +6,9 @@ from unittest.mock import Mock
 
 import pandas as pd
 
+from petsard.adapter import BaseAdapter
 from petsard.config import Config
 from petsard.metadater import SchemaMetadata
-from petsard.operator import BaseOperator
 from petsard.status import Status
 
 
@@ -27,7 +27,7 @@ class TestStatusSnapshots:
     def test_snapshot_creation(self):
         """測試快照建立"""
         # 建立模擬操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_operator.get_result.return_value = pd.DataFrame({"A": [1, 2, 3]})
 
         # 建立模擬 SchemaMetadata
@@ -50,7 +50,7 @@ class TestStatusSnapshots:
     def test_change_tracking(self):
         """測試變更追蹤"""
         # 建立模擬操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_operator.get_result.return_value = pd.DataFrame({"A": [1, 2, 3]})
 
         # 建立模擬 SchemaMetadata
@@ -73,13 +73,13 @@ class TestStatusSnapshots:
     def test_metadata_evolution(self):
         """測試元資料演進追蹤"""
         # 建立第一個操作器
-        mock_operator1 = Mock(spec=BaseOperator)
+        mock_operator1 = Mock(spec=BaseAdapter)
         mock_metadata1 = Mock(spec=SchemaMetadata)
         mock_metadata1.schema_id = "schema_v1"
         mock_operator1.get_metadata.return_value = mock_metadata1
 
         # 建立第二個操作器
-        mock_operator2 = Mock(spec=BaseOperator)
+        mock_operator2 = Mock(spec=BaseAdapter)
         mock_metadata2 = Mock(spec=SchemaMetadata)
         mock_metadata2.schema_id = "schema_v2"
         mock_operator2.get_metadata.return_value = mock_metadata2
@@ -98,7 +98,7 @@ class TestStatusSnapshots:
     def test_status_summary(self):
         """測試狀態摘要"""
         # 建立模擬操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_metadata = Mock(spec=SchemaMetadata)
         mock_metadata.schema_id = "test_schema"
         mock_operator.get_metadata.return_value = mock_metadata
@@ -123,7 +123,7 @@ class TestStatusSnapshots:
     def test_snapshot_retrieval(self):
         """測試快照檢索"""
         # 建立模擬操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_metadata = Mock(spec=SchemaMetadata)
         mock_metadata.schema_id = "test_schema"
         mock_operator.get_metadata.return_value = mock_metadata
@@ -153,7 +153,7 @@ class TestStatusTiming:
         """設定測試環境"""
         config_dict = {
             "Loader": {"data": {"filepath": "benchmark://adult-income"}},
-            "Synthesizer": {"method": "sdv"},
+            "Synthesizer": {"synth": {"method": "sdv", "model": "GaussianCopula"}},
         }
         self.config = Config(config_dict)
         self.status = Status(self.config)
@@ -174,24 +174,28 @@ class TestStatusTiming:
         """測試時間訊息解析"""
         import logging
 
+        # 確保 PETsARD logger 級別設置正確
+        petsard_logger = logging.getLogger("PETsARD")
+        petsard_logger.setLevel(logging.INFO)
+
         # 建立測試 log record
         logger = logging.getLogger("PETsARD.test")
 
         # 設置實驗名稱映射
-        self.status._current_experiments["TestOp"] = "test_exp"
+        self.status._current_experiments["TestAdapter"] = "test_exp"
 
         # 模擬開始計時訊息
         start_time = 1000.0
-        logger.info(f"TIMING_START|TestOp|run|{start_time}")
+        logger.info(f"TIMING_START|TestAdapter|run|{start_time}")
 
         # 檢查是否有活躍的計時記錄
-        timing_key = "TestOp_test_exp_run"
+        timing_key = "TestAdapter_test_exp_run"
         assert timing_key in self.status._active_timings
 
         # 模擬結束計時訊息
         end_time = 1001.5
         duration = 1.5
-        logger.info(f"TIMING_END|TestOp|run|{end_time}|{duration}")
+        logger.info(f"TIMING_END|TestAdapter|run|{end_time}|{duration}")
 
         # 檢查計時記錄是否完成
         assert timing_key not in self.status._active_timings
@@ -199,7 +203,7 @@ class TestStatusTiming:
         assert len(timing_records) == 1
 
         record = timing_records[0]
-        assert record.module_name == "TestOp"
+        assert record.module_name == "TestAdapter"
         assert record.experiment_name == "test_exp"
         assert record.step_name == "run"
         assert record.duration_seconds == duration
@@ -209,8 +213,12 @@ class TestStatusTiming:
         """測試錯誤情況下的計時記錄"""
         import logging
 
+        # 確保 PETsARD logger 級別設置正確
+        petsard_logger = logging.getLogger("PETsARD")
+        petsard_logger.setLevel(logging.INFO)
+
         logger = logging.getLogger("PETsARD.test")
-        self.status._current_experiments["ErrorOp"] = "error_exp"
+        self.status._current_experiments["ErrorAdapter"] = "error_exp"
 
         # 模擬錯誤計時訊息
         start_time = 1000.0
@@ -218,8 +226,8 @@ class TestStatusTiming:
         duration = 1.0
         error_msg = "Test error"
 
-        logger.info(f"TIMING_START|ErrorOp|run|{start_time}")
-        logger.info(f"TIMING_ERROR|ErrorOp|run|{end_time}|{duration}|{error_msg}")
+        logger.info(f"TIMING_START|ErrorAdapter|run|{start_time}")
+        logger.info(f"TIMING_ERROR|ErrorAdapter|run|{end_time}|{duration}|{error_msg}")
 
         # 檢查錯誤記錄
         timing_records = self.status.get_timing_records()
@@ -234,22 +242,26 @@ class TestStatusTiming:
         """測試時間記錄過濾"""
         import logging
 
+        # 確保 PETsARD logger 級別設置正確
+        petsard_logger = logging.getLogger("PETsARD")
+        petsard_logger.setLevel(logging.INFO)
+
         logger = logging.getLogger("PETsARD.test")
 
         # 設置多個模組的實驗名稱
         self.status._current_experiments.update(
-            {"LoaderOp": "load_exp", "SynthesizerOp": "synth_exp"}
+            {"LoaderAdapter": "load_exp", "SynthesizerAdapter": "synth_exp"}
         )
 
         # 模擬多個模組的計時
         modules = [
-            ("LoaderOp", "load_exp", 1.0),
-            ("SynthesizerOp", "synth_exp", 2.0),
-            ("LoaderOp", "load_exp", 1.5),  # 同一模組的另一次執行
+            ("LoaderAdapter", "load_exp", 1.0),
+            ("SynthesizerAdapter", "synth_exp", 2.0),
+            ("LoaderAdapter", "load_exp", 1.5),  # 同一模組的另一次執行
         ]
 
         start_time = 1000.0
-        for i, (module, exp, duration) in enumerate(modules):
+        for i, (module, _exp, duration) in enumerate(modules):
             current_start = start_time + i * 10
             current_end = current_start + duration
 
@@ -261,13 +273,13 @@ class TestStatusTiming:
         assert len(all_records) == 3
 
         # 測試特定模組過濾
-        loader_records = self.status.get_timing_records("LoaderOp")
+        loader_records = self.status.get_timing_records("LoaderAdapter")
         assert len(loader_records) == 2
-        assert all(r.module_name == "LoaderOp" for r in loader_records)
+        assert all(r.module_name == "LoaderAdapter" for r in loader_records)
 
-        synth_records = self.status.get_timing_records("SynthesizerOp")
+        synth_records = self.status.get_timing_records("SynthesizerAdapter")
         assert len(synth_records) == 1
-        assert synth_records[0].module_name == "SynthesizerOp"
+        assert synth_records[0].module_name == "SynthesizerAdapter"
 
     def test_get_timing_report_data(self):
         """測試時間報告資料格式"""
@@ -275,12 +287,16 @@ class TestStatusTiming:
 
         import pandas as pd
 
+        # 確保 PETsARD logger 級別設置正確
+        petsard_logger = logging.getLogger("PETsARD")
+        petsard_logger.setLevel(logging.INFO)
+
         logger = logging.getLogger("PETsARD.test")
-        self.status._current_experiments["TestOp"] = "test_exp"
+        self.status._current_experiments["TestAdapter"] = "test_exp"
 
         # 模擬計時記錄
-        logger.info("TIMING_START|TestOp|run|1000.0")
-        logger.info("TIMING_END|TestOp|run|1001.5|1.5")
+        logger.info("TIMING_START|TestAdapter|run|1000.0")
+        logger.info("TIMING_END|TestAdapter|run|1001.5|1.5")
 
         # 取得 DataFrame 格式
         timing_df = self.status.get_timing_report_data()
@@ -305,7 +321,7 @@ class TestStatusTiming:
 
         # 檢查資料內容
         row = timing_df.iloc[0]
-        assert row["module_name"] == "TestOp"
+        assert row["module_name"] == "TestAdapter"
         assert row["experiment_name"] == "test_exp"
         assert row["step_name"] == "run"
         assert row["duration_seconds"] == 1.5

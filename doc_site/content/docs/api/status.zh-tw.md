@@ -74,7 +74,7 @@ Status 採用以 Metadater 為中心的架構，提供全面的進度追蹤和�
 #### `put()`
 
 ```python
-status.put(module, experiment_name, operator)
+status.put(module, experiment_name, adapter)
 ```
 
 將模組狀態和操作器新增到狀態字典，並自動建立快照。
@@ -83,7 +83,7 @@ status.put(module, experiment_name, operator)
 
 - `module` (str)：當前模組名稱
 - `experiment_name` (str)：當前實驗名稱
-- `operator` (BaseOperator)：當前操作器實例
+- `adapter` (BaseAdapter)：當前適配器實例
 
 **增強行為**
 - 自動建立執行快照
@@ -293,7 +293,7 @@ config = Config(config_dict)
 status = Status(config)
 
 # 傳統使用方式（不變）
-# status.put(module, experiment, operator)  # 由 Executor 呼叫
+# status.put(module, experiment, adapter)  # 由 Executor 呼叫
 result = status.get_result("Loader")
 metadata = status.get_metadata("Loader")
 ```
@@ -397,7 +397,7 @@ else:
 
 ```python
 # 現有程式碼（無需變更）
-status.put(module, experiment, operator)
+status.put(module, experiment, adapter)
 result = status.get_result(module)
 metadata = status.get_metadata(module)
 
