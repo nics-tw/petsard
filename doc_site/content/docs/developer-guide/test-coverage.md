@@ -56,6 +56,61 @@ Tests for the main Loader functionality:
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
 - `test_custom_header_names`: Tests loading data with custom column headers
 
+#### Logical Type System Testing
+
+Tests for the comprehensive logical type inference and validation system:
+
+**Redesigned Logical Type System (2025 Update):**
+Our logical type system has been completely redesigned to avoid overlap with basic data types and provide clear semantic meaning detection.
+
+**Available Logical Types:**
+- **Text-based**: `email`, `url`, `uuid`, `categorical`, `ip_address` (require string data type)
+- **Numeric**: `percentage`, `currency`, `latitude`, `longitude` (require numeric data types)
+- **Identifier**: `primary_key` (requires uniqueness validation)
+- **Removed**: `datetime`, `date`, `time`, `duration`, `integer`, `decimal`, `text`, `foreign_key` (to avoid type overlap)
+
+**Logical Type Detection Tests (`tests/metadater/field/test_field_functions.py`):**
+- `test_email_logical_type_detection`: Tests email pattern detection with regex validation (80% threshold)
+- `test_url_logical_type_detection`: Tests URL pattern detection with HTTP/HTTPS protocol validation (80% threshold)
+- `test_uuid_logical_type_detection`: Tests UUID format detection in 8-4-4-4-12 hexadecimal format (95% threshold)
+- `test_ip_address_detection`: Tests IPv4/IPv6 pattern recognition with comprehensive address validation (90% threshold)
+- `test_categorical_detection_via_cardinality`: Tests ASPL-based categorical detection using cardinality analysis with dynamic thresholds
+- `test_primary_key_uniqueness_validation`: Tests 100% uniqueness requirement for primary keys with duplicate detection
+- `test_percentage_range_validation`: Tests 0-100 range validation for percentage values (95% threshold)
+- `test_currency_symbol_detection`: Tests monetary value detection with currency symbols and positive value validation (80% threshold)
+- `test_latitude_longitude_detection`: Tests geographic coordinate range validation (-90/90 for latitude, -180/180 for longitude, 95% threshold)
+
+**Type Compatibility System Tests:**
+- `test_compatible_type_logical_combinations`: Tests valid combinations:
+  - `string` + `email`, `url`, `uuid`, `categorical`, `ip_address` ✅
+  - `numeric` + `percentage`, `currency`, `latitude`, `longitude` ✅
+  - `int/string` + `primary_key` ✅
+- `test_incompatible_type_logical_combinations`: Tests invalid combinations that trigger warnings:
+  - `numeric` + `email`, `url`, `uuid`, `ip_address` ❌
+  - `string` + `percentage`, `currency`, `latitude`, `longitude` ❌
+- `test_logical_type_fallback_on_conflict`: Tests automatic fallback to inference when types conflict
+- `test_logical_type_priority_handling`: Tests priority system (data type constraints > logical type hints)
+
+**Logical Type Configuration Tests:**
+- `test_logical_type_never_mode`: Tests disabling logical type inference with "never" setting
+- `test_logical_type_infer_mode`: Tests automatic inference with "infer" setting
+- `test_logical_type_explicit_specification`: Tests forcing specific logical types via configuration with compatibility validation
+- `test_logical_type_validation_thresholds`: Tests confidence thresholds (80% for text patterns, 90-95% for numeric ranges)
+
+**Pattern Matching and Validation Tests:**
+- `test_regex_pattern_validation`: Tests updated regex patterns for email, URL, UUID, IP address detection
+- `test_numeric_range_validation`: Tests range validation for latitude, longitude, percentage values
+- `test_special_validator_functions`: Tests custom validation functions for geographic coordinates
+- `test_pattern_confidence_scoring`: Tests confidence scoring and threshold-based classification
+- `test_primary_key_duplicate_detection`: Tests duplicate detection mechanism for primary key validation
+
+**Error Handling and Conflict Resolution Tests:**
+- `test_compatibility_warning_generation`: Tests warning generation for incompatible type/logical_type combinations
+- `test_automatic_fallback_mechanism`: Tests fallback to automatic inference when conflicts occur
+- `test_logging_incompatibility_messages`: Tests detailed logging of incompatibility reasons
+
+> **Redesigned Logical Type System**: Our proprietary logical type inference system has been redesigned to focus exclusively on semantic meaning detection without overlapping with basic data types. The system uses pattern recognition, statistical analysis, and validation functions with strict type compatibility rules and comprehensive conflict resolution mechanisms.
+
 #### Schema Parameters Testing
 
 Tests for comprehensive functionality of the schema parameter system:
@@ -609,6 +664,55 @@ Tests for field proportion maintenance constraints (33 tests):
 
 ### `Evaluator`
 
+#### `SDMetrics`
+
+> tests/evaluator/test_sdmetrics.py
+
+Tests for SDMetrics single-table evaluation functionality:
+
+- `test_eval_diagnostic_report`: Tests DiagnosticReport evaluation with mocked SDMetrics components
+- `test_eval_quality_report`: Tests QualityReport evaluation with comprehensive mock setup
+- `test_init`: Tests SDMetricsSingleTable initialization and configuration validation
+- `test_invalid_method`: Tests error handling for unsupported evaluation methods
+
+**Key Features:**
+- **Data Type Consistency**: Enhanced BaseEvaluator now detects data type mismatches between datasets and provides clear error messages instead of automatic type alignment
+- **Error Handling**: Improved error messaging directs users to handle type alignment at the Executor level
+- **Mock Integration**: Comprehensive mocking of SDMetrics components for reliable testing
+
+> **Architecture Enhancement**: BaseEvaluator has been modified to remove automatic data type alignment functionality. Instead of silently "fixing" type mismatches, it now raises ValueError with detailed mismatch information, ensuring Data Structure evaluation accuracy and maintaining data integrity.
+
+#### `Stats`
+
+> tests/evaluator/test_stats.py
+
+Tests for statistical evaluation functionality:
+
+- `test_eval_basic`: Tests basic statistical evaluation with mocked field metadata creation
+- `test_eval_with_different_data`: Tests evaluation with different original and synthetic datasets
+- `test_init`: Tests Stats evaluator initialization and configuration validation
+- `test_invalid_compare_method`: Tests error handling for invalid comparison methods
+- `test_invalid_stats_method`: Tests error handling for invalid statistical methods
+
+**Key Features:**
+- **Metadater Integration**: Updated to use `Metadater.create_field` for field metadata creation
+- **Type Inference**: Proper handling of data type inference through mocked field metadata
+- **Configuration Validation**: Comprehensive validation of statistical method configurations
+
+#### `CustomEvaluator`
+
+> tests/evaluator/test_custom_evaluator.py
+
+Tests for custom evaluator functionality:
+
+- `test_init`: Tests CustomEvaluator initialization with external module loading
+- `test_eval`: Tests evaluation method execution with custom evaluator instances
+- `test_missing_module_path`: Tests error handling for missing module path configuration
+
+**Key Features:**
+- **External Module Loading**: Integration with `petsard.utils.load_external_module` for dynamic evaluator loading
+- **Mock Integration**: Comprehensive mocking of external module loading and custom evaluator execution
+- **Error Handling**: Proper validation of module path and class name requirements
 
 > - All functionality replacements use Metadater's public interface, completely avoiding deep internal functionality calls
 > - All original functionality has been preserved with full backward compatibility

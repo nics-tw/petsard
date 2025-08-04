@@ -56,6 +56,61 @@ next: docs/developer-guide/docker-development
 - `test_custom_na_values`：測試自定義空值的處理
 - `test_custom_header_names`：測試使用自定義欄位標題載入資料
 
+#### 邏輯型態系統測試
+
+測試全面的邏輯型態推斷和驗證系統：
+
+**重新設計的邏輯型態系統（2025 更新）：**
+我們的邏輯型態系統已完全重新設計，避免與基本資料型態重疊，並提供清晰的語意意義檢測。
+
+**可用的邏輯型態：**
+- **文字型態**：`email`, `url`, `uuid`, `categorical`, `ip_address`（需要字串資料型態）
+- **數值型態**：`percentage`, `currency`, `latitude`, `longitude`（需要數值資料型態）
+- **識別碼型態**：`primary_key`（需要唯一性驗證）
+- **已移除**：`datetime`, `date`, `time`, `duration`, `integer`, `decimal`, `text`, `foreign_key`（避免型態重疊）
+
+**邏輯型態檢測測試（`tests/metadater/field/test_field_functions.py`）：**
+- `test_email_logical_type_detection`：測試電子郵件模式檢測與正則表達式驗證（80% 閾值）
+- `test_url_logical_type_detection`：測試網址模式檢測與 HTTP/HTTPS 協定驗證（80% 閾值）
+- `test_uuid_logical_type_detection`：測試 8-4-4-4-12 十六進位格式的 UUID 格式檢測（95% 閾值）
+- `test_ip_address_detection`：測試 IPv4/IPv6 模式識別與全面位址驗證（90% 閾值）
+- `test_categorical_detection_via_cardinality`：測試使用動態閾值的 ASPL 基數分析分類檢測
+- `test_primary_key_uniqueness_validation`：測試主鍵的 100% 唯一性要求與重複檢測
+- `test_percentage_range_validation`：測試百分比值的 0-100 範圍驗證（95% 閾值）
+- `test_currency_symbol_detection`：測試貨幣符號檢測與正值驗證的金額值檢測（80% 閾值）
+- `test_latitude_longitude_detection`：測試地理座標範圍驗證（緯度 -90/90，經度 -180/180，95% 閾值）
+
+**型態相容性系統測試：**
+- `test_compatible_type_logical_combinations`：測試有效組合：
+  - `string` + `email`, `url`, `uuid`, `categorical`, `ip_address` ✅
+  - `numeric` + `percentage`, `currency`, `latitude`, `longitude` ✅
+  - `int/string` + `primary_key` ✅
+- `test_incompatible_type_logical_combinations`：測試觸發警告的無效組合：
+  - `numeric` + `email`, `url`, `uuid`, `ip_address` ❌
+  - `string` + `percentage`, `currency`, `latitude`, `longitude` ❌
+- `test_logical_type_fallback_on_conflict`：測試型態衝突時自動回退到推斷
+- `test_logical_type_priority_handling`：測試優先級系統（資料型態約束 > 邏輯型態提示）
+
+**邏輯型態配置測試：**
+- `test_logical_type_never_mode`：測試使用 "never" 設定停用邏輯型態推斷
+- `test_logical_type_infer_mode`：測試使用 "infer" 設定的自動推斷
+- `test_logical_type_explicit_specification`：測試透過配置強制指定特定邏輯型態與相容性驗證
+- `test_logical_type_validation_thresholds`：測試信心閾值（文字模式 80%，數值範圍 90-95%）
+
+**模式匹配和驗證測試：**
+- `test_regex_pattern_validation`：測試更新的電子郵件、網址、UUID、IP 位址檢測正則表達式模式
+- `test_numeric_range_validation`：測試緯度、經度、百分比值的範圍驗證
+- `test_special_validator_functions`：測試地理座標的自定義驗證函數
+- `test_pattern_confidence_scoring`：測試信心評分和基於閾值的分類
+- `test_primary_key_duplicate_detection`：測試主鍵驗證的重複檢測機制
+
+**錯誤處理和衝突解決測試：**
+- `test_compatibility_warning_generation`：測試不相容 type/logical_type 組合的警告產生
+- `test_automatic_fallback_mechanism`：測試衝突發生時的自動回退機制
+- `test_logging_incompatibility_messages`：測試不相容原因的詳細記錄
+
+> **重新設計的邏輯型態系統**：我們的專有邏輯型態推斷系統已重新設計，專注於語意意義檢測而不與基本資料型態重疊。系統使用模式識別、統計分析和驗證函數，具有嚴格的型態相容性規則和完整的衝突解決機制。
+
 #### Schema 參數測試
 
 測試 schema 參數系統的全面功能：
@@ -636,6 +691,55 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 
 ### `Evaluator`
 
+#### `SDMetrics`
+
+> tests/evaluator/test_sdmetrics.py
+
+測試 SDMetrics 單表評估功能：
+
+- `test_eval_diagnostic_report`：使用模擬 SDMetrics 組件測試 DiagnosticReport 評估
+- `test_eval_quality_report`：使用全面模擬設定測試 QualityReport 評估
+- `test_init`：測試 SDMetricsSingleTable 初始化和配置驗證
+- `test_invalid_method`：測試不支援評估方法的錯誤處理
+
+**主要特色：**
+- **資料類型一致性**：增強的 BaseEvaluator 現在檢測資料集間的資料類型不匹配，並提供清楚的錯誤訊息，而非自動類型對齊
+- **錯誤處理**：改進的錯誤訊息指導使用者在 Executor 層級處理類型對齊
+- **模擬整合**：全面模擬 SDMetrics 組件以確保可靠測試
+
+> **架構增強**：BaseEvaluator 已修改以移除自動資料類型對齊功能。不再靜默「修復」類型不匹配，而是拋出包含詳細不匹配資訊的 ValueError，確保 Data Structure 評估準確性並維持資料完整性。
+
+#### `Stats`
+
+> tests/evaluator/test_stats.py
+
+測試統計評估功能：
+
+- `test_eval_basic`：使用模擬欄位元資料建立測試基本統計評估
+- `test_eval_with_different_data`：測試使用不同原始和合成資料集的評估
+- `test_init`：測試 Stats 評估器初始化和配置驗證
+- `test_invalid_compare_method`：測試無效比較方法的錯誤處理
+- `test_invalid_stats_method`：測試無效統計方法的錯誤處理
+
+**主要特色：**
+- **Metadater 整合**：更新為使用 `Metadater.create_field` 進行欄位元資料建立
+- **類型推斷**：透過模擬欄位元資料正確處理資料類型推斷
+- **配置驗證**：統計方法配置的全面驗證
+
+#### `CustomEvaluator`
+
+> tests/evaluator/test_custom_evaluator.py
+
+測試自定義評估器功能：
+
+- `test_init`：測試 CustomEvaluator 使用外部模組載入的初始化
+- `test_eval`：測試使用自定義評估器實例的評估方法執行
+- `test_missing_module_path`：測試缺少模組路徑配置的錯誤處理
+
+**主要特色：**
+- **外部模組載入**：與 `petsard.utils.load_external_module` 整合以進行動態評估器載入
+- **模擬整合**：全面模擬外部模組載入和自定義評估器執行
+- **錯誤處理**：模組路徑和類別名稱需求的適當驗證
 
 > - 所有功能替換都使用 Metadater 的公共介面，完全避免調用深層內部功能
 > - 保持了所有原有功能的完整性，確保向後相容性

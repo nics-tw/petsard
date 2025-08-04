@@ -613,7 +613,7 @@ class TestLoaderMetadataFeature:
         # Should not raise any exception
         # Test using Loader instead of LoaderConfig directly
         loader = Loader(filepath="test.csv", schema=valid_schema_config)
-        assert loader.config.schema_config == valid_schema_config
+        assert loader.config.schema == valid_schema_config
 
     def test_schema_parameter_validation_invalid_structure(self):
         """Test schema parameter validation with invalid structure
@@ -626,7 +626,7 @@ class TestLoaderMetadataFeature:
         # LoaderConfig should accept the SchemaConfig even with invalid fields
         # Test using Loader instead of LoaderConfig directly
         loader = Loader(filepath="test.csv", schema=invalid_schema)
-        assert loader.config.schema_config == invalid_schema
+        assert loader.config.schema == invalid_schema
 
     def test_schema_parameter_validation_invalid_keys(self):
         """Test schema parameter validation with invalid keys
@@ -821,7 +821,7 @@ class TestLoaderMetadataFeature:
 
         # Should raise ConfigError due to field conflict
         with pytest.raises(
-            ConfigError, match="Conflict detected.*age.*schema_config and column_types"
+            ConfigError, match="Conflict detected.*age.*schema and column_types"
         ):
             Loader(
                 filepath=sample_csv_with_schema_needs,
@@ -1308,7 +1308,7 @@ class TestLoaderSchemaParameters:
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
         # Should not raise error
-        assert loader.config.schema_config.compute_stats is False
+        assert loader.config.schema.compute_stats is False
 
     def test_optimize_dtypes_parameter(self):
         """Test optimize_dtypes parameter"""
@@ -1321,7 +1321,7 @@ class TestLoaderSchemaParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.optimize_dtypes is False
+        assert loader.config.schema.optimize_dtypes is False
 
     def test_sample_size_parameter(self):
         """Test sample_size parameter"""
@@ -1331,7 +1331,7 @@ class TestLoaderSchemaParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.sample_size == 1000
+        assert loader.config.schema.sample_size == 1000
 
     def test_sample_size_null(self):
         """Test sample_size as null"""
@@ -1341,7 +1341,7 @@ class TestLoaderSchemaParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.sample_size is None
+        assert loader.config.schema.sample_size is None
 
     def test_leading_zeros_parameter(self):
         """Test leading_zeros parameter"""
@@ -1357,7 +1357,7 @@ class TestLoaderSchemaParameters:
             )
 
             loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-            assert loader.config.schema_config.leading_zeros == value
+            assert loader.config.schema.leading_zeros == value
 
     def test_leading_zeros_invalid(self):
         """Test invalid leading_zeros parameter"""
@@ -1386,7 +1386,7 @@ class TestLoaderSchemaParameters:
             )
 
             loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-            assert loader.config.schema_config.nullable_int == value
+            assert loader.config.schema.nullable_int == value
 
     def test_nullable_int_invalid(self):
         """Test invalid nullable_int parameter"""
@@ -1412,7 +1412,7 @@ class TestLoaderSchemaParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.infer_logical_types is True
+        assert loader.config.schema.infer_logical_types is True
 
     def test_descriptive_parameters(self):
         """Test descriptive parameters"""
@@ -1425,9 +1425,9 @@ class TestLoaderSchemaParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.schema_id == "test_schema_v1"
-        assert loader.config.schema_config.name == "Test Schema"
-        assert loader.config.schema_config.description == "Schema for testing"
+        assert loader.config.schema.schema_id == "test_schema_v1"
+        assert loader.config.schema.name == "Test Schema"
+        assert loader.config.schema.description == "Schema for testing"
 
 
 class TestLoaderSchemaFieldParameters:
@@ -1470,7 +1470,7 @@ class TestLoaderSchemaFieldParameters:
             )
 
             loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-            assert loader.config.schema_config.fields["email"].logical_type == value
+            assert loader.config.schema.fields["email"].logical_type == value
 
     def test_leading_zeros_field_level(self):
         """Test leading_zeros at field level"""
@@ -1483,10 +1483,8 @@ class TestLoaderSchemaFieldParameters:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.leading_zeros == "never"
-        assert (
-            loader.config.schema_config.fields["user_id"].leading_zeros == "leading_5"
-        )
+        assert loader.config.schema.leading_zeros == "never"
+        assert loader.config.schema.fields["user_id"].leading_zeros == "leading_5"
 
     def test_leading_zeros_field_invalid(self):
         """Test invalid leading_zeros at field level"""
@@ -1558,7 +1556,7 @@ class TestLoaderSchemaEdgeCases:
         # Test with no schema_config - should use defaults
         loader = Loader(filepath=self.temp_file.name)
         # Should not raise error
-        assert loader.config.schema_config is None
+        assert loader.config.schema is None
 
     def test_schema_with_only_global_params(self):
         """Test schema with only global parameters"""
@@ -1572,9 +1570,9 @@ class TestLoaderSchemaEdgeCases:
         )
 
         loader = Loader(filepath=self.temp_file.name, schema=schema_config)
-        assert loader.config.schema_config.compute_stats is False
-        assert loader.config.schema_config.optimize_dtypes is True
-        assert loader.config.schema_config.sample_size == 100
+        assert loader.config.schema.compute_stats is False
+        assert loader.config.schema.optimize_dtypes is True
+        assert loader.config.schema.sample_size == 100
 
     def test_invalid_global_parameter(self):
         """Test invalid global parameter"""
@@ -1605,7 +1603,7 @@ class TestLoaderSchemaEdgeCases:
 
         # This should raise ConfigError due to field conflict
         with pytest.raises(
-            ConfigError, match="Conflict detected.*col1.*schema_config and column_types"
+            ConfigError, match="Conflict detected.*col1.*schema and column_types"
         ):
             Loader(
                 filepath=self.temp_file.name,
