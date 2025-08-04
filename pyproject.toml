@@ -274,8 +274,10 @@ upload_to_vcs_release = true    # 上傳到版本控制系統 Upload to VCS rele
 # pytest 配置 pytest configuration
 [tool.pytest.ini_options]
 markers = [
-    "stress: 壓力測試標記，用於標識需要大量資源的測試",
-    "excel: Excel 檔案測試標記，用於標識需要 openpyxl 的測試"
+    "stress: Stress test marker, used to identify tests requiring significant resources",
+    "stress_zh: 壓力測試標記，用於標識需要大量資源的測試",
+    "excel: Excel file test marker, used to identify tests requiring openpyxl",
+    "excel_zh: Excel 檔案測試標記，用於標識需要 openpyxl 的測試"
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
