@@ -138,6 +138,7 @@ dev = [
 	"pip-audit>=2.7.3,<3",                    # Security audit tool
 	"pydantic>=2.11.7",                       # Data validation
 	"pytest>=8.4.1,<9",                       # Testing framework
+	"pytest-cov>=6.0.0,<7",                   # Test coverage reporting
 	"python-gitlab>=6.1.0",                   # GitLab API client
 	"python-semantic-release>=10.2.0,<11",    # Release automation
 	"pywin32>=310 ; sys_platform == 'win32'", # Windows-specific tools
@@ -291,3 +292,25 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+
+# pytest-cov 配置 pytest-cov configuration
+[tool.coverage.run]
+source = ["petsard"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+]
+show_missing = true
+precision = 2

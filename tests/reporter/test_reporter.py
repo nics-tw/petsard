@@ -500,7 +500,7 @@ class Test_ReporterSaveReport:
 
             try:
                 granularity = convert_eval_expt_name_to_tuple(full_expt_tuple[1])[1]
-            except TypeError:
+            except (TypeError, ConfigError):
                 granularity = "global"
             output_eval_name = f"[{granularity}]"
             skip_flag, rpt = ReporterSaveReport._process_report_data(
@@ -722,7 +722,7 @@ class Test_utils:
             full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
             assert convert_full_expt_name_to_tuple(full_expt_name) == full_expt_tuple
 
-    def convert_eval_expt_name_to_tuple(
+    def test_convert_eval_expt_name_to_tuple(
         self,
         sample_eval_expt_name,
         sample_eval_expt_tuple,
@@ -743,6 +743,96 @@ class Test_utils:
             eval_expt_name: str = sample_eval_expt_name(case=case)
             eval_expt_tuple: tuple = sample_eval_expt_tuple(case=case)
             assert convert_eval_expt_name_to_tuple(eval_expt_name) == eval_expt_tuple
+
+    def test_convert_eval_expt_name_to_tuple_invalid_format(self):
+        """
+        Test case for invalid format inputs to convert_eval_expt_name_to_tuple function.
+
+        - convert_eval_expt_name_to_tuple should raise ConfigError when:
+            - Missing brackets: 'test_global'
+            - Missing underscore: 'test[global]'
+            - Empty brackets: 'test_[]'
+            - Invalid characters: 'test@_[global]'
+            - Multiple brackets: 'test_[global][extra]'
+        """
+        from petsard.exceptions import ConfigError
+
+        invalid_formats = [
+            "test_global",  # Missing brackets
+            "test[global]",  # Missing underscore before brackets
+            "test_[]",  # Empty brackets
+            "test@_[global]",  # Invalid characters
+            "test_[global][extra]",  # Multiple brackets
+            "",  # Empty string
+            "_[global]",  # Missing eval name
+            "test_",  # Missing brackets entirely
+        ]
+
+        for invalid_format in invalid_formats:
+            with pytest.raises(ConfigError):
+                convert_eval_expt_name_to_tuple(invalid_format)
+
+    def test_full_expt_tuple_filter_invalid_method(self):
+        """
+        Test case for invalid method inputs to full_expt_tuple_filter function.
+
+        - full_expt_tuple_filter should raise ConfigError when:
+            - method is not 'include' or 'exclude'
+        """
+        from petsard.exceptions import ConfigError
+        from petsard.reporter.utils import full_expt_tuple_filter
+
+        test_tuple = ("Loader", "default", "Preprocessor", "default")
+        target = "Loader"
+
+        invalid_methods = ["invalid", "", "both", "inc", "exc"]
+
+        for invalid_method in invalid_methods:
+            with pytest.raises(ConfigError):
+                full_expt_tuple_filter(test_tuple, invalid_method, target)
+
+    def test_full_expt_tuple_filter_valid_operations(self):
+        """
+        Test case for valid operations of full_expt_tuple_filter function.
+
+        - full_expt_tuple_filter should work correctly with:
+            - include method with string target
+            - include method with list target
+            - exclude method with string target
+            - exclude method with list target
+        """
+        from petsard.reporter.utils import full_expt_tuple_filter
+
+        test_tuple = (
+            "Loader",
+            "default",
+            "Preprocessor",
+            "default",
+            "Evaluator",
+            "test",
+        )
+
+        # Test include with string
+        result = full_expt_tuple_filter(test_tuple, "include", "Loader")
+        assert result == ("Loader", "default")
+
+        # Test include with list
+        result = full_expt_tuple_filter(test_tuple, "include", ["Loader", "Evaluator"])
+        assert result == ("Loader", "default", "Evaluator", "test")
+
+        # Test exclude with string
+        result = full_expt_tuple_filter(test_tuple, "exclude", "Preprocessor")
+        assert result == ("Loader", "default", "Evaluator", "test")
+
+        # Test exclude with list
+        result = full_expt_tuple_filter(
+            test_tuple, "exclude", ["Loader", "Preprocessor"]
+        )
+        assert result == ("Evaluator", "test")
+
+        # Test case insensitive method
+        result = full_expt_tuple_filter(test_tuple, "INCLUDE", "Loader")
+        assert result == ("Loader", "default")
 
 
 class TestReporterSaveTiming:

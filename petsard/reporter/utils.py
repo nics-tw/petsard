@@ -1,5 +1,4 @@
 import re
-from typing import List, Union
 
 from petsard.exceptions import ConfigError
 
@@ -76,18 +75,20 @@ def convert_eval_expt_name_to_tuple(expt_name: str) -> tuple:
     Raises:
         ConfigError: If the experiment name does not match the expected pattern.
     """
-    pattern = re.compile(r"([A-Za-z0-9_-]+)\_\[([\w-]+)\]")
+    pattern = re.compile(r"^([A-Za-z0-9_-]+)_\[([\w-]+)\]$")
     match = pattern.match(expt_name)
     if match:
         return match.groups()
     else:
-        return ConfigError
+        raise ConfigError(
+            f"Invalid experiment name format: '{expt_name}'. Expected format: 'eval_name_[granularity]'"
+        )
 
 
 def full_expt_tuple_filter(
     full_expt_tuple: tuple,
     method: str,
-    target: Union[str, List[str]],
+    target: str | list[str],
 ) -> tuple:
     """
     Filters a tuple based on the given method and target.

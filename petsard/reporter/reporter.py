@@ -1,7 +1,6 @@
 import re
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import List
 
 import pandas as pd
 
@@ -298,7 +297,10 @@ class BaseReporter(ABC):
             data (pd.DataFrame): The data to be saved.
             full_output (str): The full output path for the CSV file.
         """
-        print(f"Now is {full_output} save to csv...")
+        import logging
+
+        logger = logging.getLogger(f"PETsARD.{__name__}")
+        logger.info(f"Saving report to {full_output}.csv")
         data.to_csv(path_or_buf=f"{full_output}.csv", index=False, encoding="utf-8")
 
 
@@ -593,12 +595,14 @@ class ReporterSaveReport(BaseReporter):
 
         # 3. match granularity, if exist, copy()
         if report is None:
-            print(
-                f"Reporter: "
-                f"There's no {granularity} granularity report "
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.warning(
+                f"No {granularity} granularity report found "
                 f"in {full_expt_tuple[-2]} "
                 f"{convert_eval_expt_name_to_tuple(full_expt_tuple[-1])[0]}. "
-                f"Nothing collect."
+                f"Skipping data collection."
             )
             return True, None
         report = report.copy()
@@ -678,8 +682,8 @@ class ReporterSaveReport(BaseReporter):
             pd.DataFrame: The concatenated DataFrame.
         """
         df: pd.DataFrame = None
-        common_columns: List[str] = None
-        allow_common_columns: List[str] = cls.ALLOWED_IDX_MODULE + [
+        common_columns: list[str] = None
+        allow_common_columns: list[str] = cls.ALLOWED_IDX_MODULE + [
             cls.SAVE_REPORT_KEY,
             "column",
             "column1",
@@ -704,11 +708,14 @@ class ReporterSaveReport(BaseReporter):
         #   if not, change dtype to object, and print warning
         for col in common_columns:
             if df1_common_dtype[col] != df2_common_dtype[col]:
-                print(
-                    f"Reporter: Column '{col}' in "
+                import logging
+
+                logger = logging.getLogger(f"PETsARD.{__name__}")
+                logger.warning(
+                    f"Column '{col}' has different dtypes in "
                     f"'{name1}' ({df1_common_dtype[col]}) and "
-                    f"'{name2}' ({df2_common_dtype[col]}) "
-                    f"have different dtype. Change dtype to object."
+                    f"'{name2}' ({df2_common_dtype[col]}). "
+                    f"Converting to object dtype."
                 )
                 df1[col] = df1[col].astype("object")
                 df2[col] = df2[col].astype("object")
@@ -766,8 +773,11 @@ class ReporterSaveReport(BaseReporter):
         reporter: dict = self.result["Reporter"]
 
         if "warnings" in reporter:
-            print(
-                "Reporter: No CSV file will be saved. "
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.warning(
+                "No CSV file will be saved. "
                 "This warning can be ignored "
                 "if running with different granularity config."
             )
@@ -899,7 +909,10 @@ class ReporterSaveTiming(BaseReporter):
         Generates the timing report.
         """
         if not self.result:
-            print("Reporter: No timing data available for reporting.")
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.info("No timing data available for reporting.")
             return
 
         for report_type, df in self.result.items():
