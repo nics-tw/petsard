@@ -52,6 +52,8 @@ class ReportGranularity(IntEnum):
     GLOBAL = 1
     COLUMNWISE = 2
     PAIRWISE = 3
+    DETAILS = 4
+    TREE = 5
 
     @classmethod
     def map(cls, granularity: str) -> "ReportGranularity":
@@ -71,6 +73,8 @@ class ReportGranularity(IntEnum):
             "GLOBAL": cls.GLOBAL,
             "COLUMNWISE": cls.COLUMNWISE,
             "PAIRWISE": cls.PAIRWISE,
+            "DETAILS": cls.DETAILS,
+            "TREE": cls.TREE,
         }
 
         try:

@@ -889,15 +889,37 @@ class ReporterAdapter(BaseAdapter):
         if isinstance(result, dict) and "Reporter" in result:
             # ReporterSaveReport
             temp = result["Reporter"]
-            # exception handler so no need to collect exist report in this round
-            #   e.g. no matched granularity
-            if "warnings" in temp:
-                return
-            if not all(key in temp for key in ["eval_expt_name", "report"]):
-                raise ConfigError
-            eval_expt_name = temp["eval_expt_name"]
-            report = deepcopy(temp["report"])
-            self.report[eval_expt_name] = report
+
+            # 檢查是否為舊格式（單一 granularity）
+            if "eval_expt_name" in temp and "report" in temp:
+                # 舊格式：單一 granularity
+                if "warnings" in temp:
+                    return
+                eval_expt_name = temp["eval_expt_name"]
+                report = deepcopy(temp["report"])
+                self.report[eval_expt_name] = report
+            else:
+                # 新格式：多 granularity
+                for eval_expt_name, granularity_data in temp.items():
+                    if not isinstance(granularity_data, dict):
+                        continue
+
+                    # 跳過有警告的 granularity
+                    if "warnings" in granularity_data:
+                        continue
+
+                    # 驗證必要的鍵
+                    if not all(
+                        key in granularity_data for key in ["eval_expt_name", "report"]
+                    ):
+                        continue
+
+                    # 跳過 report 為 None 的情況
+                    if granularity_data["report"] is None:
+                        continue
+
+                    report = deepcopy(granularity_data["report"])
+                    self.report[eval_expt_name] = report
         elif isinstance(result, dict):
             # ReporterSaveData 或其他類型
             self.report = deepcopy(result)
