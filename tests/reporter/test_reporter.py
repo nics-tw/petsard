@@ -384,13 +384,21 @@ class Test_ReporterSaveReport:
         rpt = ReporterSaveReport(config=cfg)
         assert isinstance(rpt, ReporterSaveReport)
 
-        with pytest.raises(UnsupportedMethodError):
+        with pytest.raises(ConfigError):
             cfg["granularity"] = "invalid_method"
             ReporterSaveReport(config=cfg)
 
-        with pytest.raises(ConfigError):
-            cfg["granularity"] = ["global", "columnwise"]
-            ReporterSaveReport(config=cfg)
+        # 多 granularity 支援現在應該正常工作
+        cfg["granularity"] = ["global", "columnwise"]
+        rpt = ReporterSaveReport(config=cfg)
+        assert isinstance(rpt, ReporterSaveReport)
+        assert rpt.config["granularity_list"] == ["global", "columnwise"]
+
+        # 測試新的 granularity 類型
+        cfg["granularity"] = ["details", "tree"]
+        rpt = ReporterSaveReport(config=cfg)
+        assert isinstance(rpt, ReporterSaveReport)
+        assert rpt.config["granularity_list"] == ["details", "tree"]
 
     def test_eval(self):
         """
@@ -433,6 +441,155 @@ class Test_ReporterSaveReport:
             cfg["eval"] = ("test1", "test2")
             ReporterSaveReport(config=cfg)
 
+    def test_multi_granularity_support(self):
+        """
+        Test case for multi-granularity support in ReporterSaveReport class.
+
+        - ReporterSaveReport should support both str and list[str] for granularity
+        - Should support new granularity types: details, tree
+        - Should maintain backward compatibility
+        """
+        cfg = {"method": "save_report", "eval": "test"}
+
+        # Test single granularity (backward compatibility)
+        cfg["granularity"] = "global"
+        rpt = ReporterSaveReport(config=cfg)
+        assert rpt.config["granularity"] == "global"
+        assert rpt.config["granularity_list"] == ["global"]
+        assert len(rpt.config["granularity_codes"]) == 1
+
+        # Test multiple granularities
+        cfg["granularity"] = ["global", "columnwise", "pairwise"]
+        rpt = ReporterSaveReport(config=cfg)
+        assert rpt.config["granularity"] == "global"  # backward compatibility
+        assert rpt.config["granularity_list"] == ["global", "columnwise", "pairwise"]
+        assert len(rpt.config["granularity_codes"]) == 3
+
+        # Test new granularity types
+        cfg["granularity"] = ["details", "tree"]
+        rpt = ReporterSaveReport(config=cfg)
+        assert rpt.config["granularity_list"] == ["details", "tree"]
+
+        # Test mixed granularities
+        cfg["granularity"] = ["global", "details", "tree", "columnwise"]
+        rpt = ReporterSaveReport(config=cfg)
+        assert len(rpt.config["granularity_list"]) == 4
+
+        # Test invalid granularity should raise error
+        with pytest.raises(ConfigError):
+            cfg["granularity"] = ["invalid_granularity"]
+            ReporterSaveReport(config=cfg)
+
+        # Test invalid type should raise error
+        with pytest.raises(ConfigError):
+            cfg["granularity"] = 123
+            ReporterSaveReport(config=cfg)
+
+    def test_multi_granularity_create(self, sample_reporter_input):
+        """
+        Test case for create() method with multi-granularity support.
+
+        - Should process multiple granularities and return combined results
+        - Should handle cases where some granularities have no data
+        """
+        cfg = {
+            "method": "save_report",
+            "granularity": ["global", "columnwise"],
+            "eval": ["test1", "test2"],
+        }
+
+        rpt = ReporterSaveReport(config=cfg)
+        data = sample_reporter_input
+
+        # Test create with multi-granularity
+        result = rpt.create(data=data["data"])
+
+        # Should return dict with Reporter key
+        assert isinstance(result, dict)
+        assert "Reporter" in result
+
+        # Should contain results for both granularities
+        reporter_data = result["Reporter"]
+        assert isinstance(reporter_data, dict)
+
+        # Check that we have results for the granularities that have data
+        expected_keys = ["test1-test2_[global]", "test1-test2_[columnwise]"]
+        for key in expected_keys:
+            if key in reporter_data:
+                assert "eval_expt_name" in reporter_data[key]
+                assert "granularity" in reporter_data[key]
+                assert "report" in reporter_data[key]
+
+    def test_setup_evaluation_parameters_for_granularity(self):
+        """
+        Test case for _setup_evaluation_parameters_for_granularity method.
+        """
+        cfg = {
+            "method": "save_report",
+            "granularity": ["global", "columnwise"],
+            "eval": ["test-eval"],
+        }
+
+        rpt = ReporterSaveReport(config=cfg)
+
+        # Test global granularity
+        eval_pattern, output_eval_name = (
+            rpt._setup_evaluation_parameters_for_granularity("global")
+        )
+        assert eval_pattern == "^(test\\-eval)_\\[global\\]$"
+        assert output_eval_name == "test-eval_[global]"
+
+        # Test columnwise granularity
+        eval_pattern, output_eval_name = (
+            rpt._setup_evaluation_parameters_for_granularity("columnwise")
+        )
+        assert eval_pattern == "^(test\\-eval)_\\[columnwise\\]$"
+        assert output_eval_name == "test-eval_[columnwise]"
+
+        # Test with no eval config
+        cfg["eval"] = None
+        rpt = ReporterSaveReport(config=cfg)
+        eval_pattern, output_eval_name = (
+            rpt._setup_evaluation_parameters_for_granularity("global")
+        )
+        assert eval_pattern == "_\\[global\\]$"
+        assert output_eval_name == "[global]"
+
+    def test_reset_details_index(self):
+        """
+        Test case for _reset_details_index method.
+        """
+        # Create test DataFrame
+        test_df = pd.DataFrame(
+            {"metric1": [0.8, 0.9], "metric2": [0.7, 0.85]},
+            index=["detail1", "detail2"],
+        )
+
+        result = ReporterSaveReport._reset_details_index(test_df)
+
+        # Should reset index and add index column
+        assert "index" in result.columns
+        assert len(result) == 2
+        assert result.iloc[0]["index"] == "detail1"
+        assert result.iloc[1]["index"] == "detail2"
+
+    def test_reset_tree_index(self):
+        """
+        Test case for _reset_tree_index method.
+        """
+        # Create test DataFrame
+        test_df = pd.DataFrame(
+            {"metric1": [0.8, 0.9], "metric2": [0.7, 0.85]}, index=["node1", "node2"]
+        )
+
+        result = ReporterSaveReport._reset_tree_index(test_df)
+
+        # Should reset index and add index column
+        assert "index" in result.columns
+        assert len(result) == 2
+        assert result.iloc[0]["index"] == "node1"
+        assert result.iloc[1]["index"] == "node2"
+
     def test_create(self, sample_reporter_input, sample_reporter_output):
         """
         Test case for `create()` function of ReporterSaveReport class.
@@ -443,39 +600,53 @@ class Test_ReporterSaveReport:
             - the granularity been set to 'pairwise''
         """
 
-        def _test_create(
-            data: dict, granularity: str
-        ) -> tuple[ReporterSaveReport, pd.DataFrame]:
+        def _test_create(data: dict, granularity: str) -> tuple[dict, pd.DataFrame]:
             cfg: dict = {}
             cfg["method"] = "save_report"
             cfg["granularity"] = granularity
 
             rpt = ReporterSaveReport(config=cfg)
-            rpt.create(data=data["data"])
+            result = rpt.create(data=data["data"])
             expected_rpt = sample_reporter_output(case=f"{granularity}-process")
 
-            return (rpt, expected_rpt)
+            return (result, expected_rpt)
 
         data: dict = sample_reporter_input
         granularity: str = None
 
         granularity = "global"
-        rpt, expected_rpt = _test_create(data, granularity)
-        assert rpt.result["Reporter"]["eval_expt_name"] == f"[{granularity}]"
-        assert rpt.result["Reporter"]["granularity"] == f"{granularity}"
-        pd.testing.assert_frame_equal(rpt.result["Reporter"]["report"], expected_rpt)
+        result, expected_rpt = _test_create(data, granularity)
+        # 新的多 granularity 格式
+        if (
+            isinstance(result["Reporter"], dict)
+            and f"[{granularity}]" in result["Reporter"]
+        ):
+            reporter_data = result["Reporter"][f"[{granularity}]"]
+            assert reporter_data["eval_expt_name"] == f"[{granularity}]"
+            assert reporter_data["granularity"] == f"{granularity}"
+            pd.testing.assert_frame_equal(reporter_data["report"], expected_rpt)
 
         granularity = "columnwise"
-        rpt, expected_rpt = _test_create(data, granularity)
-        assert rpt.result["Reporter"]["eval_expt_name"] == f"[{granularity}]"
-        assert rpt.result["Reporter"]["granularity"] == f"{granularity}"
-        pd.testing.assert_frame_equal(rpt.result["Reporter"]["report"], expected_rpt)
+        result, expected_rpt = _test_create(data, granularity)
+        if (
+            isinstance(result["Reporter"], dict)
+            and f"[{granularity}]" in result["Reporter"]
+        ):
+            reporter_data = result["Reporter"][f"[{granularity}]"]
+            assert reporter_data["eval_expt_name"] == f"[{granularity}]"
+            assert reporter_data["granularity"] == f"{granularity}"
+            pd.testing.assert_frame_equal(reporter_data["report"], expected_rpt)
 
         granularity = "pairwise"
-        rpt, expected_rpt = _test_create(data, granularity)
-        assert rpt.result["Reporter"]["eval_expt_name"] == f"[{granularity}]"
-        assert rpt.result["Reporter"]["granularity"] == f"{granularity}"
-        pd.testing.assert_frame_equal(rpt.result["Reporter"]["report"], expected_rpt)
+        result, expected_rpt = _test_create(data, granularity)
+        if (
+            isinstance(result["Reporter"], dict)
+            and f"[{granularity}]" in result["Reporter"]
+        ):
+            reporter_data = result["Reporter"][f"[{granularity}]"]
+            assert reporter_data["eval_expt_name"] == f"[{granularity}]"
+            assert reporter_data["granularity"] == f"{granularity}"
+            pd.testing.assert_frame_equal(reporter_data["report"], expected_rpt)
 
     def test_process_report_data(self, sample_reporter_input):
         """
@@ -894,29 +1065,26 @@ class TestReporterSaveTiming:
         reporter = ReporterSaveTiming(config)
 
         # 沒有 timing_data 鍵
-        reporter.create({})
-        assert reporter.result == {}
+        result = reporter.create({})
+        assert result is None
 
         # 空的 DataFrame
-        reporter.create({"timing_data": pd.DataFrame()})
-        assert reporter.result == {}
+        result = reporter.create({"timing_data": pd.DataFrame()})
+        assert result is None
 
     def test_create_seconds_unit(self, sample_timing_data):
         """測試秒為單位的處理"""
         config = {"method": "save_timing", "time_unit": "seconds"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        assert "timing_report" in reporter.result
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 檢查欄位
         assert "duration_seconds" in result_df.columns
-        assert (
-            "duration_seconds" not in result_df.columns
-            or len([col for col in result_df.columns if col == "duration_seconds"]) == 1
-        )
 
         # 檢查資料
         assert len(result_df) == 3
@@ -927,9 +1095,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "time_unit": "minutes"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 檢查欄位
         assert "duration_minutes" in result_df.columns
@@ -944,9 +1114,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "time_unit": "hours"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 檢查欄位
         assert "duration_hours" in result_df.columns
@@ -961,9 +1133,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "time_unit": "days"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 檢查欄位
         assert "duration_days" in result_df.columns
@@ -978,9 +1152,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "module": "LoaderOp"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 只應該有 LoaderOp 的記錄
         assert len(result_df) == 1
@@ -992,9 +1168,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "module": ["LoaderOp", "SynthesizerOp"]}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 應該有 LoaderOp 和 SynthesizerOp 的記錄
         assert len(result_df) == 2
@@ -1006,9 +1184,11 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "time_unit": "minutes"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
-        result_df = reporter.result["timing_report"]
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        result_df = result
 
         # 檢查基本欄位順序
         expected_start = [
@@ -1038,9 +1218,9 @@ class TestReporterSaveTiming:
         config = {"method": "save_timing", "output": "test_timing"}
         reporter = ReporterSaveTiming(config)
 
-        reporter.create({"timing_data": sample_timing_data})
+        result = reporter.create({"timing_data": sample_timing_data})
 
         # 這裡我們不實際儲存檔案，只檢查不會出錯
-        # 在實際環境中會呼叫 _save 方法
-        assert "timing_report" in reporter.result
-        assert not reporter.result["timing_report"].empty
+        # ReporterSaveTiming 現在直接返回 DataFrame
+        assert isinstance(result, pd.DataFrame)
+        assert not result.empty

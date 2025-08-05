@@ -901,45 +901,64 @@ Tests for mpUCCs (Maximal Partial Unique Column Combinations) privacy risk asses
 
 > tests/reporter/test_reporter.py
 
-
-> - All original functionality has been preserved with full backward compatibility
-> - Enhanced merge logic in `_safe_merge` method to properly handle columnwise and pairwise data merging
-
-Tests for the main Reporter functionality:
+Tests for the main Reporter functionality with **functional design architecture**:
 
 - `test_method`: Tests Reporter initialization with different methods:
   - ReporterSaveData for 'save_data' method
   - ReporterSaveReport for 'save_report' method
+  - ReporterSaveTiming for 'save_timing' method
   - UnsupportedMethodError for invalid methods
 - `test_method_save_data`: Tests save_data method validation:
   - ConfigError when no source is provided
 - `test_method_save_report`: Tests save_report method validation:
   - Valid initialization with granularity only
   - ConfigError when required parameters are missing
+- `test_method_save_timing`: Tests save_timing method validation:
+  - Valid initialization with optional parameters
+  - Proper handling of time_unit and module filtering
 
 #### `ReporterSaveData`
 
-Tests for data saving functionality:
+Tests for data saving functionality with functional design:
 
 - `test_source`: Tests source parameter validation:
   - String and list of strings are accepted
   - ConfigError for invalid types (float, mixed list, tuple)
+- `test_functional_create_and_report`: Tests functional "throw out and throw back in" pattern:
+  - `create()` processes data without storing in instance variables
+  - `report()` receives processed data and generates output files
+  - No internal state maintained between calls
 
 #### `ReporterSaveReport`
 
-Tests for report generation functionality:
+Tests for report generation functionality with **multi-granularity support**:
 
 - `test_granularity`: Tests granularity parameter validation:
-  - Valid values: 'global', 'columnwise', 'pairwise'
+  - **Single granularity**: 'global', 'columnwise', 'pairwise', 'details', 'tree'
+  - **Multi-granularity**: ['global', 'columnwise'], ['details', 'tree']
   - ConfigError for missing or invalid granularity
-  - ConfigError for non-string types
+  - ConfigError for non-string/non-list types
+- `test_multi_granularity_support`: Tests multi-granularity functionality:
+  - Processing multiple granularities in single operation
+  - Separate report generation for each granularity
+  - Proper handling of granularity-specific data structures
+- `test_new_granularity_types`: Tests new granularity types (v2.0+):
+  - 'details': Detailed breakdown with additional metrics
+  - 'tree': Hierarchical tree structure analysis
 - `test_eval`: Tests eval parameter validation:
   - String, list of strings, or None are accepted
   - ConfigError for invalid types
-- `test_create`: Tests report creation for all granularities:
+- `test_create`: Tests functional report creation for all granularities:
   - Global granularity report generation
   - Columnwise granularity report generation
   - Pairwise granularity report generation
+  - Details granularity report generation
+  - Tree granularity report generation
+  - Multi-granularity processing
+- `test_functional_design_pattern`: Tests functional "throw out and throw back in" pattern:
+  - `create()` returns processed data without storing internally
+  - `report()` accepts processed data and generates files
+  - Memory optimization through stateless design
 - `test_process_report_data`: Tests data processing functionality:
   - Column renaming with eval name prefixes
   - Index handling for different granularities
@@ -950,6 +969,18 @@ Tests for report generation functionality:
   - Proper handling of common columns including 'column', 'column1', 'column2'
   - Correct row ordering in merged results
 
+#### `ReporterSaveTiming`
+
+Tests for timing information reporting functionality:
+
+- `test_timing_data_processing`: Tests timing data processing:
+  - Time unit conversion (seconds, minutes, hours, days)
+  - Module filtering functionality
+  - Timing metadata extraction
+- `test_functional_timing_workflow`: Tests functional timing workflow:
+  - Processing timing data without internal storage
+  - Generating timing reports with proper formatting
+
 #### `Reporter Utils`
 
 Tests for utility functions:
@@ -957,6 +988,10 @@ Tests for utility functions:
 - `test_convert_full_expt_tuple_to_name`: Tests experiment tuple to name conversion
 - `test_convert_full_expt_name_to_tuple`: Tests experiment name to tuple conversion
 - `test_convert_eval_expt_name_to_tuple`: Tests evaluation experiment name parsing
+
+> **Functional Design Architecture**: Reporter has been completely refactored to use a functional "throw out and throw back in" design pattern for memory optimization. The `create()` method processes data but doesn't store it in instance variables (`self.result`, `self._processed_data`), while `report()` receives the processed data and generates output files. This stateless approach significantly reduces memory consumption while maintaining full backward compatibility.
+
+> **Multi-Granularity Support**: Reporter now supports both single granularity (`str`) and multi-granularity (`list[str]`) configurations, allowing users to process multiple granularities in a single operation. New granularity types 'details' and 'tree' have been added alongside the traditional 'global', 'columnwise', and 'pairwise' options.
 
 ## System Components
 

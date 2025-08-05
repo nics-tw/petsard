@@ -798,17 +798,23 @@ class TestReporterAdapter:
 
     def test_run_save_report(self):
         """測試儲存報告執行"""
-        config = {"method": "save_report"}
+        config = {"method": "save_report", "granularity": "global"}
         input_data = {"data": {"test_data": pd.DataFrame({"A": [1, 2, 3]})}}
 
         with patch("petsard.adapter.Reporter") as mock_reporter_class:
             mock_reporter = Mock()
-            mock_reporter.result = {
+            # 新的函式化設計：create() 返回結果而不是存儲在 result 中
+            result_data = {
                 "Reporter": {
-                    "eval_expt_name": "test_experiment",
-                    "report": pd.DataFrame({"metric": [0.8, 0.9]}),
+                    "[global]": {
+                        "eval_expt_name": "[global]",
+                        "granularity": "global",
+                        "report": pd.DataFrame({"metric": [0.8, 0.9]}),
+                    }
                 }
             }
+            mock_reporter.create.return_value = result_data
+            mock_reporter.report.return_value = result_data
             mock_reporter_class.return_value = mock_reporter
 
             operator = ReporterAdapter(config)
@@ -816,16 +822,19 @@ class TestReporterAdapter:
 
             mock_reporter.create.assert_called_once_with(data=input_data["data"])
             mock_reporter.report.assert_called_once()
-            assert "test_experiment" in operator.report
+            assert "[global]" in operator.report
 
     def test_run_save_data(self):
         """測試儲存資料執行"""
-        config = {"method": "save_data"}
+        config = {"method": "save_data", "source": "test"}
         input_data = {"data": {"test_data": pd.DataFrame({"A": [1, 2, 3]})}}
 
         with patch("petsard.adapter.Reporter") as mock_reporter_class:
             mock_reporter = Mock()
-            mock_reporter.result = {"saved_data": "path/to/saved/data"}
+            # 新的函式化設計：create() 返回結果
+            result_data = {"saved_data": "path/to/saved/data"}
+            mock_reporter.create.return_value = result_data
+            mock_reporter.report.return_value = result_data
             mock_reporter_class.return_value = mock_reporter
 
             operator = ReporterAdapter(config)
@@ -858,6 +867,132 @@ class TestReporterAdapter:
 
         assert "data" in result
         assert "exist_report" in result["data"]
+
+    def test_run_save_report_multi_granularity(self):
+        """測試多 granularity 儲存報告執行"""
+        config = {"method": "save_report", "granularity": ["global", "columnwise"]}
+        input_data = {"data": {"test_data": pd.DataFrame({"A": [1, 2, 3]})}}
+
+        with patch("petsard.adapter.Reporter") as mock_reporter_class:
+            mock_reporter = Mock()
+            # 多 granularity 結果格式
+            result_data = {
+                "Reporter": {
+                    "test_[global]": {
+                        "eval_expt_name": "test_[global]",
+                        "granularity": "global",
+                        "report": pd.DataFrame({"metric": [0.8]}),
+                    },
+                    "test_[columnwise]": {
+                        "eval_expt_name": "test_[columnwise]",
+                        "granularity": "columnwise",
+                        "report": pd.DataFrame({"metric": [0.9, 0.7]}),
+                    },
+                }
+            }
+            mock_reporter.create.return_value = result_data
+            mock_reporter.report.return_value = result_data
+            mock_reporter_class.return_value = mock_reporter
+
+            operator = ReporterAdapter(config)
+            operator._run(input_data)
+
+            mock_reporter.create.assert_called_once_with(data=input_data["data"])
+            mock_reporter.report.assert_called_once()
+
+            # 檢查多 granularity 結果
+            assert "test_[global]" in operator.report
+            assert "test_[columnwise]" in operator.report
+            # 注意：report 中存儲的是 DataFrame，不包含 granularity 資訊
+            assert isinstance(operator.report["test_[global]"], pd.DataFrame)
+            assert isinstance(operator.report["test_[columnwise]"], pd.DataFrame)
+
+    def test_run_save_report_new_granularity_types(self):
+        """測試新的 granularity 類型（details, tree）"""
+        config = {"method": "save_report", "granularity": ["details", "tree"]}
+        input_data = {"data": {"test_data": pd.DataFrame({"A": [1, 2, 3]})}}
+
+        with patch("petsard.adapter.Reporter") as mock_reporter_class:
+            mock_reporter = Mock()
+            # 新 granularity 類型結果格式
+            result_data = {
+                "Reporter": {
+                    "test_[details]": {
+                        "eval_expt_name": "test_[details]",
+                        "granularity": "details",
+                        "report": pd.DataFrame(
+                            {"detail": ["detail1", "detail2"], "score": [0.8, 0.9]}
+                        ),
+                    },
+                    "test_[tree]": {
+                        "eval_expt_name": "test_[tree]",
+                        "granularity": "tree",
+                        "report": pd.DataFrame(
+                            {"node": ["node1", "node2"], "score": [0.7, 0.6]}
+                        ),
+                    },
+                }
+            }
+            mock_reporter.create.return_value = result_data
+            mock_reporter.report.return_value = result_data
+            mock_reporter_class.return_value = mock_reporter
+
+            operator = ReporterAdapter(config)
+            operator._run(input_data)
+
+            # 檢查新 granularity 類型結果
+            assert "test_[details]" in operator.report
+            assert "test_[tree]" in operator.report
+            # 注意：report 中存儲的是 DataFrame，不包含 granularity 資訊
+            assert isinstance(operator.report["test_[details]"], pd.DataFrame)
+            assert isinstance(operator.report["test_[tree]"], pd.DataFrame)
+
+    def test_run_save_report_backward_compatibility(self):
+        """測試向後相容性（舊格式結果）"""
+        config = {"method": "save_report", "granularity": "global"}
+        input_data = {"data": {"test_data": pd.DataFrame({"A": [1, 2, 3]})}}
+
+        with patch("petsard.adapter.Reporter") as mock_reporter_class:
+            mock_reporter = Mock()
+            # 舊格式結果（向後相容）
+            mock_reporter.create.return_value = {
+                "Reporter": {
+                    "eval_expt_name": "test_experiment",
+                    "granularity": "global",
+                    "report": pd.DataFrame({"metric": [0.8, 0.9]}),
+                }
+            }
+            # Mock report() 方法返回 create() 的結果
+            mock_reporter.report.return_value = mock_reporter.create.return_value
+            mock_reporter_class.return_value = mock_reporter
+
+            operator = ReporterAdapter(config)
+            operator._run(input_data)
+
+            # 檢查向後相容性
+            assert "test_experiment" in operator.report
+            assert isinstance(operator.report["test_experiment"], pd.DataFrame)
+
+    def test_run_save_timing(self):
+        """測試儲存時間執行"""
+        config = {"method": "save_timing"}
+        input_data = {"data": {"timing_data": pd.DataFrame({"duration": [1.0, 2.0]})}}
+
+        with patch("petsard.adapter.Reporter") as mock_reporter_class:
+            mock_reporter = Mock()
+            timing_df = pd.DataFrame({"module": ["A", "B"], "duration": [1.0, 2.0]})
+            mock_reporter.create.return_value = {"timing_report": timing_df}
+            # Mock report() 方法返回 DataFrame（ReporterSaveTiming 的行為）
+            mock_reporter.report.return_value = timing_df
+            mock_reporter_class.return_value = mock_reporter
+
+            operator = ReporterAdapter(config)
+            operator._run(input_data)
+
+            mock_reporter.create.assert_called_once_with(data=input_data["data"])
+            mock_reporter.report.assert_called_once()
+            assert "timing_report" in operator.report
+            assert isinstance(operator.report["timing_report"], pd.DataFrame)
 
 
 if __name__ == "__main__":

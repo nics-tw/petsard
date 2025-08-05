@@ -59,12 +59,16 @@ Evaluator:
     method: 'mlutility-classification'
     target: 'income'
 Reporter:
-  output:
+  data:
     method: 'save_data'
-    source: 'Synthesizer'
-  save_report_global:
+    source: 'Postprocessor'
+  rpt:
     method: 'save_report'
-    granularity: 'global'
+    granularity:
+      - 'global'
+      - 'columnwise'
+      - 'pairwise'
+      - 'details'
 ...
 ```
 

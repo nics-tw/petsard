@@ -36,7 +36,9 @@ reporter.create({
 reporter.create({
     ('Evaluator', 'eval1_[global]'): global_results,
     ('Evaluator', 'eval1_[columnwise]'): column_results,
-    ('Evaluator', 'eval1_[pairwise]'): pair_results
+    ('Evaluator', 'eval1_[pairwise]'): pair_results,
+    ('Evaluator', 'eval1_[details]'): details_results,
+    ('Evaluator', 'eval1_[tree]'): tree_results
 })
 ```
 
@@ -99,13 +101,17 @@ reporter.create({
 reporter.create({
     ('Evaluator', 'privacy_risk_[global]'): global_privacy,
     ('Evaluator', 'data_quality_[columnwise]'): column_quality,
-    ('Evaluator', 'correlation_[pairwise]'): pair_correlation
+    ('Evaluator', 'correlation_[pairwise]'): pair_correlation,
+    ('Evaluator', 'detailed_analysis_[details]'): detailed_analysis,
+    ('Evaluator', 'hierarchical_view_[tree]'): tree_analysis
 })
 
 # Output files:
 # petsard[Report]_Evaluator-privacy_risk_[global].csv
 # petsard[Report]_Evaluator-data_quality_[columnwise].csv
 # petsard[Report]_Evaluator-correlation_[pairwise].csv
+# petsard[Report]_Evaluator-detailed_analysis_[details].csv
+# petsard[Report]_Evaluator-hierarchical_view_[tree].csv
 ```
 
 ## Naming Guidelines
@@ -117,7 +123,7 @@ reporter.create({
 2. **Experiment Names**
    - Use meaningful prefixes: 'exp', 'eval', 'test', etc.
    - Separate different parts with underscores: method names, parameter settings, etc.
-   - Use square brackets for evaluation levels: [global], [columnwise], [pairwise]
+   - Use square brackets for evaluation levels: [global], [columnwise], [pairwise], [details], [tree]
 
 3. **Parameter Encoding**
    - Use abbreviations for parameter names: eps (epsilon), del (delta), etc.

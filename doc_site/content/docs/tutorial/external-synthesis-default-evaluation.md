@@ -53,9 +53,13 @@ Evaluator:
     method: 'mlutility-classification'
     target: 'income'
 Reporter:
-  save_report_global:
+  rpt:
     method: 'save_report'
-    granularity: 'global'
+    granularity:
+      - 'global'
+      - 'columnwise'
+      - 'pairwise'
+      - 'details'
 ...
 ```
 
