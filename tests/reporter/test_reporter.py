@@ -5,17 +5,15 @@ import pandas as pd
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.reporter.reporter import (
-    Reporter,
-    ReporterSaveData,
+from petsard.reporter.base_reporter import convert_full_expt_tuple_to_name
+from petsard.reporter.reporter import Reporter
+from petsard.reporter.reporter_save_data import ReporterSaveData
+from petsard.reporter.reporter_save_report import (
     ReporterSaveReport,
-    ReporterSaveTiming,
-)
-from petsard.reporter.utils import (
     convert_eval_expt_name_to_tuple,
-    convert_full_expt_name_to_tuple,
-    convert_full_expt_tuple_to_name,
+    full_expt_tuple_filter,
 )
+from petsard.reporter.reporter_save_timing import ReporterSaveTiming
 
 
 # shared evaluation data
@@ -250,10 +248,10 @@ class Test_Reporter:
             - method='invalid_method'
         """
         rpt = Reporter(method="save_data", source="test")
-        assert isinstance(rpt.reporter, ReporterSaveData)
+        assert isinstance(rpt, ReporterSaveData)
 
         rpt = Reporter(method="save_report", granularity="global", eval="test")
-        assert isinstance(rpt.reporter, ReporterSaveReport)
+        assert isinstance(rpt, ReporterSaveReport)
 
         with pytest.raises(UnsupportedMethodError):
             Reporter(method="invalid_method")
@@ -266,13 +264,13 @@ class Test_Reporter:
             - method='save_timing'
         """
         rpt = Reporter(method="save_timing")
-        assert isinstance(rpt.reporter, ReporterSaveTiming)
+        assert isinstance(rpt, ReporterSaveTiming)
 
         rpt = Reporter(method="save_timing", time_unit="minutes")
-        assert isinstance(rpt.reporter, ReporterSaveTiming)
+        assert isinstance(rpt, ReporterSaveTiming)
 
         rpt = Reporter(method="save_timing", module="Loader")
-        assert isinstance(rpt.reporter, ReporterSaveTiming)
+        assert isinstance(rpt, ReporterSaveTiming)
 
     def test_method_save_data(self):
         """
@@ -295,7 +293,7 @@ class Test_Reporter:
             - method='save_report', eval='test', but no granularity is provided
         """
         rpt = Reporter(method="save_report", granularity="global")
-        assert isinstance(rpt.reporter, ReporterSaveReport)
+        assert isinstance(rpt, ReporterSaveReport)
 
         with pytest.raises(ConfigError):
             Reporter(method="save_report")
@@ -701,27 +699,6 @@ class Test_utils:
             full_expt_name: str = sample_full_expt_name(case=case)
             assert convert_full_expt_tuple_to_name(full_expt_tuple) == full_expt_name
 
-    def test_convert_full_expt_name_to_tuple(
-        self,
-        sample_full_expt_name,
-        sample_full_expt_tuple,
-    ):
-        """
-        Test case for the convert_full_expt_name_to_tuple function.
-
-        - convert_full_expt_name_to_tuple(expt_name: str):
-            will be converted to correct format tuple when:
-            - expt_name = 'Loader[default]_Preprocessor[default]'
-            - expt_name = 'Loader[default]_Preprocessor[test_low_dash]'.
-        """
-        # 'Loader[default]_Preprocessor[default]'
-        # 'Loader[default]_Preprocessor[test_low_dash]'
-        # 'Loader[default]_Preprocessor[default]_Evaluator_[test[global]]'
-        for case in range(1, 3 + 1, 1):
-            full_expt_name: str = sample_full_expt_name(case=case)
-            full_expt_tuple: tuple = sample_full_expt_tuple(case=case)
-            assert convert_full_expt_name_to_tuple(full_expt_name) == full_expt_tuple
-
     def test_convert_eval_expt_name_to_tuple(
         self,
         sample_eval_expt_name,
@@ -780,7 +757,6 @@ class Test_utils:
             - method is not 'include' or 'exclude'
         """
         from petsard.exceptions import ConfigError
-        from petsard.reporter.utils import full_expt_tuple_filter
 
         test_tuple = ("Loader", "default", "Preprocessor", "default")
         target = "Loader"
@@ -801,7 +777,6 @@ class Test_utils:
             - exclude method with string target
             - exclude method with list target
         """
-        from petsard.reporter.utils import full_expt_tuple_filter
 
         test_tuple = (
             "Loader",
