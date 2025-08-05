@@ -157,31 +157,62 @@ jobs:
           echo "" >> test_report.md
           
           # 運行測試並捕獲結果，包含覆蓋率
-          if pytest tests/ --cov=petsard --cov-report=term-missing --cov-report=xml --tb=long -v --disable-warnings > test_output.txt 2>&1; then
+          if pytest tests/ --cov=petsard --cov-report=term-missing --cov-report=xml --tb=short -v --disable-warnings --junit-xml=pytest-results.xml > test_output.txt 2>&1; then
             echo "test_status=success" >> $GITHUB_OUTPUT
             echo "### ✅ 測試通過 Tests Passed" >> test_report.md
+            
+            # 顯示通過的測試統計
+            PASSED_COUNT=$(grep -c "PASSED" test_output.txt 2>/dev/null || echo "0")
+            echo "" >> test_report.md
+            echo "🎉 **通過測試數量**: $PASSED_COUNT 個測試" >> test_report.md
+            echo "" >> test_report.md
           else
             echo "test_status=failed" >> $GITHUB_OUTPUT
             echo "### ❌ 測試失敗 Tests Failed" >> test_report.md
             
-            # 提取失敗的測試詳細信息
+            # 統計測試結果
+            PASSED_COUNT=$(grep -c "PASSED" test_output.txt 2>/dev/null || echo "0")
+            FAILED_COUNT=$(grep -c "FAILED" test_output.txt 2>/dev/null || echo "0")
+            ERROR_COUNT=$(grep -c "ERROR" test_output.txt 2>/dev/null || echo "0")
+            SKIPPED_COUNT=$(grep -c "SKIPPED" test_output.txt 2>/dev/null || echo "0")
+            
             echo "" >> test_report.md
-            echo "#### 🔍 失敗測試詳細信息 Failed Test Details" >> test_report.md
+            echo "📊 **測試統計 Test Statistics:**" >> test_report.md
+            echo "- ✅ **通過 Passed**: $PASSED_COUNT" >> test_report.md
+            echo "- ❌ **失敗 Failed**: $FAILED_COUNT" >> test_report.md
+            echo "- 🔥 **錯誤 Error**: $ERROR_COUNT" >> test_report.md
+            echo "- ⏭️ **跳過 Skipped**: $SKIPPED_COUNT" >> test_report.md
             echo "" >> test_report.md
             
-            # 提取 FAILURES 部分
-            if grep -A 50 "FAILURES" test_output.txt > failures.txt 2>/dev/null; then
-              echo "**失敗的測試案例 Failed Test Cases:**" >> test_report.md
+            # 提取失敗的測試名稱列表
+            echo "#### 🔍 失敗測試列表 Failed Test List" >> test_report.md
+            echo "" >> test_report.md
+            if grep "FAILED" test_output.txt | grep -o "tests/[^:]*::[^[:space:]]*" > failed_tests.txt 2>/dev/null; then
+              echo "**失敗的測試項目 Failed Test Items:**" >> test_report.md
+              echo "" >> test_report.md
+              while IFS= read -r test_name; do
+                echo "- ❌ \`$test_name\`" >> test_report.md
+              done < failed_tests.txt
+              echo "" >> test_report.md
+            fi
+            
+            # 提取 FAILURES 部分的詳細錯誤
+            if grep -A 100 "FAILURES" test_output.txt > failures.txt 2>/dev/null; then
+              echo "#### 📋 失敗測試詳細錯誤 Detailed Failure Information" >> test_report.md
+              echo "" >> test_report.md
+              echo "<details>" >> test_report.md
+              echo "<summary>點擊查看詳細錯誤信息 Click to view detailed error information</summary>" >> test_report.md
               echo "" >> test_report.md
               echo "```" >> test_report.md
-              head -100 failures.txt >> test_report.md
+              head -200 failures.txt >> test_report.md
               echo "```" >> test_report.md
+              echo "</details>" >> test_report.md
               echo "" >> test_report.md
             fi
             
             # 提取 short test summary
-            if grep -A 20 "short test summary" test_output.txt > summary.txt 2>/dev/null; then
-              echo "**測試摘要 Test Summary:**" >> test_report.md
+            if grep -A 50 "short test summary" test_output.txt > summary.txt 2>/dev/null; then
+              echo "#### 📝 測試摘要 Test Summary" >> test_report.md
               echo "" >> test_report.md
               echo "```" >> test_report.md
               cat summary.txt >> test_report.md
@@ -259,18 +290,49 @@ jobs:
           echo "### 🔄 功能測試 Functional Tests" >> test_report.md
           echo "" >> test_report.md
           
-          if pytest tests/test_petsard.py -v --disable-warnings > functional_output.txt 2>&1; then
+          if pytest tests/test_petsard.py -v --disable-warnings --tb=short > functional_output.txt 2>&1; then
             echo "functional_status=success" >> $GITHUB_OUTPUT
             echo "✅ **功能測試通過** Functional tests passed" >> test_report.md
+            
+            # 統計通過的功能測試
+            FUNC_PASSED=$(grep -c "PASSED" functional_output.txt 2>/dev/null || echo "0")
+            echo "" >> test_report.md
+            echo "🎉 **通過的功能測試**: $FUNC_PASSED 個" >> test_report.md
           else
             echo "functional_status=failed" >> $GITHUB_OUTPUT
             echo "❌ **功能測試失敗** Functional tests failed" >> test_report.md
+            
+            # 統計功能測試結果
+            FUNC_PASSED=$(grep -c "PASSED" functional_output.txt 2>/dev/null || echo "0")
+            FUNC_FAILED=$(grep -c "FAILED" functional_output.txt 2>/dev/null || echo "0")
+            FUNC_ERROR=$(grep -c "ERROR" functional_output.txt 2>/dev/null || echo "0")
+            
+            echo "" >> test_report.md
+            echo "📊 **功能測試統計 Functional Test Statistics:**" >> test_report.md
+            echo "- ✅ **通過 Passed**: $FUNC_PASSED" >> test_report.md
+            echo "- ❌ **失敗 Failed**: $FUNC_FAILED" >> test_report.md
+            echo "- 🔥 **錯誤 Error**: $FUNC_ERROR" >> test_report.md
+            echo "" >> test_report.md
+            
+            # 提取失敗的功能測試名稱
+            if grep "FAILED" functional_output.txt | grep -o "tests/test_petsard.py::[^[:space:]]*" > failed_functional.txt 2>/dev/null; then
+              echo "**失敗的功能測試 Failed Functional Tests:**" >> test_report.md
+              echo "" >> test_report.md
+              while IFS= read -r test_name; do
+                echo "- ❌ \`$test_name\`" >> test_report.md
+              done < failed_functional.txt
+              echo "" >> test_report.md
+            fi
           fi
           
+          echo "" >> test_report.md
+          echo "<details>" >> test_report.md
+          echo "<summary>點擊查看完整功能測試輸出 Click to view full functional test output</summary>" >> test_report.md
           echo "" >> test_report.md
           echo "```" >> test_report.md
           cat functional_output.txt >> test_report.md
           echo "```" >> test_report.md
+          echo "</details>" >> test_report.md
           
       - name: 📊 Generate Test Summary
         run: |
@@ -362,6 +424,9 @@ jobs:
             coverage_table.txt
             ruff_output.txt
             ruff_report.md
+            failed_tests.txt
+            failed_functional.txt
+            pytest-results.xml
           retention-days: 7
           
       - name: ℹ️ Test Status Summary
