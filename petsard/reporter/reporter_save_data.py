@@ -1,7 +1,9 @@
-import re
-
 from petsard.exceptions import ConfigError
-from petsard.reporter.base_reporter import BaseReporter, convert_full_expt_tuple_to_name
+from petsard.reporter.base_reporter import (
+    BaseReporter,
+    RegexPatterns,
+    convert_full_expt_tuple_to_name,
+)
 
 
 class ReporterSaveData(BaseReporter):
@@ -54,12 +56,11 @@ class ReporterSaveData(BaseReporter):
         self._verify_create_input(data)
 
         # last 1 of index should remove postfix "_[xxx]" to match source
-        pattern = re.compile(r"_(\[[^\]]*\])$")
         for full_expt_tuple, df in data.items():
             # check if last 2 element of index in source
             last_module_expt_name = [
                 full_expt_tuple[-2],
-                re.sub(pattern, "", full_expt_tuple[-1]),
+                RegexPatterns.POSTFIX_REMOVAL.sub("", full_expt_tuple[-1]),
             ]
             if any(item in self.config["source"] for item in last_module_expt_name):
                 full_expt_name = convert_full_expt_tuple_to_name(full_expt_tuple)

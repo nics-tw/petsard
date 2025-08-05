@@ -1,8 +1,150 @@
+import re
 from abc import ABC, abstractmethod
+from enum import IntEnum
+from typing import Final
 
 import pandas as pd
 
-from petsard.exceptions import ConfigError
+from petsard.exceptions import ConfigError, UnsupportedMethodError
+
+
+class ReporterMethod(IntEnum):
+    """Enumeration for reporter methods."""
+
+    SAVE_DATA = 1
+    SAVE_REPORT = 2
+    SAVE_TIMING = 3
+
+    @classmethod
+    def map(cls, method: str) -> "ReporterMethod":
+        """
+        Get method mapping enum value from string.
+
+        Args:
+            method (str): reporting method (case-insensitive)
+
+        Returns:
+            ReporterMethod: Corresponding enum value
+
+        Raises:
+            UnsupportedMethodError: If method name is not supported
+        """
+        method_mapping = {
+            "SAVE_DATA": cls.SAVE_DATA,
+            "SAVE_REPORT": cls.SAVE_REPORT,
+            "SAVE_TIMING": cls.SAVE_TIMING,
+        }
+
+        try:
+            return method_mapping[method.upper()]
+        except KeyError as err:
+            raise UnsupportedMethodError from err
+
+
+class ReportGranularity(IntEnum):
+    """Enumeration for report granularity types."""
+
+    GLOBAL = 1
+    COLUMNWISE = 2
+    PAIRWISE = 3
+
+    @classmethod
+    def map(cls, granularity: str) -> "ReportGranularity":
+        """
+        Get granularity mapping enum value from string.
+
+        Args:
+            granularity (str): reporting granularity (case-insensitive)
+
+        Returns:
+            ReportGranularity: Corresponding enum value
+
+        Raises:
+            UnsupportedMethodError: If granularity is not supported
+        """
+        granularity_mapping = {
+            "GLOBAL": cls.GLOBAL,
+            "COLUMNWISE": cls.COLUMNWISE,
+            "PAIRWISE": cls.PAIRWISE,
+        }
+
+        try:
+            return granularity_mapping[granularity.upper()]
+        except KeyError as err:
+            raise UnsupportedMethodError from err
+
+
+class ModuleNames:
+    """Constants for module names used in PETsARD pipeline."""
+
+    # Core pipeline modules
+    LOADER: Final[str] = "Loader"
+    SPLITTER: Final[str] = "Splitter"
+    PROCESSOR: Final[str] = "Processor"
+    PREPROCESSOR: Final[str] = "Preprocessor"
+    SYNTHESIZER: Final[str] = "Synthesizer"
+    POSTPROCESSOR: Final[str] = "Postprocessor"
+    CONSTRAINER: Final[str] = "Constrainer"
+    EVALUATOR: Final[str] = "Evaluator"
+    DESCRIBER: Final[str] = "Describer"
+    REPORTER: Final[str] = "Reporter"
+
+    # Module lists
+    ALL_MODULES: Final[list[str]] = [
+        LOADER,
+        SPLITTER,
+        PROCESSOR,
+        PREPROCESSOR,
+        SYNTHESIZER,
+        POSTPROCESSOR,
+        CONSTRAINER,
+        EVALUATOR,
+        DESCRIBER,
+        REPORTER,
+    ]
+
+    REPORT_AVAILABLE_MODULES: Final[list[str]] = [
+        EVALUATOR,
+        DESCRIBER,
+    ]
+
+
+class DataFrameConstants:
+    """Constants for DataFrame operations."""
+
+    # Column names for merging operations
+    REPLACE_TAG: Final[str] = "_petsard|_replace"
+    RIGHT_SUFFIX: Final[str] = "|_petsard|_right"
+
+    # Standard column names
+    FULL_EXPT_NAME: Final[str] = "full_expt_name"
+    COLUMN: Final[str] = "column"
+    COLUMN1: Final[str] = "column1"
+    COLUMN2: Final[str] = "column2"
+
+    # Merge-related columns
+    MERGE_COLUMNS: Final[list[str]] = [
+        FULL_EXPT_NAME,
+        COLUMN,
+        COLUMN1,
+        COLUMN2,
+    ]
+
+
+class RegexPatterns:
+    """Pre-compiled regular expression patterns."""
+
+    # Experiment name pattern: "eval_name_[granularity]"
+    EVAL_EXPT_NAME: Final[re.Pattern] = re.compile(r"^([A-Za-z0-9_-]+)_\[([\w-]+)\]$")
+
+    # Pattern for removing postfix "_[xxx]" from experiment names
+    POSTFIX_REMOVAL: Final[re.Pattern] = re.compile(r"_(\[[^\]]*\])$")
+
+
+class ConfigDefaults:
+    """Default configuration values."""
+
+    DEFAULT_OUTPUT_PREFIX: Final[str] = "petsard"
 
 
 def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:
@@ -37,19 +179,8 @@ class BaseReporter(ABC):
     Base class for reporting data.
     """
 
-    ALLOWED_IDX_MODULE: list = [
-        "Loader",
-        "Splitter",
-        "Processor",
-        "Preprocessor",
-        "Synthesizer",
-        "Postprocessor",
-        "Constrainer",
-        "Evaluator",
-        "Describer",
-        "Reporter",
-    ]
-    SAVE_REPORT_AVAILABLE_MODULE: list = ["Evaluator", "Describer"]
+    ALLOWED_IDX_MODULE: list = ModuleNames.ALL_MODULES
+    SAVE_REPORT_AVAILABLE_MODULE: list = ModuleNames.REPORT_AVAILABLE_MODULES
 
     def __init__(self, config: dict):
         """
@@ -70,7 +201,7 @@ class BaseReporter(ABC):
         if "method" not in self.config:
             raise ConfigError
         if not isinstance(self.config.get("output"), str) or not self.config["output"]:
-            self.config["output"] = "petsard"
+            self.config["output"] = ConfigDefaults.DEFAULT_OUTPUT_PREFIX
 
     @abstractmethod
     def create(self, data: dict) -> None:

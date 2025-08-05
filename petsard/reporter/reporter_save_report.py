@@ -3,8 +3,14 @@ from copy import deepcopy
 
 import pandas as pd
 
-from petsard.exceptions import ConfigError, UnexecutedError, UnsupportedMethodError
-from petsard.reporter.base_reporter import BaseReporter, convert_full_expt_tuple_to_name
+from petsard.exceptions import ConfigError, UnexecutedError
+from petsard.reporter.base_reporter import (
+    BaseReporter,
+    DataFrameConstants,
+    RegexPatterns,
+    ReportGranularity,
+    convert_full_expt_tuple_to_name,
+)
 
 
 def convert_eval_expt_name_to_tuple(expt_name: str) -> tuple:
@@ -25,8 +31,7 @@ def convert_eval_expt_name_to_tuple(expt_name: str) -> tuple:
     Raises:
         ConfigError: If the experiment name does not match the expected pattern.
     """
-    pattern = re.compile(r"^([A-Za-z0-9_-]+)_\[([\w-]+)\]$")
-    match = pattern.match(expt_name)
+    match = RegexPatterns.EVAL_EXPT_NAME.match(expt_name)
     if match:
         return match.groups()
     else:
@@ -88,11 +93,13 @@ def full_expt_tuple_filter(
 class ReporterSaveReportMap:
     """
     Mapping of ReportSaveReport.
+
+    Note: This class is deprecated. Use ReportGranularity enum and get_granularity_method() instead.
     """
 
-    GLOBAL: int = 1
-    COLUMNWISE: int = 2
-    PAIRWISE: int = 3
+    GLOBAL: int = ReportGranularity.GLOBAL
+    COLUMNWISE: int = ReportGranularity.COLUMNWISE
+    PAIRWISE: int = ReportGranularity.PAIRWISE
 
     @classmethod
     def map(cls, granularity: str) -> int:
@@ -102,10 +109,7 @@ class ReporterSaveReportMap:
         Args:
             granularity (str): reporting granularity
         """
-        try:
-            return cls.__dict__[granularity.upper()]
-        except KeyError as err:
-            raise UnsupportedMethodError from err
+        return ReportGranularity.map(granularity)
 
 
 class ReporterSaveReport(BaseReporter):
@@ -113,7 +117,7 @@ class ReporterSaveReport(BaseReporter):
     Save evaluating/describing data to file.
     """
 
-    SAVE_REPORT_KEY: str = "full_expt_name"
+    SAVE_REPORT_KEY: str = DataFrameConstants.FULL_EXPT_NAME
 
     def __init__(self, config: dict):
         """
@@ -140,11 +144,11 @@ class ReporterSaveReport(BaseReporter):
         if not isinstance(self.config["granularity"], str):
             raise ConfigError
         self.config["granularity"] = self.config["granularity"].lower()
-        granularity_code = ReporterSaveReportMap.map(self.config["granularity"])
+        granularity_code = ReportGranularity.map(self.config["granularity"])
         if granularity_code not in [
-            ReporterSaveReportMap.GLOBAL,
-            ReporterSaveReportMap.COLUMNWISE,
-            ReporterSaveReportMap.PAIRWISE,
+            ReportGranularity.GLOBAL,
+            ReportGranularity.COLUMNWISE,
+            ReportGranularity.PAIRWISE,
         ]:
             raise ConfigError
         self.config["granularity_code"] = granularity_code
@@ -454,11 +458,11 @@ class ReporterSaveReport(BaseReporter):
         Returns:
             pd.DataFrame: Report with reset index.
         """
-        granularity_code = ReporterSaveReportMap.map(granularity)
+        granularity_code = ReportGranularity.map(granularity)
 
-        if granularity_code == ReporterSaveReportMap.COLUMNWISE:
+        if granularity_code == ReportGranularity.COLUMNWISE:
             return cls._reset_columnwise_index(report)
-        elif granularity_code == ReporterSaveReportMap.PAIRWISE:
+        elif granularity_code == ReportGranularity.PAIRWISE:
             return cls._reset_pairwise_index(report)
 
         return report
@@ -467,13 +471,18 @@ class ReporterSaveReport(BaseReporter):
     def _reset_columnwise_index(cls, report: pd.DataFrame) -> pd.DataFrame:
         """Reset index for columnwise granularity."""
         report = report.reset_index(drop=False)
-        return report.rename(columns={"index": "column"})
+        return report.rename(columns={"index": DataFrameConstants.COLUMN})
 
     @classmethod
     def _reset_pairwise_index(cls, report: pd.DataFrame) -> pd.DataFrame:
         """Reset index for pairwise granularity."""
         report = report.reset_index(drop=False)
-        report = report.rename(columns={"level_0": "column1", "level_1": "column2"})
+        report = report.rename(
+            columns={
+                "level_0": DataFrameConstants.COLUMN1,
+                "level_1": DataFrameConstants.COLUMN2,
+            }
+        )
         if "index" in report.columns:
             report = report.drop(columns=["index"])
         return report
@@ -559,7 +568,7 @@ class ReporterSaveReport(BaseReporter):
             pd.DataFrame: Report with full experiment name column.
         """
         full_expt_name = cls._generate_full_experiment_name(full_expt_tuple, postfix)
-        report.insert(0, "full_expt_name", full_expt_name)
+        report.insert(0, DataFrameConstants.FULL_EXPT_NAME, full_expt_name)
         return report
 
     @classmethod
@@ -635,12 +644,7 @@ class ReporterSaveReport(BaseReporter):
         Returns:
             list[str]: List of common columns allowed for merging.
         """
-        allowed_columns = cls.ALLOWED_IDX_MODULE + [
-            cls.SAVE_REPORT_KEY,
-            "column",
-            "column1",
-            "column2",
-        ]
+        allowed_columns = cls.ALLOWED_IDX_MODULE + DataFrameConstants.MERGE_COLUMNS
 
         common_columns = [col for col in df1.columns if col in df2.columns]
         return [col for col in common_columns if col in allowed_columns]
@@ -701,8 +705,8 @@ class ReporterSaveReport(BaseReporter):
         Returns:
             pd.DataFrame: The merged DataFrame.
         """
-        colname_replace = "_petsard|_replace"
-        colname_suffix = "|_petsard|_right"
+        colname_replace = DataFrameConstants.REPLACE_TAG
+        colname_suffix = DataFrameConstants.RIGHT_SUFFIX
 
         # Add replace tag to df2
         df2[colname_replace] = colname_replace
@@ -760,14 +764,9 @@ class ReporterSaveReport(BaseReporter):
         Returns:
             pd.DataFrame: The cleaned DataFrame.
         """
-        colname_replace = "_petsard|_replace"
-        colname_suffix = "|_petsard|_right"
-        allowed_columns = cls.ALLOWED_IDX_MODULE + [
-            cls.SAVE_REPORT_KEY,
-            "column",
-            "column1",
-            "column2",
-        ]
+        colname_replace = DataFrameConstants.REPLACE_TAG
+        colname_suffix = DataFrameConstants.RIGHT_SUFFIX
+        allowed_columns = cls.ALLOWED_IDX_MODULE + DataFrameConstants.MERGE_COLUMNS
 
         if common_columns:
             # Replace df1 columns with df2 columns where replace tag is present

@@ -1,4 +1,5 @@
 from petsard.exceptions import UnsupportedMethodError
+from petsard.reporter.base_reporter import ReporterMethod
 from petsard.reporter.reporter_save_data import ReporterSaveData
 from petsard.reporter.reporter_save_report import ReporterSaveReport
 from petsard.reporter.reporter_save_timing import ReporterSaveTiming
@@ -7,11 +8,13 @@ from petsard.reporter.reporter_save_timing import ReporterSaveTiming
 class ReporterMap:
     """
     Mapping of Reporter.
+
+    Note: This class is deprecated. Use ReporterMethod enum directly instead.
     """
 
-    SAVE_DATA: int = 1
-    SAVE_REPORT: int = 2
-    SAVE_TIMING: int = 3
+    SAVE_DATA: int = ReporterMethod.SAVE_DATA
+    SAVE_REPORT: int = ReporterMethod.SAVE_REPORT
+    SAVE_TIMING: int = ReporterMethod.SAVE_TIMING
 
     @classmethod
     def map(cls, method: str) -> int:
@@ -21,10 +24,7 @@ class ReporterMap:
         Args:
             method (str): reporting method
         """
-        try:
-            return cls.__dict__[method.upper()]
-        except KeyError as err:
-            raise UnsupportedMethodError from err
+        return ReporterMethod.map(method)
 
 
 class Reporter:
@@ -47,13 +47,13 @@ class Reporter:
         """
         config = kwargs
         method = config.get("method", "").upper()
-        method_code = ReporterMap.map(method)
+        method_code = ReporterMethod.map(method)
 
-        if method_code == ReporterMap.SAVE_DATA:
+        if method_code == ReporterMethod.SAVE_DATA:
             return ReporterSaveData(config)
-        elif method_code == ReporterMap.SAVE_REPORT:
+        elif method_code == ReporterMethod.SAVE_REPORT:
             return ReporterSaveReport(config)
-        elif method_code == ReporterMap.SAVE_TIMING:
+        elif method_code == ReporterMethod.SAVE_TIMING:
             return ReporterSaveTiming(config)
         else:
             raise UnsupportedMethodError(f"Unsupported reporter method: {method}")
