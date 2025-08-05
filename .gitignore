@@ -42,7 +42,7 @@ dist/
 
 # 測試相關 Testing related
 .pytest_cache/
-.coverage
+.coverage*
 htmlcov/
 coverage.xml
 *.cover

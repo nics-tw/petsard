@@ -54,6 +54,99 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
           
+      - name: 🔍 Run Ruff Code Quality Check
+        id: ruff-check
+        run: |
+          echo "## 🔍 程式碼品質檢查 Code Quality Check" >> ruff_report.md
+          echo "" >> ruff_report.md
+          echo "**Python 版本**: ${{ matrix.python-version }}" >> ruff_report.md
+          echo "**執行時間**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ruff_report.md
+          echo "" >> ruff_report.md
+          
+          # 運行 Ruff 檢查並捕獲結果
+          if ruff check . --output-format=text > ruff_output.txt 2>&1; then
+            echo "ruff_status=success" >> $GITHUB_OUTPUT
+            echo "### ✅ 程式碼品質檢查通過 Code Quality Check Passed" >> ruff_report.md
+            echo "" >> ruff_report.md
+            echo "🎉 **所有程式碼都符合品質標準！** All code meets quality standards!" >> ruff_report.md
+            echo "" >> ruff_report.md
+            echo "**檢查項目 Checked Rules:**" >> ruff_report.md
+            echo "- ✅ **E**: pycodestyle errors (程式碼風格錯誤)" >> ruff_report.md
+            echo "- ✅ **W**: pycodestyle warnings (程式碼風格警告)" >> ruff_report.md
+            echo "- ✅ **F**: pyflakes (未使用的導入、變數等)" >> ruff_report.md
+            echo "- ✅ **I**: isort (導入排序)" >> ruff_report.md
+            echo "- ✅ **B**: flake8-bugbear (常見錯誤模式)" >> ruff_report.md
+            echo "- ✅ **C4**: flake8-comprehensions (列表推導式優化)" >> ruff_report.md
+            echo "- ✅ **UP**: pyupgrade (Python 語法現代化)" >> ruff_report.md
+          else
+            echo "ruff_status=failed" >> $GITHUB_OUTPUT
+            echo "### ❌ 程式碼品質檢查失敗 Code Quality Check Failed" >> ruff_report.md
+            echo "" >> ruff_report.md
+            
+            # 分析錯誤並分類
+            echo "#### 🔍 詳細錯誤分析 Detailed Error Analysis" >> ruff_report.md
+            echo "" >> ruff_report.md
+            
+            # 統計各類錯誤數量
+            E_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: E" ruff_output.txt 2>/dev/null || echo "0")
+            W_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: W" ruff_output.txt 2>/dev/null || echo "0")
+            F_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: F" ruff_output.txt 2>/dev/null || echo "0")
+            I_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: I" ruff_output.txt 2>/dev/null || echo "0")
+            B_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: B" ruff_output.txt 2>/dev/null || echo "0")
+            C4_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: C4" ruff_output.txt 2>/dev/null || echo "0")
+            UP_COUNT=$(grep -c "^[^:]*:[^:]*:[^:]*: UP" ruff_output.txt 2>/dev/null || echo "0")
+            
+            echo "**錯誤統計 Error Statistics:**" >> ruff_report.md
+            echo "- 🔴 **E (pycodestyle errors)**: $E_COUNT 個錯誤" >> ruff_report.md
+            echo "- 🟡 **W (pycodestyle warnings)**: $W_COUNT 個警告" >> ruff_report.md
+            echo "- 🔵 **F (pyflakes)**: $F_COUNT 個問題" >> ruff_report.md
+            echo "- 🟣 **I (isort)**: $I_COUNT 個導入問題" >> ruff_report.md
+            echo "- 🟠 **B (bugbear)**: $B_COUNT 個潛在錯誤" >> ruff_report.md
+            echo "- 🟢 **C4 (comprehensions)**: $C4_COUNT 個優化建議" >> ruff_report.md
+            echo "- 🔶 **UP (pyupgrade)**: $UP_COUNT 個語法現代化建議" >> ruff_report.md
+            echo "" >> ruff_report.md
+            
+            # 按類別顯示具體錯誤
+            for rule_type in E W F I B C4 UP; do
+              if grep -q "^[^:]*:[^:]*:[^:]*: $rule_type" ruff_output.txt 2>/dev/null; then
+                echo "#### 📋 $rule_type 類別錯誤詳情 $rule_type Category Details" >> ruff_report.md
+                echo "" >> ruff_report.md
+                echo "```" >> ruff_report.md
+                grep "^[^:]*:[^:]*:[^:]*: $rule_type" ruff_output.txt | head -20 >> ruff_report.md
+                echo "```" >> ruff_report.md
+                echo "" >> ruff_report.md
+              fi
+            done
+            
+            # 如果錯誤太多，提供完整輸出
+            TOTAL_ERRORS=$(wc -l < ruff_output.txt)
+            if [ "$TOTAL_ERRORS" -gt 50 ]; then
+              echo "⚠️ **注意**: 發現 $TOTAL_ERRORS 個問題，以上僅顯示部分內容。完整報告請查看下方詳細輸出。" >> ruff_report.md
+              echo "" >> ruff_report.md
+            fi
+          fi
+          
+          # 添加 Ruff 配置信息
+          echo "### ⚙️ Ruff 配置信息 Ruff Configuration" >> ruff_report.md
+          echo "" >> ruff_report.md
+          echo "**配置來源**: \`pyproject.toml\`" >> ruff_report.md
+          echo "**行長度限制**: 88 字符" >> ruff_report.md
+          echo "**目標 Python 版本**: 3.11" >> ruff_report.md
+          echo "**忽略規則**: E501 (行長度，已由 line-length 處理)" >> ruff_report.md
+          echo "" >> ruff_report.md
+          
+          # 完整輸出
+          echo "### 📝 完整 Ruff 輸出 Full Ruff Output" >> ruff_report.md
+          echo "" >> ruff_report.md
+          echo "<details>" >> ruff_report.md
+          echo "<summary>點擊查看完整 Ruff 檢查輸出 Click to view full Ruff output</summary>" >> ruff_report.md
+          echo "" >> ruff_report.md
+          echo "```" >> ruff_report.md
+          cat ruff_output.txt >> ruff_report.md
+          echo "```" >> ruff_report.md
+          echo "</details>" >> ruff_report.md
+          echo "" >> ruff_report.md
+          
       - name: 🧪 Run Unit Tests with Coverage
         id: unit-tests
         run: |
@@ -181,15 +274,31 @@ jobs:
           
       - name: 📊 Generate Test Summary
         run: |
-          echo "" >> test_report.md
+          # 合併 Ruff 報告到主報告
+          if [ -f ruff_report.md ]; then
+            cat ruff_report.md >> test_report.md
+            echo "" >> test_report.md
+          fi
+          
           echo "### 📊 測試摘要 Test Summary" >> test_report.md
           echo "" >> test_report.md
           
-          if [[ "${{ steps.unit-tests.outputs.test_status }}" == "success" && "${{ steps.functional-tests.outputs.functional_status }}" == "success" ]]; then
-            echo "🎉 **所有測試通過！** All tests passed!" >> test_report.md
+          # 檢查所有步驟的狀態
+          RUFF_STATUS="${{ steps.ruff-check.outputs.ruff_status }}"
+          UNIT_STATUS="${{ steps.unit-tests.outputs.test_status }}"
+          FUNC_STATUS="${{ steps.functional-tests.outputs.functional_status }}"
+          
+          if [[ "$RUFF_STATUS" == "success" && "$UNIT_STATUS" == "success" && "$FUNC_STATUS" == "success" ]]; then
+            echo "🎉 **所有檢查都通過！** All checks passed!" >> test_report.md
+            echo "- ✅ 程式碼品質檢查通過" >> test_report.md
+            echo "- ✅ 單元測試通過" >> test_report.md
+            echo "- ✅ 功能測試通過" >> test_report.md
             echo "test_overall=success" >> $GITHUB_ENV
           else
-            echo "⚠️ **部分測試失敗** Some tests failed" >> test_report.md
+            echo "⚠️ **部分檢查失敗** Some checks failed" >> test_report.md
+            echo "- $([ "$RUFF_STATUS" == "success" ] && echo "✅" || echo "❌") 程式碼品質檢查" >> test_report.md
+            echo "- $([ "$UNIT_STATUS" == "success" ] && echo "✅" || echo "❌") 單元測試" >> test_report.md
+            echo "- $([ "$FUNC_STATUS" == "success" ] && echo "✅" || echo "❌") 功能測試" >> test_report.md
             echo "test_overall=failed" >> $GITHUB_ENV
           fi
           
@@ -212,9 +321,9 @@ jobs:
               issue_number: context.issue.number,
             });
             
-            const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('🧪 測試結果 Test Results')
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              (comment.body.includes('🧪 測試結果 Test Results') || comment.body.includes('🧪 測試套件報告 Test Suite Report'))
             );
             
             const commentBody = `## 🧪 測試套件報告 Test Suite Report\n\n${report}`;
@@ -251,13 +360,15 @@ jobs:
             summary.txt
             coverage_detail.txt
             coverage_table.txt
+            ruff_output.txt
+            ruff_report.md
           retention-days: 7
           
       - name: ℹ️ Test Status Summary
         if: always()
         run: |
           if [[ "$test_overall" == "success" ]]; then
-            echo "::notice::🎉 所有測試通過！All tests passed for Python ${{ matrix.python-version }}"
+            echo "::notice::🎉 所有檢查通過！All checks passed for Python ${{ matrix.python-version }} (Code Quality + Tests)"
           else
-            echo "::warning::⚠️ 部分測試失敗，但不會阻止合併。Some tests failed for Python ${{ matrix.python-version }}, but merge is not blocked."
+            echo "::warning::⚠️ 部分檢查失敗，但不會阻止合併。Some checks failed for Python ${{ matrix.python-version }} (Code Quality + Tests), but merge is not blocked."
           fi
