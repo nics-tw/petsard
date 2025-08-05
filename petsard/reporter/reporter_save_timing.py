@@ -1,14 +1,17 @@
-from copy import deepcopy
+"""
+純函式化的 ReporterSaveTiming
+完全無狀態設計，專注於業務邏輯
+"""
 
 import pandas as pd
 
-from petsard.exceptions import UnexecutedError
 from petsard.reporter.base_reporter import BaseReporter
 
 
 class ReporterSaveTiming(BaseReporter):
     """
-    Save timing data to file.
+    純函式化的時間報告器
+    完全無狀態，專注於業務邏輯
     """
 
     def __init__(self, config: dict):
@@ -21,10 +24,6 @@ class ReporterSaveTiming(BaseReporter):
                 - module (str or list, optional): Module name(s) to filter timing data.
                 - time_unit (str, optional): Time unit for reporting ('seconds', 'minutes', 'hours', 'days').
                     Default is 'seconds'.
-
-        Raises:
-            ConfigError: If the 'source' key is missing in the config
-                or if the value of 'source' is not a string or a list of strings.
         """
         super().__init__(config)
 
@@ -43,17 +42,16 @@ class ReporterSaveTiming(BaseReporter):
             time_unit = "seconds"
         self.config["time_unit"] = time_unit
 
-    def create(self, data: dict = None) -> None:
+    def create(self, data: dict = None) -> pd.DataFrame | None:
         """
-        Creating the timing data by collecting timing information from experiments.
+        純函式：處理時間資料並返回結果
 
         Args:
             data (dict): The data used for creating the timing report.
                 - timing_data (pd.DataFrame): The timing data DataFrame.
 
-        Attributes:
-            - result (dict): Data for the timing report.
-                - timing_report (pd.DataFrame): The timing data.
+        Returns:
+            pd.DataFrame | None: 處理後的時間資料，如果沒有資料則返回 None
         """
         if data is None:
             data = {}
@@ -64,8 +62,53 @@ class ReporterSaveTiming(BaseReporter):
         if timing_data is None or (
             isinstance(timing_data, pd.DataFrame) and timing_data.empty
         ):
-            self.result = {}
-            return
+            return None
+
+        return self._process_timing_data(timing_data)
+
+    def report(self, processed_data: pd.DataFrame | None = None) -> pd.DataFrame | None:
+        """
+        純函式：生成並保存報告
+
+        Args:
+            processed_data (pd.DataFrame | None): 處理後的時間資料
+
+        Returns:
+            pd.DataFrame | None: 生成的報告資料
+        """
+        # 處理空資料情況
+        if processed_data is None:
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.warning("No timing data found. No CSV file will be saved.")
+            return None
+
+        if processed_data.empty:
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.warning("No timing data found. No CSV file will be saved.")
+            return None
+
+        # 保存報告
+        full_output: str = f"{self.config['output']}[Timing]"
+        self._save(data=processed_data, full_output=full_output)
+
+        return processed_data
+
+    def _process_timing_data(self, timing_data: pd.DataFrame) -> pd.DataFrame:
+        """
+        處理時間資料的核心邏輯
+
+        Args:
+            timing_data (pd.DataFrame): 原始時間資料
+
+        Returns:
+            pd.DataFrame: 處理後的時間資料
+        """
+        # 複製資料以避免修改原始資料
+        timing_data = timing_data.copy()
 
         # Filter by modules if specified
         if self.config["modules"]:
@@ -79,13 +122,10 @@ class ReporterSaveTiming(BaseReporter):
             # Create new column with converted time
             duration_col = f"duration_{time_unit}"
             if time_unit == "minutes":
-                timing_data = timing_data.copy()
                 timing_data[duration_col] = timing_data["duration_seconds"] / 60
             elif time_unit == "hours":
-                timing_data = timing_data.copy()
                 timing_data[duration_col] = timing_data["duration_seconds"] / 3600
             elif time_unit == "days":
-                timing_data = timing_data.copy()
                 timing_data[duration_col] = timing_data["duration_seconds"] / 86400
 
             # Remove the original duration_seconds column
@@ -103,34 +143,4 @@ class ReporterSaveTiming(BaseReporter):
                     cols.append(duration_col)
                 timing_data = timing_data[cols]
 
-        # Collect result
-        self.result["timing_report"] = deepcopy(timing_data)
-
-    def report(self) -> None:
-        """
-        Generates a timing report based on the collected timing data.
-            The report is saved to the specified output location.
-        """
-        if not self.result:
-            import logging
-
-            logger = logging.getLogger(f"PETsARD.{__name__}")
-            logger.warning("No timing data found. No CSV file will be saved.")
-            return
-
-        if "timing_report" not in self.result:
-            raise UnexecutedError
-
-        timing_data: pd.DataFrame = self.result["timing_report"]
-
-        if timing_data.empty:
-            import logging
-
-            logger = logging.getLogger(f"PETsARD.{__name__}")
-            logger.warning("No timing data found. No CSV file will be saved.")
-            return
-
-        # petsard[Timing]
-        full_output: str = f"{self.config['output']}[Timing]"
-
-        self._save(data=timing_data, full_output=full_output)
+        return timing_data

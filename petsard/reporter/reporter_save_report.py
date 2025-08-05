@@ -1,5 +1,11 @@
+"""
+純函式化的 ReporterSaveReport
+完全無狀態設計，專注於業務邏輯
+"""
+
 import re
 from copy import deepcopy
+from typing import Any
 
 import pandas as pd
 
@@ -114,7 +120,8 @@ class ReporterSaveReportMap:
 
 class ReporterSaveReport(BaseReporter):
     """
-    Save evaluating/describing data to file.
+    純函式化的報告保存報告器
+    完全無狀態，專注於業務邏輯
     """
 
     SAVE_REPORT_KEY: str = DataFrameConstants.FULL_EXPT_NAME
@@ -165,9 +172,9 @@ class ReporterSaveReport(BaseReporter):
                 raise ConfigError
         self.config["eval"] = eval
 
-    def create(self, data: dict = None) -> None:
+    def create(self, data: dict = None) -> dict[str, Any]:
         """
-        Creating the report data by checking is experiment name of Evaluator exist.
+        純函式：處理資料並返回結果
 
         Args:
             data (dict): The data used for creating the report.
@@ -177,13 +184,8 @@ class ReporterSaveReport(BaseReporter):
                         "{eval}_[{granularity}]"
                     - The value is the data of the report, pd.DataFrame.
 
-        Attributes:
-            - result (dict): Data for the report.
-                - Reporter (dict): The report data for the reporter.
-                    - full_expt_name (str): The full experiment name.
-                    - expt_name (str): The experiment name.
-                    - granularity (str): The granularity of the report.
-                    - report (pd.DataFrame): The report data.
+        Returns:
+            dict[str, Any]: 處理後的報告資料
         """
         # verify input data
         self._verify_create_input(data)
@@ -199,8 +201,50 @@ class ReporterSaveReport(BaseReporter):
             data, eval_pattern, output_eval_name, exist_report
         )
 
-        # Store final result
-        self._store_final_result(final_report_data, output_eval_name)
+        # Generate final result
+        return self._generate_final_result(final_report_data, output_eval_name)
+
+    def report(
+        self, processed_data: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
+        """
+        純函式：生成並保存報告
+
+        Args:
+            processed_data (dict[str, Any] | None): 處理後的資料
+
+        Returns:
+            dict[str, Any] | None: 生成的報告資料
+        """
+        if not processed_data or "Reporter" not in processed_data:
+            return {}
+
+        reporter: dict = processed_data["Reporter"]
+
+        if "warnings" in reporter:
+            import logging
+
+            logger = logging.getLogger(f"PETsARD.{__name__}")
+            logger.warning(
+                "No CSV file will be saved. "
+                "This warning can be ignored "
+                "if running with different granularity config."
+            )
+            return processed_data
+
+        if not all(key in reporter for key in ["eval_expt_name", "report"]):
+            raise ConfigError
+        eval_expt_name: str = reporter["eval_expt_name"]
+        # petsard[Report]_{eval_expt_name}
+        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+
+        report: pd.DataFrame = reporter["report"]
+        if report is None:
+            # the unexpected report is None without warnings
+            raise UnexecutedError
+
+        self._save(data=report, full_output=full_output)
+        return processed_data
 
     def _setup_evaluation_parameters(self) -> tuple[str, str]:
         """
@@ -306,32 +350,39 @@ class ReporterSaveReport(BaseReporter):
                 name2=full_expt_tuple,
             )
 
-    def _store_final_result(
+    def _generate_final_result(
         self, final_report_data: pd.DataFrame, output_eval_name: str
-    ) -> None:
+    ) -> dict[str, Any]:
         """
-        Store the final result in the result dictionary.
+        Generate the final result dictionary.
 
         Args:
             final_report_data (pd.DataFrame): Final report data
             output_eval_name (str): Output evaluation name
+
+        Returns:
+            dict[str, Any]: Final result dictionary
         """
         granularity = self.config["granularity"]
 
         if final_report_data is not None:
-            self.result["Reporter"] = {
-                "eval_expt_name": output_eval_name,
-                "granularity": granularity,
-                "report": deepcopy(final_report_data),
+            return {
+                "Reporter": {
+                    "eval_expt_name": output_eval_name,
+                    "granularity": granularity,
+                    "report": deepcopy(final_report_data),
+                }
             }
         else:
-            self.result["Reporter"] = {
-                "eval_expt_name": output_eval_name,
-                "granularity": granularity,
-                "report": None,
-                "warnings": (
-                    f"There is no report data to save under {granularity} granularity."
-                ),
+            return {
+                "Reporter": {
+                    "eval_expt_name": output_eval_name,
+                    "granularity": granularity,
+                    "report": None,
+                    "warnings": (
+                        f"There is no report data to save under {granularity} granularity."
+                    ),
+                }
             }
 
     @classmethod
@@ -785,36 +836,3 @@ class ReporterSaveReport(BaseReporter):
             merged_df.drop(columns=[colname_replace], inplace=True)
 
         return merged_df
-
-    def report(self) -> None:
-        """
-        Generates a report based on the provided report data.
-            The report is saved to the specified output location.
-        """
-        if "Reporter" not in self.result:
-            raise UnexecutedError
-        reporter: dict = self.result["Reporter"]
-
-        if "warnings" in reporter:
-            import logging
-
-            logger = logging.getLogger(f"PETsARD.{__name__}")
-            logger.warning(
-                "No CSV file will be saved. "
-                "This warning can be ignored "
-                "if running with different granularity config."
-            )
-            return
-
-        if not all(key in reporter for key in ["eval_expt_name", "report"]):
-            raise ConfigError
-        eval_expt_name: str = reporter["eval_expt_name"]
-        # petsard[Report]_{eval_expt_name}
-        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
-
-        report: pd.DataFrame = reporter["report"]
-        if report is None:
-            # the unexpected report is None without warnings
-            raise UnexecutedError
-
-        self._save(data=report, full_output=full_output)

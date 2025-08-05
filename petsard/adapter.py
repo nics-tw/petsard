@@ -870,6 +870,7 @@ class ReporterAdapter(BaseAdapter):
     def _run(self, input: dict):
         """
         Runs the Reporter to create and generate reports.
+        適應新的函式化 Reporter 架構
 
         Args:
             input (dict): Input data for the Reporter.
@@ -877,16 +878,17 @@ class ReporterAdapter(BaseAdapter):
         """
         self._logger.debug("Starting data reporting process")
 
-        temp: dict = None
-        eval_expt_name: str = None
-        report: pd.DataFrame = None
-        self.reporter.create(data=input["data"])
+        # 使用新的函式化 Reporter 介面
+        processed_data = self.reporter.create(data=input["data"])
         self._logger.debug("Reporting configuration initialization completed")
 
-        self.reporter.report()
-        if "Reporter" in self.reporter.result:
+        # 調用函式化的 report 方法
+        result = self.reporter.report(processed_data)
+
+        # 處理不同類型的 Reporter 結果
+        if isinstance(result, dict) and "Reporter" in result:
             # ReporterSaveReport
-            temp = self.reporter.result["Reporter"]
+            temp = result["Reporter"]
             # exception handler so no need to collect exist report in this round
             #   e.g. no matched granularity
             if "warnings" in temp:
@@ -896,9 +898,15 @@ class ReporterAdapter(BaseAdapter):
             eval_expt_name = temp["eval_expt_name"]
             report = deepcopy(temp["report"])
             self.report[eval_expt_name] = report
+        elif isinstance(result, dict):
+            # ReporterSaveData 或其他類型
+            self.report = deepcopy(result)
         else:
-            # ReporterSaveData
-            self.report = self.reporter.result
+            # ReporterSaveTiming 或其他返回 DataFrame 的類型
+            self.report = (
+                {"timing_report": deepcopy(result)} if result is not None else {}
+            )
+
         self._logger.debug("Data reporting completed")
 
     def set_input(self, status) -> dict:

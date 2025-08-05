@@ -1,3 +1,10 @@
+"""
+純函式化的 ReporterSaveData
+完全無狀態設計，專注於業務邏輯
+"""
+
+from typing import Any
+
 from petsard.exceptions import ConfigError
 from petsard.reporter.base_reporter import (
     BaseReporter,
@@ -8,7 +15,8 @@ from petsard.reporter.base_reporter import (
 
 class ReporterSaveData(BaseReporter):
     """
-    Save raw/processed data to file.
+    純函式化的資料保存報告器
+    完全無狀態，專注於業務邏輯
     """
 
     def __init__(self, config: dict):
@@ -40,20 +48,25 @@ class ReporterSaveData(BaseReporter):
         if isinstance(self.config["source"], str):
             self.config["source"] = [self.config["source"]]
 
-    def create(self, data: dict) -> None:
+    def create(self, data: dict) -> dict[str, Any]:
         """
-        Creates the report data.
+        純函式：處理資料並返回結果
 
         Args:
             data (dict): The data dictionary.
-                Gerenrating by ReporterOperator.set_input()
+                Generating by ReporterOperator.set_input()
                 See BaseReporter._verify_create_input() for format requirement.
+
+        Returns:
+            dict[str, Any]: 處理後的資料字典
 
         Raises:
             ConfigError: If the index tuple is not an even number.
         """
         # verify input data
         self._verify_create_input(data)
+
+        processed_data = {}
 
         # last 1 of index should remove postfix "_[xxx]" to match source
         for full_expt_tuple, df in data.items():
@@ -64,16 +77,28 @@ class ReporterSaveData(BaseReporter):
             ]
             if any(item in self.config["source"] for item in last_module_expt_name):
                 full_expt_name = convert_full_expt_tuple_to_name(full_expt_tuple)
-                self.result[full_expt_name] = df
+                processed_data[full_expt_name] = df
 
-    def report(self) -> None:
+        return processed_data
+
+    def report(self, processed_data: dict[str, Any] | None = None) -> dict[str, Any]:
         """
-        Generates the report.
+        純函式：生成並保存報告
+
+        Args:
+            processed_data (dict[str, Any] | None): 處理後的資料
+
+        Returns:
+            dict[str, Any]: 生成的報告資料
 
         Notes:
             Some of the data may be None, such as Evaluator.get_global/columnwise/pairwise. These will be skipped.
         """
-        for expt_name, df in self.result.items():
+        if not processed_data:
+            return {}
+
+        saved_data = {}
+        for expt_name, df in processed_data.items():
             # Some of the data may be None.
             #   e.g. Evaluator.get_global/columnwise/pairwise
             #   just skip it
@@ -83,3 +108,6 @@ class ReporterSaveData(BaseReporter):
             # petsard_{expt_name}
             full_output = f"{self.config['output']}_{expt_name}"
             self._save(data=df, full_output=full_output)
+            saved_data[expt_name] = df
+
+        return saved_data

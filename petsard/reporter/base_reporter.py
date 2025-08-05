@@ -1,7 +1,12 @@
+"""
+純函式化的 BaseReporter
+完全無狀態設計，專注於抽象介面定義
+"""
+
 import re
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import Final
+from typing import Any, Final
 
 import pandas as pd
 
@@ -176,7 +181,10 @@ def convert_full_expt_tuple_to_name(expt_tuple: tuple) -> str:
 
 class BaseReporter(ABC):
     """
-    Base class for reporting data.
+    純函式化的基礎 Reporter 類
+
+    完全無狀態設計，專注於抽象介面定義
+    所有實作都應該是純函式，不維護任何實例狀態
     """
 
     ALLOWED_IDX_MODULE: list = ModuleNames.ALL_MODULES
@@ -190,13 +198,8 @@ class BaseReporter(ABC):
                 - output (str, optional):
                     The output filename prefix for the report.
                     Default is 'petsard'.
-
-        Attributes:
-            config (dict): Configuration settings for the report.
-            result (dict): Data for the report.
         """
         self.config: dict = config
-        self.result: dict = {}
 
         if "method" not in self.config:
             raise ConfigError
@@ -204,13 +207,29 @@ class BaseReporter(ABC):
             self.config["output"] = ConfigDefaults.DEFAULT_OUTPUT_PREFIX
 
     @abstractmethod
-    def create(self, data: dict) -> None:
+    def create(self, data: dict) -> Any:
         """
-        Abstract method for creating the report.
+        純函式：處理資料並返回結果
 
         Args:
             data (dict): The data used for creating the report.
                 See BaseReporter._verify_create_input() for format requirement.
+
+        Returns:
+            Any: 處理後的資料
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def report(self, processed_data: Any = None) -> Any:
+        """
+        純函式：生成並保存報告
+
+        Args:
+            processed_data (Any): 處理後的資料
+
+        Returns:
+            Any: 生成的報告資料
         """
         raise NotImplementedError
 
@@ -399,13 +418,6 @@ class BaseReporter(ABC):
             logger.info(
                 f"Removed {len(keys_to_remove)} invalid entries from input data"
             )
-
-    @abstractmethod
-    def report(self) -> None:
-        """
-        Abstract method for reporting the data.
-        """
-        raise NotImplementedError
 
     def _save(self, data: pd.DataFrame, full_output: str) -> None:
         """
