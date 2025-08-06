@@ -75,6 +75,17 @@ class LoaderPandasExcel(LoaderBase):
             (pd.DataFrame)
                 Data in excel by pd.DataFrame format.
         """
+        # 檢查 openpyxl 是否已安裝
+        try:
+            import openpyxl
+        except ImportError:
+            from petsard.exceptions import ConfigError
+
+            raise ConfigError(
+                "openpyxl is required to read Excel files. "
+                "Please install it with: pip install petsard[xlsx]"
+            )
+
         # 1. set the filepath as first positional argument
         filepath = self.config["filepath"]
 

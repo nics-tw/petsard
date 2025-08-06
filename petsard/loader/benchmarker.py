@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
-import requests
 import yaml
 
 from petsard.config_base import BaseConfig
@@ -262,6 +261,17 @@ class BenchmarkerRequests(BaseBenchmarker):
             than confirm its SHA-256 is matched.
 
         """
+        # 檢查 requests 是否已安裝
+        try:
+            import requests
+        except ImportError:
+            from petsard.exceptions import ConfigError
+
+            raise ConfigError(
+                "requests is required for benchmark dataset downloading. "
+                "Please install it with: pip install petsard[load-benchmark]"
+            )
+
         if self.config["benchmark_already_exist"]:
             self._logger.info(f"Using local file: {self.config['filepath']}")
         else:

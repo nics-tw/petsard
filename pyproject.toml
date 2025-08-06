@@ -39,59 +39,100 @@ classifiers = [
 
 requires-python = ">=3.10,<3.12" # Python 3.12 not supported due to anonymeter dependency conflicts
 
-dependencies = [
-	"anonymeter>=1.0.0,<2",
-	"python-dateutil>=2.9.0.post0,<3",
-	"pyyaml>=6.0.2,<7",
-	"requests>=2.32.4,<3",
-	"sdmetrics>=0.21.0,<1",
-	"sdv>=1.24.0,<2",
-	"openpyxl>=3.1.5",
-	###### ###### ######
-	# SBOM dependency related
-	###### ###### ######
-	"boto3>=1.39.3",
-	"botocore>=1.39.3",
-	"certifi>=2025.6.15",
-	"charset-normalizer>=3.4.2",
-	"faker>=37.4.0",
-	"filelock>=3.18.0",
-	"joblib>=1.5.1",
-	"narwhals>=1.45.0",
-	"numba>=0.61.2",
-	"platformdirs>=4.3.8",
-	"plotly>=6.2.0",
-	"pytz>=2025.2",
-	"s3transfer>=0.13.0",
-	"scipy>=1.15.3 ; python_full_version < '3.11'",
-	"scipy>=1.16.0 ; python_full_version >= '3.11'",
-	"threadpoolctl>=3.6.0",
-	"typing-extensions>=4.14.1",
-	"tzdata>=2025.2",
-	"urllib3>=2.5.0",
-	"setuptools>=80.9.0",
-	###### ###### ######
-	# block by Anonymeter, but already alert
-	###### ###### ######
-	"numpy>=1.26.4",
-	###### ###### ######
-	# Backward compatibility packages for Python 3.10
-	###### ###### ######
-	"exceptiongroup>=1.3.0 ; python_version < '3.11'",
-	"tomli>=2.2.1 ; python_version < '3.11'",
-]
-
 [project.urls]
 Repository = "https://github.com/nics-tw/petsard"
 Documentation = "https://nics-tw.github.io/petsard/"
 "Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
-# PyTorch 群組
-# PyTorch group
-pytorch = [
-	"fsspec>=2025.5.1",
-	"jinja2>=3.1.6,<4",
+# PETsARD 標準功能 / PETsARD standard functionality
+# 這是預設安裝的群組 / This is the default installation group
+default = [
+    {include-group = "eval"},
+    {include-group = "exec"},
+	{include-group = "load"},
+    {include-group = "syn"},
+]
+
+# 資料科學功能 / Data science functionality
+# 使用者可以執行: pip install petsard[ds]
+ds = [
+	{include-group = "default"},
+	{include-group = "jupyter"},
+]
+
+# 完整功能群組 / Full functionality group
+# 使用者可以執行: pip install petsard[all]
+all = [
+	{include-group = "ds"},
+	{include-group = "load-xlsx"},
+	{include-group = "load-benchmark"},
+]
+
+# 開發功能 / Development functionality
+# 使用者可以執行: pip install petsard[dev]
+dev = [
+	{include-group = "all"},
+	{include-group = "dev-tools"},
+]
+
+# 執行功能群組 / Execution functionality group
+exec = [
+	"pyyaml>=6.0.2,<7",  # YAML configuration support
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# 讀取功能群組 / Loading functionality group
+load = [
+	"pandas>=2.3.1",                                  # Data manipulation and analysis
+    ###### Core lib above, SBOM related below ###### ######
+	"numpy>=1.26.4",                                  # pandas dependency
+	"python-dateutil>=2.9.0.post0",                   # pandas dependency
+	"pytz>=2025.2",                                   # pandas dependency
+	"tzdata>=2025.2",                                 # pandas dependency
+]
+
+# 評估功能群組 / Evaluation functionality group
+eval = [
+	"anonymeter>=1.0.0,<2",                           # Privacy risk evaluation
+	"sdmetrics>=0.21.0,<1",                           # Synthetic data quality metrics
+    ###### Core lib above, SBOM related below ###### ######
+	"joblib>=1.5.1",                                  # anonymeter dependency
+	"numba>=0.61.2",                                  # anonymeter dependency
+	"numpy>=1.26.4",                                  # anonymeter, sdmetrics dependency
+	"plotly>=6.2.0",                                  # sdmetrics dependency
+	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdmetrics dependency
+	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdmetrics dependency
+	"threadpoolctl>=3.6.0",                           # anonymeter, sdmetrics dependency
+	"pytz>=2025.2",                                   # anonymeter, sdmetrics dependency
+	"tzdata>=2025.2",                                 # anonymeter, sdmetrics dependency
+]
+
+# 合成資料生成群組 / Synthetic data generation group
+syn = [
+	"sdv>=1.24.0,<2",                                 # Synthetic data generation
+	"torch>=2.7.1",                                   # PyTorch for deep learning models
+    ###### Core lib above, SBOM related below ###### ######
+	"boto3>=1.39.3",                                  # sdv dependency
+	"botocore>=1.39.3",                               # sdv dependency
+	"faker>=37.4.0",                                  # sdv dependency
+	"filelock>=3.18.0",                               # sdv dependency
+	"joblib>=1.5.1",                                  # sdv dependency
+	"narwhals>=1.45.0",                               # sdv dependency
+	"numba>=0.61.2",                                  # sdv dependency
+	"numpy>=1.26.4",                                  # sdv dependency
+	"platformdirs>=4.3.8",                            # sdv dependency
+	"plotly>=6.2.0",                                  # sdv dependency
+	"pytz>=2025.2",                                   # sdv dependency
+	"s3transfer>=0.13.0",                             # sdv dependency
+	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdv dependency
+	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdv dependency
+	"threadpoolctl>=3.6.0",                           # sdv dependency
+	"typing-extensions>=4.14.1",                      # sdv dependency
+	"tzdata>=2025.2",                                 # sdv dependency
+	"urllib3>=2.5.0",                                 # sdv dependency
+	"fsspec>=2025.5.1",                               # torch dependency
+	"jinja2>=3.1.6,<4",                               # torch dependency
 	"nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -106,33 +147,42 @@ pytorch = [
 	"nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"sympy>=1.14.0",
-	"torch>=2.7.1",
+	"sympy>=1.14.0",                                  # torch dependency
 	"triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	# NetworkX version optimization for different Python versions
-	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
-	"networkx>=3.5 ; python_full_version >= '3.11'",
+	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'", # torch dependency
+	"networkx>=3.5 ; python_full_version >= '3.11'", # torch dependency
 ]
 
-# Jupyter 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
-# Jupyter group - only core dependencies needed for Jupyter Notebook
+# Jupyter 群組 / Jupyter group
 jupyter = [
-	"debugpy>=1.8.14",                                # Debugging support for notebooks
-	"decorator>=5.2.1",                               # IPython dependency
-	"ipykernel>=6.29.5,<7",                           # Jupyter kernel support
+	"ipykernel>=6.29.5,<7", # Jupyter kernel support
 	"ipython>=8.3.0 ; python_full_version < '3.11'",  # IPython for Python 3.10
 	"ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
-	"jupyterlab>=4.4.4",                              # Jupyter Lab interface
-	"prompt-toolkit>=3.0.51",                         # IPython dependency
-	"psutil>=7.0.0",                                  # System monitoring for notebooks
+	"jupyterlab>=4.0.0,<5",                           # JupyterLab support
+	"notebook>=7.4.5",                                # Jupyter Notebook support
 	"pyzmq>=27.0.0",                                  # Jupyter messaging
-	# IPython enhancement for Python 3.11+
+	###### Core lib above, SBOM related below ###### ######
+	"debugpy>=1.8.14", # Debugging support for notebooks
+	"decorator>=5.2.1", # IPython dependency
 	"ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
+	"prompt-toolkit>=3.0.51", # IPython dependency
+	"psutil>=7.0.0", # System monitoring for notebooks
 ]
 
-# 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
-# Development tools dependency group - dev tools that don't need to be in Docker
-dev = [
+# Excel 檔案支援群組 / Excel file support group
+load-xlsx = [
+    "openpyxl>=3.1.5",     # Excel file reading/writing
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# Benchmark 基準資料集支援群組 / Benchmark dataset support group
+load-benchmark = [
+    "requests>=2.32.4,<3",                            # HTTP requests for downloading datasets
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# 開發工具依賴群組 / Development tools dependency group
+dev-tools = [
 	"click-option-group>=0.5.7",              # CLI tools
 	"iniconfig>=2.1.0",                       # Configuration parsing
 	"pip-audit>=2.7.3,<3",                    # Security audit tool
