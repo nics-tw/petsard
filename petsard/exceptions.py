@@ -100,3 +100,27 @@ class CustomMethodEvaluatorError(Exception):
     """
 
     pass
+
+
+class StatusError(Exception):
+    """
+    Exception raised for errors related to status management.
+    """
+
+    pass
+
+
+class SnapshotError(StatusError):
+    """
+    Exception raised for errors related to snapshot operations.
+    """
+
+    pass
+
+
+class TimingError(StatusError):
+    """
+    Exception raised for errors related to timing operations.
+    """
+
+    pass
