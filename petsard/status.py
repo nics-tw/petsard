@@ -9,7 +9,7 @@ import pandas as pd
 
 from petsard.adapter import BaseAdapter
 from petsard.exceptions import SnapshotError, StatusError, TimingError, UnexecutedError
-from petsard.metadater import Metadater, SchemaMetadata
+from petsard.metadater import MetadataChange, Metadater, SchemaMetadata
 from petsard.processor import Processor
 from petsard.synthesizer import Synthesizer
 
@@ -17,16 +17,7 @@ from petsard.synthesizer import Synthesizer
 @dataclass(frozen=True)
 class ExecutionSnapshot:
     """
-    執行快照 - 記錄每個模組執行前後的完整狀態
-
-    Attributes:
-        snapshot_id: 快照唯一識別碼
-        module_name: 模組名稱
-        experiment_name: 實驗名稱
-        timestamp: 快照建立時間
-        metadata_before: 執行前的元資料狀態
-        metadata_after: 執行後的元資料狀態
-        execution_context: 執行上下文資訊
+    簡化的執行快照
     """
 
     snapshot_id: str
@@ -35,50 +26,13 @@ class ExecutionSnapshot:
     timestamp: datetime
     metadata_before: SchemaMetadata | None = None
     metadata_after: SchemaMetadata | None = None
-    execution_context: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
-class MetadataChange:
-    """
-    元資料變更記錄
-
-    Attributes:
-        change_id: 變更唯一識別碼
-        change_type: 變更類型 ('create', 'update', 'delete')
-        target_type: 目標類型 ('schema', 'field')
-        target_id: 目標識別碼
-        before_state: 變更前狀態
-        after_state: 變更後狀態
-        timestamp: 變更時間
-        module_context: 模組上下文
-    """
-
-    change_id: str
-    change_type: str  # 'create', 'update', 'delete'
-    target_type: str  # 'schema', 'field'
-    target_id: str
-    before_state: Any | None = None
-    after_state: Any | None = None
-    timestamp: datetime = field(default_factory=datetime.now)
-    module_context: str = ""
+    context: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class TimingRecord:
     """
-    計時記錄 - 記錄每個模組和步驟的執行時間
-
-    Attributes:
-        record_id: 記錄唯一識別碼
-        module_name: 模組名稱
-        experiment_name: 實驗名稱
-        step_name: 步驟名稱 (如 'run', 'fit', 'sample', 'eval' 等)
-        start_time: 開始時間
-        end_time: 結束時間
-        duration_seconds: 執行時間（秒）
-        context: 額外的上下文資訊
-        duration_precision: duration_seconds 的小數位數精度，預設為 2
+    簡化的計時記錄
     """
 
     record_id: str
@@ -89,26 +43,13 @@ class TimingRecord:
     end_time: datetime | None = None
     duration_seconds: float | None = None
     context: dict[str, Any] = field(default_factory=dict)
-    duration_precision: int = 2
 
-    def complete(
-        self,
-        end_time: datetime | None = None,
-        duration_precision: int | None = None,
-    ) -> "TimingRecord":
+    def complete(self, end_time: datetime | None = None) -> "TimingRecord":
         """完成計時記錄"""
         if end_time is None:
             end_time = datetime.now()
 
-        duration = (end_time - self.start_time).total_seconds()
-
-        # 使用指定的精度或預設精度
-        precision = (
-            duration_precision
-            if duration_precision is not None
-            else self.duration_precision
-        )
-        rounded_duration = round(duration, precision)
+        duration = round((end_time - self.start_time).total_seconds(), 2)
 
         return TimingRecord(
             record_id=self.record_id,
@@ -117,39 +58,32 @@ class TimingRecord:
             step_name=self.step_name,
             start_time=self.start_time,
             end_time=end_time,
-            duration_seconds=rounded_duration,
+            duration_seconds=duration,
             context=self.context,
-            duration_precision=precision,
         )
 
-    def get_formatted_duration(self) -> str:
-        """取得格式化的持續時間字串"""
-        if self.duration_seconds is None:
-            return "N/A"
-        return f"{self.duration_seconds:.{self.duration_precision}f}s"
+    @property
+    def formatted_duration(self) -> str:
+        """格式化的持續時間"""
+        return f"{self.duration_seconds:.2f}s" if self.duration_seconds else "N/A"
 
 
 class TimingLogHandler(logging.Handler):
     """
-    自定義 logging handler 來捕獲 Operator 的時間資訊
-    優化版本：使用預編譯正則表達式和快取
+    簡化的計時日誌處理器
     """
 
     def __init__(self, status_instance):
         super().__init__()
         self.status = status_instance
-        # 簡化並優化正則表達式
         self._timing_pattern = re.compile(
-            r"TIMING_(\w+)\|([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?(?:\|(.+))?"
+            r"TIMING_(\w+)\|([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?"
         )
-        # 模組名稱快取，避免重複處理
-        self._module_name_cache = {}
 
     def emit(self, record):
-        """處理 log 記錄，解析時間資訊 - 優化版本"""
+        """處理計時日誌記錄"""
         try:
             message = record.getMessage()
-            # 快速檢查是否為 TIMING 訊息，避免不必要的正則匹配
             if not message.startswith("TIMING_"):
                 return
 
@@ -157,54 +91,26 @@ class TimingLogHandler(logging.Handler):
             if not match:
                 return
 
-            timing_type = match.group(1)  # START, END, ERROR
-            module_name = match.group(2)  # 模組名稱
-            step_name = match.group(3)  # 步驟名稱
-            timestamp = float(match.group(4))  # 時間戳
-            duration = float(match.group(5)) if match.group(5) else None  # 持續時間
-            error_msg = match.group(6) if match.group(6) else None  # 錯誤訊息
+            timing_type, module_name, step_name, timestamp_str, duration_str = (
+                match.groups()
+            )
+            timestamp = float(timestamp_str)
+            duration = float(duration_str) if duration_str else None
 
-            # 使用快取獲取實驗名稱
-            expt_name = self._get_experiment_name_cached(module_name)
+            expt_name = self.status._current_experiments.get(module_name, "default")
 
             if timing_type == "START":
                 self.status._handle_timing_start(
                     module_name, expt_name, step_name, timestamp
                 )
             elif timing_type in ["END", "ERROR"]:
-                context = {}
-                if timing_type == "ERROR" and error_msg:
-                    context["error"] = error_msg
-                    context["status"] = "error"
-                else:
-                    context["status"] = "completed"
-
+                context = {"status": "error" if timing_type == "ERROR" else "completed"}
                 self.status._handle_timing_end(
                     module_name, expt_name, step_name, timestamp, duration, context
                 )
 
-        except (ValueError, TypeError) as e:
-            # 處理資料解析錯誤
-            logging.getLogger("PETsARD.TimingHandler").warning(
-                f"Timing data parsing error: {e}"
-            )
-        except Exception as e:
-            # 處理其他未預期錯誤
-            logging.getLogger("PETsARD.TimingHandler").error(
-                f"Unexpected timing handler error: {e}", exc_info=True
-            )
-
-    def _get_experiment_name_cached(self, module_name: str) -> str:
-        """使用快取獲取實驗名稱，避免重複處理"""
-        if module_name not in self._module_name_cache:
-            expt_name = self.status._current_experiments.get(module_name, "default")
-            if expt_name == "default":
-                clean_module_name = module_name.replace("Adapter", "")
-                expt_name = self.status._current_experiments.get(
-                    clean_module_name, "default"
-                )
-            self._module_name_cache[module_name] = expt_name
-        return self._module_name_cache[module_name]
+        except (ValueError, TypeError, AttributeError):
+            pass  # 靜默忽略解析錯誤
 
 
 class Status:
@@ -235,22 +141,19 @@ class Status:
         self.sequence: list = config.sequence
         self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
 
-        # 核心 Metadater 實例
-        self.metadater = Metadater()
+        # 核心 Metadater 實例 - 包含變更追蹤功能
+        self.metadater = Metadater(max_changes=max_changes)
 
         # 狀態儲存 - 保持與原有介面相容
         self.status: dict = {}
         self.metadata: dict[str, SchemaMetadata] = {}
 
-        # 優化的快照和變更追蹤功能 - 使用 deque 限制大小
+        # 優化的快照功能 - 使用 deque 限制大小
         self.max_snapshots = max_snapshots
-        self.max_changes = max_changes
         self.max_timings = max_timings
 
         self.snapshots: deque[ExecutionSnapshot] = deque(maxlen=max_snapshots)
-        self.change_history: deque[MetadataChange] = deque(maxlen=max_changes)
         self._snapshot_counter = 0
-        self._change_counter = 0
 
         # 快照索引，使用弱引用字典避免記憶體洩漏
         self._snapshot_index: dict[str, ExecutionSnapshot] = {}
@@ -297,10 +200,6 @@ class Status:
         """生成快照 ID"""
         return self._generate_id("snapshot", "_snapshot_counter")
 
-    def _generate_change_id(self) -> str:
-        """生成變更 ID"""
-        return self._generate_id("change", "_change_counter")
-
     def _generate_timing_id(self) -> str:
         """生成計時 ID"""
         return self._generate_id("timing", "_timing_counter")
@@ -333,7 +232,7 @@ class Status:
             timestamp=datetime.now(),
             metadata_before=metadata_before,
             metadata_after=metadata_after,
-            execution_context=context or {},
+            context=context or {},
         )
 
         self.snapshots.append(snapshot)
@@ -352,45 +251,6 @@ class Status:
 
         self._logger.debug(f"建立快照: {snapshot.snapshot_id} for {module}[{expt}]")
         return snapshot
-
-    def _track_metadata_change(
-        self,
-        change_type: str,
-        target_type: str,
-        target_id: str,
-        before_state: Any | None = None,
-        after_state: Any | None = None,
-        module_context: str = "",
-    ) -> MetadataChange:
-        """
-        追蹤元資料變更
-
-        Args:
-            change_type: 變更類型
-            target_type: 目標類型
-            target_id: 目標 ID
-            before_state: 變更前狀態
-            after_state: 變更後狀態
-            module_context: 模組上下文
-
-        Returns:
-            MetadataChange: 變更記錄
-        """
-        change = MetadataChange(
-            change_id=self._generate_change_id(),
-            change_type=change_type,
-            target_type=target_type,
-            target_id=target_id,
-            before_state=before_state,
-            after_state=after_state,
-            module_context=module_context,
-        )
-
-        self.change_history.append(change)
-        self._logger.debug(
-            f"追蹤變更: {change.change_id} - {change_type} {target_type}"
-        )
-        return change
 
     def start_timing(
         self,
@@ -421,7 +281,6 @@ class Status:
             step_name=step,
             start_time=datetime.now(),
             context=context or {},
-            duration_precision=2,  # 預設精度為 2
         )
 
         self._active_timings[timing_key] = timing_record
@@ -474,7 +333,6 @@ class Status:
             end_time=completed_timing.end_time,
             duration_seconds=completed_timing.duration_seconds,
             context=merged_context,
-            duration_precision=completed_timing.duration_precision,
         )
 
         self.timing_records.append(completed_timing)
@@ -522,7 +380,6 @@ class Status:
             end_time=end_time,
             duration_seconds=duration_seconds,
             context=context or {},
-            duration_precision=2,
         )
 
     def _handle_timing_start(self, module: str, expt: str, step: str, timestamp: float):
@@ -655,9 +512,9 @@ class Status:
         if module in ["Loader", "Splitter", "Preprocessor"]:
             new_metadata = operator.get_metadata()
 
-            # 追蹤元資料變更
+            # 使用 Metadater 追蹤元資料變更
             if metadata_before is not None:
-                self._track_metadata_change(
+                self.metadater.track_metadata_change(
                     change_type="update",
                     target_type="schema",
                     target_id=new_metadata.schema_id,
@@ -666,7 +523,7 @@ class Status:
                     module_context=f"{module}[{expt}]",
                 )
             else:
-                self._track_metadata_change(
+                self.metadater.track_metadata_change(
                     change_type="create",
                     target_type="schema",
                     target_id=new_metadata.schema_id,
@@ -839,10 +696,7 @@ class Status:
         Returns:
             List[MetadataChange]: 變更記錄列表
         """
-        if module is None:
-            return self.change_history.copy()
-        else:
-            return [c for c in self.change_history if module in c.module_context]
+        return self.metadater.get_change_history(module)
 
     def get_metadata_evolution(self, module: str = "Loader") -> list[SchemaMetadata]:
         """
@@ -920,16 +774,17 @@ class Status:
         Returns:
             Dict[str, Any]: 狀態摘要
         """
+        change_summary = self.metadater.get_change_summary()
         return {
             "sequence": self.sequence,
             "active_modules": list(self.status.keys()),
             "metadata_modules": list(self.metadata.keys()),
             "total_snapshots": len(self.snapshots),
-            "total_changes": len(self.change_history),
+            "total_changes": change_summary["total_changes"],
             "last_snapshot": self.snapshots[-1].snapshot_id if self.snapshots else None,
-            "last_change": self.change_history[-1].change_id
-            if self.change_history
-            else None,
+            "last_change": change_summary["latest_change"],
+            "change_types": change_summary["change_types"],
+            "target_types": change_summary["target_types"],
         }
 
     def get_timing_records(self, module: str = None) -> list[TimingRecord]:
