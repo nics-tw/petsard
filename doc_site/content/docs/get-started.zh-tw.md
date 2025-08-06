@@ -8,31 +8,52 @@ next: docs/tutorial
 
 ## 安裝
 
-*以下我們展示 Python 原生環境的設定方式。不過，為了更好的依賴套件管理，我們推薦使用：*
+PETsARD 已發布至 PyPI，可根據您的需求選擇不同的依賴群組進行安裝。您也可以使用 `pyproject.toml` 或 `requirements.txt` 從原始碼安裝。
 
-**推薦工具：**
+### PyPI 安裝（推薦）
+
+```bash
+# 基本安裝（僅配置解析功能）
+pip install petsard
+
+# 資料科學功能（推薦給大多數使用者）
+pip install petsard[ds]
+
+# 完整安裝，包含開發工具
+pip install petsard[all]
+
+# 僅開發工具
+pip install petsard[dev]
+```
+
+### 安裝選項
+
+| 群組 | 指令 | 包含功能 |
+|------|------|----------|
+| **預設** | `pip install petsard` | 配置、讀檔、合成、評測的基本功能（pyyaml、pandas、anonymeter、sdmetrics、sdv、torch 等） |
+| **資料科學** | `pip install petsard[ds]` | 基本功能 + Jupyter Notebook 支援（ipykernel、jupyterlab、notebook 等） |
+| **完整** | `pip install petsard[all]` | 資料科學功能 + 延伸支援（基準資料集下載、Excel 檔案支援） |
+| **開發** | `pip install petsard[dev]` | 測試與開發工具（pytest、ruff、coverage 等） |
+
+### 原始碼安裝
+
+用於開發或自訂建置：
+
+```bash
+# 複製儲存庫
+git clone https://github.com/nics-tw/petsard.git
+cd petsard
+
+# 使用 pyproject.toml 安裝
+pip install -e ".[all]"
+
+# 或使用 requirements.txt 安裝（基於預設安裝）
+pip install -r requirements.txt
+```
+
+**開發推薦工具：**
 * `pyenv` - Python 版本管理
 * `poetry` / `uv` - 套件管理
-
-### Python 原生環境設定
-
-1. 建立並啟動虛擬環境：
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # 或是
-   venv\Scripts\activate     # Windows
-   ```
-
-2. 升級 pip：
-   ```bash
-   python -m pip install --upgrade pip
-   ```
-
-3. 安裝必要套件：
-   ```bash
-   pip install -r requirements.txt
-   ```
 
 ### 離線環境準備
 
@@ -43,7 +64,7 @@ next: docs/tutorial
 python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
 
 # 下載額外的依賴群組
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups ds
 ```
 
 **參數說明：**
@@ -55,30 +76,6 @@ python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os
   - `macos`：macOS Intel
   - `macos-arm`：macOS Apple Silicon
 - `--groups`：可選的依賴群組（可用空格分隔指定多個群組）
-  - `pytorch`：PyTorch 和 CUDA 相關套件，用於深度學習
-  - `jupyter`：Jupyter Notebook 和 IPython 套件，用於互動式開發
-  - `dev`：開發工具如 pytest、ruff 等實用工具
-
-**依賴群組範例：**
-
-```bash
-# 僅下載核心依賴套件
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
-
-# 下載 PyTorch 支援
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch
-
-# 下載 Jupyter 支援
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups jupyter
-
-# 下載多個群組
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
-
-# 下載所有可用群組
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter dev
-```
-
-此工具會下載 PETsARD 及其所有依賴項的輪子檔案，並產生詳細的安裝日誌。
 
 ## 快速開始
 

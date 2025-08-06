@@ -342,9 +342,17 @@ def _internal_setup_environment(
             # If we're directly in demo/, project root is parent
             project_root = demo_dir.parent
 
-        # Local installation with quiet output
+        # Local installation with quiet output - install 'all' group for full functionality
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "-e", str(project_root), "-q"],
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-e",
+                f"{str(project_root)}[all]",
+                "-q",
+            ],
             check=True,
             capture_output=True,
             text=True,

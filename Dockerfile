@@ -7,13 +7,12 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY README.md ./
 COPY petsard/ ./petsard/
-COPY demo/ ./demo/
 COPY .release/docker/entrypoint.sh ./
+# COPY demo/ ./demo/
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -e .
-RUN pip install --no-cache-dir --group jupyter
-
+# RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir --group ds # petsard default + jupyter
 
 # Create necessary directories for Jupyter
 # 為 Jupyter 創建必要的目錄

@@ -8,31 +8,52 @@ next: docs/tutorial
 
 ## Installation
 
-*Below we demonstrate the native Python environment setup. However, for better dependency management, we recommend using:*
+PETsARD is available on PyPI and can be installed with different dependency groups based on your needs. You can also install from source using `pyproject.toml` or `requirements.txt`.
 
-**Recommended tools:**
+### PyPI Installation (Recommended)
+
+```bash
+# Default installation (configuration parsing only)
+pip install petsard
+
+# Data science features (recommended for most users)
+pip install petsard[ds]
+
+# Complete installation with development tools
+pip install petsard[all]
+
+# Development tools only
+pip install petsard[dev]
+```
+
+### Installation Options
+
+| Group | Command | Included Features |
+|-------|---------|-------------------|
+| **Default** | `pip install petsard` | Core functionality: configuration, data loading, synthesis, evaluation (pyyaml, pandas, anonymeter, sdmetrics, sdv, torch, etc.) |
+| **Data Science** | `pip install petsard[ds]` | Basic functionality + Jupyter Notebook support (ipykernel, jupyterlab, notebook, etc.) |
+| **Complete** | `pip install petsard[all]` | Data science functionality + extended support (benchmark datasets, Excel file support) |
+| **Development** | `pip install petsard[dev-tools]` | Testing and development utilities (pytest, ruff, coverage, etc.) |
+
+### Source Installation
+
+For development or custom builds:
+
+```bash
+# Clone the repository
+git clone https://github.com/nics-tw/petsard.git
+cd petsard
+
+# Install with pyproject.toml
+pip install -e ".[all]"
+
+# Or install with requirements.txt (based on default)
+pip install -r requirements.txt
+```
+
+**Recommended tools for development:**
 * `pyenv` - Python version management
 * `poetry` / `uv` - Package management
-
-### Native Python Setup
-
-1. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # or
-   venv\Scripts\activate     # Windows
-   ```
-
-2. Upgrade pip:
-   ```bash
-   python -m pip install --upgrade pip
-   ```
-
-3. Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
 
 ### Offline Environment Preparation
 
@@ -43,7 +64,7 @@ For environments without internet access, we provide a wheel downloader tool to 
 python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
 
 # Download with additional dependency groups
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups ds
 ```
 
 **Parameter descriptions:**
@@ -55,30 +76,6 @@ python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os
   - `macos`: macOS Intel
   - `macos-arm`: macOS Apple Silicon
 - `--groups`: Optional dependency groups (can specify multiple groups separated by spaces)
-  - `pytorch`: PyTorch and CUDA-related packages for deep learning
-  - `jupyter`: Jupyter Notebook and IPython packages for interactive development
-  - `dev`: Development tools like pytest, ruff, and other utilities
-
-**Dependency Groups Examples:**
-
-```bash
-# Download only core dependencies
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
-
-# Download with PyTorch support
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch
-
-# Download with Jupyter support
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups jupyter
-
-# Download with multiple groups
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter
-
-# Download with all available groups
-python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups pytorch jupyter dev
-```
-
-This tool downloads PETsARD and all its dependency wheel files, and generates detailed installation logs.
 
 ## Quick Start
 

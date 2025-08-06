@@ -12,17 +12,19 @@ import tempfile
 import pandas as pd
 import pytest
 
+from petsard.exceptions import ConfigError
 from petsard.executor import Executor
+
+
+@pytest.fixture
+def temp_output_dir():
+    """Create a temporary directory for test outputs."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        yield temp_dir
 
 
 class TestPETsARDFunctionalWorkflows:
     """Test complete PETsARD workflows using demo YAML configurations."""
-
-    @pytest.fixture
-    def temp_output_dir(self):
-        """Create a temporary directory for test outputs."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            yield temp_dir
 
     def _extract_module_data(self, result, module_name):
         """
@@ -784,7 +786,7 @@ Reporter:
             assert executor.is_execution_completed()
         else:
             # Should raise an error for invalid granularity
-            with pytest.raises((ValueError, KeyError, AttributeError)):
+            with pytest.raises((ValueError, KeyError, AttributeError, ConfigError)):
                 executor = Executor(config_path)
                 executor.run()
 
