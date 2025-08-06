@@ -50,7 +50,6 @@ Documentation = "https://nics-tw.github.io/petsard/"
 default = [
     {include-group = "eval"},
     {include-group = "exec"},
-	{include-group = "load"},
     {include-group = "syn"},
 ]
 
@@ -78,123 +77,118 @@ dev = [
 
 # 執行功能群組 / Execution functionality group
 exec = [
-	"pyyaml>=6.0.2,<7",  # YAML configuration support
-    ###### Core lib above, SBOM related below ###### ######
-]
-
-# 讀取功能群組 / Loading functionality group
-load = [
-	"pandas>=2.3.1",                                  # Data manipulation and analysis
-    ###### Core lib above, SBOM related below ###### ######
-	"numpy>=1.26.4",                                  # pandas dependency
-	"python-dateutil>=2.9.0.post0",                   # pandas dependency
-	"pytz>=2025.2",                                   # pandas dependency
-	"tzdata>=2025.2",                                 # pandas dependency
+	"pandas>=2.3.1,<3",   # Data manipulation and analysis
+	"pyyaml>=6.0.2,<7",   # YAML configuration support
+    ###### Core lib above, SBOM related below ######
+	# pandas dependencies
+	"numpy>=1.26.4,<2",
+	"python-dateutil>=2.9.0.post0,<3",
+	"pytz>=2025.2",
+	"tzdata>=2025.2",
 ]
 
 # 評估功能群組 / Evaluation functionality group
 eval = [
-	"anonymeter>=1.0.0,<2",                           # Privacy risk evaluation
-	"sdmetrics>=0.21.0,<1",                           # Synthetic data quality metrics
-    ###### Core lib above, SBOM related below ###### ######
-	"joblib>=1.5.1",                                  # anonymeter dependency
-	"numba>=0.61.2",                                  # anonymeter dependency
-	"numpy>=1.26.4",                                  # anonymeter, sdmetrics dependency
-	"plotly>=6.2.0",                                  # sdmetrics dependency
-	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdmetrics dependency
-	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdmetrics dependency
-	"threadpoolctl>=3.6.0",                           # anonymeter, sdmetrics dependency
-	"pytz>=2025.2",                                   # anonymeter, sdmetrics dependency
-	"tzdata>=2025.2",                                 # anonymeter, sdmetrics dependency
+	"anonymeter>=1.0.0,<2",   # Privacy risk evaluation
+	"sdmetrics>=0.22.0,<1",   # Synthetic data quality metrics
+	###### Core lib above, SBOM related below ######
+	# anonymeter, sdmetrics dependencies
+	"numpy>=1.26.4,<2",
+	"scikit-learn>=1.7.0,<2",
+	# anonymeter dependencies
+	"joblib>=1.5.1,<2",
+	"numba>=0.61.2,<1",
+	# sdmetrics dependencies
+	"plotly>=6.2.0,<7",
+	"scipy>=1.15.3,<2 ; python_full_version < '3.11'",
+	"scipy>=1.16.0,<2 ; python_full_version >= '3.11'",
 ]
 
 # 合成資料生成群組 / Synthetic data generation group
 syn = [
-	"sdv>=1.24.0,<2",                                 # Synthetic data generation
-	"torch>=2.7.1",                                   # PyTorch for deep learning models
-    ###### Core lib above, SBOM related below ###### ######
-	"boto3>=1.39.3",                                  # sdv dependency
-	"botocore>=1.39.3",                               # sdv dependency
-	"faker>=37.4.0",                                  # sdv dependency
-	"filelock>=3.18.0",                               # sdv dependency
-	"joblib>=1.5.1",                                  # sdv dependency
-	"narwhals>=1.45.0",                               # sdv dependency
-	"numba>=0.61.2",                                  # sdv dependency
-	"numpy>=1.26.4",                                  # sdv dependency
-	"platformdirs>=4.3.8",                            # sdv dependency
-	"plotly>=6.2.0",                                  # sdv dependency
-	"pytz>=2025.2",                                   # sdv dependency
-	"s3transfer>=0.13.0",                             # sdv dependency
-	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdv dependency
-	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdv dependency
-	"threadpoolctl>=3.6.0",                           # sdv dependency
-	"typing-extensions>=4.14.1",                      # sdv dependency
-	"tzdata>=2025.2",                                 # sdv dependency
-	"urllib3>=2.5.0",                                 # sdv dependency
-	"fsspec>=2025.5.1",                               # torch dependency
-	"jinja2>=3.1.6,<4",                               # torch dependency
-	"nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cuda-runtime-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cudnn-cu12>=9.5.1.17 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cufft-cu12>=11.3.0.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cufile-cu12>=1.11.1.6 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-curand-cu12>=10.3.7.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cusolver-cu12>=11.7.1.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cusparse-cu12>=12.5.4.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-cusparselt-cu12>=0.6.3 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"sympy>=1.14.0",                                  # torch dependency
-	"triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'", # torch dependency
-	"networkx>=3.5 ; python_full_version >= '3.11'", # torch dependency
+	"sdv>=1.25.0,<2",    # Synthetic data generation
+	"torch>=2.8.0,<3",   # PyTorch for deep learning models
+	###### Core lib above, SBOM related below ######
+	# sdv, torch dependencies
+	"numpy>=1.26.4,<2",
+	"pytz>=2025.2",
+	"scipy>=1.15.3,<2 ; python_full_version < '3.11'",
+	"scipy>=1.16.0,<2 ; python_full_version >= '3.11'",
+	"tzdata>=2025.2",
+	# sdv dependencies
+	"boto3>=1.40.3,<2",
+	"botocore>=1.39.3,<2",
+	"faker>=37.5.3,<38",
+	"filelock>=3.18.0,<4",
+	"joblib>=1.5.1,<2",
+	"narwhals>=1.45.0,<2",
+	"numba>=0.61.2,<1",
+	"platformdirs>=4.3.8,<5",
+	"plotly>=6.2.0,<7",
+	"s3transfer>=0.13.1,<1",
+	"threadpoolctl>=3.6.0,<4",
+	"typing-extensions>=4.14.1,<5",
+	"urllib3>=2.5.0,<3",
+	# torch dependencies
+	"fsspec>=2025.7.0",
+	"jinja2>=3.1.6,<4",
+	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
+	"networkx>=3.5,<4 ; python_full_version >= '3.11'",
+	"nvidia-cublas-cu12>=12.6.4.1,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-cupti-cu12>=12.6.80,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-nvrtc-cu12>=12.6.77,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cuda-runtime-cu12>=12.6.77,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cudnn-cu12>=9.5.1.17,<10 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cufft-cu12>=11.3.0.4,<12 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cufile-cu12>=1.11.1.6,<2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-curand-cu12>=10.3.7.77,<11 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusolver-cu12>=11.7.1.2,<12 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusparse-cu12>=12.5.4.2,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-cusparselt-cu12>=0.6.3,<1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nccl-cu12>=2.26.2,<3 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nvjitlink-cu12>=12.6.85,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"nvidia-nvtx-cu12>=12.6.77,<13 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
+	"sympy>=1.14.0,<2",
+	"triton>=3.4.0,<4 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 
 # Jupyter 群組 / Jupyter group
 jupyter = [
-	"ipykernel>=6.29.5,<7", # Jupyter kernel support
-	"ipython>=8.3.0 ; python_full_version < '3.11'",  # IPython for Python 3.10
-	"ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
-	"jupyterlab>=4.0.0,<5",                           # JupyterLab support
-	"notebook>=7.4.5",                                # Jupyter Notebook support
-	"pyzmq>=27.0.0",                                  # Jupyter messaging
-	###### Core lib above, SBOM related below ###### ######
-	"debugpy>=1.8.14", # Debugging support for notebooks
-	"decorator>=5.2.1", # IPython dependency
-	"ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
-	"prompt-toolkit>=3.0.51", # IPython dependency
-	"psutil>=7.0.0", # System monitoring for notebooks
+	"ipykernel>=6.29.5,<7",                                 # Jupyter kernel support
+	"ipython>=8.3.0,<9 ; python_full_version < '3.11'",     # IPython for Python 3.10
+	"ipython>=9.4.0,<10 ; python_full_version >= '3.11'",   # IPython for Python 3.11+
+	"jupyterlab>=4.0.0,<5",                                 # JupyterLab support
+	"notebook>=7.4.5,<8",                                   # Jupyter Notebook support
+	"pyzmq>=27.0.0,<28",                                    # Jupyter messaging
+	###### Core lib above, SBOM related below ######
+	# ipykernel dependencies
+	"debugpy>=1.8.14,<2",
+	# ipython dependencies
+	"decorator>=5.2.1,<6",
+	"ipython-pygments-lexers>=1.1.1,<2 ; python_version >= '3.11'",
+	"prompt-toolkit>=3.0.51,<4",
+	# jupyterlab dependencies
+	"psutil>=7.0.0,<8",
 ]
 
 # Excel 檔案支援群組 / Excel file support group
 load-xlsx = [
-    "openpyxl>=3.1.5",     # Excel file reading/writing
-    ###### Core lib above, SBOM related below ###### ######
+    "openpyxl>=3.1.5,<4",   # Excel file reading/writing
 ]
 
 # Benchmark 基準資料集支援群組 / Benchmark dataset support group
 load-benchmark = [
-    "requests>=2.32.4,<3",                            # HTTP requests for downloading datasets
-    ###### Core lib above, SBOM related below ###### ######
+    "requests>=2.32.4,<3",   # HTTP requests for downloading datasets
 ]
 
 # 開發工具依賴群組 / Development tools dependency group
 dev-tools = [
-	"click-option-group>=0.5.7",              # CLI tools
-	"iniconfig>=2.1.0",                       # Configuration parsing
-	"pip-audit>=2.7.3,<3",                    # Security audit tool
-	"pydantic>=2.11.7",                       # Data validation
-	"pytest>=8.4.1,<9",                       # Testing framework
-	"pytest-cov>=6.0.0,<7",                   # Test coverage reporting
-	"python-gitlab>=6.1.0",                   # GitLab API client
-	"python-semantic-release>=10.2.0,<11",    # Release automation
-	"pywin32>=310 ; sys_platform == 'win32'", # Windows-specific tools
-	"rich>=14.0.0",                           # Rich text and beautiful formatting
-	"ruff>=0.12.2,<1",                        # Linting and formatting
-	"trove-classifiers>=2025.5.9.12",         # PyPI classifiers
+    "pip-audit>=2.7.3",                  # Security audit tool
+	"pytest>=8.4.1",                     # Testing framework
+	"pytest-cov>=6.0.0",                 # Test coverage reporting
+	"python-semantic-release>=10.3.1",   # Release automation
+	"ruff>=0.12.7",                      # Linting and formatting
+	"trove-classifiers>=2025.5.9.12",    # PyPI classifiers
 ]
 
 [build-system]
