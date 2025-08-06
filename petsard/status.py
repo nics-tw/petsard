@@ -8,7 +8,7 @@ from typing import Any
 import pandas as pd
 
 from petsard.adapter import BaseAdapter
-from petsard.exceptions import UnexecutedError
+from petsard.exceptions import SnapshotError, StatusError, TimingError, UnexecutedError
 from petsard.metadater import Metadater, SchemaMetadata
 from petsard.processor import Processor
 from petsard.synthesizer import Synthesizer
@@ -183,14 +183,16 @@ class TimingLogHandler(logging.Handler):
                     module_name, expt_name, step_name, timestamp, duration, context
                 )
 
+        except (ValueError, TypeError) as e:
+            # 處理資料解析錯誤
+            logging.getLogger("PETsARD.TimingHandler").warning(
+                f"Timing data parsing error: {e}"
+            )
         except Exception as e:
-            # 記錄錯誤但不影響主程式
-            try:
-                logging.getLogger("PETsARD.TimingHandler").warning(
-                    f"Timing handler error: {e}"
-                )
-            except:
-                pass
+            # 處理其他未預期錯誤
+            logging.getLogger("PETsARD.TimingHandler").error(
+                f"Unexpected timing handler error: {e}", exc_info=True
+            )
 
     def _get_experiment_name_cached(self, module_name: str) -> str:
         """使用快取獲取實驗名稱，避免重複處理"""
@@ -275,20 +277,33 @@ class Status:
         # 儲存當前實驗名稱的映射
         self._current_experiments: dict[str, str] = {}
 
+    def _generate_id(self, prefix: str, counter_attr: str) -> str:
+        """
+        統一的 ID 生成方法，避免程式碼重複
+
+        Args:
+            prefix: ID 前綴 (如 'snapshot', 'change', 'timing')
+            counter_attr: 計數器屬性名稱 (如 '_snapshot_counter')
+
+        Returns:
+            str: 生成的唯一 ID
+        """
+        current_counter = getattr(self, counter_attr)
+        setattr(self, counter_attr, current_counter + 1)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"{prefix}_{current_counter + 1:06d}_{timestamp}"
+
     def _generate_snapshot_id(self) -> str:
         """生成快照 ID"""
-        self._snapshot_counter += 1
-        return f"snapshot_{self._snapshot_counter:06d}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        return self._generate_id("snapshot", "_snapshot_counter")
 
     def _generate_change_id(self) -> str:
         """生成變更 ID"""
-        self._change_counter += 1
-        return f"change_{self._change_counter:06d}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        return self._generate_id("change", "_change_counter")
 
     def _generate_timing_id(self) -> str:
         """生成計時 ID"""
-        self._timing_counter += 1
-        return f"timing_{self._timing_counter:06d}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        return self._generate_id("timing", "_timing_counter")
 
     def _create_snapshot(
         self,
@@ -471,6 +486,45 @@ class Status:
 
         return completed_timing
 
+    def _create_timing_record(
+        self,
+        timing_id: str,
+        module: str,
+        expt: str,
+        step: str,
+        start_time: datetime,
+        end_time: datetime | None = None,
+        duration_seconds: float | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> TimingRecord:
+        """
+        統一的計時記錄創建方法，避免程式碼重複
+
+        Args:
+            timing_id: 計時記錄 ID
+            module: 模組名稱
+            expt: 實驗名稱
+            step: 步驟名稱
+            start_time: 開始時間
+            end_time: 結束時間
+            duration_seconds: 持續時間（秒）
+            context: 上下文資訊
+
+        Returns:
+            TimingRecord: 創建的計時記錄
+        """
+        return TimingRecord(
+            record_id=timing_id,
+            module_name=module,
+            experiment_name=expt,
+            step_name=step,
+            start_time=start_time,
+            end_time=end_time,
+            duration_seconds=duration_seconds,
+            context=context or {},
+            duration_precision=2,
+        )
+
     def _handle_timing_start(self, module: str, expt: str, step: str, timestamp: float):
         """
         處理從 logging 解析的開始計時資訊
@@ -481,21 +535,25 @@ class Status:
             step: 步驟名稱
             timestamp: 時間戳
         """
-        timing_id = self._generate_timing_id()
-        timing_key = f"{module}_{expt}_{step}"
+        try:
+            timing_id = self._generate_timing_id()
+            timing_key = f"{module}_{expt}_{step}"
+            start_time = datetime.fromtimestamp(timestamp)
 
-        timing_record = TimingRecord(
-            record_id=timing_id,
-            module_name=module,
-            experiment_name=expt,
-            step_name=step,
-            start_time=datetime.fromtimestamp(timestamp),
-            context={"source": "logging"},
-            duration_precision=2,  # 預設精度為 2
-        )
+            timing_record = self._create_timing_record(
+                timing_id=timing_id,
+                module=module,
+                expt=expt,
+                step=step,
+                start_time=start_time,
+                context={"source": "logging"},
+            )
 
-        self._active_timings[timing_key] = timing_record
-        self._logger.debug(f"從 logging 開始計時: {timing_key} - {timing_id}")
+            self._active_timings[timing_key] = timing_record
+            self._logger.debug(f"從 logging 開始計時: {timing_key} - {timing_id}")
+
+        except (ValueError, OSError) as e:
+            raise TimingError(f"無法處理計時開始事件: {e}") from e
 
     def _handle_timing_end(
         self,
@@ -517,54 +575,57 @@ class Status:
             duration: 持續時間（秒）
             context: 上下文資訊
         """
-        timing_key = f"{module}_{expt}_{step}"
+        try:
+            timing_key = f"{module}_{expt}_{step}"
+            end_time = datetime.fromtimestamp(timestamp)
+            rounded_duration = round(duration, 2) if duration is not None else None
 
-        if timing_key in self._active_timings:
-            # 有對應的開始記錄
-            active_timing = self._active_timings.pop(timing_key)
+            if timing_key in self._active_timings:
+                # 有對應的開始記錄
+                active_timing = self._active_timings.pop(timing_key)
+                merged_context = active_timing.context.copy()
+                merged_context.update(context)
 
-            # 合併上下文
-            merged_context = active_timing.context.copy()
-            merged_context.update(context)
+                completed_timing = self._create_timing_record(
+                    timing_id=active_timing.record_id,
+                    module=module,
+                    expt=expt,
+                    step=step,
+                    start_time=active_timing.start_time,
+                    end_time=end_time,
+                    duration_seconds=rounded_duration,
+                    context=merged_context,
+                )
+            else:
+                # 沒有對應的開始記錄，創建孤立記錄
+                timing_id = self._generate_timing_id()
+                start_time = datetime.fromtimestamp(timestamp - (duration or 0))
+                orphaned_context = {**context, "source": "logging", "orphaned": True}
 
-            completed_timing = TimingRecord(
-                record_id=active_timing.record_id,
-                module_name=active_timing.module_name,
-                experiment_name=active_timing.experiment_name,
-                step_name=active_timing.step_name,
-                start_time=active_timing.start_time,
-                end_time=datetime.fromtimestamp(timestamp),
-                duration_seconds=round(duration, 2) if duration is not None else None,
-                context=merged_context,
-                duration_precision=2,
+                completed_timing = self._create_timing_record(
+                    timing_id=timing_id,
+                    module=module,
+                    expt=expt,
+                    step=step,
+                    start_time=start_time,
+                    end_time=end_time,
+                    duration_seconds=rounded_duration,
+                    context=orphaned_context,
+                )
+
+            self.timing_records.append(completed_timing)
+
+            formatted_duration = (
+                str(timedelta(seconds=round(completed_timing.duration_seconds)))
+                if completed_timing.duration_seconds
+                else "N/A"
             )
-        else:
-            # 沒有對應的開始記錄，直接創建一個完整的記錄
-            timing_id = self._generate_timing_id()
-            start_time = datetime.fromtimestamp(timestamp - (duration or 0))
-
-            completed_timing = TimingRecord(
-                record_id=timing_id,
-                module_name=module,
-                experiment_name=expt,
-                step_name=step,
-                start_time=start_time,
-                end_time=datetime.fromtimestamp(timestamp),
-                duration_seconds=round(duration, 2) if duration is not None else None,
-                context={**context, "source": "logging", "orphaned": True},
-                duration_precision=2,
+            self._logger.debug(
+                f"從 logging 結束計時: {timing_key} - 耗時: {formatted_duration}"
             )
 
-        self.timing_records.append(completed_timing)
-
-        formatted_duration = (
-            str(timedelta(seconds=round(completed_timing.duration_seconds)))
-            if completed_timing.duration_seconds
-            else "N/A"
-        )
-        self._logger.debug(
-            f"從 logging 結束計時: {timing_key} - 耗時: {formatted_duration}"
-        )
+        except (ValueError, OSError) as e:
+            raise TimingError(f"無法處理計時結束事件: {e}") from e
 
     def put(self, module: str, expt: str, operator: BaseAdapter):
         """
@@ -828,18 +889,29 @@ class Status:
             return False
 
         try:
-            # 基礎恢復邏輯 - 恢復元資料狀態
-            if snapshot.metadata_after:
-                self.metadata[snapshot.module_name] = snapshot.metadata_after
-                self._logger.info(
-                    f"已從快照 {snapshot_id} 恢復 {snapshot.module_name} 的元資料"
-                )
-                return True
-        except Exception as e:
-            self._logger.error(f"從快照恢復失敗: {e}")
-            return False
+            # 驗證快照完整性
+            if not snapshot.metadata_after:
+                raise SnapshotError(f"快照 {snapshot_id} 沒有可恢復的元資料")
 
-        return False
+            if not hasattr(snapshot.metadata_after, "schema_id"):
+                raise SnapshotError(f"快照 {snapshot_id} 的元資料格式無效")
+
+            # 恢復元資料狀態
+            self.metadata[snapshot.module_name] = snapshot.metadata_after
+            self._logger.info(
+                f"已從快照 {snapshot_id} 恢復 {snapshot.module_name} 的元資料"
+            )
+            return True
+
+        except SnapshotError as e:
+            self._logger.error(f"快照恢復失敗: {e}")
+            return False
+        except (AttributeError, KeyError) as e:
+            self._logger.error(f"快照資料存取錯誤: {e}")
+            return False
+        except Exception as e:
+            self._logger.error(f"未預期的快照恢復錯誤: {e}", exc_info=True)
+            raise StatusError(f"快照恢復過程中發生未預期錯誤: {e}") from e
 
     def get_status_summary(self) -> dict[str, Any]:
         """
