@@ -167,8 +167,15 @@ class MissingMean(MissingHandler):
         Return:
             (pd.Series): The transformed data.
         """
+        # Handle integer dtypes that can't accept float values
+        if hasattr(data.dtype, "name") and "Int" in str(data.dtype):
+            # For pandas nullable integer types (Int8, Int16, Int32, Int64)
+            # Round the mean to nearest integer
+            fill_value = round(self.data_mean)
+        else:
+            fill_value = self.data_mean
 
-        return data.fillna(self.data_mean)
+        return data.fillna(fill_value)
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant
@@ -203,8 +210,15 @@ class MissingMedian(MissingHandler):
         Return:
             (pd.Series): The transformed data.
         """
+        # Handle integer dtypes that can't accept float values
+        if hasattr(data.dtype, "name") and "Int" in str(data.dtype):
+            # For pandas nullable integer types (Int8, Int16, Int32, Int64)
+            # Round the median to nearest integer
+            fill_value = round(self.data_median)
+        else:
+            fill_value = self.data_median
 
-        return data.fillna(self.data_median)
+        return data.fillna(fill_value)
 
     def _inverse_transform(self, data: None) -> None:
         pass  # Redundant

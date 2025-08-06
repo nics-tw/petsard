@@ -19,7 +19,7 @@ Using benchmark datasets for testing is a good practice. Benchmark datasets have
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/use-cases/benchmark-datasets.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/tutorial/use-cases/benchmark-datasets.ipynb)
 
 ```yaml
 ---

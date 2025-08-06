@@ -2,7 +2,7 @@ import calendar
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -174,7 +174,11 @@ class EncoderUniform(Encoder):
         self.lower_values[0] = 0.0
 
         self.cat_to_val = dict(
-            zip(self.labels, list(zip(self.lower_values, self.upper_values)))
+            zip(
+                self.labels,
+                list(zip(self.lower_values, self.upper_values, strict=False)),
+                strict=False,
+            )
         )
 
     def _transform(self, data: pd.Series) -> np.ndarray:
@@ -224,21 +228,23 @@ class EncoderUniform(Encoder):
 
         bins_val = np.append(self.lower_values, 1.0)
 
-        return (
-            pd.cut(
-                data,
-                right=False,
-                include_lowest=True,
-                bins=bins_val,
-                labels=[
-                    "pd.NA-PETsARD-impossible" if pd.isna(label) else label
-                    for label in self.labels
-                ],
-                ordered=False,
-            )
-            .astype("object")
-            .replace("pd.NA-PETsARD-impossible", pd.NA)
-        )
+        result = pd.cut(
+            data,
+            right=False,
+            include_lowest=True,
+            bins=bins_val,
+            labels=[
+                "pd.NA-PETsARD-impossible" if pd.isna(label) else label
+                for label in self.labels
+            ],
+            ordered=False,
+        ).astype("object")
+
+        # Ensure result is a pandas Series before calling replace
+        if isinstance(result, np.ndarray):
+            result = pd.Series(result)
+
+        return result.replace("pd.NA-PETsARD-impossible", pd.NA)
 
 
 class EncoderLabel(Encoder):
@@ -265,7 +271,11 @@ class EncoderLabel(Encoder):
         self.labels = list(self.model.classes_)
 
         self.cat_to_val = dict(
-            zip(self.labels, list(self.model.transform(self.model.classes_)))
+            zip(
+                self.labels,
+                list(self.model.transform(self.model.classes_)),
+                strict=False,
+            )
         )
 
     def _transform(self, data: pd.Series) -> np.ndarray:
@@ -444,7 +454,7 @@ class EncoderMinguoDate(Encoder):
 
     def __init__(
         self,
-        input_format: Optional[str] = None,
+        input_format: str | None = None,
         output_format: str = "datetime",
         fix_strategies: str | list[dict[str, int]] = None,
     ) -> None:
@@ -469,7 +479,7 @@ class EncoderMinguoDate(Encoder):
         # Will be filled during fit
         self.labels = []
 
-    def _convert_minguo_to_ad(self, value: Any) -> Union[date, datetime, str, None]:
+    def _convert_minguo_to_ad(self, value: Any) -> date | datetime | str | None:
         """
         Convert a Minguo date to an AD date.
 
@@ -616,8 +626,8 @@ class EncoderMinguoDate(Encoder):
                     continue
 
     def _convert_ad_to_minguo(
-        self, value: Union[date, datetime, str, None]
-    ) -> Union[int, str, None]:
+        self, value: date | datetime | str | None
+    ) -> int | str | None:
         """
         Convert an AD date to a Minguo date.
 
@@ -692,7 +702,7 @@ class EncoderMinguoDate(Encoder):
             # Default to int format
             return roc_year * 10000 + value.month * 100 + value.day
 
-    def _format_output(self, date_obj: date) -> Union[date, datetime, str]:
+    def _format_output(self, date_obj: date) -> date | datetime | str:
         """
         Format the output date according to output_format.
 
@@ -790,7 +800,7 @@ class EncoderDateDiff(Encoder):
     def __init__(
         self,
         baseline_date: str,
-        related_date_list: Optional[list[str]] = None,
+        related_date_list: list[str] | None = None,
         diff_unit: str = "days",
         absolute_value: bool = False,
     ) -> None:
@@ -820,7 +830,7 @@ class EncoderDateDiff(Encoder):
         self._original_dtypes = {}
         self.is_fitted = False
 
-    def _calc_date_diff(self, baseline_date, compare_date) -> Optional[float]:
+    def _calc_date_diff(self, baseline_date, compare_date) -> float | None:
         """
         Calculate the difference between two dates.
 
@@ -868,7 +878,7 @@ class EncoderDateDiff(Encoder):
         else:
             return diff_days  # Default to days
 
-    def _calc_date_from_diff(self, baseline_date, diff_value) -> Optional[pd.Timestamp]:
+    def _calc_date_from_diff(self, baseline_date, diff_value) -> pd.Timestamp | None:
         """
         Calculate a date from a baseline date and a difference value.
 

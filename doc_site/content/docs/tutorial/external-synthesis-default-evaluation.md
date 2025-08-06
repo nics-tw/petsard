@@ -12,7 +12,7 @@ Enabling users to evaluate synthetic data from external solutions.
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/external-synthesis-default-evaluation.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/tutorial/external-synthesis-default-evaluation.ipynb)
 
 ```yaml
 ---
@@ -53,9 +53,13 @@ Evaluator:
     method: 'mlutility-classification'
     target: 'income'
 Reporter:
-  save_report_global:
+  rpt:
     method: 'save_report'
-    granularity: 'global'
+    granularity:
+      - 'global'
+      - 'columnwise'
+      - 'pairwise'
+      - 'details'
 ...
 ```
 

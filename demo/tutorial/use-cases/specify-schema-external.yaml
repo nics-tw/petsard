@@ -1,0 +1,15 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+  data-w-schema:
+    filepath: 'benchmark/adult-income.csv'
+    schema: 'specify-schema_schema.yaml'
+Describer:
+  summary:
+    method: 'default'
+Reporter:
+  save_report_columnwise:
+    method: 'save_report'
+    granularity: 'columnwise'
+...

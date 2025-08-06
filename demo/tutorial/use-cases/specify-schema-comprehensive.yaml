@@ -1,0 +1,28 @@
+---
+Splitter:
+  custom:
+    method: 'custom_data'
+    filepath:
+      ori: 'benchmark/adult-income_ori.csv'
+      control: 'benchmark/adult-income_control.csv'
+    schema:
+      ori: 'specify-schema_schema.yaml'
+      control: 'specify-schema_schema.yaml'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+    schema: 'specify-schema_schema.yaml'
+Evaluator:
+  demo-diagnostic:
+    method: 'sdmetrics-diagnosticreport'
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  rpt_global:
+    method: 'save_report'
+    granularity: 'global'
+  rpt_column:
+    method: 'save_report'
+    granularity: 'columnwise'
+...

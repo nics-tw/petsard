@@ -1,0 +1,40 @@
+---
+Loader:
+  data:
+    filepath: 'benchmark/adult-income.csv'
+  data-w-schema:
+    filepath: 'benchmark/adult-income.csv'
+    schema:
+      # 全域參數
+      optimize_dtypes: true
+      nullable_int: 'force'
+
+      # 欄位參數
+      fields:
+        # 數值型欄位
+        age:
+          type: 'int'
+        fnlwgt:
+          type: 'int'
+        # 字串型欄位
+        gender:
+          type: 'str'
+          category_method: 'force'
+        # 含自訂缺失值的欄位
+        native-country:
+          type: 'str'
+          na_values: '?'
+        workclass:
+          type: 'str'
+          na_values: '?'
+        occupation:
+          type: 'str'
+          na_values: '?'
+Describer:
+  summary:
+    method: 'default'
+Reporter:
+  save_report_columnwise:
+    method: 'save_report'
+    granularity: 'columnwise'
+...

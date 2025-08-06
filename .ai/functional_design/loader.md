@@ -9,10 +9,11 @@ Loader 模組負責統一的資料載入介面，支援多種資料格式和來�
 ```
 petsard/loader/
 ├── __init__.py           # 模組匯出介面
-├── loader.py            # 主要載入器
-├── metadata.py          # 詮釋資料處理 (整合 Metadater)
-├── splitter.py          # 資料分割器
-└── benchmarker.py       # 基準資料集管理
+├── loader.py            # 主要載入器 (LoaderConfig, Loader)
+├── loader_base.py       # 載入器基底類別 (LoaderBase)
+├── loader_pandas.py     # Pandas 載入器實現 (LoaderPandasCsv, LoaderPandasExcel)
+├── splitter.py          # 資料分割器 (Splitter)
+└── benchmarker.py       # 基準資料集管理 (BenchmarkerConfig, BaseBenchmarker, BenchmarkerRequests)
 ```
 
 ## 🔧 核心設計原則
@@ -25,19 +26,41 @@ petsard/loader/
 
 ## 📋 公開 API
 
+### LoaderConfig 類別
+```python
+@dataclass
+class LoaderConfig(BaseConfig):
+    filepath: str
+    schema: Optional[Union[str, dict, SchemaConfig]] = None
+    # 其他配置參數...
+```
+
 ### Loader 類別
 ```python
 class Loader:
-    def __init__(self, filepath: str, **kwargs)
-    def load(self) -> Tuple[pd.DataFrame, SchemaMetadata]
+    def __init__(self, filepath: str = None, config: LoaderConfig = None, **kwargs)
+    def load(self) -> tuple[pd.DataFrame, SchemaMetadata]
+    def _handle_benchmark_download(self)
+    def _merge_legacy_to_schema(self) -> SchemaConfig
+    def _read_data_with_pandas_reader(self, reader_class, **kwargs) -> pd.DataFrame
+    def _process_with_metadater(self, data: pd.DataFrame, schema_config: SchemaConfig) -> SchemaMetadata
 ```
 
-### Metadata 類別
+### LoaderBase 類別
 ```python
-class Metadata:
-    def __init__(self)
-    def build_metadata(self, data: pd.DataFrame) -> None
-    def set_col_infer_dtype(self, col: str, dtype: str) -> None
+class LoaderBase(ABC):
+    def __init__(self, config: dict)
+    @abstractmethod
+    def load(self) -> pd.DataFrame
+```
+
+### Pandas 載入器類別
+```python
+class LoaderPandasCsv(LoaderBase):
+    def load(self) -> pd.DataFrame
+
+class LoaderPandasExcel(LoaderBase):
+    def load(self) -> pd.DataFrame
 ```
 
 ### Splitter 類別
@@ -46,14 +69,27 @@ class Splitter:
     def __init__(self, num_samples: int, train_split_ratio: float,
                  max_overlap_ratio: float = 1.0, max_attempts: int = 30, **kwargs)
     def split(self, data: pd.DataFrame = None,
-              exist_train_indices: list[set] = None) -> Tuple[Dict, Dict, List[Set]]
+              exist_train_indices: list[set] = None) -> tuple[dict, dict, list[set]]
+    def get_train_indices(self) -> list[set]
 ```
 
 ### Benchmarker 類別
 ```python
-class BaseBenchmarker:
+@dataclass
+class BenchmarkerConfig(BaseConfig):
+    name: str
+    url: str
+    filepath: str
+    sha256: str
+
+class BaseBenchmarker(ABC):
+    def __init__(self, config: dict)
+    @abstractmethod
+    def download(self)
+    def _verify_file(self, already_exist: bool = True)
+
+class BenchmarkerRequests(BaseBenchmarker):
     def download(self) -> None
-    def verify_file(self) -> bool
 ```
 
 ## 🔄 與其他模組的互動

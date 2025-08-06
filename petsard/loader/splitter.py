@@ -1,5 +1,4 @@
 import random
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -21,11 +20,11 @@ class Splitter:
     def __init__(
         self,
         method: str = None,
-        num_samples: Optional[int] = 1,
-        train_split_ratio: Optional[float] = 0.8,
-        random_state: Optional[Union[int, float, str]] = None,
-        max_overlap_ratio: Optional[float] = 1.0,
-        max_attempts: Optional[int] = 30,
+        num_samples: int | None = 1,
+        train_split_ratio: float | None = 0.8,
+        random_state: int | float | str | None = None,
+        max_overlap_ratio: float | None = 1.0,
+        max_attempts: int | None = 30,
         **kwargs,
     ):
         """
@@ -46,7 +45,11 @@ class Splitter:
             max_attempts (int, optional):
                 Maximum number of attempts for sampling. Default is 30.
             **kwargs (optional):
-                For method 'custom_data' only. Apply Loader's config.
+                For method 'custom_data' only. Parameters can be:
+                - Dictionary parameters (like filepath, schema): must contain 'ori' and 'control' keys
+                - Non-dictionary parameters: passed directly to both Loaders
+                Example: filepath={'ori': 'file1.csv', 'control': 'file2.csv'},
+                        schema={'ori': 'schema1.yaml', 'control': 'schema2.yaml'}
 
         Attr:
             config (dict):
@@ -54,7 +57,7 @@ class Splitter:
                 If method is None,
                     it contains num_samples, train_split_ratio, random_state, max_overlap_ratio, max_attempts.
                 If method is 'custom_data',
-                    it contains method, filepath, and Loader's config.
+                    it only contains method.
 
         """
         self.config: dict = {}
@@ -82,32 +85,25 @@ class Splitter:
             if method.lower() != "custom_data":
                 raise ConfigError
 
-            filepath = kwargs.get("filepath", None)
-            if filepath is None or not isinstance(filepath, dict):
-                raise ConfigError
-            if not all(k in filepath for k in ("ori", "control")):
-                raise ConfigError
-
-            config = kwargs
+            self.config = {"method": method}
             self.loader: dict = {}
 
+            # Pure splitting: assign top-level configuration to corresponding Loader for 'ori' and 'control'
             for key in ["ori", "control"]:
-                self.loader[key] = Loader(
-                    filepath=filepath[key],
-                    **{
-                        k: config.get(k)
-                        for k in [
-                            "column_types",
-                            "header_names",
-                            "na_values",
-                        ]
-                        if config.get(k) is not None
-                    },
-                )
+                # 準備該 Loader 的配置
+                loader_config = {}
 
-            config["method"] = method
-            config["filepath"] = filepath
-            self.config = config
+                # Process all first-level parameters; if it's a dict containing the corresponding key, extract the corresponding value
+                for param_name, param_value in kwargs.items():
+                    if param_name == "method":
+                        continue  # 跳過 method
+                    elif isinstance(param_value, dict) and key in param_value:
+                        loader_config[param_name] = param_value[key]
+                    elif not isinstance(param_value, dict):
+                        # 非字典參數直接傳遞
+                        loader_config[param_name] = param_value
+
+                self.loader[key] = Loader(**loader_config)
 
     def split(
         self,

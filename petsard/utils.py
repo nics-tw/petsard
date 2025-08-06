@@ -1,11 +1,9 @@
-"""Utility functions for the PETsARD package"""
-
 import importlib.util
 import inspect
 import logging
 import os
 import sys
-from typing import Any, Tuple, Type
+from typing import Any
 
 from petsard.exceptions import ConfigError
 
@@ -73,7 +71,7 @@ def load_external_module(
     logger: logging.Logger,
     required_methods: dict[str, list[str]] = None,
     search_paths: list[str] = None,
-) -> Tuple[Any, Type]:
+) -> tuple[Any, type]:
     """
     Load external Python module and return the module instance and class.
 

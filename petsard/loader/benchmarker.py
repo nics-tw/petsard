@@ -2,10 +2,143 @@ import hashlib
 import logging
 import os
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from importlib import resources
+from pathlib import Path
 
-import requests
+import yaml
 
-from petsard.exceptions import BenchmarkDatasetsError
+from petsard.config_base import BaseConfig
+from petsard.exceptions import (
+    BenchmarkDatasetsError,
+    ConfigError,
+    UnsupportedMethodError,
+)
+
+
+@dataclass
+class BenchmarkerConfig(BaseConfig):
+    """
+    Configuration for the benchmarker.
+
+    Attributes:
+        _logger (logging.Logger): The logger object.
+        YAML_FILENAME (str): The benchmark datasets YAML filename.
+        benchmark_name (str): The benchmark name.
+        benchmark_filename (str): The benchmark filename.
+        benchmark_access (str): The benchmark access type.
+        benchmark_region_name (str): The benchmark region name.
+        benchmark_bucket_name (str): The benchmark bucket name.
+        benchmark_sha256 (str): The benchmark SHA-256 value.
+        filepath_raw (str): The raw file path.
+    """
+
+    YAML_FILENAME: str = "benchmark_datasets.yaml"
+
+    benchmark_name: str | None = None
+    benchmark_filename: str | None = None
+    benchmark_access: str | None = None
+    benchmark_region_name: str | None = None
+    benchmark_bucket_name: str | None = None
+    benchmark_sha256: str | None = None
+    filepath_raw: str | None = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self._logger.debug("Initializing BenchmarkerConfig")
+
+        if not self.benchmark_name:
+            error_msg = "benchmark_name must be specified for BenchmarkerConfig"
+            self._logger.error(error_msg)
+            raise ConfigError(error_msg)
+
+        # Load and organize yaml: BENCHMARK_CONFIG
+        self._logger.info("Loading benchmark configuration")
+        benchmark_config: dict = self._load_benchmark_config()
+
+        # Check if benchmark name exists in BENCHMARK_CONFIG
+        if self.benchmark_name not in benchmark_config:
+            error_msg = f"Benchmark dataset {self.benchmark_name} is not supported"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        benchmark_value: dict = benchmark_config[self.benchmark_name]
+        self._logger.debug(f"Found benchmark configuration for {self.benchmark_name}")
+
+        self.benchmark_filename = benchmark_value["filename"]
+
+        if benchmark_value["access"] != "public":
+            error_msg = (
+                f"Benchmark access type {benchmark_value['access']} is not supported"
+            )
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        self.benchmark_access = benchmark_value["access"]
+        self.benchmark_region_name = benchmark_value["region_name"]
+        self.benchmark_bucket_name = benchmark_value["bucket_name"]
+        self.benchmark_sha256 = benchmark_value["sha256"]
+        self._logger.info(
+            f"Configured benchmark dataset: {self.benchmark_name}, filename: {self.benchmark_filename}"
+        )
+
+    def _load_benchmark_config(self) -> dict:
+        """
+        Load benchmark datasets configuration.
+
+        Return:
+            config (dict):
+                key (str): benchmark dataset name
+                    filename (str): Its filename
+                    access (str): Belong to public or private bucket.
+                    region_name (str): Its AWS S3 region.
+                    bucket_name (str): Its AWS S3 bucket.
+                    sha256 (str): Its SHA-256 value.
+        """
+        self._logger.debug(f"Loading benchmark configuration from {self.YAML_FILENAME}")
+
+        config: dict = {}
+        error_msg: str = ""
+
+        try:
+            with resources.open_text("petsard.loader", self.YAML_FILENAME) as file:
+                config = yaml.safe_load(file)
+                self._logger.debug("Successfully loaded benchmark YAML configuration")
+        except Exception as e:
+            error_msg = f"Failed to load benchmark configuration: {str(e)}"
+            self._logger.error(error_msg)
+            raise BenchmarkDatasetsError(error_msg) from e
+
+        REGION_NAME = config["region_name"]
+        BUCKET_NAME = config["bucket_name"]
+
+        config["datasets"] = {
+            key: {
+                "filename": value["filename"],
+                "access": value["access"],
+                "region_name": REGION_NAME,
+                "bucket_name": BUCKET_NAME[value["access"]],
+                "sha256": value["sha256"],
+            }
+            for key, value in config["datasets"].items()
+        }
+
+        self._logger.debug(f"Processed {len(config['datasets'])} benchmark datasets")
+        return config["datasets"]
+
+    def get_benchmarker_config(self) -> dict:
+        """
+        Get configuration dictionary for BenchmarkerRequests.
+
+        Returns:
+            dict: Configuration dictionary with required keys for BenchmarkerRequests
+        """
+        return {
+            "benchmark_filename": self.benchmark_filename,
+            "benchmark_bucket_name": self.benchmark_bucket_name,
+            "benchmark_sha256": self.benchmark_sha256,
+            "filepath": Path("benchmark").joinpath(self.benchmark_filename),
+        }
 
 
 def digest_sha256(filepath):
@@ -128,6 +261,17 @@ class BenchmarkerRequests(BaseBenchmarker):
             than confirm its SHA-256 is matched.
 
         """
+        # 檢查 requests 是否已安裝
+        try:
+            import requests
+        except ImportError:
+            from petsard.exceptions import ConfigError
+
+            raise ConfigError(
+                "requests is required for benchmark dataset downloading. "
+                "Please install it with: pip install petsard[load-benchmark]"
+            )
+
         if self.config["benchmark_already_exist"]:
             self._logger.info(f"Using local file: {self.config['filepath']}")
         else:

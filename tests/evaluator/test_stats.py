@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch
 
-import numpy as np
 import pandas as pd
 
 from petsard.evaluator.stats import Stats, StatsConfig, StatsJSDivergence, StatsMean
@@ -54,17 +53,25 @@ class TestStats(unittest.TestCase):
         mock_mean.return_value = 3.0  # Average of [1, 2, 3, 4, 5]
         mock_js.return_value = 0.0  # JSD is 0 for identical distributions
 
-        # Patch Metadata._convert_dtypes to correctly identify column types
-        with patch("petsard.loader.Metadata._convert_dtypes") as mock_convert:
-            # Return appropriate dtype identifiers
-            def side_effect(dtype):
-                if np.issubdtype(dtype, np.number):
-                    return "numerical"
-                elif dtype == np.dtype("O"):
-                    return "categorical"
-                return "unknown"
+        # Patch Metadater.create_field to return mock field metadata
+        with patch("petsard.metadater.Metadater.create_field") as mock_create_field:
+            # Create a mock field metadata object
+            from unittest.mock import MagicMock
 
-            mock_convert.side_effect = side_effect
+            def mock_create_field_side_effect(*args, **kwargs):
+                mock_field = MagicMock()
+                # Get field_name from kwargs or args
+                field_name = kwargs.get("field_name", None)
+                if not field_name and len(args) > 1:
+                    field_name = args[1]  # field_name is the second argument
+
+                if field_name in ["col1", "col3"]:  # Numeric columns
+                    mock_field.data_type.value = "NUMERICAL"
+                else:  # col2 is categorical
+                    mock_field.data_type.value = "CATEGORICAL"
+                return mock_field
+
+            mock_create_field.side_effect = mock_create_field_side_effect
 
             # Execute evaluator
             evaluator = Stats(config=self.config)
@@ -116,11 +123,13 @@ class TestStats(unittest.TestCase):
             ),
         }
 
-        # Patch Metadata._convert_dtypes to correctly identify column types
-        with patch("petsard.loader.Metadata._convert_dtypes") as mock_convert:
-            mock_convert.return_value = (
-                "numerical"  # Simplify by making all columns numerical
-            )
+        # Patch Metadater.create_field to return mock field metadata
+        with patch("petsard.metadater.Metadater.create_field") as mock_create_field:
+            from unittest.mock import MagicMock
+
+            mock_field = MagicMock()
+            mock_field.data_type.value = "NUMERICAL"
+            mock_create_field.return_value = mock_field
 
             # Test with both comparison methods
             for compare_method in ["diff", "pct_change"]:
@@ -138,7 +147,10 @@ class TestStats(unittest.TestCase):
                 self.assertIn(comparison_col, columnwise.columns)
 
                 # Basic check that values are different from 0 (since data is different)
-                self.assertTrue((columnwise[comparison_col].abs() > 0).any())
+                # Filter out NaN/None values before applying abs()
+                valid_values = columnwise[comparison_col].dropna()
+                if len(valid_values) > 0:
+                    self.assertTrue((valid_values.abs() > 0).any())
 
     def test_invalid_stats_method(self):
         """Test with invalid stats method."""

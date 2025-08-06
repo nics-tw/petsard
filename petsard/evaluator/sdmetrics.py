@@ -3,7 +3,7 @@ import re
 import warnings
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Union
+from typing import Any
 
 import pandas as pd
 from sdmetrics.reports.base_report import BaseReport
@@ -48,17 +48,13 @@ class SDMetricsSingleTableConfig(BaseConfig):
 
     Attributes:
         _logger (logging.Logger): The logger object.
-        real_data (pd.DataFrame): The real data. copy from
-        synthetic_data (pd.DataFrame): The synthetic data.
-        metadata (dict): The metadata of the data.
         ori (pd.DataFrame): The original data.
         syn (pd.DataFrame): The synthetic data.
+        metadata (dict): The metadata of the data.
     """
 
     ori: pd.DataFrame
     syn: pd.DataFrame
-    real_data: pd.DataFrame = None
-    synthetic_data: pd.DataFrame = None
     metadata: dict = None
 
     def __post_init__(self):
@@ -69,20 +65,28 @@ class SDMetricsSingleTableConfig(BaseConfig):
             self._logger.error(error_msg)
             raise TypeError(error_msg)
 
-        self.real_data = self.ori.copy()
-        self.synthetic_data = self.syn.copy()
-        self.ori = None
-        self.syn = None
-
     def create_metadata(self) -> None:
         """
         Create metadata from the original data.
         """
         self._logger.debug("Creating SDV metadata")
         sdv_metadata_result: SDV_Metadata = SDV_Metadata().detect_from_dataframe(
-            self.real_data
+            self.ori
         )
         self.metadata = sdv_metadata_result._convert_to_single_table().to_dict()
+
+    def get_sdmetrics_params(self) -> dict:
+        """
+        Get parameters in the format required by SDMetrics.
+
+        Returns:
+            dict: Parameters with 'real_data' and 'synthetic_data' keys
+        """
+        return {
+            "real_data": self.ori,
+            "synthetic_data": self.syn,
+            "metadata": self.metadata,
+        }
 
 
 class SDMetricsSingleTable(BaseEvaluator):
@@ -139,12 +143,12 @@ class SDMetricsSingleTable(BaseEvaluator):
             method_code: int = SDMetricsSingleTableMap.map(self.config["eval_method"])
             self._logger.debug(f"Mapped method code: {method_code}")
             evaluator_class: Any = self.SDMETRICS_SINGLETABLE_CLASS_MAP[method_code]
-        except KeyError:
+        except KeyError as e:
             error_msg: str = (
                 f"Unsupported evaluator method: {self.config['eval_method']}"
             )
             self._logger.error(error_msg)
-            raise UnsupportedMethodError(error_msg)
+            raise UnsupportedMethodError(error_msg) from e
 
         self._impl: BaseReport = evaluator_class()
 
@@ -169,7 +173,7 @@ class SDMetricsSingleTable(BaseEvaluator):
         # Tranfer pandas to desired dict format:
         #     {'properties name': {'Score': ...}, ...}
         properties = self._impl.get_properties()
-        properties["Score"] = safe_round(properties["Score"])
+        properties["Score"] = properties["Score"].apply(safe_round)
 
         self._logger.debug("Extracting properties level from SDMetrics")
         sdmetrics_scores["properties"] = (
@@ -187,7 +191,7 @@ class SDMetricsSingleTable(BaseEvaluator):
 
     def _get_global(
         self, sdmetrics_scores: dict[str, pd.DataFrame]
-    ) -> Union[pd.DataFrame, None]:
+    ) -> pd.DataFrame | None:
         """
         Returns the global result from the SDMetrics.
 
@@ -231,10 +235,11 @@ class SDMetricsSingleTable(BaseEvaluator):
         if "Column" in data.columns:
             data.set_index("Column", inplace=True)
             data.index.name = None
-        else:
+        elif "Column 1" in data.columns and "Column 2" in data.columns:
             # set pairwise columns as one column
             data.set_index(["Column 1", "Column 2"], inplace=True)
             data.index.names = [None, None]
+        # If neither single Column nor pairwise columns exist, keep as is
 
         # set Property
         data["Property"] = property
@@ -259,6 +264,7 @@ class SDMetricsSingleTable(BaseEvaluator):
         self._logger.info("Evaluating with data")
 
         self._logger.debug("Initializing SDMetricsSingleTableConfig")
+
         sdmetrics_singletable_config: SDMetricsSingleTableConfig = (
             SDMetricsSingleTableConfig.from_dict(data)
         )
@@ -270,14 +276,9 @@ class SDMetricsSingleTable(BaseEvaluator):
         # "We strongly recommend saving the metadata using 'save_to_json' for replicability in future SDV versions."
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            self._impl.generate(
-                **sdmetrics_singletable_config.get_params(
-                    param_configs=[
-                        {attr: {"action": "INCLUDE"}}
-                        for attr in self.REQUIRED_SDMETRICS_SINGLETABLE_KEYS
-                    ]
-                )
-            )
+
+            params = sdmetrics_singletable_config.get_sdmetrics_params()
+            self._impl.generate(**params)
 
             for warning in w:
                 self._logger.debug(f"Warning during _eval: {warning.message}")
@@ -288,38 +289,41 @@ class SDMetricsSingleTable(BaseEvaluator):
         self._logger.debug(f"Extracted scores: {list(sdmetrics_scores.keys())}")
 
         scores: dict[str, pd.DataFrame] = {}
-        property: str = None
         for granularity in self.AVAILABLE_SCORES_GRANULARITY:
             self._logger.debug(f"Extracting {granularity} level as PETsARD format")
 
-            if granularity == "global":
+            method_code: int = SDMetricsSingleTableMap.map(self.config["eval_method"])
+
+            # Check if we have a specific property mapping for this granularity
+            if (
+                granularity,
+                method_code,
+            ) in self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP:
+                property = self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP[
+                    (
+                        granularity,
+                        method_code,
+                    )
+                ]
+                self._logger.debug(
+                    f"Found property '{property}' for {granularity} level"
+                )
+                scores[granularity] = self._transform_details(
+                    sdmetrics_scores, property=property
+                )
+            elif granularity == "global":
+                # Fallback to general global scores if no specific mapping
+                self._logger.debug(
+                    f"Using general global scores for {granularity} level"
+                )
                 scores[granularity] = self._get_global(
                     sdmetrics_scores=sdmetrics_scores,
                 )
             else:
-                method_code: int = SDMetricsSingleTableMap.map(
-                    self.config["eval_method"]
+                self._logger.debug(
+                    f"Property not found for {granularity} level. Skipping."
                 )
-                if (
-                    granularity,
-                    method_code,
-                ) in self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP:
-                    property = self.SDMETRICS_SCORES_GRANULARITY_PROPERTIES_MAP[
-                        (
-                            granularity,
-                            method_code,
-                        )
-                    ]
-
-                if property is None:
-                    self._logger.debug(
-                        f"Property not found for {granularity} level. Skipping."
-                    )
-                    scores[granularity] = None
-                else:
-                    scores[granularity] = self._transform_details(
-                        sdmetrics_scores, property=property
-                    )
+                scores[granularity] = None
         self._logger.info("Successfully extracting scores")
 
         return scores

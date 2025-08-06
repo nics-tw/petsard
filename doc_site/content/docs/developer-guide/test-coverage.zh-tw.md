@@ -7,6 +7,121 @@ next: docs/developer-guide/docker-development
 ---
 
 
+## PETsARD 端到端功能測試
+
+### `PETsARD 功能工作流程`
+
+> tests/test_petsard.py
+
+測試完整的 PETsARD 端到端工作流程，使用真實的 YAML 配置。這些測試驗證整個系統從資料載入到合成和評估的正確運作。
+
+#### 核心工作流程測試
+
+**`test_default_synthesis_workflow`**：測試基本資料合成管道
+- **YAML 配置**：
+  - `Loader`：載入基準 adult-income 資料集
+  - `Preprocessor`：使用預設預處理方法
+  - `Synthesizer`：使用預設合成方法
+  - `Postprocessor`：使用預設後處理方法
+  - `Reporter`：將合成資料儲存到輸出目錄
+- **預期結果**：
+  - 執行成功完成，`is_execution_completed() == True`
+  - 合成資料包含所有 15 個預期欄位（age、workclass、fnlwgt、education 等）
+  - 輸出資料是有效的 pandas DataFrame，行數 >0
+  - 資料維持 adult-income 資料集結構
+
+**`test_data_preprocessing_workflow`**：測試含缺失值處理的資料預處理
+- **YAML 配置**：
+  - `Loader`：載入含自定義空值（'?'）的 adult-income
+  - `Preprocessor`：含缺失值處理和編碼的自定義序列
+  - `Synthesizer`：預設合成方法
+  - `Postprocessor`：預設後處理
+  - `Reporter`：儲存處理後的資料
+- **預期結果**：
+  - 缺失值在合成前得到適當處理
+  - 編碼應用於類別變數
+  - 最終合成資料維持資料品質
+
+**`test_data_constraining_workflow`**：測試含資料約束的合成
+- **YAML 配置**：
+  - `Loader`：標準 adult-income 資料集
+  - `Preprocessor`：預設預處理
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Constrainer`：欄位約束（年齡 18-65、每週工時 20-60）和教育欄位比例
+  - `Reporter`：儲存約束後的資料
+- **預期結果**：
+  - 年齡值約束在 18-65 範圍內
+  - 每週工時值約束在 20-60 範圍內
+  - 教育欄位比例在容忍度內維持
+  - 約束正確應用於合成資料
+
+**`test_evaluation_workflow`**：測試含評估指標的合成
+- **YAML 配置**：
+  - `Loader`：Adult-income 資料集
+  - `Splitter`：80/20 訓練/測試分割，1 個樣本
+  - `Preprocessor`：預設預處理
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Evaluator`：SDMetrics 品質報告評估
+  - `Reporter`：儲存全域粒度的評估報告
+- **預期結果**：
+  - 資料正確分割以進行評估
+  - 品質指標計算完成且可用
+  - 時間資訊被捕獲且可存取
+  - 評估報告成功生成
+
+**`test_minimal_workflow`**：測試僅含資料載入的最小管道
+- **YAML 配置**：
+  - `Loader`：僅 Adult-income 資料集
+  - `Reporter`：直接儲存載入的資料
+- **預期結果**：
+  - 資料成功載入，無需處理
+  - 原始資料集結構得到保留
+  - 展示最小可行的 PETsARD 工作流程
+
+**`test_custom_sequence_preprocessing`**：測試自定義預處理管道
+- **YAML 配置**：
+  - `Loader`：Adult-income 資料集
+  - `Preprocessor`：自定義 4 步序列（missing → outlier → scaler → encoder）
+  - `Synthesizer`：預設合成
+  - `Postprocessor`：預設後處理
+  - `Reporter`：儲存最終處理的資料
+- **預期結果**：
+  - 所有預處理步驟按正確順序執行
+  - 資料轉換依序應用
+  - 最終資料準備好進行下游分析
+
+#### 參數化模組執行測試
+
+**`test_workflow_module_execution`**：測試不同工作流程配置
+- **測試案例**：
+  - `default-synthesis`：完整管道（Loader → Preprocessor → Synthesizer → Postprocessor）
+  - `minimal`：基本管道（僅 Loader）
+  - `with-splitter`：擴展管道（Loader → Splitter → Preprocessor → Synthesizer → Postprocessor）
+- **預期結果**：每個工作流程執行預期的模組並產生有效結果
+
+#### 配置驗證測試
+
+**`test_invalid_yaml_config`**：測試無效配置的錯誤處理
+- **YAML 配置**：包含不存在的無效模組（InvalidModule）
+- **預期結果**：適當拋出 NameError、ValueError、KeyError 或 AttributeError
+
+**`test_missing_required_config`**：測試空配置的錯誤處理
+- **YAML 配置**：空配置檔案
+- **預期結果**：對缺少必要組件拋出適當錯誤
+
+#### 主要特色
+
+- **Executor API 整合**：測試使用新的 `is_execution_completed()` 方法檢查執行狀態
+- **結果提取**：使用輔助方法 `_extract_module_data()` 處理嵌套結果結構
+- **真實資料測試**：使用實際基準資料集（adult-income）進行真實測試
+- **配置多樣性**：測試多種 YAML 配置模式和模組組合
+- **錯誤處理**：驗證無效配置的適當錯誤處理
+- **端到端驗證**：確保從配置到最終輸出的完整工作流程運作
+
+> **架構說明**：這些測試使用新的 Executor API 與 `is_execution_completed()` 狀態追蹤來驗證完整的 PETsARD 系統。`run()` 方法在當前版本返回 `None`，計劃在 v2.0.0 中返回成功/失敗狀態碼。結果透過 `get_result()` 方法存取，並透過嵌套工作流程結構處理。
+
 ### `Executor`
 
 > tests/test_executor.py
@@ -56,6 +171,120 @@ next: docs/developer-guide/docker-development
 - `test_custom_na_values`：測試自定義空值的處理
 - `test_custom_header_names`：測試使用自定義欄位標題載入資料
 
+#### 邏輯型態系統測試
+
+測試全面的邏輯型態推斷和驗證系統：
+
+**重新設計的邏輯型態系統（2025 更新）：**
+我們的邏輯型態系統已完全重新設計，避免與基本資料型態重疊，並提供清晰的語意意義檢測。
+
+**可用的邏輯型態：**
+- **文字型態**：`email`, `url`, `uuid`, `categorical`, `ip_address`（需要字串資料型態）
+- **數值型態**：`percentage`, `currency`, `latitude`, `longitude`（需要數值資料型態）
+- **識別碼型態**：`primary_key`（需要唯一性驗證）
+- **已移除**：`datetime`, `date`, `time`, `duration`, `integer`, `decimal`, `text`, `foreign_key`（避免型態重疊）
+
+**邏輯型態檢測測試（`tests/metadater/field/test_field_functions.py`）：**
+- `test_email_logical_type_detection`：測試電子郵件模式檢測與正則表達式驗證（80% 閾值）
+- `test_url_logical_type_detection`：測試網址模式檢測與 HTTP/HTTPS 協定驗證（80% 閾值）
+- `test_uuid_logical_type_detection`：測試 8-4-4-4-12 十六進位格式的 UUID 格式檢測（95% 閾值）
+- `test_ip_address_detection`：測試 IPv4/IPv6 模式識別與全面位址驗證（90% 閾值）
+- `test_categorical_detection_via_cardinality`：測試使用動態閾值的 ASPL 基數分析分類檢測
+- `test_primary_key_uniqueness_validation`：測試主鍵的 100% 唯一性要求與重複檢測
+- `test_percentage_range_validation`：測試百分比值的 0-100 範圍驗證（95% 閾值）
+- `test_currency_symbol_detection`：測試貨幣符號檢測與正值驗證的金額值檢測（80% 閾值）
+- `test_latitude_longitude_detection`：測試地理座標範圍驗證（緯度 -90/90，經度 -180/180，95% 閾值）
+
+**型態相容性系統測試：**
+- `test_compatible_type_logical_combinations`：測試有效組合：
+  - `string` + `email`, `url`, `uuid`, `categorical`, `ip_address` ✅
+  - `numeric` + `percentage`, `currency`, `latitude`, `longitude` ✅
+  - `int/string` + `primary_key` ✅
+- `test_incompatible_type_logical_combinations`：測試觸發警告的無效組合：
+  - `numeric` + `email`, `url`, `uuid`, `ip_address` ❌
+  - `string` + `percentage`, `currency`, `latitude`, `longitude` ❌
+- `test_logical_type_fallback_on_conflict`：測試型態衝突時自動回退到推斷
+- `test_logical_type_priority_handling`：測試優先級系統（資料型態約束 > 邏輯型態提示）
+
+**邏輯型態配置測試：**
+- `test_logical_type_never_mode`：測試使用 "never" 設定停用邏輯型態推斷
+- `test_logical_type_infer_mode`：測試使用 "infer" 設定的自動推斷
+- `test_logical_type_explicit_specification`：測試透過配置強制指定特定邏輯型態與相容性驗證
+- `test_logical_type_validation_thresholds`：測試信心閾值（文字模式 80%，數值範圍 90-95%）
+
+**模式匹配和驗證測試：**
+- `test_regex_pattern_validation`：測試更新的電子郵件、網址、UUID、IP 位址檢測正則表達式模式
+- `test_numeric_range_validation`：測試緯度、經度、百分比值的範圍驗證
+- `test_special_validator_functions`：測試地理座標的自定義驗證函數
+- `test_pattern_confidence_scoring`：測試信心評分和基於閾值的分類
+- `test_primary_key_duplicate_detection`：測試主鍵驗證的重複檢測機制
+
+**錯誤處理和衝突解決測試：**
+- `test_compatibility_warning_generation`：測試不相容 type/logical_type 組合的警告產生
+- `test_automatic_fallback_mechanism`：測試衝突發生時的自動回退機制
+- `test_logging_incompatibility_messages`：測試不相容原因的詳細記錄
+
+> **重新設計的邏輯型態系統**：我們的專有邏輯型態推斷系統已重新設計，專注於語意意義檢測而不與基本資料型態重疊。系統使用模式識別、統計分析和驗證函數，具有嚴格的型態相容性規則和完整的衝突解決機制。
+
+#### Schema 參數測試
+
+測試 schema 參數系統的全面功能：
+
+**全域參數測試（`TestSchemaGlobalParameters`）：**
+- `test_compute_stats_parameter`：測試 `compute_stats` 全域參數的布林值驗證
+- `test_optimize_dtypes_parameter`：測試 `optimize_dtypes` 全域參數的布林值驗證
+- `test_sample_size_parameter`：測試 `sample_size` 全域參數的正整數驗證
+- `test_sample_size_null`：測試 `sample_size` 參數接受 null 值
+- `test_leading_zeros_parameter`：測試 `leading_zeros` 全域參數的有效值（"never", "num-auto", "leading_n"）
+- `test_leading_zeros_invalid`：測試 `leading_zeros` 參數的無效值處理
+- `test_nullable_int_parameter`：測試 `nullable_int` 全域參數的布林值驗證
+- `test_nullable_int_invalid`：測試 `nullable_int` 參數的無效值處理
+- `test_infer_logical_types_parameter`：測試 `infer_logical_types` 全域參數的布林值驗證
+- `test_descriptive_parameters`：測試描述性參數（`title`, `description`, `version`）的字串驗證
+
+**欄位參數測試（`TestSchemaFieldParameters`）：**
+- `test_logical_type_parameter`：測試欄位層級 `logical_type` 參數的有效值驗證
+- `test_leading_zeros_field_level`：測試欄位層級 `leading_zeros` 參數覆蓋全域設定
+- `test_leading_zeros_field_invalid`：測試欄位層級 `leading_zeros` 參數的無效值處理
+
+**參數衝突測試（`TestSchemaParameterConflicts`）：**
+- `test_infer_logical_types_conflict`：測試 `infer_logical_types=true` 與欄位層級 `logical_type` 的衝突檢測
+
+**Loader Schema 參數測試（`tests/loader/test_loader.py`）：**
+- `TestLoaderSchemaParameters`：測試 Loader 中全域 schema 參數
+- `TestLoaderSchemaFieldParameters`：測試 Loader 中欄位層級 schema 參數
+- `TestLoaderSchemaParameterConflicts`：測試 Loader 中參數衝突檢測
+- `TestLoaderSchemaEdgeCases`：測試 Loader 中 schema 邊界情況
+
+**SchemaConfig 驗證測試（`tests/metadater/test_schema_types.py`）：**
+- `test_schema_config_with_parameters`：測試 SchemaConfig 使用參數的初始化
+- `test_schema_config_invalid_leading_zeros`：測試 SchemaConfig 無效 `leading_zeros` 值的錯誤處理
+- `test_schema_config_invalid_nullable_int`：測試 SchemaConfig 無效 `nullable_int` 值的錯誤處理
+- `test_schema_config_logical_type_conflict`：測試 SchemaConfig 中邏輯類型衝突的檢測
+
+**FieldConfig 驗證測試（`tests/metadater/field/test_field_types.py`）：**
+- `test_field_config_with_parameters`：測試 FieldConfig 使用參數的初始化
+- `test_field_config_invalid_logical_type`：測試 FieldConfig 無效 `logical_type` 值的錯誤處理
+- `test_field_config_invalid_leading_zeros`：測試 FieldConfig 無效 `leading_zeros` 值的錯誤處理
+- `test_field_config_invalid_category_method`：測試 FieldConfig 無效 `category_method` 值的錯誤處理
+- `test_field_config_invalid_datetime_precision`：測試 FieldConfig 無效 `datetime_precision` 值的錯誤處理
+
+**邊界情況測試（`TestEdgeCases`）：**
+- `test_empty_schema`：測試空 schema 的處理
+- `test_schema_with_only_global_params`：測試僅含全域參數的 schema
+- `test_invalid_global_parameter`：測試無效全域參數的錯誤處理
+- `test_invalid_field_parameter`：測試無效欄位參數的錯誤處理
+- `test_mixed_legacy_and_schema`：測試混合舊版和 schema 語法的相容性
+
+**主要特色：**
+- **兩層架構驗證**：測試全域參數與欄位參數的分層結構
+- **參數衝突檢測**：自動檢測並報告邏輯衝突（如 `infer_logical_types` 與欄位 `logical_type`）
+- **向後相容性**：確保參數系統與舊版 schema 語法完全相容
+- **全面驗證**：涵蓋參數值範圍、型別、邏輯一致性檢查
+- **邊界情況覆蓋**：測試空 schema、混合語法、無效參數組合等極端情況
+
+> **Schema 參數系統**：實現了基於兩層架構的 schema 參數系統，提供全域參數（如 `compute_stats`, `optimize_dtypes`, `sample_size`）和欄位層級參數（如 `logical_type`, `leading_zeros`）的靈活配置，同時具備完整的參數衝突檢測和向後相容性保證。
+
 #### 容易誤判資料類型處理功能
 
 測試處理容易誤判、型別判斷模糊的資料：
@@ -77,6 +306,40 @@ next: docs/developer-guide/docker-development
   - 驗證新參數的預設值
   - 測試功能停用時的正常載入行為
 
+#### 壓力測試
+
+測試大型檔案處理和邊緣情況型別推斷：
+
+**TestLoaderStress** - 逐步檔案大小測試，包含超時機制：
+- `test_small_file_100mb`：測試 100MB 檔案（30秒超時）
+- `test_medium_file_1gb`：測試 1GB 檔案（120秒超時）
+- `test_large_file_3gb`：測試 3GB 檔案（300秒超時）
+- `test_xlarge_file_5gb`：測試 5GB 檔案（600秒超時）
+
+**TestLoaderTypeInference** - 邊緣情況型別推斷，99.9% 正常資料，0.1% 例外在最後：
+- `test_int_with_string_exception`：測試整數資料含字串例外
+- `test_float_with_null_exception`：測試浮點數資料含空值例外
+- `test_string_with_numeric_exception`：測試字串資料含數值例外
+
+**主要特色：**
+- **記憶體監控**：使用 psutil 進行即時記憶體使用追蹤
+- **超時保護**：載入超過時間限制時自動測試失敗
+- **型別推斷驗證**：確保 99.9% 正常資料，0.1% 例外放置在檔案末尾
+- **效能指標**：處理速度測量（MB/秒）和記憶體效率追蹤
+
+**使用方式：**
+```bash
+# 執行所有壓力測試
+pytest tests/loader/ -m stress -v
+
+# 執行特定壓力測試類別
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# 執行壓力測試示範
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -96,7 +359,78 @@ next: docs/developer-guide/docker-development
 - `test_init_file_exists_hash_match`：測試初始化時檔案存在且哈希值匹配的處理邏輯
 - `test_file_content_change`：測試檔案內容變更後的哈希驗證機制，確保能正確檢測變更
 
+#### `BenchmarkerConfig`
+
+> tests/loader/test_loader.py::TestBenchmarkerConfig
+
+測試管理基準資料集配置的 BenchmarkerConfig 類別：
+
+- `test_benchmarker_config_requires_benchmark_name`：測試初始化時需要 benchmark_name 參數
+- `test_benchmarker_config_initialization`：測試 BenchmarkerConfig 初始化與正確的屬性設定：
+  - 基準名稱、檔案名稱、存取類型
+  - 區域名稱、儲存桶名稱、SHA256 雜湊值
+  - 與基準 YAML 配置載入的整合
+- `test_benchmarker_config_get_benchmarker_config`：測試 get_benchmarker_config 方法：
+  - 為 BenchmarkerRequests 返回正確的字典格式
+  - 包含所有必要的鍵值（benchmark_filename、benchmark_bucket_name、benchmark_sha256、filepath）
+  - 構建正確的本地基準檔案路徑
+- `test_benchmarker_config_unsupported_benchmark`：測試不支援的基準資料集的錯誤處理
+- `test_benchmarker_config_private_access_unsupported`：測試私有基準存取嘗試的錯誤處理
+
+> **架構重構**：BenchmarkerConfig 已從 LoaderConfig 中提取出來，提供清晰的關注點分離。LoaderConfig 現在包含一個可選的 benchmarker_config 屬性，允許兩種不同的狀態：有或沒有基準功能。這種重構提高了程式碼的可維護性，並遵循單一職責原則。
+
 ## 資料處理
+
+### `Processor`
+
+#### 缺失值處理器
+
+> tests/processor/test_missing.py
+
+測試缺失值處理的全面類型相容性：
+
+**MissingMean 測試（4 個測試）：**
+- `test_mean_no_missing_values`：測試無缺失值的平均值填補
+- `test_mean_with_missing_values`：測試有缺失值的平均值填補
+- `test_mean_with_integer_dtype`：測試 pandas 可空整數類型（Int32、Int64）的平均值填補：
+  - 驗證整數資料類型的正確處理，不會出現 TypeError
+  - 測試平均值的自動四捨五入以符合整數相容性
+  - 驗證轉換後的資料類型保持
+- `test_mean_with_integer_dtype_fractional_mean`：測試平均值有小數部分時的填補：
+  - 測試整數類型的銀行家舍入法（20.5 → 20）
+  - 確保小數平均值的正確類型轉換
+
+**MissingMedian 測試（4 個測試）：**
+- `test_median_no_missing_values`：測試無缺失值的中位數填補
+- `test_median_with_missing_values`：測試有缺失值的中位數填補
+- `test_median_with_integer_dtype`：測試 pandas 可空整數類型（Int32、Int64）的中位數填補：
+  - 驗證整數資料類型的正確處理，不會出現 TypeError
+  - 測試中位數的自動四捨五入以符合整數相容性
+  - 驗證轉換後的資料類型保持
+- `test_median_with_integer_dtype_fractional_median`：測試中位數有小數部分時的填補：
+  - 測試整數類型的銀行家舍入法（20.5 → 20）
+  - 確保小數中位數的正確類型轉換
+
+**MissingSimple 測試（2 個測試）：**
+- `test_simple_no_missing_values`：測試無缺失值的簡單值填補
+- `test_simple_with_missing_values`：測試有缺失值的簡單值填補
+
+**MissingDrop 測試（2 個測試）：**
+- `test_drop_no_missing_values`：測試無缺失值的刪除策略
+- `test_drop_with_missing_values`：測試有缺失值的刪除策略
+
+> **整數類型相容性**：增強的缺失值處理器現在正確支援 pandas 可空整數類型（Int8、Int16、Int32、Int64），透過自動將浮點填補值四捨五入為整數，防止 fillna 操作期間的 TypeError。這確保與 schema 指定的整數類型無縫整合，同時維持資料完整性。
+
+#### 異常值檢測處理器
+
+增強異常值檢測，具有 pandas 可空整數陣列相容性：
+
+**OutlierHandler 基礎類別：**
+- 增強 `fit()` 和 `transform()` 方法，使用 `np.asarray()` 轉換
+- 正確處理 pandas 可空整數陣列，防止廣播錯誤
+- 維持與異常值檢測演算法中 numpy 操作的相容性
+
+> **Pandas 陣列相容性**：異常值處理器現在使用 `np.asarray()` 而非 `.values`，確保 pandas 可空整數陣列正確轉換為 numpy 陣列，防止異常值檢測演算法中邏輯操作期間的 ValueError。
 
 ### `Metadater`
 
@@ -472,6 +806,55 @@ next: docs/developer-guide/docker-development
 
 ### `Evaluator`
 
+#### `SDMetrics`
+
+> tests/evaluator/test_sdmetrics.py
+
+測試 SDMetrics 單表評估功能：
+
+- `test_eval_diagnostic_report`：使用模擬 SDMetrics 組件測試 DiagnosticReport 評估
+- `test_eval_quality_report`：使用全面模擬設定測試 QualityReport 評估
+- `test_init`：測試 SDMetricsSingleTable 初始化和配置驗證
+- `test_invalid_method`：測試不支援評估方法的錯誤處理
+
+**主要特色：**
+- **資料類型一致性**：增強的 BaseEvaluator 現在檢測資料集間的資料類型不匹配，並提供清楚的錯誤訊息，而非自動類型對齊
+- **錯誤處理**：改進的錯誤訊息指導使用者在 Executor 層級處理類型對齊
+- **模擬整合**：全面模擬 SDMetrics 組件以確保可靠測試
+
+> **架構增強**：BaseEvaluator 已修改以移除自動資料類型對齊功能。不再靜默「修復」類型不匹配，而是拋出包含詳細不匹配資訊的 ValueError，確保 Data Structure 評估準確性並維持資料完整性。
+
+#### `Stats`
+
+> tests/evaluator/test_stats.py
+
+測試統計評估功能：
+
+- `test_eval_basic`：使用模擬欄位元資料建立測試基本統計評估
+- `test_eval_with_different_data`：測試使用不同原始和合成資料集的評估
+- `test_init`：測試 Stats 評估器初始化和配置驗證
+- `test_invalid_compare_method`：測試無效比較方法的錯誤處理
+- `test_invalid_stats_method`：測試無效統計方法的錯誤處理
+
+**主要特色：**
+- **Metadater 整合**：更新為使用 `Metadater.create_field` 進行欄位元資料建立
+- **類型推斷**：透過模擬欄位元資料正確處理資料類型推斷
+- **配置驗證**：統計方法配置的全面驗證
+
+#### `CustomEvaluator`
+
+> tests/evaluator/test_custom_evaluator.py
+
+測試自定義評估器功能：
+
+- `test_init`：測試 CustomEvaluator 使用外部模組載入的初始化
+- `test_eval`：測試使用自定義評估器實例的評估方法執行
+- `test_missing_module_path`：測試缺少模組路徑配置的錯誤處理
+
+**主要特色：**
+- **外部模組載入**：與 `petsard.utils.load_external_module` 整合以進行動態評估器載入
+- **模擬整合**：全面模擬外部模組載入和自定義評估器執行
+- **錯誤處理**：模組路徑和類別名稱需求的適當驗證
 
 > - 所有功能替換都使用 Metadater 的公共介面，完全避免調用深層內部功能
 > - 保持了所有原有功能的完整性，確保向後相容性
@@ -547,45 +930,88 @@ next: docs/developer-guide/docker-development
 
 > tests/reporter/test_reporter.py
 
-
-> - 所有原始功能都已保留，具有完全向後相容性
-> - 增強 `_safe_merge` 方法中的合併邏輯，正確處理 columnwise 和 pairwise 資料合併
-
-測試主要 Reporter 功能：
+測試具有**函式化設計架構**和**命名策略支援**的主要 Reporter 功能：
 
 - `test_method`：測試 Reporter 使用不同方法的初始化：
   - 'save_data' 方法使用 ReporterSaveData
   - 'save_report' 方法使用 ReporterSaveReport
+  - 'save_timing' 方法使用 ReporterSaveTiming
   - 無效方法拋出 UnsupportedMethodError
 - `test_method_save_data`：測試 save_data 方法驗證：
   - 未提供 source 時拋出 ConfigError
 - `test_method_save_report`：測試 save_report 方法驗證：
   - 僅使用 granularity 的有效初始化
   - 缺少必要參數時拋出 ConfigError
+- `test_method_save_timing`：測試 save_timing 方法驗證：
+  - 使用可選參數的有效初始化
+  - 正確處理 time_unit 和模組過濾
+
+#### `TestReporterNamingStrategy`
+
+測試命名策略功能（6 個測試）：
+
+- `test_naming_strategy_parameter_validation`：測試 naming_strategy 參數驗證：
+  - 接受有效值（'traditional'、'compact'）
+  - 無效命名策略值拋出 ConfigError
+- `test_traditional_naming_strategy`：測試傳統命名策略：
+  - 維持與現有檔名格式的向後相容性
+  - 產生含傳統方括號標記的檔案
+- `test_compact_naming_strategy`：測試簡潔命名策略：
+  - 產生簡化的檔名格式
+  - 移除冗餘的方括號和標記
+- `test_naming_strategy_with_different_methods`：測試不同 Reporter 方法的命名策略：
+  - save_data 方法使用兩種策略
+  - save_report 方法使用兩種策略
+  - save_timing 方法（跨策略不變）
+- `test_naming_strategy_integration`：測試命名策略與 Reporter 工作流程的整合：
+  - 端到端檔名生成
+  - 透過 Reporter 架構的適當參數傳遞
+- `test_naming_strategy_default_behavior`：測試預設命名策略行為：
+  - 未指定 naming_strategy 時使用傳統策略
+  - 維持向後相容性
 
 #### `ReporterSaveData`
 
-測試資料儲存功能：
+測試具有函式化設計的資料儲存功能：
 
 - `test_source`：測試 source 參數驗證：
   - 接受字串和字串列表
   - 無效類型（浮點數、混合列表、元組）拋出 ConfigError
+- `test_functional_create_and_report`：測試函式化「拋出再拋回」模式：
+  - `create()` 處理資料但不儲存在實例變數中
+  - `report()` 接收處理後的資料並產生輸出檔案
+  - 呼叫間不維護內部狀態
 
 #### `ReporterSaveReport`
 
-測試報告生成功能：
+測試具有**多粒度支援**的報告生成功能：
 
 - `test_granularity`：測試 granularity 參數驗證：
-  - 有效值：'global'、'columnwise'、'pairwise'
+  - **單一粒度**：'global'、'columnwise'、'pairwise'、'details'、'tree'
+  - **多重粒度**：['global', 'columnwise']、['details', 'tree']
   - 缺少或無效 granularity 拋出 ConfigError
-  - 非字串類型拋出 ConfigError
+  - 非字串/非列表類型拋出 ConfigError
+- `test_multi_granularity_support`：測試多粒度功能：
+  - 在單一操作中處理多個粒度
+  - 為每個粒度產生個別報告
+  - 正確處理粒度特定的資料結構
+- `test_new_granularity_types`：測試新粒度類型（v2.0+）：
+  - 'details'：詳細分解與額外指標
+  - 'tree'：階層樹狀結構分析
 - `test_eval`：測試 eval 參數驗證：
   - 接受字串、字串列表或 None
   - 無效類型拋出 ConfigError
-- `test_create`：測試所有粒度的報告建立：
+- `test_create`：測試所有粒度的函式化報告建立：
   - Global 粒度報告生成
   - Columnwise 粒度報告生成
   - Pairwise 粒度報告生成
+  - Details 粒度報告生成
+  - Tree 粒度報告生成
+  - 多粒度處理
+- `test_functional_design_pattern`：測試函式化「拋出再拋回」模式：
+  - `create()` 回傳處理後的資料但不內部儲存
+  - `report()` 接受處理後的資料並產生檔案
+  - 透過無狀態設計進行記憶體優化
 - `test_process_report_data`：測試資料處理功能：
   - 使用評估名稱前綴重命名欄位
   - 不同粒度的索引處理
@@ -596,6 +1022,18 @@ next: docs/developer-guide/docker-development
   - 正確處理包括 'column'、'column1'、'column2' 的共同欄位
   - 合併結果中的正確行順序
 
+#### `ReporterSaveTiming`
+
+測試時間資訊報告功能：
+
+- `test_timing_data_processing`：測試時間資料處理：
+  - 時間單位轉換（秒、分鐘、小時、天）
+  - 模組過濾功能
+  - 時間詮釋資料提取
+- `test_functional_timing_workflow`：測試函式化時間工作流程：
+  - 處理時間資料但不內部儲存
+  - 產生適當格式的時間報告
+
 #### `Reporter Utils`
 
 測試工具函數：
@@ -603,6 +1041,10 @@ next: docs/developer-guide/docker-development
 - `test_convert_full_expt_tuple_to_name`：測試實驗元組到名稱的轉換
 - `test_convert_full_expt_name_to_tuple`：測試實驗名稱到元組的轉換
 - `test_convert_eval_expt_name_to_tuple`：測試評估實驗名稱解析
+
+> **函式化設計架構**：Reporter 已完全重構為使用函式化「拋出再拋回」設計模式以進行記憶體優化。`create()` 方法處理資料但不將其儲存在實例變數中（`self.result`、`self._processed_data`），而 `report()` 接收處理後的資料並產生輸出檔案。這種無狀態方法顯著減少記憶體消耗，同時保持完全向後相容性。
+
+> **多粒度支援**：Reporter 現在支援單一粒度（`str`）和多粒度（`list[str]`）配置，允許使用者在單一操作中處理多個粒度。新的粒度類型 'details' 和 'tree' 已與傳統的 'global'、'columnwise' 和 'pairwise' 選項一起添加。
 
 ## 系統組件
 

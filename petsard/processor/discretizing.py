@@ -97,18 +97,22 @@ class DiscretizingHandler:
             "_inverse_transform method should be " + "implemented in subclasses."
         )
 
-    def _drop_na(self, data: pd.Series) -> pd.Series:
+    def _drop_na(self, data: pd.Series | np.ndarray) -> pd.Series:
         """
         Drop NA values in the data.
             Workaround for PAC-Synth or simliar synthesizers.
             See issue #440.
 
         Args:
-            data (pd.Series): The data to be processed.
+            data (pd.Series | np.ndarray): The data to be processed.
 
         Return:
             (pd.Series): The data without NA values.
         """
+        # Convert numpy array to pandas Series if needed
+        if isinstance(data, np.ndarray):
+            data = pd.Series(data)
+
         if data.isna().any():
             return data.copy().dropna()
         else:
@@ -158,11 +162,24 @@ class DiscretizingKBins(DiscretizingHandler):
             self.is_constant = True
             return data.values
 
-        self.model.fit(data.values.reshape(-1, 1))
+        # Handle NaN values by fitting only on non-NaN data
+        clean_data = self._drop_na(data)
+        if len(clean_data) == 0:
+            # If all data is NaN, return original data
+            return data.values
 
+        self.model.fit(clean_data.values.reshape(-1, 1))
         self.bin_edges = self.model.bin_edges_
 
-        return self.model.transform(data.values.reshape(-1, 1)).ravel()
+        # Transform the original data, handling NaN values
+        result = np.full(len(data), np.nan)
+        non_nan_mask = ~data.isna()
+        if non_nan_mask.any():
+            result[non_nan_mask] = self.model.transform(
+                data[non_nan_mask].values.reshape(-1, 1)
+            ).ravel()
+
+        return result
 
     def _inverse_transform(self, data: pd.Series) -> np.ndarray:
         """

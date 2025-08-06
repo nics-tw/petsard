@@ -36,7 +36,7 @@ class TestCustomEvaluator(unittest.TestCase):
             ),
         }
 
-    @patch("petsard.util.load_external_module")
+    @patch("petsard.evaluator.customer_evaluator.load_external_module")
     def test_init(self, mock_load_module):
         """Test initialization."""
         # Create mock custom evaluator class
@@ -66,7 +66,7 @@ class TestCustomEvaluator(unittest.TestCase):
         # Verify the mock custom evaluator class was instantiated
         mock_evaluator_class.assert_called_once_with(config=self.config)
 
-    @patch("petsard.util.load_external_module")
+    @patch("petsard.evaluator.customer_evaluator.load_external_module")
     def test_eval(self, mock_load_module):
         """Test eval method."""
         # Create mock custom evaluator instance
@@ -97,4 +97,14 @@ class TestCustomEvaluator(unittest.TestCase):
 
     def test_missing_module_path(self):
         """Test initialization with missing module_path."""
-        invalid_config = self
+        invalid_config = {
+            "eval_method": "custom_method",
+            "class_name": "MyCustomEvaluator",
+        }
+
+        with self.assertRaises(Exception):
+            CustomEvaluator(config=invalid_config)
+
+
+if __name__ == "__main__":
+    unittest.main()

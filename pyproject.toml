@@ -1,6 +1,6 @@
 [project]
 name = "petsard"
-version = "1.5.1"
+version = "1.6.0-rc.1"
 description = "Facilitates data generation algorithm and their evaluation processes"
 authors = [{ name = "matheme-justyn", email = "matheme.justyn@gmail.com" }]
 keywords = [
@@ -17,7 +17,7 @@ keywords = [
 	"data science",
 	"machine learning",
 ]
-readme = "README.md"
+readme = "README.md"  # PyPI 專案頁面顯示的 README 文件 README file displayed on PyPI project page
 
 classifiers = [
 	# 專案狀態 Project status：5 產品/穩定 Production/Stable
@@ -39,57 +39,100 @@ classifiers = [
 
 requires-python = ">=3.10,<3.12" # Python 3.12 not supported due to anonymeter dependency conflicts
 
-dependencies = [
-	"anonymeter>=1.0.0,<2",
-	"python-dateutil>=2.9.0.post0,<3",
-	"pyyaml>=6.0.2,<7",
-	"requests>=2.32.4,<3",
-	"sdmetrics>=0.21.0,<1",
-	"sdv>=1.24.0,<2",
-	###### ###### ######
-	# SBOM dependency related
-	###### ###### ######
-	# #739
-	"boto3>=1.39.3",
-	"botocore>=1.39.3",
-	"certifi>=2025.6.15",
-	"charset-normalizer>=3.4.2",
-	"faker>=37.4.0",
-	"filelock>=3.18.0",
-	"joblib>=1.5.1",
-	"narwhals>=1.45.0",
-	"numba>=0.61.2",
-	"platformdirs>=4.3.8",
-	"plotly>=6.2.0",
-	"pytz>=2025.2",
-	"s3transfer>=0.13.0",
-	"scipy>=1.15.3 ; python_full_version < '3.11'",
-	"scipy>=1.16.0 ; python_full_version >= '3.11'",
-	"threadpoolctl>=3.6.0",
-	"typing-extensions>=4.14.1",
-	"tzdata>=2025.2",
-	"urllib3>=2.5.0",
-	###### ###### ######
-	# #775
-	"setuptools>=80.9.0",
-	###### ###### ######
-	"numpy>=1.26.4", # block by Anonymeter, but already alert
-	# Backward compatibility packages for Python 3.10
-	"exceptiongroup>=1.3.0 ; python_version < '3.11'",
-	"tomli>=2.2.1 ; python_version < '3.11'",
-]
-
 [project.urls]
 Repository = "https://github.com/nics-tw/petsard"
 Documentation = "https://nics-tw.github.io/petsard/"
 "Bug Tracker" = "https://github.com/nics-tw/petsard/issues"
 
 [dependency-groups]
-# PyTorch 群組
-# PyTorch group
-pytorch = [
-	"fsspec>=2025.5.1",
-	"jinja2>=3.1.6,<4",
+# PETsARD 標準功能 / PETsARD standard functionality
+# 這是預設安裝的群組 / This is the default installation group
+default = [
+    {include-group = "eval"},
+    {include-group = "exec"},
+	{include-group = "load"},
+    {include-group = "syn"},
+]
+
+# 資料科學功能 / Data science functionality
+# 使用者可以執行: pip install petsard[ds]
+ds = [
+	{include-group = "default"},
+	{include-group = "jupyter"},
+]
+
+# 完整功能群組 / Full functionality group
+# 使用者可以執行: pip install petsard[all]
+all = [
+	{include-group = "ds"},
+	{include-group = "load-xlsx"},
+	{include-group = "load-benchmark"},
+]
+
+# 開發功能 / Development functionality
+# 使用者可以執行: pip install petsard[dev]
+dev = [
+	{include-group = "all"},
+	{include-group = "dev-tools"},
+]
+
+# 執行功能群組 / Execution functionality group
+exec = [
+	"pyyaml>=6.0.2,<7",  # YAML configuration support
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# 讀取功能群組 / Loading functionality group
+load = [
+	"pandas>=2.3.1",                                  # Data manipulation and analysis
+    ###### Core lib above, SBOM related below ###### ######
+	"numpy>=1.26.4",                                  # pandas dependency
+	"python-dateutil>=2.9.0.post0",                   # pandas dependency
+	"pytz>=2025.2",                                   # pandas dependency
+	"tzdata>=2025.2",                                 # pandas dependency
+]
+
+# 評估功能群組 / Evaluation functionality group
+eval = [
+	"anonymeter>=1.0.0,<2",                           # Privacy risk evaluation
+	"sdmetrics>=0.21.0,<1",                           # Synthetic data quality metrics
+    ###### Core lib above, SBOM related below ###### ######
+	"joblib>=1.5.1",                                  # anonymeter dependency
+	"numba>=0.61.2",                                  # anonymeter dependency
+	"numpy>=1.26.4",                                  # anonymeter, sdmetrics dependency
+	"plotly>=6.2.0",                                  # sdmetrics dependency
+	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdmetrics dependency
+	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdmetrics dependency
+	"threadpoolctl>=3.6.0",                           # anonymeter, sdmetrics dependency
+	"pytz>=2025.2",                                   # anonymeter, sdmetrics dependency
+	"tzdata>=2025.2",                                 # anonymeter, sdmetrics dependency
+]
+
+# 合成資料生成群組 / Synthetic data generation group
+syn = [
+	"sdv>=1.24.0,<2",                                 # Synthetic data generation
+	"torch>=2.7.1",                                   # PyTorch for deep learning models
+    ###### Core lib above, SBOM related below ###### ######
+	"boto3>=1.39.3",                                  # sdv dependency
+	"botocore>=1.39.3",                               # sdv dependency
+	"faker>=37.4.0",                                  # sdv dependency
+	"filelock>=3.18.0",                               # sdv dependency
+	"joblib>=1.5.1",                                  # sdv dependency
+	"narwhals>=1.45.0",                               # sdv dependency
+	"numba>=0.61.2",                                  # sdv dependency
+	"numpy>=1.26.4",                                  # sdv dependency
+	"platformdirs>=4.3.8",                            # sdv dependency
+	"plotly>=6.2.0",                                  # sdv dependency
+	"pytz>=2025.2",                                   # sdv dependency
+	"s3transfer>=0.13.0",                             # sdv dependency
+	"scipy>=1.15.3 ; python_full_version < '3.11'",  # sdv dependency
+	"scipy>=1.16.0 ; python_full_version >= '3.11'", # sdv dependency
+	"threadpoolctl>=3.6.0",                           # sdv dependency
+	"typing-extensions>=4.14.1",                      # sdv dependency
+	"tzdata>=2025.2",                                 # sdv dependency
+	"urllib3>=2.5.0",                                 # sdv dependency
+	"fsspec>=2025.5.1",                               # torch dependency
+	"jinja2>=3.1.6,<4",                               # torch dependency
 	"nvidia-cublas-cu12>=12.6.4.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-cuda-cupti-cu12>=12.6.80 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-cuda-nvrtc-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -104,38 +147,48 @@ pytorch = [
 	"nvidia-nccl-cu12>=2.26.2 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-nvjitlink-cu12>=12.6.85 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
 	"nvidia-nvtx-cu12>=12.6.77 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	"sympy>=1.14.0",
-	"torch>=2.7.1",
+	"sympy>=1.14.0",                                  # torch dependency
 	"triton>=3.3.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'",
-	# NetworkX version optimization for different Python versions
-	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'",
-	"networkx>=3.5 ; python_full_version >= '3.11'",
+	"networkx>=3.4.2,<3.5 ; python_full_version < '3.11'", # torch dependency
+	"networkx>=3.5 ; python_full_version >= '3.11'", # torch dependency
 ]
 
-# Jupyter 群組 - 僅包含 Jupyter Notebook 運行所需的核心依賴
-# Jupyter group - only core dependencies needed for Jupyter Notebook
+# Jupyter 群組 / Jupyter group
 jupyter = [
-	"debugpy>=1.8.14",                                # Debugging support for notebooks
-	"decorator>=5.2.1",                               # IPython dependency
-	"ipykernel>=6.29.5,<7",                           # Jupyter kernel support
+	"ipykernel>=6.29.5,<7", # Jupyter kernel support
 	"ipython>=8.3.0 ; python_full_version < '3.11'",  # IPython for Python 3.10
 	"ipython>=9.4.0 ; python_full_version >= '3.11'", # IPython for Python 3.11+
-	"jupyterlab>=4.4.4",                              # Jupyter Lab interface
-	"prompt-toolkit>=3.0.51",                         # IPython dependency
-	"psutil>=7.0.0",                                  # System monitoring for notebooks
+	"jupyterlab>=4.0.0,<5",                           # JupyterLab support
+	"notebook>=7.4.5",                                # Jupyter Notebook support
 	"pyzmq>=27.0.0",                                  # Jupyter messaging
-	# IPython enhancement for Python 3.11+
+	###### Core lib above, SBOM related below ###### ######
+	"debugpy>=1.8.14", # Debugging support for notebooks
+	"decorator>=5.2.1", # IPython dependency
 	"ipython-pygments-lexers>=1.1.1 ; python_version >= '3.11'",
+	"prompt-toolkit>=3.0.51", # IPython dependency
+	"psutil>=7.0.0", # System monitoring for notebooks
 ]
 
-# 開發工具依賴群組 - 不需要打包進 Docker 的開發工具
-# Development tools dependency group - dev tools that don't need to be in Docker
-dev = [
+# Excel 檔案支援群組 / Excel file support group
+load-xlsx = [
+    "openpyxl>=3.1.5",     # Excel file reading/writing
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# Benchmark 基準資料集支援群組 / Benchmark dataset support group
+load-benchmark = [
+    "requests>=2.32.4,<3",                            # HTTP requests for downloading datasets
+    ###### Core lib above, SBOM related below ###### ######
+]
+
+# 開發工具依賴群組 / Development tools dependency group
+dev-tools = [
 	"click-option-group>=0.5.7",              # CLI tools
 	"iniconfig>=2.1.0",                       # Configuration parsing
 	"pip-audit>=2.7.3,<3",                    # Security audit tool
 	"pydantic>=2.11.7",                       # Data validation
 	"pytest>=8.4.1,<9",                       # Testing framework
+	"pytest-cov>=6.0.0,<7",                   # Test coverage reporting
 	"python-gitlab>=6.1.0",                   # GitLab API client
 	"python-semantic-release>=10.2.0,<11",    # Release automation
 	"pywin32>=310 ; sys_platform == 'win32'", # Windows-specific tools
@@ -156,7 +209,7 @@ line-length = 88
 target-version = "py311"
 
 # 選擇要檢查的規則
-select = [
+lint.select = [
 	"E",  # pycodestyle errors
 	"W",  # pycodestyle warnings
 	"F",  # pyflakes
@@ -167,7 +220,7 @@ select = [
 ]
 
 # 忽略的規則
-ignore = [
+lint.ignore = [
 	"E501", # 行長度限制（已在 line-length 設定）
 ]
 
@@ -179,22 +232,18 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.semantic_release]
-tag_format = "v{version}"                          # 版本標籤格式 Version tag format
-major_on_zero = false                              # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
-allow_zero_version = false                         # 不允許 0.x.x 版本 Do not allow 0.x.x versions
-build_command = "pip install hatch && hatch build"
+tag_format = "v{version}"         # 版本標籤格式 Version tag format
+major_on_zero = false             # 不允許 0.x.x 版本作為主版本 No major version for 0.x.x
+allow_zero_version = false        # 不允許 0.x.x 版本 Do not allow 0.x.x versions
+build_command = ""                # 清空建置指令，在 GitHub Actions 中處理
 # 建置指令 Build command
-assets = []                                                                        # 附加檔案 Additional assets
+assets = []                       # 附加檔案 Additional assets
 commit_message = "{version}\n\nAutomatically generated by python-semantic-release"
 # 提交訊息格式 Commit message format
-commit_parser = "conventional" # 提交訊息解析器 Commit message parser, conventional = angular
-logging_use_named_masks = false # 日誌輸出設定 Logging configuration
-version_variable = [ # 版本位置 Version locations
-	"pyproject.toml:project.version",
-]
-version_source = "commit" # 版本來源 Version source
-upload_to_pypi = true # 上傳至 PyPI Upload to PyPI
-upload_to_release = false # 不上傳至 GitHub Releases Do not upload to GitHub Releases
+commit_parser = "conventional"    # 提交訊息解析器 Commit message parser, conventional = angular
+logging_use_named_masks = false   # 日誌輸出設定 Logging configuration
+commit = true                     # 確保提交版本變更
+push = true                       # 確保推送版本變更
 
 
 # 允許發布的分支 Branches allowed for release
@@ -211,10 +260,16 @@ prerelease = true
 prerelease_token = "rc"
 
 # 變更日誌生成設定 Changelog generation settings
-[tool.semantic_release.changelog.default_templates]
-template_dir = "templates"      # 自定義模板目錄 Custom templates directory
-changelog_file = "CHANGELOG.md" # 變更日誌檔案 Changelog file path
+[tool.semantic_release.changelog]
+template_dir = ".release/changelog-templates"  # 變更日誌模板目錄 Changelog templates directory
 exclude_commit_patterns = []    # 排除的提交模式 Excluded commit patterns
+mode = "update"                 # 更新模式 Update mode
+insertion_flag = "<!-- version list -->"  # 插入標記 Insertion flag
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md" # 變更日誌檔案 Changelog file path
+output_format = "md"            # 輸出格式 Output format
+mask_initial_release = true     # 遮蔽初始發佈 Mask initial release
 
 # 模板引擎設定 Template engine configurations
 [tool.semantic_release.changelog.environment]
@@ -264,7 +319,48 @@ ignore_token_for_push = false # 推送時不忽略認證令牌 Do not ignore tok
 [tool.semantic_release.remote.token]
 env = "GITHUB_TOKEN"
 
+# 版本設定 Version configuration
+[tool.semantic_release.version]
+source = "tag"  # 版本來源 Version source
+pattern = "version = \"{version}\""  # 版本模式 Version pattern
+
 # 發布設定 Publishing configuration
 [tool.semantic_release.publish]
 dist_glob_patterns = ["dist/*"] # 發布檔案模式 Distribution file patterns
 upload_to_vcs_release = true    # 上傳到版本控制系統 Upload to VCS releases
+
+# pytest 配置 pytest configuration
+[tool.pytest.ini_options]
+markers = [
+    "stress: Stress test marker, used to identify tests requiring significant resources",
+    "stress_zh: 壓力測試標記，用於標識需要大量資源的測試",
+    "excel: Excel file test marker, used to identify tests requiring openpyxl",
+    "excel_zh: Excel 檔案測試標記，用於標識需要 openpyxl 的測試"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+# pytest-cov 配置 pytest-cov configuration
+[tool.coverage.run]
+source = ["petsard"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+]
+show_missing = true
+precision = 2

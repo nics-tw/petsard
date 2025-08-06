@@ -1,16 +1,16 @@
 import queue
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock
 
 import pandas as pd
 import pytest
 
+from petsard.adapter import BaseAdapter
 from petsard.config import Config
 from petsard.config_base import BaseConfig, ConfigGetParamActionMap
 from petsard.exceptions import ConfigError, UnexecutedError
 from petsard.metadater import SchemaMetadata
-from petsard.operator import BaseOperator
 from petsard.status import Status
 
 
@@ -24,8 +24,8 @@ class TestConfigClass(BaseConfig):
 
     a: int
     b: int
-    c: Dict[Any, Any] = field(default_factory=dict)
-    d: Dict[Any, Any] = field(default_factory=dict)
+    c: dict[Any, Any] = field(default_factory=dict)
+    d: dict[Any, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         super().__post_init__()
@@ -125,7 +125,7 @@ class TestStatus:
     def test_put_and_get_result(self):
         """測試狀態儲存和結果取得"""
         # 建立模擬操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_operator.get_result.return_value = pd.DataFrame({"A": [1, 2, 3]})
 
         # 建立模擬 SchemaMetadata
@@ -170,8 +170,8 @@ class TestStatus:
     def test_get_full_expt(self):
         """測試取得完整實驗配置"""
         # 建立模擬操作器
-        mock_operator1 = Mock(spec=BaseOperator)
-        mock_operator2 = Mock(spec=BaseOperator)
+        mock_operator1 = Mock(spec=BaseAdapter)
+        mock_operator2 = Mock(spec=BaseAdapter)
 
         # 儲存狀態
         self.status.put("Loader", "load_data", mock_operator1)
@@ -190,7 +190,7 @@ class TestStatus:
     def test_report_management(self):
         """測試報告管理"""
         # 建立模擬報告操作器
-        mock_operator = Mock(spec=BaseOperator)
+        mock_operator = Mock(spec=BaseAdapter)
         mock_report = {"test_report": pd.DataFrame({"metric": [0.8, 0.9]})}
         mock_operator.get_result.return_value = mock_report
 
@@ -210,9 +210,9 @@ class TestStatus:
     def test_status_renewal(self):
         """測試狀態更新機制"""
         # 建立模擬操作器
-        mock_operator1 = Mock(spec=BaseOperator)
-        mock_operator2 = Mock(spec=BaseOperator)
-        mock_operator3 = Mock(spec=BaseOperator)
+        mock_operator1 = Mock(spec=BaseAdapter)
+        mock_operator2 = Mock(spec=BaseAdapter)
+        mock_operator3 = Mock(spec=BaseAdapter)
 
         # 第一輪執行
         self.status.put("Loader", "load_data", mock_operator1)
@@ -265,9 +265,9 @@ class TestConfigIntegration:
         operator = config.config.get()
 
         # 驗證操作器類型
-        from petsard.operator import LoaderOperator
+        from petsard.adapter import LoaderAdapter
 
-        assert isinstance(operator, LoaderOperator)
+        assert isinstance(operator, LoaderAdapter)
 
 
 class TestBaseConfig:

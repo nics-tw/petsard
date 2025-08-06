@@ -22,6 +22,7 @@ PETsARD Metadater Module - 元資料管理模組
 # 主要介面
 # SDV adapter 功能
 from petsard.metadater.adapters.sdv_adapter import SDVMetadataAdapter
+from petsard.metadater.change_tracker import MetadataChange, MetadataChangeTracker
 from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
 
 # 核心類型 (使用者需要的)
@@ -40,6 +41,9 @@ __all__ = [
     "SchemaConfig",
     "FieldMetadata",
     "FieldConfig",
+    # 變更追蹤
+    "MetadataChange",
+    "MetadataChangeTracker",
     # SDV adapter
     "SDVMetadataAdapter",
     # 工具函數

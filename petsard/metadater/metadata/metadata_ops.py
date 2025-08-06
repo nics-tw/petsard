@@ -34,7 +34,7 @@ class MetadataOperations:
     def build_metadata_from_datasets(
         cls,
         datasets: dict[str, pd.DataFrame],
-        config: Optional[Union[MetadataConfig, dict[str, Any]]] = None,
+        config: MetadataConfig | dict[str, Any] | None = None,
     ) -> Metadata:
         """Build Metadata instance from dictionary of DataFrames"""
         instance = cls()
@@ -155,7 +155,7 @@ class MetadataOperations:
                     suffixes = handler_config.get("suffixes", ["item1", "item2"])
 
                     for i, item in enumerate(value):
-                        if isinstance(item, (tuple, list)) and len(item) >= len(
+                        if isinstance(item, tuple | list) and len(item) >= len(
                             suffixes
                         ):
                             for j, suffix in enumerate(suffixes):

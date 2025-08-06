@@ -8,31 +8,74 @@ next: docs/tutorial
 
 ## 安裝
 
-*以下我們展示 Python 原生環境的設定方式。不過，為了更好的依賴套件管理，我們推薦使用：*
+PETsARD 已發布至 PyPI，可根據您的需求選擇不同的依賴群組進行安裝。您也可以使用 `pyproject.toml` 或 `requirements.txt` 從原始碼安裝。
 
-**推薦工具：**
+### PyPI 安裝（推薦）
+
+```bash
+# 基本安裝（僅配置解析功能）
+pip install petsard
+
+# 資料科學功能（推薦給大多數使用者）
+pip install petsard[ds]
+
+# 完整安裝，包含開發工具
+pip install petsard[all]
+
+# 僅開發工具
+pip install petsard[dev]
+```
+
+### 安裝選項
+
+| 群組 | 指令 | 包含功能 |
+|------|------|----------|
+| **預設** | `pip install petsard` | 配置、讀檔、合成、評測的基本功能（pyyaml、pandas、anonymeter、sdmetrics、sdv、torch 等） |
+| **資料科學** | `pip install petsard[ds]` | 基本功能 + Jupyter Notebook 支援（ipykernel、jupyterlab、notebook 等） |
+| **完整** | `pip install petsard[all]` | 資料科學功能 + 延伸支援（基準資料集下載、Excel 檔案支援） |
+| **開發** | `pip install petsard[dev]` | 測試與開發工具（pytest、ruff、coverage 等） |
+
+### 原始碼安裝
+
+用於開發或自訂建置：
+
+```bash
+# 複製儲存庫
+git clone https://github.com/nics-tw/petsard.git
+cd petsard
+
+# 使用 pyproject.toml 安裝
+pip install -e ".[all]"
+
+# 或使用 requirements.txt 安裝（基於預設安裝）
+pip install -r requirements.txt
+```
+
+**開發推薦工具：**
 * `pyenv` - Python 版本管理
 * `poetry` / `uv` - 套件管理
 
-### Python 原生環境設定
+### 離線環境準備
 
-1. 建立並啟動虛擬環境：
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # 或是
-   venv\Scripts\activate     # Windows
-   ```
+對於無法連接網路的環境，我們提供了輪子下載工具來預先準備所有依賴套件：
 
-2. 升級 pip：
-   ```bash
-   python -m pip install --upgrade pip
-   ```
+```bash
+# 僅下載核心依賴套件
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
 
-3. 安裝必要套件：
-   ```bash
-   pip install -r requirements.txt
-   ```
+# 下載額外的依賴群組
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups ds
+```
+
+**參數說明：**
+- `--branch`：Git 分支名稱（如：main, dev）
+- `--python-version`：Python 版本（如：3.10, 3.11, 3.11.5）
+- `--os`：目標作業系統，支援：
+  - `linux`：Linux 64位元
+  - `windows`：Windows 64位元
+  - `macos`：macOS Intel
+  - `macos-arm`：macOS Apple Silicon
+- `--groups`：可選的依賴群組（可用空格分隔指定多個群組）
 
 ## 快速開始
 
@@ -62,19 +105,6 @@ PETsARD 是一個隱私強化資料合成與評估框架。要開始使用 PETsA
    exec = Executor(config='config.yaml')
    exec.run()
    ```
-
-## 框架結構
-
-PETsARD 依照以下流程運作：
-
-1. `Loader`：從檔案或基準資料集載入資料
-2. `Splitter`：將資料分割成訓練/驗證集（選用）
-3. `Preprocessor`：準備資料進行合成（如：類別值編碼）
-4. `Synthesizer`：創建隱私強化的合成資料
-5. `Postprocessor`：將合成資料格式化回原始結構
-6. `Evaluator`：測量合成品質與隱私指標
-7. `Describer`：產生資料集統計與分析
-8. `Reporter`：儲存結果並產生報告
 
 ## 基本設定
 

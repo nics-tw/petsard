@@ -12,6 +12,10 @@
 # 開發目錄 Development directories
 **/dev/
 
+# 輪子檔案目錄 Wheel files directories
+**/wheels/
+*.whl
+
 # Hugo本地測試 Hugo local test
 /doc_site/public/*
 /doc_site/.hugo_build.lock
@@ -36,6 +40,35 @@ dist/
 ## uv
 **/uv.lock
 
+# 測試相關 Testing related
+.pytest_cache/
+.coverage*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# 快取與暫存檔案 Cache and temporary files
+.ruff_cache/
+
+# 安全性相關 Security related
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.yaml
+
+# AI 與開發工具 AI and development tools
+.roo/cache/
+
+# Docker 相關 Docker related
+.dockerignore
+docker-compose.override.yml
+
+# 文件生成 Documentation generation
+doc_site/resources/
+doc_site/.hugo_build.lock
 
 ###### Jupyter 相關 Jupyter related ######
 # Jupyter檔案 Jupyter files

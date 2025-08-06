@@ -1,21 +1,20 @@
 import queue
 import re
 from copy import deepcopy
-from typing import Tuple
 
-from petsard.exceptions import ConfigError
-from petsard.operator import (
-    BaseOperator,  # noqa: F401 - Dynamic Imports
-    ConstrainerOperator,
-    DescriberOperator,
-    EvaluatorOperator,
-    LoaderOperator,
-    PostprocessorOperator,
-    PreprocessorOperator,
-    ReporterOperator,
-    SplitterOperator,
-    SynthesizerOperator,
+from petsard.adapter import (  # noqa: F401 - Dynamic Imports
+    BaseAdapter,
+    ConstrainerAdapter,
+    DescriberAdapter,
+    EvaluatorAdapter,
+    LoaderAdapter,
+    PostprocessorAdapter,
+    PreprocessorAdapter,
+    ReporterAdapter,
+    SplitterAdapter,
+    SynthesizerAdapter,
 )
+from petsard.exceptions import ConfigError
 
 
 class Config:
@@ -50,7 +49,7 @@ class Config:
 
         # Config check
         pattern = re.compile(r"_(\[[^\]]*\])$")
-        for module, expt_config in self.yaml.items():
+        for _module, expt_config in self.yaml.items():
             for expt_name in expt_config:
                 # any expt_name should not be postfix with "_[xxx]"
                 if pattern.search(expt_name):
@@ -64,7 +63,7 @@ class Config:
 
         self.config, self.module_flow, self.expt_flow = self._set_flow()
 
-    def _set_flow(self) -> Tuple[queue.Queue, queue.Queue, queue.Queue]:
+    def _set_flow(self) -> tuple[queue.Queue, queue.Queue, queue.Queue]:
         """
         Populate queues with module operators.
 
@@ -92,8 +91,8 @@ class Config:
             remaining_modules = modules[1:]
 
             if module in self.yaml:
-                for expt_name, expt_config in self.yaml[module].items():
-                    flow.put(eval(f"{module}Operator(expt_config)"))
+                for expt_name, expt_config in self.yaml[module].items():  # noqa: B007
+                    flow.put(eval(f"{module}Adapter(expt_config)"))
                     module_flow.put(module)
                     expt_flow.put(expt_name)
                     _set_flow_dfs(remaining_modules)

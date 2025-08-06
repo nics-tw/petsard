@@ -1,8 +1,9 @@
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 import pandas as pd
 
+from petsard.metadater.change_tracker import MetadataChangeTracker
 from petsard.metadater.field.field_types import FieldConfig, FieldMetadata
 from petsard.metadater.metadata.metadata_types import Metadata, MetadataConfig
 from petsard.metadater.schema.schema_types import SchemaConfig, SchemaMetadata
@@ -31,14 +32,20 @@ class Metadater:
         metadata = Metadater.analyze_dataset(tables, "my_dataset")
     """
 
-    def __init__(self):
-        """Initialize the Metadater"""
+    def __init__(self, max_changes: int = 5000):
+        """
+        Initialize the Metadater
+
+        Args:
+            max_changes: 最大變更記錄數量
+        """
         self._logger = logging.getLogger(f"PETsARD.{self.__class__.__name__}")
+        self.change_tracker = MetadataChangeTracker(max_changes=max_changes)
 
     # Metadata 層 (多表格資料集)
     @classmethod
     def create_metadata(
-        cls, metadata_id: str, config: Optional[MetadataConfig] = None
+        cls, metadata_id: str, config: MetadataConfig | None = None
     ) -> Metadata:
         """
         建立多表格元資料容器
@@ -60,9 +67,9 @@ class Metadater:
     @classmethod
     def analyze_dataset(
         cls,
-        tables: Dict[str, pd.DataFrame],
+        tables: dict[str, pd.DataFrame],
         metadata_id: str,
-        config: Optional[MetadataConfig] = None,
+        config: MetadataConfig | None = None,
     ) -> Metadata:
         """
         分析多表格資料集
@@ -88,7 +95,7 @@ class Metadater:
         cls,
         dataframe: pd.DataFrame,
         schema_id: str,
-        config: Optional[SchemaConfig] = None,
+        config: SchemaConfig | None = None,
     ) -> SchemaMetadata:
         """
         建立單表格結構描述
@@ -114,7 +121,7 @@ class Metadater:
         cls,
         dataframe: pd.DataFrame,
         schema_id: str,
-        config: Optional[SchemaConfig] = None,
+        config: SchemaConfig | None = None,
     ) -> SchemaMetadata:
         """
         分析單表格結構 (create_schema 的別名，語意更清楚)
@@ -132,7 +139,7 @@ class Metadater:
     # Field 層 (單欄位分析)
     @classmethod
     def create_field(
-        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+        cls, series: pd.Series, field_name: str, config: FieldConfig | None = None
     ) -> FieldMetadata:
         """
         建立單欄位元資料
@@ -151,7 +158,7 @@ class Metadater:
 
     @classmethod
     def analyze_series(
-        cls, series: pd.Series, field_name: str, config: Optional[FieldConfig] = None
+        cls, series: pd.Series, field_name: str, config: FieldConfig | None = None
     ) -> FieldMetadata:
         """
         分析單欄位資料 (create_field 的別名，語意更清楚)
@@ -313,3 +320,69 @@ class Metadater:
             if cast_error == "raise":
                 raise
             return series
+
+    def track_metadata_change(
+        self,
+        change_type: str,
+        target_type: str,
+        target_id: str,
+        before_state=None,
+        after_state=None,
+        module_context: str = "",
+    ):
+        """
+        追蹤元資料變更 - 提供給外部使用的介面
+
+        Args:
+            change_type: 變更類型 ('create', 'update', 'delete')
+            target_type: 目標類型 ('schema', 'field')
+            target_id: 目標 ID
+            before_state: 變更前狀態
+            after_state: 變更後狀態
+            module_context: 模組上下文
+
+        Returns:
+            MetadataChange: 變更記錄
+        """
+        return self.change_tracker.track_change(
+            change_type=change_type,
+            target_type=target_type,
+            target_id=target_id,
+            before_state=before_state,
+            after_state=after_state,
+            module_context=module_context,
+        )
+
+    def get_change_history(self, module: str = None):
+        """
+        取得變更歷史
+
+        Args:
+            module: 可選的模組名稱過濾
+
+        Returns:
+            List[MetadataChange]: 變更記錄列表
+        """
+        return self.change_tracker.get_change_history(module)
+
+    def get_changes_by_target(self, target_type: str, target_id: str = None):
+        """
+        根據目標類型和 ID 取得變更記錄
+
+        Args:
+            target_type: 目標類型 ('schema', 'field')
+            target_id: 可選的目標 ID
+
+        Returns:
+            List[MetadataChange]: 符合條件的變更記錄
+        """
+        return self.change_tracker.get_changes_by_target(target_type, target_id)
+
+    def get_change_summary(self):
+        """
+        取得變更追蹤摘要
+
+        Returns:
+            Dict[str, Any]: 摘要資訊
+        """
+        return self.change_tracker.get_summary()

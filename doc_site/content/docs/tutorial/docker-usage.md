@@ -62,10 +62,7 @@ docker run -it -p 8888:8888 \
 ## Available Tags
 
 - `latest` - Latest stable version (from main branch)
-- `dev` - Development version (from dev branch)  
-- `v1.4.0` - Specific version tags
-- `1.4` - Major.minor version
-- `1` - Major version
+- `dev` - Development version (from dev branch)
 
 ## Running Examples
 
@@ -77,7 +74,7 @@ docker run -it --rm \
   -v $(pwd):/workspace \
   -w /workspace \
   ghcr.io/nics-tw/petsard:latest \
-  python -m petsard.executor demo/use-cases/data-constraining.yaml
+  python -m petsard.executor demo/tutorial/use-cases/data-constraining.yaml
 ```
 
 ### Interactive Development
@@ -165,7 +162,7 @@ docker run -it --entrypoint /opt/venv/bin/python3 \
 
 - **Jupyter Lab**: Available at http://localhost:8888 (when using Jupyter variant)
 - **Live Code Reloading**: Changes in source code are immediately reflected through volume mounting
-- **Complete Development Stack**: Includes dependencies from pyproject.toml [docker] group
+- **Complete Development Stack**: By default installs `ds` group (data science core)
 - **Volume Mounting**: Your local files are mounted into the container for persistent development
 
 ## Environment Variables

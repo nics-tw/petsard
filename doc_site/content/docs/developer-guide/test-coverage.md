@@ -7,6 +7,121 @@ next: docs/developer-guide/docker-development
 ---
 
 
+## PETsARD End-to-End Functional Tests
+
+### `PETsARD Functional Workflows`
+
+> tests/test_petsard.py
+
+Tests for complete PETsARD end-to-end workflows using realistic YAML configurations. These tests verify that the entire system works correctly from data loading through synthesis and evaluation.
+
+#### Core Workflow Tests
+
+**`test_default_synthesis_workflow`**: Tests basic data synthesis pipeline
+- **YAML Configuration**:
+  - `Loader`: Loads benchmark adult-income dataset
+  - `Preprocessor`: Uses default preprocessing method
+  - `Synthesizer`: Uses default synthesis method
+  - `Postprocessor`: Uses default postprocessing method
+  - `Reporter`: Saves synthesized data to output directory
+- **Expected Results**:
+  - Execution completes successfully with `is_execution_completed() == True`
+  - Synthesized data contains all 15 expected columns (age, workclass, fnlwgt, education, etc.)
+  - Output data is a valid pandas DataFrame with >0 rows
+  - Data maintains adult-income dataset structure
+
+**`test_data_preprocessing_workflow`**: Tests data preprocessing with missing value handling
+- **YAML Configuration**:
+  - `Loader`: Loads adult-income with custom NA values ('?')
+  - `Preprocessor`: Custom sequence with missing value handling and encoding
+  - `Synthesizer`: Default synthesis method
+  - `Postprocessor`: Default postprocessing
+  - `Reporter`: Saves processed data
+- **Expected Results**:
+  - Missing values are properly handled before synthesis
+  - Encoding is applied to categorical variables
+  - Final synthetic data maintains data quality
+
+**`test_data_constraining_workflow`**: Tests synthesis with data constraints
+- **YAML Configuration**:
+  - `Loader`: Standard adult-income dataset
+  - `Preprocessor`: Default preprocessing
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Constrainer`: Field constraints (age 18-65, hours-per-week 20-60) and field proportions for education
+  - `Reporter`: Saves constrained data
+- **Expected Results**:
+  - Age values are constrained to 18-65 range
+  - Hours-per-week values are constrained to 20-60 range
+  - Education field proportions are maintained within tolerance
+  - Constraints are properly applied to synthetic data
+
+**`test_evaluation_workflow`**: Tests synthesis with evaluation metrics
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset
+  - `Splitter`: 80/20 train/test split with 1 sample
+  - `Preprocessor`: Default preprocessing
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Evaluator`: SDMetrics quality report evaluation
+  - `Reporter`: Saves evaluation report with global granularity
+- **Expected Results**:
+  - Data is properly split for evaluation
+  - Quality metrics are computed and available
+  - Timing information is captured and accessible
+  - Evaluation report is generated successfully
+
+**`test_minimal_workflow`**: Tests minimal pipeline with just data loading
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset only
+  - `Reporter`: Saves loaded data directly
+- **Expected Results**:
+  - Data loads successfully without processing
+  - Original dataset structure is preserved
+  - Demonstrates minimal viable PETsARD workflow
+
+**`test_custom_sequence_preprocessing`**: Tests custom preprocessing pipeline
+- **YAML Configuration**:
+  - `Loader`: Adult-income dataset
+  - `Preprocessor`: Custom 4-step sequence (missing → outlier → scaler → encoder)
+  - `Synthesizer`: Default synthesis
+  - `Postprocessor`: Default postprocessing
+  - `Reporter`: Saves final processed data
+- **Expected Results**:
+  - All preprocessing steps execute in correct order
+  - Data transformations are applied sequentially
+  - Final data is ready for downstream analysis
+
+#### Parameterized Module Execution Tests
+
+**`test_workflow_module_execution`**: Tests different workflow configurations
+- **Test Cases**:
+  - `default-synthesis`: Full pipeline (Loader → Preprocessor → Synthesizer → Postprocessor)
+  - `minimal`: Basic pipeline (Loader only)
+  - `with-splitter`: Extended pipeline (Loader → Splitter → Preprocessor → Synthesizer → Postprocessor)
+- **Expected Results**: Each workflow executes expected modules and produces valid results
+
+#### Configuration Validation Tests
+
+**`test_invalid_yaml_config`**: Tests error handling for invalid configurations
+- **YAML Configuration**: Contains invalid module (InvalidModule) that doesn't exist
+- **Expected Results**: Raises NameError, ValueError, KeyError, or AttributeError appropriately
+
+**`test_missing_required_config`**: Tests error handling for empty configurations
+- **YAML Configuration**: Empty configuration file
+- **Expected Results**: Raises appropriate error for missing required components
+
+#### Key Features
+
+- **Executor API Integration**: Tests use new `is_execution_completed()` method to check execution status
+- **Result Extraction**: Uses helper method `_extract_module_data()` to handle nested result structures
+- **Real Data Testing**: Uses actual benchmark datasets (adult-income) for realistic testing
+- **Configuration Variety**: Tests multiple YAML configuration patterns and module combinations
+- **Error Handling**: Validates proper error handling for invalid configurations
+- **End-to-End Validation**: Ensures complete workflows work from configuration to final output
+
+> **Architecture Note**: These tests validate the complete PETsARD system using the new Executor API with `is_execution_completed()` status tracking. The `run()` method returns `None` in the current version, with plans to return success/failed status codes in v2.0.0. Results are accessed via `get_result()` method and processed through nested workflow structures.
+
 ### `Executor`
 
 > tests/test_executor.py
@@ -56,6 +171,120 @@ Tests for the main Loader functionality:
 - `test_custom_na_values`: Tests handling of custom NA values in data loading
 - `test_custom_header_names`: Tests loading data with custom column headers
 
+#### Logical Type System Testing
+
+Tests for the comprehensive logical type inference and validation system:
+
+**Redesigned Logical Type System (2025 Update):**
+Our logical type system has been completely redesigned to avoid overlap with basic data types and provide clear semantic meaning detection.
+
+**Available Logical Types:**
+- **Text-based**: `email`, `url`, `uuid`, `categorical`, `ip_address` (require string data type)
+- **Numeric**: `percentage`, `currency`, `latitude`, `longitude` (require numeric data types)
+- **Identifier**: `primary_key` (requires uniqueness validation)
+- **Removed**: `datetime`, `date`, `time`, `duration`, `integer`, `decimal`, `text`, `foreign_key` (to avoid type overlap)
+
+**Logical Type Detection Tests (`tests/metadater/field/test_field_functions.py`):**
+- `test_email_logical_type_detection`: Tests email pattern detection with regex validation (80% threshold)
+- `test_url_logical_type_detection`: Tests URL pattern detection with HTTP/HTTPS protocol validation (80% threshold)
+- `test_uuid_logical_type_detection`: Tests UUID format detection in 8-4-4-4-12 hexadecimal format (95% threshold)
+- `test_ip_address_detection`: Tests IPv4/IPv6 pattern recognition with comprehensive address validation (90% threshold)
+- `test_categorical_detection_via_cardinality`: Tests ASPL-based categorical detection using cardinality analysis with dynamic thresholds
+- `test_primary_key_uniqueness_validation`: Tests 100% uniqueness requirement for primary keys with duplicate detection
+- `test_percentage_range_validation`: Tests 0-100 range validation for percentage values (95% threshold)
+- `test_currency_symbol_detection`: Tests monetary value detection with currency symbols and positive value validation (80% threshold)
+- `test_latitude_longitude_detection`: Tests geographic coordinate range validation (-90/90 for latitude, -180/180 for longitude, 95% threshold)
+
+**Type Compatibility System Tests:**
+- `test_compatible_type_logical_combinations`: Tests valid combinations:
+  - `string` + `email`, `url`, `uuid`, `categorical`, `ip_address` ✅
+  - `numeric` + `percentage`, `currency`, `latitude`, `longitude` ✅
+  - `int/string` + `primary_key` ✅
+- `test_incompatible_type_logical_combinations`: Tests invalid combinations that trigger warnings:
+  - `numeric` + `email`, `url`, `uuid`, `ip_address` ❌
+  - `string` + `percentage`, `currency`, `latitude`, `longitude` ❌
+- `test_logical_type_fallback_on_conflict`: Tests automatic fallback to inference when types conflict
+- `test_logical_type_priority_handling`: Tests priority system (data type constraints > logical type hints)
+
+**Logical Type Configuration Tests:**
+- `test_logical_type_never_mode`: Tests disabling logical type inference with "never" setting
+- `test_logical_type_infer_mode`: Tests automatic inference with "infer" setting
+- `test_logical_type_explicit_specification`: Tests forcing specific logical types via configuration with compatibility validation
+- `test_logical_type_validation_thresholds`: Tests confidence thresholds (80% for text patterns, 90-95% for numeric ranges)
+
+**Pattern Matching and Validation Tests:**
+- `test_regex_pattern_validation`: Tests updated regex patterns for email, URL, UUID, IP address detection
+- `test_numeric_range_validation`: Tests range validation for latitude, longitude, percentage values
+- `test_special_validator_functions`: Tests custom validation functions for geographic coordinates
+- `test_pattern_confidence_scoring`: Tests confidence scoring and threshold-based classification
+- `test_primary_key_duplicate_detection`: Tests duplicate detection mechanism for primary key validation
+
+**Error Handling and Conflict Resolution Tests:**
+- `test_compatibility_warning_generation`: Tests warning generation for incompatible type/logical_type combinations
+- `test_automatic_fallback_mechanism`: Tests fallback to automatic inference when conflicts occur
+- `test_logging_incompatibility_messages`: Tests detailed logging of incompatibility reasons
+
+> **Redesigned Logical Type System**: Our proprietary logical type inference system has been redesigned to focus exclusively on semantic meaning detection without overlapping with basic data types. The system uses pattern recognition, statistical analysis, and validation functions with strict type compatibility rules and comprehensive conflict resolution mechanisms.
+
+#### Schema Parameters Testing
+
+Tests for comprehensive functionality of the schema parameter system:
+
+**Global Parameters Tests (`TestSchemaGlobalParameters`):**
+- `test_compute_stats_parameter`: Tests `compute_stats` global parameter boolean validation
+- `test_optimize_dtypes_parameter`: Tests `optimize_dtypes` global parameter boolean validation
+- `test_sample_size_parameter`: Tests `sample_size` global parameter positive integer validation
+- `test_sample_size_null`: Tests `sample_size` parameter accepts null values
+- `test_leading_zeros_parameter`: Tests `leading_zeros` global parameter valid values ("never", "num-auto", "leading_n")
+- `test_leading_zeros_invalid`: Tests `leading_zeros` parameter invalid value handling
+- `test_nullable_int_parameter`: Tests `nullable_int` global parameter boolean validation
+- `test_nullable_int_invalid`: Tests `nullable_int` parameter invalid value handling
+- `test_infer_logical_types_parameter`: Tests `infer_logical_types` global parameter boolean validation
+- `test_descriptive_parameters`: Tests descriptive parameters (`title`, `description`, `version`) string validation
+
+**Field Parameters Tests (`TestSchemaFieldParameters`):**
+- `test_logical_type_parameter`: Tests field-level `logical_type` parameter valid value validation
+- `test_leading_zeros_field_level`: Tests field-level `leading_zeros` parameter overriding global settings
+- `test_leading_zeros_field_invalid`: Tests field-level `leading_zeros` parameter invalid value handling
+
+**Parameter Conflicts Tests (`TestSchemaParameterConflicts`):**
+- `test_infer_logical_types_conflict`: Tests conflict detection between `infer_logical_types=true` and field-level `logical_type`
+
+**Loader Schema Parameters Tests (`tests/loader/test_loader.py`):**
+- `TestLoaderSchemaParameters`: Tests global schema parameters in Loader
+- `TestLoaderSchemaFieldParameters`: Tests field-level schema parameters in Loader
+- `TestLoaderSchemaParameterConflicts`: Tests parameter conflict detection in Loader
+- `TestLoaderSchemaEdgeCases`: Tests schema edge cases in Loader
+
+**SchemaConfig Validation Tests (`tests/metadater/test_schema_types.py`):**
+- `test_schema_config_with_parameters`: Tests SchemaConfig initialization with parameters
+- `test_schema_config_invalid_leading_zeros`: Tests SchemaConfig error handling for invalid `leading_zeros` values
+- `test_schema_config_invalid_nullable_int`: Tests SchemaConfig error handling for invalid `nullable_int` values
+- `test_schema_config_logical_type_conflict`: Tests SchemaConfig logical type conflict detection
+
+**FieldConfig Validation Tests (`tests/metadater/field/test_field_types.py`):**
+- `test_field_config_with_parameters`: Tests FieldConfig initialization with parameters
+- `test_field_config_invalid_logical_type`: Tests FieldConfig error handling for invalid `logical_type` values
+- `test_field_config_invalid_leading_zeros`: Tests FieldConfig error handling for invalid `leading_zeros` values
+- `test_field_config_invalid_category_method`: Tests FieldConfig error handling for invalid `category_method` values
+- `test_field_config_invalid_datetime_precision`: Tests FieldConfig error handling for invalid `datetime_precision` values
+
+**Edge Cases Tests (`TestEdgeCases`):**
+- `test_empty_schema`: Tests empty schema handling
+- `test_schema_with_only_global_params`: Tests schema with only global parameters
+- `test_invalid_global_parameter`: Tests invalid global parameter error handling
+- `test_invalid_field_parameter`: Tests invalid field parameter error handling
+- `test_mixed_legacy_and_schema`: Tests compatibility with mixed legacy and schema syntax
+
+**Key Features:**
+- **Two-layer Architecture Validation**: Tests hierarchical structure of global and field parameters
+- **Parameter Conflict Detection**: Automatic detection and reporting of logical conflicts (e.g., `infer_logical_types` vs field `logical_type`)
+- **Backward Compatibility**: Ensures parameter system is fully compatible with legacy schema syntax
+- **Comprehensive Validation**: Covers parameter value ranges, types, and logical consistency checks
+- **Edge Case Coverage**: Tests empty schemas, mixed syntax, invalid parameter combinations, and other extreme scenarios
+
+> **Schema Parameter System**: Implements a two-layer schema parameter architecture providing flexible configuration through global parameters (such as `compute_stats`, `optimize_dtypes`, `sample_size`) and field-level parameters (such as `logical_type`, `leading_zeros`), with complete parameter conflict detection and backward compatibility guarantees.
+
 #### Ambiguous Data Type Processing Features
 
 Tests for processing data with ambiguous or easily misinterpreted types:
@@ -77,6 +306,38 @@ Tests for processing data with ambiguous or easily misinterpreted types:
   - Verifies default values for new parameters
   - Tests normal loading behavior when features are disabled
 
+#### Stress Testing
+
+Tests for large file processing and edge case type inference:
+
+**TestLoaderStress** - Progressive file size testing with timeout mechanisms:
+- `test_medium_file_1gb`: Tests 1GB files (120s timeout)
+- `test_xlarge_file_5gb`: Tests 5GB files (600s timeout)
+
+**TestLoaderTypeInference** - Edge case type inference with 99.9% normal data, 0.1% exceptions at end:
+- `test_int_with_string_exception`: Tests integer data with string exceptions
+- `test_float_with_null_exception`: Tests float data with null exceptions
+- `test_string_with_numeric_exception`: Tests string data with numeric exceptions
+
+**Key Features:**
+- **Memory monitoring**: Real-time memory usage tracking with psutil
+- **Timeout protection**: Automatic test failure if loading exceeds time limits
+- **Type inference validation**: Ensures 99.9% normal data with 0.1% exceptions placed at file end
+- **Performance metrics**: Throughput measurement (MB/s) and memory efficiency tracking
+
+**Usage:**
+```bash
+# Run all stress tests
+pytest tests/loader/ -m stress -v
+
+# Run specific stress test categories
+pytest tests/loader/test_loader.py::TestLoaderStress -v
+pytest tests/loader/test_loader.py::TestLoaderTypeInference -v
+
+# Run stress test demo
+python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo()"
+```
+
 ### `Benchmarker`
 
 > tests/loader/test_benchmarker.py
@@ -96,7 +357,78 @@ Tests for benchmark dataset handling:
 - `test_init_file_exists_hash_match`: Tests initialization logic when file exists with matching hash
 - `test_file_content_change`: Tests hash verification mechanism after file content changes, ensuring changes are properly detected
 
+#### `BenchmarkerConfig`
+
+> tests/loader/test_loader.py::TestBenchmarkerConfig
+
+Tests for the BenchmarkerConfig class that manages benchmark dataset configuration:
+
+- `test_benchmarker_config_requires_benchmark_name`: Tests that benchmark_name parameter is required for initialization
+- `test_benchmarker_config_initialization`: Tests BenchmarkerConfig initialization with proper attribute setting:
+  - Benchmark name, filename, access type
+  - Region name, bucket name, SHA256 hash
+  - Integration with benchmark YAML configuration loading
+- `test_benchmarker_config_get_benchmarker_config`: Tests get_benchmarker_config method:
+  - Returns proper dictionary format for BenchmarkerRequests
+  - Includes all required keys (benchmark_filename, benchmark_bucket_name, benchmark_sha256, filepath)
+  - Constructs correct local benchmark file path
+- `test_benchmarker_config_unsupported_benchmark`: Tests error handling for unsupported benchmark datasets
+- `test_benchmarker_config_private_access_unsupported`: Tests error handling for private benchmark access attempts
+
+> **Architecture Refactoring**: BenchmarkerConfig has been extracted from LoaderConfig to provide clear separation of concerns. LoaderConfig now contains an optional benchmarker_config attribute, allowing for two distinct states: with or without benchmark functionality. This refactoring improves code maintainability and follows the single responsibility principle.
+
 ## Data Processing
+
+### `Processor`
+
+#### Missing Value Handlers
+
+> tests/processor/test_missing.py
+
+Tests for missing value handling with comprehensive type compatibility:
+
+**MissingMean Tests (4 tests):**
+- `test_mean_no_missing_values`: Tests mean imputation with no missing values
+- `test_mean_with_missing_values`: Tests mean imputation with missing values
+- `test_mean_with_integer_dtype`: Tests mean imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of mean values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_mean_with_integer_dtype_fractional_mean`: Tests mean imputation when mean has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional means
+
+**MissingMedian Tests (4 tests):**
+- `test_median_no_missing_values`: Tests median imputation with no missing values
+- `test_median_with_missing_values`: Tests median imputation with missing values
+- `test_median_with_integer_dtype`: Tests median imputation with pandas nullable integer types (Int32, Int64):
+  - Verifies proper handling of integer data types without TypeError
+  - Tests automatic rounding of median values for integer compatibility
+  - Validates dtype preservation after transformation
+- `test_median_with_integer_dtype_fractional_median`: Tests median imputation when median has fractional part:
+  - Tests banker's rounding (20.5 → 20) for integer types
+  - Ensures proper type conversion for fractional medians
+
+**MissingSimple Tests (2 tests):**
+- `test_simple_no_missing_values`: Tests simple value imputation with no missing values
+- `test_simple_with_missing_values`: Tests simple value imputation with missing values
+
+**MissingDrop Tests (2 tests):**
+- `test_drop_no_missing_values`: Tests drop strategy with no missing values
+- `test_drop_with_missing_values`: Tests drop strategy with missing values
+
+> **Integer Type Compatibility**: Enhanced missing value handlers now properly support pandas nullable integer types (Int8, Int16, Int32, Int64) by automatically rounding float imputation values to integers, preventing TypeError during fillna operations. This ensures seamless integration with schema-specified integer types while maintaining data integrity.
+
+#### Outlier Detection Handlers
+
+Enhanced outlier detection with pandas nullable integer array compatibility:
+
+**OutlierHandler Base Class:**
+- Enhanced `fit()` and `transform()` methods with `np.asarray()` conversion
+- Proper handling of pandas nullable integer arrays to prevent broadcasting errors
+- Maintains compatibility with numpy operations in outlier detection algorithms
+
+> **Pandas Array Compatibility**: Outlier handlers now use `np.asarray()` instead of `.values` to ensure proper conversion of pandas nullable integer arrays to numpy arrays, preventing ValueError during logical operations in outlier detection algorithms.
 
 ### `Metadater`
 
@@ -445,6 +777,55 @@ Tests for field proportion maintenance constraints (33 tests):
 
 ### `Evaluator`
 
+#### `SDMetrics`
+
+> tests/evaluator/test_sdmetrics.py
+
+Tests for SDMetrics single-table evaluation functionality:
+
+- `test_eval_diagnostic_report`: Tests DiagnosticReport evaluation with mocked SDMetrics components
+- `test_eval_quality_report`: Tests QualityReport evaluation with comprehensive mock setup
+- `test_init`: Tests SDMetricsSingleTable initialization and configuration validation
+- `test_invalid_method`: Tests error handling for unsupported evaluation methods
+
+**Key Features:**
+- **Data Type Consistency**: Enhanced BaseEvaluator now detects data type mismatches between datasets and provides clear error messages instead of automatic type alignment
+- **Error Handling**: Improved error messaging directs users to handle type alignment at the Executor level
+- **Mock Integration**: Comprehensive mocking of SDMetrics components for reliable testing
+
+> **Architecture Enhancement**: BaseEvaluator has been modified to remove automatic data type alignment functionality. Instead of silently "fixing" type mismatches, it now raises ValueError with detailed mismatch information, ensuring Data Structure evaluation accuracy and maintaining data integrity.
+
+#### `Stats`
+
+> tests/evaluator/test_stats.py
+
+Tests for statistical evaluation functionality:
+
+- `test_eval_basic`: Tests basic statistical evaluation with mocked field metadata creation
+- `test_eval_with_different_data`: Tests evaluation with different original and synthetic datasets
+- `test_init`: Tests Stats evaluator initialization and configuration validation
+- `test_invalid_compare_method`: Tests error handling for invalid comparison methods
+- `test_invalid_stats_method`: Tests error handling for invalid statistical methods
+
+**Key Features:**
+- **Metadater Integration**: Updated to use `Metadater.create_field` for field metadata creation
+- **Type Inference**: Proper handling of data type inference through mocked field metadata
+- **Configuration Validation**: Comprehensive validation of statistical method configurations
+
+#### `CustomEvaluator`
+
+> tests/evaluator/test_custom_evaluator.py
+
+Tests for custom evaluator functionality:
+
+- `test_init`: Tests CustomEvaluator initialization with external module loading
+- `test_eval`: Tests evaluation method execution with custom evaluator instances
+- `test_missing_module_path`: Tests error handling for missing module path configuration
+
+**Key Features:**
+- **External Module Loading**: Integration with `petsard.utils.load_external_module` for dynamic evaluator loading
+- **Mock Integration**: Comprehensive mocking of external module loading and custom evaluator execution
+- **Error Handling**: Proper validation of module path and class name requirements
 
 > - All functionality replacements use Metadater's public interface, completely avoiding deep internal functionality calls
 > - All original functionality has been preserved with full backward compatibility
@@ -520,45 +901,88 @@ Tests for mpUCCs (Maximal Partial Unique Column Combinations) privacy risk asses
 
 > tests/reporter/test_reporter.py
 
-
-> - All original functionality has been preserved with full backward compatibility
-> - Enhanced merge logic in `_safe_merge` method to properly handle columnwise and pairwise data merging
-
-Tests for the main Reporter functionality:
+Tests for the main Reporter functionality with **functional design architecture** and **naming strategy support**:
 
 - `test_method`: Tests Reporter initialization with different methods:
   - ReporterSaveData for 'save_data' method
   - ReporterSaveReport for 'save_report' method
+  - ReporterSaveTiming for 'save_timing' method
   - UnsupportedMethodError for invalid methods
 - `test_method_save_data`: Tests save_data method validation:
   - ConfigError when no source is provided
 - `test_method_save_report`: Tests save_report method validation:
   - Valid initialization with granularity only
   - ConfigError when required parameters are missing
+- `test_method_save_timing`: Tests save_timing method validation:
+  - Valid initialization with optional parameters
+  - Proper handling of time_unit and module filtering
+
+#### `TestReporterNamingStrategy`
+
+Tests for naming strategy functionality (6 tests):
+
+- `test_naming_strategy_parameter_validation`: Tests naming_strategy parameter validation:
+  - Valid values ('traditional', 'compact') are accepted
+  - ConfigError for invalid naming strategy values
+- `test_traditional_naming_strategy`: Tests traditional naming strategy:
+  - Maintains backward compatibility with existing filename formats
+  - Generates files with traditional bracket notation
+- `test_compact_naming_strategy`: Tests compact naming strategy:
+  - Generates simplified filename formats
+  - Removes redundant brackets and markers
+- `test_naming_strategy_with_different_methods`: Tests naming strategy across different Reporter methods:
+  - save_data method with both strategies
+  - save_report method with both strategies
+  - save_timing method (unchanged across strategies)
+- `test_naming_strategy_integration`: Tests naming strategy integration with Reporter workflow:
+  - End-to-end filename generation
+  - Proper parameter passing through Reporter architecture
+- `test_naming_strategy_default_behavior`: Tests default naming strategy behavior:
+  - Traditional strategy is used when no naming_strategy is specified
+  - Backward compatibility is maintained
 
 #### `ReporterSaveData`
 
-Tests for data saving functionality:
+Tests for data saving functionality with functional design:
 
 - `test_source`: Tests source parameter validation:
   - String and list of strings are accepted
   - ConfigError for invalid types (float, mixed list, tuple)
+- `test_functional_create_and_report`: Tests functional "throw out and throw back in" pattern:
+  - `create()` processes data without storing in instance variables
+  - `report()` receives processed data and generates output files
+  - No internal state maintained between calls
 
 #### `ReporterSaveReport`
 
-Tests for report generation functionality:
+Tests for report generation functionality with **multi-granularity support**:
 
 - `test_granularity`: Tests granularity parameter validation:
-  - Valid values: 'global', 'columnwise', 'pairwise'
+  - **Single granularity**: 'global', 'columnwise', 'pairwise', 'details', 'tree'
+  - **Multi-granularity**: ['global', 'columnwise'], ['details', 'tree']
   - ConfigError for missing or invalid granularity
-  - ConfigError for non-string types
+  - ConfigError for non-string/non-list types
+- `test_multi_granularity_support`: Tests multi-granularity functionality:
+  - Processing multiple granularities in single operation
+  - Separate report generation for each granularity
+  - Proper handling of granularity-specific data structures
+- `test_new_granularity_types`: Tests new granularity types (v2.0+):
+  - 'details': Detailed breakdown with additional metrics
+  - 'tree': Hierarchical tree structure analysis
 - `test_eval`: Tests eval parameter validation:
   - String, list of strings, or None are accepted
   - ConfigError for invalid types
-- `test_create`: Tests report creation for all granularities:
+- `test_create`: Tests functional report creation for all granularities:
   - Global granularity report generation
   - Columnwise granularity report generation
   - Pairwise granularity report generation
+  - Details granularity report generation
+  - Tree granularity report generation
+  - Multi-granularity processing
+- `test_functional_design_pattern`: Tests functional "throw out and throw back in" pattern:
+  - `create()` returns processed data without storing internally
+  - `report()` accepts processed data and generates files
+  - Memory optimization through stateless design
 - `test_process_report_data`: Tests data processing functionality:
   - Column renaming with eval name prefixes
   - Index handling for different granularities
@@ -569,6 +993,18 @@ Tests for report generation functionality:
   - Proper handling of common columns including 'column', 'column1', 'column2'
   - Correct row ordering in merged results
 
+#### `ReporterSaveTiming`
+
+Tests for timing information reporting functionality:
+
+- `test_timing_data_processing`: Tests timing data processing:
+  - Time unit conversion (seconds, minutes, hours, days)
+  - Module filtering functionality
+  - Timing metadata extraction
+- `test_functional_timing_workflow`: Tests functional timing workflow:
+  - Processing timing data without internal storage
+  - Generating timing reports with proper formatting
+
 #### `Reporter Utils`
 
 Tests for utility functions:
@@ -576,6 +1012,10 @@ Tests for utility functions:
 - `test_convert_full_expt_tuple_to_name`: Tests experiment tuple to name conversion
 - `test_convert_full_expt_name_to_tuple`: Tests experiment name to tuple conversion
 - `test_convert_eval_expt_name_to_tuple`: Tests evaluation experiment name parsing
+
+> **Functional Design Architecture**: Reporter has been completely refactored to use a functional "throw out and throw back in" design pattern for memory optimization. The `create()` method processes data but doesn't store it in instance variables (`self.result`, `self._processed_data`), while `report()` receives the processed data and generates output files. This stateless approach significantly reduces memory consumption while maintaining full backward compatibility.
+
+> **Multi-Granularity Support**: Reporter now supports both single granularity (`str`) and multi-granularity (`list[str]`) configurations, allowing users to process multiple granularities in a single operation. New granularity types 'details' and 'tree' have been added alongside the traditional 'global', 'columnwise', and 'pairwise' options.
 
 ## System Components
 

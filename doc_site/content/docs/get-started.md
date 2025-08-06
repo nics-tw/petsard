@@ -8,31 +8,74 @@ next: docs/tutorial
 
 ## Installation
 
-*Below we demonstrate the native Python environment setup. However, for better dependency management, we recommend using:*
+PETsARD is available on PyPI and can be installed with different dependency groups based on your needs. You can also install from source using `pyproject.toml` or `requirements.txt`.
 
-**Recommended tools:**
+### PyPI Installation (Recommended)
+
+```bash
+# Default installation (configuration parsing only)
+pip install petsard
+
+# Data science features (recommended for most users)
+pip install petsard[ds]
+
+# Complete installation with development tools
+pip install petsard[all]
+
+# Development tools only
+pip install petsard[dev]
+```
+
+### Installation Options
+
+| Group | Command | Included Features |
+|-------|---------|-------------------|
+| **Default** | `pip install petsard` | Core functionality: configuration, data loading, synthesis, evaluation (pyyaml, pandas, anonymeter, sdmetrics, sdv, torch, etc.) |
+| **Data Science** | `pip install petsard[ds]` | Basic functionality + Jupyter Notebook support (ipykernel, jupyterlab, notebook, etc.) |
+| **Complete** | `pip install petsard[all]` | Data science functionality + extended support (benchmark datasets, Excel file support) |
+| **Development** | `pip install petsard[dev-tools]` | Testing and development utilities (pytest, ruff, coverage, etc.) |
+
+### Source Installation
+
+For development or custom builds:
+
+```bash
+# Clone the repository
+git clone https://github.com/nics-tw/petsard.git
+cd petsard
+
+# Install with pyproject.toml
+pip install -e ".[all]"
+
+# Or install with requirements.txt (based on default)
+pip install -r requirements.txt
+```
+
+**Recommended tools for development:**
 * `pyenv` - Python version management
 * `poetry` / `uv` - Package management
 
-### Native Python Setup
+### Offline Environment Preparation
 
-1. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # or
-   venv\Scripts\activate     # Windows
-   ```
+For environments without internet access, we provide a wheel downloader tool to prepare all dependencies in advance:
 
-2. Upgrade pip:
-   ```bash
-   python -m pip install --upgrade pip
-   ```
+```bash
+# Download core dependencies only
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux
 
-3. Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Download with additional dependency groups
+python demo/petsard_wheel_downloader.py --branch main --python-version 3.11 --os linux --groups ds
+```
+
+**Parameter descriptions:**
+- `--branch`: Git branch name (e.g., main, dev)
+- `--python-version`: Python version (e.g., 3.10, 3.11, 3.11.5)
+- `--os`: Target operating system, supports:
+  - `linux`: Linux 64-bit
+  - `windows`: Windows 64-bit
+  - `macos`: macOS Intel
+  - `macos-arm`: macOS Apple Silicon
+- `--groups`: Optional dependency groups (can specify multiple groups separated by spaces)
 
 ## Quick Start
 
@@ -62,19 +105,6 @@ PETsARD is a privacy-enhancing data synthesis and evaluation framework. To start
    exec = Executor(config='config.yaml')
    exec.run()
    ```
-
-## Framework Structure
-
-PETsARD follows this workflow:
-
-1. `Loader`: Loads data from files or benchmark datasets
-2. `Splitter`: Splits data into training/validation sets (optional)
-3. `Preprocessor`: Prepares data for synthesis (e.g., encoding categorical values)
-4. `Synthesizer`: Creates privacy-enhanced synthetic data
-5. `Postprocessor`: Formats synthetic data back to original structure
-6. `Evaluator`: Measures synthesis quality and privacy metrics
-7. `Describer`: Generates dataset statistics and insights
-8. `Reporter`: Saves results and generates reports
 
 ## Basic Configuration
 

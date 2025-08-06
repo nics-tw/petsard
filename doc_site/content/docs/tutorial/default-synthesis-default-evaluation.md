@@ -12,7 +12,7 @@ Current default evaluation uses SDMetrics Quality Report.
 
 Click the below button to run this example in Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/default-synthesis-default-evaluation.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/tutorial/default-synthesis-default-evaluation.ipynb)
 
 ```yaml
 ---
@@ -59,12 +59,16 @@ Evaluator:
     method: 'mlutility-classification'
     target: 'income'
 Reporter:
-  output:
+  data:
     method: 'save_data'
-    source: 'Synthesizer'
-  save_report_global:
+    source: 'Postprocessor'
+  rpt:
     method: 'save_report'
-    granularity: 'global'
+    granularity:
+      - 'global'
+      - 'columnwise'
+      - 'pairwise'
+      - 'details'
 ...
 ```
 

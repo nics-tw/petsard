@@ -1,7 +1,6 @@
-"""High-level functional API for the metadater module"""
-
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -38,7 +37,7 @@ def _reduce_functions(functions: tuple, initial_value: Any) -> Any:
 def analyze_field(
     field_data: pd.Series,
     field_name: str,
-    config: Optional[FieldConfig] = None,
+    config: FieldConfig | None = None,
     **options: Any,
 ) -> FieldMetadata:
     """
@@ -62,8 +61,8 @@ def create_field_analyzer(
     compute_stats: bool = True,
     infer_logical_type: bool = True,
     optimize_dtype: bool = True,
-    sample_size: Optional[int] = 1000,
-) -> Callable[[pd.Series, str, Optional[FieldConfig]], FieldMetadata]:
+    sample_size: int | None = 1000,
+) -> Callable[[pd.Series, str, FieldConfig | None], FieldMetadata]:
     """
     Create a configured field analyzer function
 
@@ -91,7 +90,7 @@ def create_stats_calculator() -> Callable[[pd.Series, FieldMetadata], FieldStats
 
 
 def create_logical_type_inferrer() -> Callable[
-    [pd.Series, FieldMetadata], Optional[LogicalType]
+    [pd.Series, FieldMetadata], LogicalType | None
 ]:
     """Create a logical type inferrer function"""
     return infer_field_logical_type
@@ -107,7 +106,7 @@ class FieldPipeline:
     """Functional pipeline for field processing"""
 
     def __init__(self):
-        self._steps: List[Callable] = []
+        self._steps: list[Callable] = []
 
     def add_step(self, step: Callable) -> "FieldPipeline":
         """Add a processing step to the pipeline"""
@@ -162,9 +161,9 @@ class FieldPipeline:
 # Schema-level functional operations
 def analyze_dataframe_fields(
     data: pd.DataFrame,
-    field_configs: Optional[Dict[str, FieldConfig]] = None,
-    analyzer: Optional[Callable] = None,
-) -> Dict[str, FieldMetadata]:
+    field_configs: dict[str, FieldConfig] | None = None,
+    analyzer: Callable | None = None,
+) -> dict[str, FieldMetadata]:
     """
     Analyze all fields in a DataFrame using functional approach
 
@@ -195,7 +194,7 @@ def validate_field_data(
     field_data: pd.Series,
     field_metadata: FieldMetadata,
     strict: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate field data against metadata
 

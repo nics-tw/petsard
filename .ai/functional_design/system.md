@@ -16,11 +16,11 @@ PETsARD 採用模組化設計，每個模組都遵循以下核心設計原則：
 PETsARD/
 ├── petsard/
 │   ├── loader/                 # 資料載入模組
-│   │   ├── functional_design.md  # 模組功能設計文件
-│   │   ├── loader.py          # 主要載入器
-│   │   ├── metadata.py        # 詮釋資料處理 (向後相容，內部使用 Metadater)
-│   │   ├── splitter.py        # 資料分割器
-│   │   └── benchmarker.py     # 基準資料集管理
+│   │   ├── loader.py          # 主要載入器 (LoaderConfig, Loader)
+│   │   ├── loader_base.py     # 載入器基底類別 (LoaderBase)
+│   │   ├── loader_pandas.py   # Pandas 載入器實現
+│   │   ├── splitter.py        # 資料分割器 (Splitter)
+│   │   └── benchmarker.py     # 基準資料集管理 (BenchmarkerConfig, BaseBenchmarker, BenchmarkerRequests)
 │   ├── metadater/             # 詮釋資料管理核心
 │   │   ├── functional_design.md  # 模組功能設計文件
 │   │   ├── __init__.py        # 公開 API 介面
@@ -162,7 +162,6 @@ metadata = Metadater.create_metadata(metadata_id)
 - 使用 `petsard.metadater.Metadater` 進行詮釋資料管理
 - **外部模組載入**:
   - **核心功能**: `petsard.utils.load_external_module` 提供通用的外部模組載入功能
-  - **Demo 特定功能**: `demo.utils.load_demo_module` 提供 demo 目錄的智能搜索
   - **智能回退**: CustomSynthesizer 和 CustomEvaluator 優先使用 demo 功能，回退至核心功能
 
 ### 6. Reporter 模組 (結果報告)
@@ -346,7 +345,6 @@ final_metadata = pipeline.process(data, initial_metadata)
 
 ### 外部模組載入架構
 - **核心功能**: `petsard.utils.load_external_module` 提供通用的外部模組載入
-- **Demo 特定功能**: `demo.utils.load_demo_module` 提供 demo 目錄智能搜索
 - **關注點分離**: 核心 utils 不包含 demo 特定的硬編碼路徑
 - **智能回退**: CustomSynthesizer 和 CustomEvaluator 優先使用 demo 功能，失敗時回退至核心功能
 

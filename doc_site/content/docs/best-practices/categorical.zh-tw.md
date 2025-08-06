@@ -92,7 +92,7 @@ next: docs/best-practices/high-cardinality
 
 請點擊下方按鈕在 Colab 中執行範例：
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practice/categorical.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nics-tw/petsard/blob/main/demo/best-practices/categorical.ipynb)
 
 事實上 PETsARD 預設的類別變項編碼就是均勻編碼，這裡的設定僅是為了在預設流程中略過離群值處理 ('outlier'，會在本模擬資料中剔除過多的紀錄)，您只要對 Preprocessor 使用預設模式，便會自動對你的類別變項均勻編碼處理。
 

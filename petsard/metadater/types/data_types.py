@@ -1,7 +1,5 @@
-"""Core data type definitions and utilities"""
-
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 
 class DataType(Enum):
@@ -25,38 +23,188 @@ class DataType(Enum):
 
 
 class LogicalType(Enum):
-    """Logical/semantic types for field metadata"""
+    """Logical/semantic types for field metadata
 
-    # Numeric types
-    INTEGER = "integer"
-    DECIMAL = "decimal"
-    PERCENTAGE = "percentage"
-    CURRENCY = "currency"
+    These types represent semantic meaning beyond basic data types.
+    Each logical type has specific data type requirements and validation rules.
+    """
 
-    # Text types
-    TEXT = "text"
-    CATEGORICAL = "categorical"
-    EMAIL = "email"
-    URL = "url"
-    UUID = "uuid"
+    # Text-based semantic types (require string data type)
+    EMAIL = "email"  # Email addresses - requires string type
+    URL = "url"  # Web URLs - requires string type
+    UUID = "uuid"  # UUID identifiers - requires string type
+    CATEGORICAL = "categorical"  # Categorical data - requires string type
 
-    # Geographic types
-    LATITUDE = "latitude"
-    LONGITUDE = "longitude"
-    IP_ADDRESS = "ip_address"
+    # Numeric semantic types
+    PERCENTAGE = "percentage"  # Percentage values (0-100) - requires numeric type
+    CURRENCY = "currency"  # Monetary values - requires numeric type
+    LATITUDE = "latitude"  # Latitude coordinates (-90 to 90) - requires numeric type
+    LONGITUDE = (
+        "longitude"  # Longitude coordinates (-180 to 180) - requires numeric type
+    )
 
-    # Temporal types
-    DATETIME = "datetime"
-    DATE = "date"
-    TIME = "time"
-    DURATION = "duration"
+    # Network types (require string data type)
+    IP_ADDRESS = "ip_address"  # IP addresses (IPv4/IPv6) - requires string type
 
-    # Identifiers
-    PRIMARY_KEY = "primary_key"
-    FOREIGN_KEY = "foreign_key"
+    # Identifier types
+    PRIMARY_KEY = "primary_key"  # Primary key fields - requires uniqueness validation
 
 
-def safe_round(value: Any, decimals: int = 2) -> Optional[Union[int, float]]:
+# Logical type to compatible data types mapping
+LOGICAL_TYPE_COMPATIBLE_DATA_TYPES = {
+    # Text-based semantic types - require string data type
+    LogicalType.EMAIL: [DataType.STRING],
+    LogicalType.URL: [DataType.STRING],
+    LogicalType.UUID: [DataType.STRING],
+    LogicalType.CATEGORICAL: [DataType.STRING],
+    LogicalType.IP_ADDRESS: [DataType.STRING],
+    # Numeric semantic types - require numeric data types
+    LogicalType.PERCENTAGE: [
+        DataType.INT8,
+        DataType.INT16,
+        DataType.INT32,
+        DataType.INT64,
+        DataType.FLOAT32,
+        DataType.FLOAT64,
+        DataType.DECIMAL,
+    ],
+    LogicalType.CURRENCY: [DataType.FLOAT32, DataType.FLOAT64, DataType.DECIMAL],
+    LogicalType.LATITUDE: [DataType.FLOAT32, DataType.FLOAT64, DataType.DECIMAL],
+    LogicalType.LONGITUDE: [DataType.FLOAT32, DataType.FLOAT64, DataType.DECIMAL],
+    # Identifier types - can be various types depending on implementation
+    LogicalType.PRIMARY_KEY: [
+        DataType.INT8,
+        DataType.INT16,
+        DataType.INT32,
+        DataType.INT64,
+        DataType.STRING,
+    ],
+}
+
+
+def validate_logical_type_compatibility(
+    logical_type: LogicalType, data_type: DataType
+) -> bool:
+    """
+    Validate if a logical type is compatible with a data type
+
+    Args:
+        logical_type: The logical type to validate
+        data_type: The data type to check compatibility with
+
+    Returns:
+        bool: True if compatible, False otherwise
+    """
+    if logical_type not in LOGICAL_TYPE_COMPATIBLE_DATA_TYPES:
+        return False
+
+    compatible_types = LOGICAL_TYPE_COMPATIBLE_DATA_TYPES[logical_type]
+    return data_type in compatible_types
+
+
+def get_logical_type_requirements(logical_type: LogicalType) -> dict[str, Any]:
+    """
+    Get the requirements and validation rules for a logical type
+
+    Args:
+        logical_type: The logical type to get requirements for
+
+    Returns:
+        dict: Requirements including compatible data types, validation rules, etc.
+    """
+    requirements = {
+        LogicalType.EMAIL: {
+            "compatible_data_types": [DataType.STRING],
+            "validation_pattern": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+            "confidence_threshold": 0.8,
+            "description": "Email addresses with standard format validation",
+        },
+        LogicalType.URL: {
+            "compatible_data_types": [DataType.STRING],
+            "validation_pattern": r"^https?://[^\s/$.?#].[^\s]*$",
+            "confidence_threshold": 0.8,
+            "description": "Web URLs with protocol validation",
+        },
+        LogicalType.UUID: {
+            "compatible_data_types": [DataType.STRING],
+            "validation_pattern": r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "confidence_threshold": 0.95,
+            "description": "UUID identifiers in standard format",
+        },
+        LogicalType.CATEGORICAL: {
+            "compatible_data_types": [DataType.STRING],
+            "validation_method": "cardinality_analysis",
+            "confidence_threshold": "dynamic",
+            "description": "Categorical data detected via ASPL cardinality analysis",
+        },
+        LogicalType.IP_ADDRESS: {
+            "compatible_data_types": [DataType.STRING],
+            "validation_pattern": r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
+            "confidence_threshold": 0.9,
+            "description": "IPv4 and IPv6 addresses",
+        },
+        LogicalType.PERCENTAGE: {
+            "compatible_data_types": [
+                DataType.INT8,
+                DataType.INT16,
+                DataType.INT32,
+                DataType.INT64,
+                DataType.FLOAT32,
+                DataType.FLOAT64,
+                DataType.DECIMAL,
+            ],
+            "validation_range": (0, 100),
+            "confidence_threshold": 0.95,
+            "description": "Percentage values in 0-100 range",
+        },
+        LogicalType.CURRENCY: {
+            "compatible_data_types": [
+                DataType.FLOAT32,
+                DataType.FLOAT64,
+                DataType.DECIMAL,
+            ],
+            "validation_method": "currency_symbol_detection",
+            "confidence_threshold": 0.8,
+            "description": "Monetary values with currency symbol detection",
+        },
+        LogicalType.LATITUDE: {
+            "compatible_data_types": [
+                DataType.FLOAT32,
+                DataType.FLOAT64,
+                DataType.DECIMAL,
+            ],
+            "validation_range": (-90, 90),
+            "confidence_threshold": 0.95,
+            "description": "Latitude coordinates in -90 to 90 range",
+        },
+        LogicalType.LONGITUDE: {
+            "compatible_data_types": [
+                DataType.FLOAT32,
+                DataType.FLOAT64,
+                DataType.DECIMAL,
+            ],
+            "validation_range": (-180, 180),
+            "confidence_threshold": 0.95,
+            "description": "Longitude coordinates in -180 to 180 range",
+        },
+        LogicalType.PRIMARY_KEY: {
+            "compatible_data_types": [
+                DataType.INT8,
+                DataType.INT16,
+                DataType.INT32,
+                DataType.INT64,
+                DataType.STRING,
+            ],
+            "validation_method": "uniqueness_check",
+            "confidence_threshold": 1.0,  # Must be 100% unique
+            "description": "Primary key fields with uniqueness validation",
+        },
+    }
+
+    return requirements.get(logical_type, {})
+
+
+def safe_round(value: Any, decimals: int = 2) -> int | float | None:
     """
     安全的四捨五入函數，處理 None 和非數值類型
 
@@ -71,7 +219,7 @@ def safe_round(value: Any, decimals: int = 2) -> Optional[Union[int, float]]:
         return None
 
     try:
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             rounded = round(float(value), decimals)
             # 如果小數位數為 0 且結果是整數，返回 int
             if decimals == 0:
@@ -109,5 +257,5 @@ EvaluationScoreGranularityMap = {
 
 
 # Type aliases
-DataTypeValue = Union[DataType, str]
-LogicalTypeValue = Union[LogicalType, str]
+DataTypeValue = DataType | str
+LogicalTypeValue = LogicalType | str

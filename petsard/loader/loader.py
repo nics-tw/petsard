@@ -1,9 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
-from importlib import resources
 from pathlib import Path
-from typing import Any, Optional, Union
 
 import pandas as pd
 import yaml
@@ -13,10 +11,9 @@ from petsard.exceptions import (
     BenchmarkDatasetsError,
     ConfigError,
     UnableToFollowMetadataError,
-    UnableToLoadError,
     UnsupportedMethodError,
 )
-from petsard.loader.benchmarker import BenchmarkerRequests
+from petsard.loader.benchmarker import BenchmarkerConfig, BenchmarkerRequests
 from petsard.metadater import FieldConfig, Metadater, SchemaConfig, SchemaMetadata
 
 
@@ -56,57 +53,44 @@ class LoaderConfig(BaseConfig):
     Attributes:
         _logger (logging.Logger): The logger object.
         DEFAULT_METHOD_FILEPATH (str): The default method filepath.
-        YAML_FILENAME (str): The benchmark datasets YAML filename.
         filepath (str): The fullpath of dataset.
         method (str): The method of Loader.
         column_types (dict): The dictionary of column types and their corresponding column names.
         header_names (list): Specifies a list of headers for the data without header.
         na_values (str | list | dict): Extra string to recognized as NA/NaN.
+        schema (SchemaConfig): Schema configuration object with field definitions and global parameters.
+        schema_path (str): The path to schema file if loaded from YAML file.
         dir_name (str): The directory name of the file path.
         base_name (str): The base name of the file path.
         file_name (str): The file name of the file path.
         file_ext (str): The file extension of the file path.
         file_ext_code (int): The file extension code.
-        benchmark (bool): The flag to indicate if the file path is a benchmark.
-        filepath_raw (str): The raw file path.
-        benchmark_name (str): The benchmark name.
-        benchmark_filename (str): The benchmark filename.
-        benchmark_access (str): The benchmark access type.
-        benchmark_region_name (str): The benchmark region name.
-        benchmark_bucket_name (str): The benchmark bucket name.
-        benchmark_sha256 (str): The benchmark SHA-256 value.
+        benchmarker_config (BenchmarkerConfig): Optional benchmarker configuration.
     """
 
     DEFAULT_METHOD_FILEPATH: str = "benchmark://adult-income"
-    YAML_FILENAME: str = "benchmark_datasets.yaml"
 
-    filepath: Optional[str] = None
-    method: Optional[str] = None
-    column_types: Optional[dict[str, list[str]]] = None
-    header_names: Optional[list[str]] = None
-    na_values: Optional[Union[str, list[str], dict[str, str]]] = None
-
-    # 新增：處理容易誤判、型別判斷模糊資料的參數
-    preserve_raw_data: bool = False  # 是否保留原始資料格式，避免 pandas 自動類型推斷
-    auto_detect_leading_zeros: bool = False  # 是否自動檢測前導零並保留為字串
-    force_nullable_integers: bool = False  # 是否強制使用 nullable integers 避免 .0 後綴
+    filepath: str | None = None
+    method: str | None = None
+    column_types: dict[str, list[str]] | None = (
+        None  # TODO: Deprecated in v2.0.0 - will be removed
+    )
+    header_names: list[str] | None = None
+    na_values: str | list[str] | dict[str, str] | None = (
+        None  # TODO: Deprecated in v2.0.0 - will be removed
+    )
+    schema: SchemaConfig | None = None
+    schema_path: str | None = None  # 記錄 schema 來源路徑（如果從檔案載入）
 
     # Filepath related
-    dir_name: Optional[str] = None
-    base_name: Optional[str] = None
-    file_name: Optional[str] = None
-    file_ext: Optional[str] = None
-    file_ext_code: Optional[int] = None
+    dir_name: str | None = None
+    base_name: str | None = None
+    file_name: str | None = None
+    file_ext: str | None = None
+    file_ext_code: int | None = None
 
-    # Benchmark related
-    benchmark: bool = False
-    filepath_raw: Optional[str] = None
-    benchmark_name: Optional[str] = None
-    benchmark_filename: Optional[str] = None
-    benchmark_access: Optional[str] = None
-    benchmark_region_name: Optional[str] = None
-    benchmark_bucket_name: Optional[str] = None
-    benchmark_sha256: Optional[str] = None
+    # Benchmarker configuration
+    benchmarker_config: BenchmarkerConfig | None = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -127,48 +111,29 @@ class LoaderConfig(BaseConfig):
                 error_msg = f"Unsupported method: {self.method}"
                 self._logger.error(error_msg)
                 raise UnsupportedMethodError(error_msg)
+
         # 2. check if filepath is specified as a benchmark
         if self.filepath.lower().startswith("benchmark://"):
             self._logger.info(f"Detected benchmark filepath: {self.filepath}")
-            self.benchmark = True
-            self.benchmark_name = re.sub(
+            benchmark_name = re.sub(
                 r"^benchmark://", "", self.filepath, flags=re.IGNORECASE
             ).lower()
-            self._logger.debug(f"Extracted benchmark name: {self.benchmark_name}")
+            self._logger.debug(f"Extracted benchmark name: {benchmark_name}")
 
-        if self.benchmark:
-            # 3. if benchmark, load and organized yaml: BENCHMARK_CONFIG
-            self._logger.info("Loading benchmark configuration")
-            benchmark_config: dict = self._load_benchmark_config()
-
-            # 4. if benchmark name exist in BENCHMARK_CONFIG, update config with benchmark values
-            if self.benchmark_name not in benchmark_config:
-                error_msg = f"Benchmark dataset {self.benchmark_name} is not supported"
-                self._logger.error(error_msg)
-                raise UnsupportedMethodError(error_msg)
-
-            benchmark_value: dict = benchmark_config[self.benchmark_name]
-            self._logger.debug(
-                f"Found benchmark configuration for {self.benchmark_name}"
+            # Create BenchmarkerConfig
+            self.benchmarker_config = BenchmarkerConfig(
+                benchmark_name=benchmark_name, filepath_raw=self.filepath
             )
-            self.filepath_raw = self.filepath
-            self.filepath = Path("benchmark").joinpath(benchmark_value["filename"])
-            self.benchmark_filename = benchmark_value["filename"]
 
-            if benchmark_value["access"] != "public":
-                error_msg = f"Benchmark access type {benchmark_value['access']} is not supported"
-                self._logger.error(error_msg)
-                raise UnsupportedMethodError(error_msg)
-
-            self.benchmark_access = benchmark_value["access"]
-            self.benchmark_region_name = benchmark_value["region_name"]
-            self.benchmark_bucket_name = benchmark_value["bucket_name"]
-            self.benchmark_sha256 = benchmark_value["sha256"]
+            # Update filepath to local benchmark path
+            self.filepath = Path("benchmark").joinpath(
+                self.benchmarker_config.benchmark_filename
+            )
             self._logger.info(
-                f"Configured benchmark dataset: {self.benchmark_name}, filename: {self.benchmark_filename}"
+                f"Configured benchmark dataset: {benchmark_name}, filepath: {self.filepath}"
             )
 
-        # 5. handle filepath
+        # 3. handle filepath
         filepath_path: Path = Path(self.filepath)
         self.dir_name = str(filepath_path.parent)
         self.base_name = filepath_path.name
@@ -184,7 +149,7 @@ class LoaderConfig(BaseConfig):
             f"File path information - dir: {self.dir_name}, name: {self.file_name}, ext: {self.file_ext}, ext code: {self.file_ext_code}"
         )
 
-        # 6. validate column_types (using new Metadater architecture)
+        # 4. validate column_types (using new Metadater architecture)
         if self.column_types is not None:
             self._logger.debug(f"Validating column types: {self.column_types}")
             valid_column_types = ["category", "datetime"]
@@ -195,74 +160,67 @@ class LoaderConfig(BaseConfig):
                     raise UnsupportedMethodError(error_msg)
             self._logger.debug("Column types validation passed")
 
-    def _load_benchmark_config(self) -> dict:
-        """
-        Load benchmark datasets configuration.
+        # 5. validate schema parameter and check for conflicts
+        if self.schema is not None:
+            self._logger.debug("Schema configuration provided")
+            # SchemaConfig validation is handled by its own dataclass validation
+            self._logger.debug("Schema configuration validation passed")
 
-        Return:
-            config (dict):
-                key (str): benchmark dataset name
-                    filename (str): Its filename
-                    access (str): Belong to public or private bucket.
-                    region_name (str): Its AWS S3 region.
-                    bucket_name (str): Its AWS S3 bucket.
-                    sha256 (str): Its SHA-256 value.
-        """
-        self._logger.debug(f"Loading benchmark configuration from {self.YAML_FILENAME}")
+            # Check for conflicts between schema and column_types
+            if self.column_types is not None:
+                self._logger.debug(
+                    "Checking for conflicts between schema and column_types"
+                )
+                # Use hasattr to avoid depending on schema internal structure
+                if hasattr(self.schema, "fields") and self.schema.fields:
+                    schema_fields = set(self.schema.fields.keys())
+                    column_type_fields = set()
+                    for columns in self.column_types.values():
+                        column_type_fields.update(columns)
 
-        config: dict = {}
-        error_msg: str = ""
-
-        try:
-            with resources.open_text("petsard.loader", self.YAML_FILENAME) as file:
-                config = yaml.safe_load(file)
-                self._logger.debug("Successfully loaded benchmark YAML configuration")
-        except Exception as e:
-            error_msg = f"Failed to load benchmark configuration: {str(e)}"
-            self._logger.error(error_msg)
-            raise BenchmarkDatasetsError(error_msg) from e
-
-        REGION_NAME = config["region_name"]
-        BUCKET_NAME = config["bucket_name"]
-
-        config["datasets"] = {
-            key: {
-                "filename": value["filename"],
-                "access": value["access"],
-                "region_name": REGION_NAME,
-                "bucket_name": BUCKET_NAME[value["access"]],
-                "sha256": value["sha256"],
-            }
-            for key, value in config["datasets"].items()
-        }
-
-        self._logger.debug(f"Processed {len(config['datasets'])} benchmark datasets")
-        return config["datasets"]
+                    conflicting_fields = schema_fields.intersection(column_type_fields)
+                    if conflicting_fields:
+                        error_msg = (
+                            f"Conflict detected: Fields {list(conflicting_fields)} are defined in both "
+                            f"schema and column_types. Please use only schema for these fields."
+                        )
+                        self._logger.error(error_msg)
+                        raise ConfigError(error_msg)
+                    self._logger.debug(
+                        "No conflicts found between schema and column_types"
+                    )
 
 
 class Loader:
     """
     The Loader class is responsible for creating and configuring a data loader,
     as well as retrieving and processing data from the specified sources.
+
+    The Loader is designed to be passive and focuses on four core functions:
+    1. Benchmark handling: Download benchmark datasets when needed
+    2. Schema processing: Pass schema parameters to metadater for validation
+    3. Legacy compatibility: Update legacy column_types and na_values to schema
+    4. Data reading: Use pandas reader module to load data with proper configuration
     """
 
     def __init__(
         self,
         filepath: str = None,
         method: str = None,
-        column_types: Optional[dict[str, list[str]]] = None,
-        header_names: Optional[list[str]] = None,
-        na_values: Optional[Union[str, list[str], dict[str, str]]] = None,
-        preserve_raw_data: bool = False,
-        auto_detect_leading_zeros: bool = False,
-        force_nullable_integers: bool = False,
+        column_types: dict[str, list[str]] | None = None,  # TODO: Deprecated in v2.0.0
+        header_names: list[str] | None = None,
+        na_values: str
+        | list[str]
+        | dict[str, str]
+        | None = None,  # TODO: Deprecated in v2.0.0
+        schema: SchemaConfig | dict | str | None = None,
     ):
         """
         Args:
             filepath (str, optional): The fullpath of dataset.
             method (str, optional): The method of Loader.
                 Default is None, indicating only filepath is specified.
-            column_types (dict ,optional):
+            column_types (dict ,optional): **DEPRECATED in v2.0.0 - will be removed**
                 The dictionary of column types and their corresponding column names,
                 formatted as {type: [colname]}
                 Only the following types are supported (case-insensitive):
@@ -272,22 +230,18 @@ class Loader:
             header_names (list ,optional):
                 Specifies a list of headers for the data without header.
                 Default is None, indicating no custom headers will be applied.
-            na_values (str | list | dict ,optional):
+            na_values (str | list | dict ,optional): **DEPRECATED in v2.0.0 - will be removed**
                 Extra string to recognized as NA/NaN.
                 If dictionary passed, value will be specific per-column NA values.
                 Format as {colname: na_values}.
                 Default is None, means no extra.
                 Check pandas document for Default NA string list.
-            preserve_raw_data (bool, optional):
-                Whether to preserve raw data format and avoid pandas automatic type inference.
-                When True, all columns are initially loaded as object type to prevent misinterpretation.
-                Useful for data with ambiguous types. Default is False.
-            auto_detect_leading_zeros (bool, optional):
-                Whether to automatically detect and preserve leading zeros in string data.
-                Prevents codes like "001" from being converted to integer 1. Default is False.
-            force_nullable_integers (bool, optional):
-                Whether to force use of nullable integer types for integer data with missing values.
-                Prevents integers with NaN from becoming floats with .0 suffixes. Default is False.
+            schema (SchemaConfig | dict | str, optional): Schema configuration.
+                Can be one of:
+                - SchemaConfig object: Direct schema configuration
+                - dict: Dictionary that will be converted to SchemaConfig using from_dict()
+                - str: Path to YAML file containing schema configuration
+                Contains field definitions and global parameters for data processing.
 
         Attributes:
             _logger (logging.Logger): The logger object.
@@ -301,151 +255,377 @@ class Loader:
             f"Loader parameters - filepath: {filepath}, method: {method}, column_types: {column_types}"
         )
 
+        # Process schema parameter - handle different input types
+        processed_schema, schema_path = self._process_schema_parameter(schema)
+
         self.config: LoaderConfig = LoaderConfig(
             filepath=filepath,
             method=method,
             column_types=column_types,
             header_names=header_names,
             na_values=na_values,
-            preserve_raw_data=preserve_raw_data,
-            auto_detect_leading_zeros=auto_detect_leading_zeros,
-            force_nullable_integers=force_nullable_integers,
+            schema=processed_schema,
+            schema_path=schema_path,
         )
         self._logger.debug("LoaderConfig successfully initialized")
+
+    def _process_schema_parameter(
+        self, schema: SchemaConfig | dict | str | None
+    ) -> tuple[SchemaConfig | None, str | None]:
+        """
+        Process schema parameter and convert it to SchemaConfig object.
+
+        Args:
+            schema: Schema parameter that can be SchemaConfig, dict, str (path), or None
+
+        Returns:
+            tuple: (processed_schema, schema_path)
+                - processed_schema: SchemaConfig object or None
+                - schema_path: Path to schema file if loaded from file, None otherwise
+        """
+        if schema is None:
+            self._logger.debug("No schema provided")
+            return None, None
+
+        if isinstance(schema, SchemaConfig):
+            self._logger.debug("Schema provided as SchemaConfig object")
+            return schema, None
+
+        if isinstance(schema, dict):
+            self._logger.debug(
+                "Schema provided as dictionary, converting to SchemaConfig"
+            )
+            try:
+                # Ensure schema_id is present - generate one if missing
+                schema_dict = schema.copy()
+                if "schema_id" not in schema_dict:
+                    schema_dict["schema_id"] = "auto_generated_schema"
+                    self._logger.debug("Auto-generated schema_id for dictionary schema")
+
+                schema_config = SchemaConfig.from_dict(schema_dict)
+                return schema_config, None
+            except Exception as e:
+                error_msg = f"Failed to convert dictionary to SchemaConfig: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+
+        if isinstance(schema, str):
+            self._logger.info(f"Loading schema from YAML file: {schema}")
+            try:
+                schema_path = Path(schema)
+                if not schema_path.exists():
+                    error_msg = f"Schema file not found: {schema}"
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
+
+                with open(schema_path, encoding="utf-8") as f:
+                    schema_dict = yaml.safe_load(f)
+
+                if not isinstance(schema_dict, dict):
+                    error_msg = f"Schema file must contain a dictionary, got {type(schema_dict)}"
+                    self._logger.error(error_msg)
+                    raise ConfigError(error_msg)
+
+                # Ensure schema_id is present - generate one if missing
+                if "schema_id" not in schema_dict:
+                    # Use filename (without extension) as schema_id
+                    schema_dict["schema_id"] = schema_path.stem
+                    self._logger.debug(
+                        f"Auto-generated schema_id from filename: {schema_path.stem}"
+                    )
+
+                schema_config = SchemaConfig.from_dict(schema_dict)
+                self._logger.debug(f"Successfully loaded schema from {schema}")
+                return schema_config, str(schema_path)
+
+            except yaml.YAMLError as e:
+                error_msg = f"Failed to parse YAML file {schema}: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+            except Exception as e:
+                error_msg = f"Failed to load schema from file {schema}: {str(e)}"
+                self._logger.error(error_msg)
+                raise ConfigError(error_msg) from e
+
+        error_msg = f"Unsupported schema type: {type(schema)}"
+        self._logger.error(error_msg)
+        raise ConfigError(error_msg)
 
     def load(self) -> tuple[pd.DataFrame, SchemaMetadata]:
         """
         Load data from the specified file path.
+
+        This method implements four core functions:
+        1. Benchmark handling: Download benchmark datasets when needed
+        2. Schema processing: Merge legacy parameters into schema and validate
+        3. Data reading: Use pandas reader module for file loading
+        4. Metadater integration: Pass schema to metadater for processing
 
         Returns:
             data (pd.DataFrame): Data been loaded
             schema (SchemaMetadata): Schema metadata of the data
         """
         self._logger.info(f"Loading data from {self.config.filepath}")
-        error_msg: str = ""
 
-        # 1. If set as load benchmark
-        #    downloading benchmark dataset, and executing on local file.
-        if self.config.benchmark:
-            self._logger.info(
-                f"Downloading benchmark dataset: {self.config.benchmark_name}"
-            )
-            try:
-                BenchmarkerRequests(self.config.get()).download()
-                self._logger.debug("Benchmark dataset downloaded successfully")
-            except Exception as e:
-                error_msg = f"Failed to download benchmark dataset: {str(e)}"
-                self._logger.error(error_msg)
-                raise BenchmarkDatasetsError(error_msg) from e
+        # 1: Benchmark handling
+        if self.config.benchmarker_config:
+            self._handle_benchmark_download()
 
-        # 2. Setting loaders map by file extension and load data
-        self._logger.info(f"Loading data using file extension: {self.config.file_ext}")
-        loaders_map: dict[int, Any] = {
-            LoaderFileExt.CSVTYPE: pd.read_csv,
-            LoaderFileExt.EXCELTYPE: pd.read_excel,
-        }
+        # 2: Schema processing - merge legacy parameters into schema
+        merged_schema_config = self._merge_legacy_to_schema()
 
-        # 2.5 Prepare dtype dictionary based on configuration
-        dtype_dict = {}
+        # 3: Data reading using pandas reader module
+        data = self._read_data_with_pandas_reader(merged_schema_config)
 
-        if self.config.preserve_raw_data:
-            # 當 preserve_raw_data=True 時，強制所有欄位為 object 類型
-            # 這樣可以避免 pandas 自動類型推斷
-            self._logger.debug(
-                "Preserving raw data format - loading all columns as object type"
-            )
-            dtype_dict = "object"  # 這會讓所有欄位都載入為 object
-        else:
-            # 傳統模式：只對指定的 category 欄位設定類型
-            if self.config.column_types and "category" in self.config.column_types:
-                category_columns = self.config.column_types["category"]
-                if isinstance(category_columns, list) and category_columns:
-                    self._logger.debug(
-                        f"Setting category columns to string type: {category_columns}"
-                    )
-                    for col in category_columns:
-                        dtype_dict[col] = str
+        # 4: Pass schema to metadater for validation and processing
+        schema_metadata = self._process_with_metadater(data, merged_schema_config)
 
+        self._logger.info("Data loading completed successfully")
+        return data, schema_metadata
+
+    def _handle_benchmark_download(self):
+        """Handle benchmark dataset download."""
+        self._logger.info(
+            f"Downloading benchmark dataset: {self.config.benchmarker_config.benchmark_name}"
+        )
         try:
-            if self.config.header_names:
-                self._logger.debug(
-                    f"Using custom header names: {self.config.header_names}"
-                )
-            else:
-                self._logger.debug("Using inferred headers")
+            BenchmarkerRequests(
+                self.config.benchmarker_config.get_benchmarker_config()
+            ).download()
+            self._logger.debug("Benchmark dataset downloaded successfully")
+        except Exception as e:
+            error_msg = f"Failed to download benchmark dataset: {str(e)}"
+            self._logger.error(error_msg)
+            raise BenchmarkDatasetsError(error_msg) from e
 
-            # 載入資料
-            load_params = {
-                "header": 0 if self.config.header_names else "infer",
-                "names": self.config.header_names,
-                "na_values": self.config.na_values,
+    def _merge_legacy_to_schema(self) -> SchemaConfig:
+        """
+        Merge legacy column_types and na_values into SchemaConfig.
+
+        Returns:
+            SchemaConfig: Merged schema configuration
+        """
+        # Start with existing schema or create a new one
+        if self.config.schema:
+            # Use existing schema as base - avoid accessing internal structure
+            self._logger.debug("Using existing schema configuration")
+            return self.config.schema
+        else:
+            # Create new schema_config with defaults
+            fields_config = {}
+            schema_config_params = {
+                "schema_id": self.config.file_name or "default_schema",
+                "name": self.config.base_name or "default_schema",
+                "description": None,
+                "fields": fields_config,
+                "compute_stats": True,
+                "infer_logical_types": False,
+                "optimize_dtypes": True,
+                "sample_size": None,
+                "leading_zeros": "never",
+                "nullable_int": "force",
+                "properties": {},
             }
 
-            # 只有在有 dtype 設定時才加入 dtype 參數
-            if dtype_dict:
-                load_params["dtype"] = dtype_dict
-
-            data: pd.DataFrame = loaders_map[self.config.file_ext_code](
-                self.config.filepath, **load_params
-            ).fillna(pd.NA)
-
-            self._logger.info(f"Successfully loaded data with shape: {data.shape}")
-
-            if self.config.preserve_raw_data:
+            # Merge legacy column_types
+            if self.config.column_types:
                 self._logger.debug(
-                    "Raw data preserved - all columns loaded as object type"
+                    f"Merging legacy column_types: {self.config.column_types}"
                 )
+                for col_type, columns in self.config.column_types.items():
+                    for col in columns:
+                        if col not in fields_config:
+                            fields_config[col] = FieldConfig()
+                        # Update the field config with the column type
+                        field_params = {
+                            "type": col_type,
+                            "na_values": fields_config[col].na_values,
+                            "precision": fields_config[col].precision,
+                            "category": fields_config[col].category,
+                            "category_method": fields_config[col].category_method,
+                            "datetime_precision": fields_config[col].datetime_precision,
+                            "datetime_format": fields_config[col].datetime_format,
+                            "logical_type": fields_config[col].logical_type,
+                            "leading_zeros": fields_config[col].leading_zeros,
+                        }
+                        fields_config[col] = FieldConfig(**field_params)
+
+            # Merge legacy na_values
+            if self.config.na_values:
+                self._logger.debug(f"Merging legacy na_values: {self.config.na_values}")
+                if isinstance(self.config.na_values, dict):
+                    # Column-specific na_values
+                    for col, na_val in self.config.na_values.items():
+                        if col not in fields_config:
+                            fields_config[col] = FieldConfig()
+                        # Update the field config with na_values
+                        field_params = {
+                            "type": fields_config[col].type,
+                            "na_values": na_val,
+                            "precision": fields_config[col].precision,
+                            "category": fields_config[col].category,
+                            "category_method": fields_config[col].category_method,
+                            "datetime_precision": fields_config[col].datetime_precision,
+                            "datetime_format": fields_config[col].datetime_format,
+                            "logical_type": fields_config[col].logical_type,
+                            "leading_zeros": fields_config[col].leading_zeros,
+                        }
+                        fields_config[col] = FieldConfig(**field_params)
+                else:
+                    # Global na_values - store in properties for now
+                    schema_config_params["properties"]["global_na_values"] = (
+                        self.config.na_values
+                    )
+
+            # Update fields in schema_config_params
+            schema_config_params["fields"] = fields_config
+
+            merged_schema_config = SchemaConfig(**schema_config_params)
+            self._logger.debug("Created merged schema config")
+            return merged_schema_config
+
+    def _read_data_with_pandas_reader(
+        self, schema_config: SchemaConfig
+    ) -> pd.DataFrame:
+        """
+        Read data using the pandas loader classes.
+
+        Args:
+            schema_config: Merged schema configuration
+
+        Returns:
+            pd.DataFrame: Loaded dataframe
+        """
+        from petsard.loader.loader_pandas import LoaderPandasCsv, LoaderPandasExcel
+
+        self._logger.info("Reading data using pandas loader classes")
+
+        # Map file extension codes to loader classes
+        loaders_map = {
+            LoaderFileExt.CSVTYPE: LoaderPandasCsv,
+            LoaderFileExt.EXCELTYPE: LoaderPandasExcel,
+        }
+
+        if self.config.file_ext_code not in loaders_map:
+            error_msg = f"Unsupported file extension code: {self.config.file_ext_code}"
+            self._logger.error(error_msg)
+            raise UnsupportedMethodError(error_msg)
+
+        loader_class = loaders_map[self.config.file_ext_code]
+
+        # Build configuration for the loader
+        config = {
+            "filepath": str(self.config.filepath),
+            "header_names": self.config.header_names,
+        }
+
+        # Handle legacy na_values (takes precedence over schema na_values for backward compatibility)
+        if self.config.na_values is not None:
+            config["na_values"] = self.config.na_values
+            self._logger.debug(f"Using legacy na_values: {self.config.na_values}")
+
+        # Handle legacy column_types for dtype parameter
+        dtype_dict = {}
+        if self.config.column_types and "category" in self.config.column_types:
+            category_columns = self.config.column_types["category"]
+            if isinstance(category_columns, list) and category_columns:
+                self._logger.debug(
+                    f"Setting category columns to string type: {category_columns}"
+                )
+                for col in category_columns:
+                    dtype_dict[col] = str
+
+        # Handle schema-based dtype configuration
+        if schema_config and hasattr(schema_config, "fields") and schema_config.fields:
+            for field_name, field_config in schema_config.fields.items():
+                if hasattr(field_config, "type") and field_config.type:
+                    field_type = field_config.type
+                    # Map schema types to pandas dtypes
+                    if field_type == "str":
+                        dtype_dict[field_name] = str
+                    elif field_type == "int":
+                        # Use object type for int to handle NA values properly
+                        dtype_dict[field_name] = "Int64"
+                    elif field_type == "float":
+                        dtype_dict[field_name] = float
+                    elif field_type == "bool":
+                        dtype_dict[field_name] = "boolean"
+                    # datetime will be handled post-loading
+
+        # Only add dtype parameter if we have dtype specifications
+        if dtype_dict:
+            config["dtype"] = dtype_dict
+            self._logger.debug(f"Using dtype configuration: {dtype_dict}")
+
+        # Handle schema-based na_values (only if legacy na_values not provided)
+        if (
+            self.config.na_values is None
+            and schema_config
+            and hasattr(schema_config, "fields")
+            and schema_config.fields
+        ):
+            na_values_dict = {}
+            for field_name, field_config in schema_config.fields.items():
+                if (
+                    hasattr(field_config, "na_values")
+                    and field_config.na_values is not None
+                ):
+                    na_values_dict[field_name] = field_config.na_values
+            if na_values_dict:
+                config["na_values"] = na_values_dict
+                self._logger.debug(f"Using schema-based na_values: {na_values_dict}")
+
+        try:
+            # Create loader instance and load data
+            loader = loader_class(config)
+            data = loader.load().fillna(pd.NA)
+            self._logger.info(f"Successfully loaded data with shape: {data.shape}")
+            return data
 
         except Exception as e:
-            error_msg = f"Failed to load data: {str(e)}"
+            error_msg = f"Failed to load data from {self.config.filepath}: {str(e)}"
             self._logger.error(error_msg)
-            raise UnableToLoadError(error_msg) from e
+            raise UnableToFollowMetadataError(error_msg) from e
 
-        # 3. Build schema configuration using new Metadater
-        self._logger.info("Building schema configuration")
+    def _process_with_metadater(
+        self, data: pd.DataFrame, schema_config: SchemaConfig
+    ) -> SchemaMetadata:
+        """
+        Process data and schema with metadater.
 
-        # Create field configurations based on column_types
-        fields_config = {}
-        if self.config.column_types:
-            for col_type, columns in self.config.column_types.items():
-                for col in columns:
-                    # Create FieldConfig with type_hint directly since it's frozen
-                    fields_config[col] = FieldConfig(type_hint=col_type)
+        Args:
+            data: Loaded dataframe
+            schema_config: Merged schema configuration
 
-        # Create schema configuration
-        schema_config = SchemaConfig(
-            schema_id=self.config.file_name or "default_schema",
-            name=self.config.base_name or "default Schema",
-            fields=fields_config,
-            compute_stats=True,
-            infer_logical_types=True,
-            optimize_dtypes=True,
-            # 傳遞新的配置參數
-            auto_detect_leading_zeros=self.config.auto_detect_leading_zeros,
-            force_nullable_integers=self.config.force_nullable_integers,
-        )
+        Returns:
+            SchemaMetadata: Schema metadata
+        """
+        self._logger.info("Processing with metadater")
 
-        # 4. Build schema metadata using Metadater public API
-        self._logger.info("Building schema metadata from dataframe")
+        # Build schema metadata using Metadater with the SchemaConfig directly
         try:
-            schema: SchemaMetadata = Metadater.create_schema(
-                dataframe=data, schema_id=schema_config.schema_id, config=schema_config
+            # Get schema_id safely without depending on internal structure
+            schema_id = getattr(schema_config, "schema_id", "default_schema")
+            schema_metadata: SchemaMetadata = Metadater.create_schema(
+                dataframe=data, schema_id=schema_id, config=schema_config
             )
-            self._logger.debug(f"Built schema with {len(schema.fields)} fields")
+            self._logger.debug("Built schema metadata successfully")
         except Exception as e:
             error_msg = f"Failed to build schema metadata: {str(e)}"
             self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg) from e
 
-        # 5. Apply schema transformations using schema functions
-        self._logger.info("Applying schema transformations to optimize data")
+        # Apply schema transformations
         try:
             from petsard.metadater.schema.schema_functions import (
                 apply_schema_transformations,
             )
 
             data = apply_schema_transformations(
-                data=data, schema=schema, include_fields=None, exclude_fields=None
+                data=data,
+                schema=schema_metadata,
+                include_fields=None,
+                exclude_fields=None,
             )
             self._logger.debug("Schema transformations applied successfully")
         except Exception as e:
@@ -453,5 +633,4 @@ class Loader:
             self._logger.error(error_msg)
             raise UnableToFollowMetadataError(error_msg) from e
 
-        self._logger.info("Data loading completed successfully")
-        return data, schema
+        return schema_metadata

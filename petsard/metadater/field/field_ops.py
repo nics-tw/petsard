@@ -3,7 +3,8 @@
 import logging
 import re
 import warnings
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -108,11 +109,11 @@ class FieldOperations:
         cls,
         field_data: pd.Series,
         field_name: str = "Unnamed Field",
-        config: Optional[Union[FieldConfig, dict[str, Any]]] = None,
+        config: FieldConfig | dict[str, Any] | None = None,
         compute_stats: bool = True,
         infer_logical_type: bool = True,
         optimize_dtype: bool = True,
-        sample_size: Optional[int] = 1000,
+        sample_size: int | None = 1000,
     ) -> FieldMetadata:
         """Build FieldMetadata from a pandas Series"""
         if field_name == "Unnamed Field" and hasattr(field_data, "name"):
@@ -140,8 +141,8 @@ class FieldOperations:
         data_type: DataType = TypeMapper._pandas_to_metadater(pandas_dtype)
 
         # Override with type hint if provided
-        if config.type_hint:
-            data_type = instance._apply_type_hint(config.type_hint, data_type)
+        if config.type:
+            data_type = instance._apply_type_hint(config.type, data_type)
 
         # Determine nullable
         nullable = (
@@ -211,7 +212,7 @@ class FieldOperations:
 
     def _infer_field_logical_type(
         self, field_data: pd.Series, field_metadata: FieldMetadata
-    ) -> Optional[LogicalType]:
+    ) -> LogicalType | None:
         """Infer logical type from data patterns"""
         # Only process string-like data
         if field_metadata.data_type not in [DataType.STRING, DataType.BINARY]:
@@ -296,7 +297,9 @@ class FieldOperations:
         # Most frequent values
         value_counts = field_data.value_counts().head(10)
         if not value_counts.empty:
-            stats.most_frequent = list(zip(value_counts.index, value_counts.values))
+            stats.most_frequent = list(
+                zip(value_counts.index, value_counts.values, strict=False)
+            )
 
         return stats
 
