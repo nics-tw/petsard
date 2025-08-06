@@ -25,6 +25,9 @@ Generates output files for experiment results and evaluation reports.
         - Single granularity: 'global', 'columnwise', 'pairwise', 'details', 'tree'
         - Multiple granularities: ['global', 'columnwise'] or ['details', 'tree']
       - `eval` (str | List[str], optional): Target evaluation experiment name
+      - `naming_strategy` (str, optional): Output filename naming strategy
+        - 'traditional': Traditional format (default) - `petsard[Report]_eval_[granularity].csv`
+        - 'compact': Compact format - `petsard.report.Rp.eval.G.csv`
   - 'save_timing': Save timing information
     - Additional parameters optional:
       - `time_unit` (str): Time unit ('seconds', 'minutes', 'hours', 'days')
@@ -35,7 +38,7 @@ Generates output files for experiment results and evaluation reports.
 ## Examples
 
 ```python
-from petsard import Reporter
+from petsard.reporter import Reporter
 
 
 # Save synthetic data
@@ -43,10 +46,15 @@ reporter = Reporter('save_data', source='Synthesizer')
 reporter.create({('Synthesizer', 'exp1'): synthetic_df})
 reporter.report()  # Creates: petsard_Synthesizer[exp1].csv
 
-# Generate evaluation report (single granularity)
-reporter = Reporter('save_report', granularity='global')
+# Generate evaluation report (traditional naming)
+reporter = Reporter('save_report', granularity='global', naming_strategy='traditional')
 reporter.create({('Evaluator', 'eval1_[global]'): results})
 reporter.report()  # Creates: petsard[Report]_[global].csv
+
+# Generate evaluation report (compact naming)
+reporter = Reporter('save_report', granularity='global', naming_strategy='compact')
+reporter.create({('Evaluator', 'eval1_[global]'): results})
+reporter.report()  # Creates: petsard.report.Rp.eval1.G.csv
 
 # Generate evaluation report (multiple granularities)
 reporter = Reporter('save_report', granularity=['global', 'columnwise'])
@@ -102,7 +110,8 @@ Generate and save report as CSV using functional design pattern.
 
 **Output filename formats:**
 - For save_data: `{output}_{module-expt_name-pairs}.csv`
-- For save_report: `{output}[Report]_{eval}_[{granularity}].csv`
+- For save_report (traditional): `{output}[Report]_{eval}_[{granularity}].csv`
+- For save_report (compact): `{output}.report.{module_abbrev}.{eval}.{granularity_abbrev}.csv`
 - For save_timing: `{output}_timing_report.csv`
 
 ## Granularity Types
@@ -127,9 +136,34 @@ result = reporter.create(evaluation_data)
 reporter.report(result)  # Generates separate reports for each granularity
 ```
 
+## Naming Strategies
+
+### Traditional Naming (Default)
+- Format: `petsard[Report]_{eval}_[{granularity}].csv`
+- Example: `petsard[Report]_quality_eval_[global].csv`
+- Maintains backward compatibility with existing workflows
+
+### Compact Naming
+- Format: `petsard.report.{module}.{eval}.{granularity}.csv`
+- Module abbreviations: Synthesizer→Sy, Evaluator→Ev, Reporter→Rp, etc.
+- Granularity abbreviations: global→G, columnwise→C, pairwise→P, details→D, tree→T
+- Example: `petsard.report.Ev.quality_eval.G.csv`
+- Provides cleaner, more readable filenames
+
+```python
+# Traditional naming (default)
+reporter = Reporter('save_report', granularity='global')
+# Output: petsard[Report]_[global].csv
+
+# Compact naming
+reporter = Reporter('save_report', granularity='global', naming_strategy='compact')
+# Output: petsard.report.Rp.eval.G.csv
+```
+
 ## Functional Design
 
 The Reporter uses a functional "throw out and throw back in" design pattern:
 - `create()` processes data without storing it in instance variables
 - `report()` takes the processed data and generates output files
 - No internal state is maintained, reducing memory usage
+- Supports flexible naming strategies for different use cases

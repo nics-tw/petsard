@@ -1,11 +1,9 @@
-"""
-純函式化的 BaseReporter
-完全無狀態設計，專注於抽象介面定義
-"""
-
+import hashlib
+import json
 import re
 from abc import ABC, abstractmethod
-from enum import IntEnum
+from dataclasses import dataclass, field
+from enum import Enum, IntEnum
 from typing import Any, Final
 
 import pandas as pd
@@ -81,6 +79,202 @@ class ReportGranularity(IntEnum):
             return granularity_mapping[granularity.upper()]
         except KeyError as err:
             raise UnsupportedMethodError from err
+
+
+class NamingStrategy(Enum):
+    """命名策略枚舉 - 只有兩種選擇"""
+
+    TRADITIONAL = "traditional"  # 完全與現在一模一樣
+    COMPACT = "compact"  # 新的簡潔命名方式
+
+
+@dataclass(frozen=True)
+class ExperimentConfig:
+    """
+    簡化版實驗配置類別
+    """
+
+    module: str  # 模組名稱
+    exp_name: str  # 實驗名稱
+    data: Any  # 實驗資料
+
+    # 可選屬性
+    granularity: str | None = None  # 評估粒度
+    iteration: int | None = None  # 迭代次數
+    parameters: dict[str, Any] = field(default_factory=dict)  # 實驗參數
+
+    # 命名策略 - 預設傳統模式
+    naming_strategy: NamingStrategy = NamingStrategy.TRADITIONAL
+
+    def __post_init__(self):
+        """驗證配置的有效性"""
+        if not self.module or not self.exp_name:
+            raise ValueError("module 和 exp_name 不能為空")
+
+        # 驗證模組名稱
+        valid_modules = {
+            "Loader",
+            "Splitter",
+            "Processor",
+            "Synthesizer",
+            "Constrainer",
+            "Evaluator",
+            "Reporter",
+        }
+        if self.module not in valid_modules:
+            raise ValueError(f"無效的模組名稱: {self.module}")
+
+    @property
+    def traditional_tuple(self) -> tuple[str, str]:
+        """轉換為傳統的 tuple 格式，保持向後相容"""
+        if self.granularity:
+            exp_name_with_granularity = f"{self.exp_name}_[{self.granularity}]"
+        else:
+            exp_name_with_granularity = self.exp_name
+
+        return (self.module, exp_name_with_granularity)
+
+    @property
+    def traditional_name(self) -> str:
+        """傳統命名格式: Module-exp_name_[granularity]"""
+        module, exp_name = self.traditional_tuple
+        return f"{module}-{exp_name}"
+
+    @property
+    def compact_name(self) -> str:
+        """簡潔命名格式: 使用模組簡寫和清晰分隔"""
+        # 模組簡寫映射
+        module_abbrev = {
+            "Loader": "Ld",
+            "Splitter": "Sp",
+            "Processor": "Pr",
+            "Synthesizer": "Sy",
+            "Constrainer": "Cn",
+            "Evaluator": "Ev",
+            "Reporter": "Rp",
+        }
+
+        parts = [module_abbrev.get(self.module, self.module[:2])]
+        parts.append(self.exp_name)
+
+        # 添加迭代次數
+        if self.iteration is not None:
+            parts.append(f"i{self.iteration}")
+
+        # 添加粒度
+        if self.granularity:
+            granularity_abbrev = {
+                "global": "G",
+                "columnwise": "C",
+                "pairwise": "P",
+                "details": "D",
+                "tree": "T",
+            }
+            parts.append(granularity_abbrev.get(self.granularity, self.granularity))
+
+        # 簡潔模式不包含參數編碼
+        # 只包含：模組簡寫、實驗名稱、迭代(僅Splitter)、粒度(僅Reporter)
+
+        return ".".join(parts)
+
+    @property
+    def filename(self) -> str:
+        """根據命名策略生成檔案名稱"""
+        if self.naming_strategy == NamingStrategy.TRADITIONAL:
+            return f"petsard_{self.traditional_name}.csv"
+        elif self.naming_strategy == NamingStrategy.COMPACT:
+            return f"petsard_{self.compact_name}.csv"
+        else:
+            raise ValueError(f"未支援的命名策略: {self.naming_strategy}")
+
+    @property
+    def report_filename(self) -> str:
+        """報告檔案名稱"""
+        if self.naming_strategy == NamingStrategy.TRADITIONAL:
+            return f"petsard[Report]_{self.traditional_name}.csv"
+        else:
+            return f"petsard.report.{self.compact_name}.csv"
+
+    @property
+    def unique_id(self) -> str:
+        """生成唯一標識符"""
+        content = {
+            "module": self.module,
+            "exp_name": self.exp_name,
+            "granularity": self.granularity,
+            "iteration": self.iteration,
+            "parameters": self.parameters,
+        }
+        content_str = json.dumps(content, sort_keys=True)
+        return hashlib.md5(content_str.encode()).hexdigest()[:8]
+
+    def with_granularity(self, granularity: str) -> "ExperimentConfig":
+        """創建帶有指定粒度的新配置"""
+        return ExperimentConfig(
+            module=self.module,
+            exp_name=self.exp_name,
+            data=self.data,
+            granularity=granularity,
+            iteration=self.iteration,
+            parameters=self.parameters,
+            naming_strategy=self.naming_strategy,
+        )
+
+    def with_iteration(self, iteration: int) -> "ExperimentConfig":
+        """創建帶有指定迭代次數的新配置"""
+        return ExperimentConfig(
+            module=self.module,
+            exp_name=self.exp_name,
+            data=self.data,
+            granularity=self.granularity,
+            iteration=iteration,
+            parameters=self.parameters,
+            naming_strategy=self.naming_strategy,
+        )
+
+    def with_parameters(self, **params) -> "ExperimentConfig":
+        """創建帶有額外參數的新配置"""
+        new_params = {**self.parameters, **params}
+        return ExperimentConfig(
+            module=self.module,
+            exp_name=self.exp_name,
+            data=self.data,
+            granularity=self.granularity,
+            iteration=self.iteration,
+            parameters=new_params,
+            naming_strategy=self.naming_strategy,
+        )
+
+    @classmethod
+    def from_traditional_tuple(
+        cls,
+        traditional_tuple: tuple[str, str],
+        data: Any,
+        naming_strategy: NamingStrategy = NamingStrategy.TRADITIONAL,
+    ) -> "ExperimentConfig":
+        """從傳統 tuple 格式創建配置"""
+        module, exp_name = traditional_tuple
+
+        # 解析粒度
+        granularity = None
+        if "_[" in exp_name and exp_name.endswith("]"):
+            exp_name, granularity_part = exp_name.rsplit("_[", 1)
+            granularity = granularity_part[:-1]  # 移除結尾的 ]
+
+        return cls(
+            module=module,
+            exp_name=exp_name,
+            data=data,
+            granularity=granularity,
+            naming_strategy=naming_strategy,
+        )
+
+
+def create_experiment_config(
+    module: str, exp_name: str, data: Any, **kwargs
+) -> ExperimentConfig:
+    """創建實驗配置的便利函數"""
+    return ExperimentConfig(module=module, exp_name=exp_name, data=data, **kwargs)
 
 
 class ModuleNames:

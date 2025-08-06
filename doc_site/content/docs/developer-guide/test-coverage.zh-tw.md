@@ -930,7 +930,7 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 
 > tests/reporter/test_reporter.py
 
-測試具有**函式化設計架構**的主要 Reporter 功能：
+測試具有**函式化設計架構**和**命名策略支援**的主要 Reporter 功能：
 
 - `test_method`：測試 Reporter 使用不同方法的初始化：
   - 'save_data' 方法使用 ReporterSaveData
@@ -945,6 +945,30 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 - `test_method_save_timing`：測試 save_timing 方法驗證：
   - 使用可選參數的有效初始化
   - 正確處理 time_unit 和模組過濾
+
+#### `TestReporterNamingStrategy`
+
+測試命名策略功能（6 個測試）：
+
+- `test_naming_strategy_parameter_validation`：測試 naming_strategy 參數驗證：
+  - 接受有效值（'traditional'、'compact'）
+  - 無效命名策略值拋出 ConfigError
+- `test_traditional_naming_strategy`：測試傳統命名策略：
+  - 維持與現有檔名格式的向後相容性
+  - 產生含傳統方括號標記的檔案
+- `test_compact_naming_strategy`：測試簡潔命名策略：
+  - 產生簡化的檔名格式
+  - 移除冗餘的方括號和標記
+- `test_naming_strategy_with_different_methods`：測試不同 Reporter 方法的命名策略：
+  - save_data 方法使用兩種策略
+  - save_report 方法使用兩種策略
+  - save_timing 方法（跨策略不變）
+- `test_naming_strategy_integration`：測試命名策略與 Reporter 工作流程的整合：
+  - 端到端檔名生成
+  - 透過 Reporter 架構的適當參數傳遞
+- `test_naming_strategy_default_behavior`：測試預設命名策略行為：
+  - 未指定 naming_strategy 時使用傳統策略
+  - 維持向後相容性
 
 #### `ReporterSaveData`
 

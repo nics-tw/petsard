@@ -901,7 +901,7 @@ Tests for mpUCCs (Maximal Partial Unique Column Combinations) privacy risk asses
 
 > tests/reporter/test_reporter.py
 
-Tests for the main Reporter functionality with **functional design architecture**:
+Tests for the main Reporter functionality with **functional design architecture** and **naming strategy support**:
 
 - `test_method`: Tests Reporter initialization with different methods:
   - ReporterSaveData for 'save_data' method
@@ -916,6 +916,30 @@ Tests for the main Reporter functionality with **functional design architecture*
 - `test_method_save_timing`: Tests save_timing method validation:
   - Valid initialization with optional parameters
   - Proper handling of time_unit and module filtering
+
+#### `TestReporterNamingStrategy`
+
+Tests for naming strategy functionality (6 tests):
+
+- `test_naming_strategy_parameter_validation`: Tests naming_strategy parameter validation:
+  - Valid values ('traditional', 'compact') are accepted
+  - ConfigError for invalid naming strategy values
+- `test_traditional_naming_strategy`: Tests traditional naming strategy:
+  - Maintains backward compatibility with existing filename formats
+  - Generates files with traditional bracket notation
+- `test_compact_naming_strategy`: Tests compact naming strategy:
+  - Generates simplified filename formats
+  - Removes redundant brackets and markers
+- `test_naming_strategy_with_different_methods`: Tests naming strategy across different Reporter methods:
+  - save_data method with both strategies
+  - save_report method with both strategies
+  - save_timing method (unchanged across strategies)
+- `test_naming_strategy_integration`: Tests naming strategy integration with Reporter workflow:
+  - End-to-end filename generation
+  - Proper parameter passing through Reporter architecture
+- `test_naming_strategy_default_behavior`: Tests default naming strategy behavior:
+  - Traditional strategy is used when no naming_strategy is specified
+  - Backward compatibility is maintained
 
 #### `ReporterSaveData`
 

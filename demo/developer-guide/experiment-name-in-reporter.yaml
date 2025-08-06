@@ -1,0 +1,25 @@
+---
+Splitter:
+  custom:
+    method: 'custom_data'
+    filepath:
+      ori: 'benchmark/adult-income_ori.csv'
+      control: 'benchmark/adult-income_control.csv'
+Synthesizer:
+  custom:
+    method: 'custom_data'
+    filepath: 'benchmark/adult-income_syn.csv'
+Evaluator:
+  demo-diagnostic:
+    method: 'sdmetrics-diagnosticreport'
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  rpt:
+    method: 'save_report'
+    granularity: 'global'
+  rpt-new:
+    method: 'save_report'
+    granularity: 'global'
+    naming_strategy: 'compact'
+...

@@ -31,11 +31,14 @@ Reporter(method, **kwargs)
       - `module` (str | List[str])：依特定模組過濾
 - `output` (str, optional)：輸出檔案名稱前綴
   - 預設值：'petsard'
+- `naming_strategy` (str, optional)：檔名命名策略
+  - 'traditional'：使用傳統命名格式（預設）
+  - 'compact'：使用簡化命名格式
 
 ## 範例
 
 ```python
-from petsard import Reporter
+from petsard.reporter import Reporter
 
 
 # 儲存合成資料
@@ -63,6 +66,11 @@ reporter.create({
     ('Evaluator', 'eval1_[tree]'): tree_results
 })
 reporter.report()  # 產生詳細和樹狀結構報告
+
+# 使用簡化命名策略
+reporter = Reporter('save_report', granularity='global', naming_strategy='compact')
+reporter.create({('Evaluator', 'eval1_[global]'): results})
+reporter.report()  # 產生：petsard_eval1_global.csv
 
 # 儲存時間資訊
 reporter = Reporter('save_timing', time_unit='minutes', module=['Loader', 'Synthesizer'])
@@ -101,8 +109,17 @@ reporter.report()  # 產生：petsard_timing_report.csv
 - `processed_data`：來自 `create()` 方法的輸出
 
 **輸出檔名格式：**
+
+根據 `naming_strategy` 參數：
+
+**Traditional 策略（預設）：**
 - save_data 模式：`{output}_{module-expt_name-pairs}.csv`
 - save_report 模式：`{output}[Report]_{eval}_[{granularity}].csv`
+- save_timing 模式：`{output}_timing_report.csv`
+
+**Compact 策略：**
+- save_data 模式：`{output}_{module}_{experiment}.csv`
+- save_report 模式：`{output}_{experiment}_{granularity}.csv`
 - save_timing 模式：`{output}_timing_report.csv`
 
 ## 粒度類型
@@ -112,7 +129,7 @@ reporter.report()  # 產生：petsard_timing_report.csv
 - `columnwise`：逐欄分析
 - `pairwise`：欄位間成對關係
 
-### 新粒度類型 (v2.0+)
+### 擴展粒度類型
 - `details`：詳細分解與額外指標
 - `tree`：階層樹狀結構分析
 
@@ -133,3 +150,40 @@ Reporter 使用函式化的「拋出再拋回」設計模式：
 - `create()` 處理資料但不將其儲存在實例變數中
 - `report()` 接收處理後的資料並產生輸出檔案
 - 不維護內部狀態，減少記憶體使用量
+
+## 版本相容性
+
+### 預計在 v2.0 移除的功能
+
+以下功能已標記為 deprecated，將在 v2.0 版本中移除：
+
+- `ReporterMap` 類別：請改用 `ReporterMethod` enum
+- Tuple-based 實驗命名系統：將被 `ExperimentConfig` 系統取代
+
+建議使用者開始遷移至新的 API 以確保未來相容性。
+
+## 命名策略
+
+Reporter 支援兩種檔名命名策略：
+
+### Traditional 策略（預設）
+使用原有的命名格式，保持向後相容性：
+- 包含完整的模組和實驗資訊
+- 使用方括號標記特殊資訊
+- 適合需要詳細檔名資訊的場景
+
+### Compact 策略
+使用簡化的命名格式：
+- 移除冗餘的標記符號
+- 使用底線分隔各部分
+- 產生更簡潔易讀的檔名
+
+```python
+# Traditional 策略範例
+reporter = Reporter('save_report', granularity='global', naming_strategy='traditional')
+# 輸出：petsard[Report]_eval1_[global].csv
+
+# Compact 策略範例
+reporter = Reporter('save_report', granularity='global', naming_strategy='compact')
+# 輸出：petsard_eval1_global.csv
+```

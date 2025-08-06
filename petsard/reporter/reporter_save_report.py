@@ -10,7 +10,7 @@ from typing import Any
 import pandas as pd
 
 from petsard.exceptions import ConfigError, UnexecutedError
-from petsard.reporter.base_reporter import (
+from petsard.reporter.reporter_base import (
     BaseReporter,
     DataFrameConstants,
     RegexPatterns,
@@ -138,12 +138,21 @@ class ReporterSaveReport(BaseReporter):
                     Case-insensitive.
                 - eval (str): The evaluation experiment name for export reporting.
                     Case-sensitive.
+                - naming_strategy (str, optional): The naming strategy for output files.
+                    Should be 'traditional' or 'compact'. Default is 'traditional'.
 
         Raises:
             ConfigError: If the 'source' key is missing in the config
                 or if the value of 'source' is not a string or a list of strings.
         """
         super().__init__(config)
+
+        # 處理 naming_strategy 參數
+        naming_strategy = self.config.get("naming_strategy", "traditional")
+        if naming_strategy not in ["traditional", "compact"]:
+            # 如果不是有效值，預設為 traditional
+            naming_strategy = "traditional"
+        self.config["naming_strategy"] = naming_strategy
 
         # granularity should be str or list[str] of supported granularities
         if "granularity" not in self.config:
@@ -312,7 +321,10 @@ class ReporterSaveReport(BaseReporter):
             raise ConfigError
 
         eval_expt_name: str = reporter["eval_expt_name"]
-        full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+        granularity = reporter.get("granularity")
+
+        # 根據 naming_strategy 決定檔名格式
+        full_output = self._generate_report_filename(eval_expt_name, granularity)
 
         report: pd.DataFrame = reporter["report"]
         if report is None:
@@ -345,10 +357,71 @@ class ReporterSaveReport(BaseReporter):
             if report is None:
                 continue
 
-            full_output: str = f"{self.config['output']}[Report]_{eval_expt_name}"
+            # 根據 naming_strategy 決定檔名格式
+            full_output = self._generate_report_filename(
+                eval_expt_name, report_data.get("granularity")
+            )
             self._save(data=report, full_output=full_output)
 
         return processed_data
+
+    def _generate_report_filename(
+        self, eval_expt_name: str, granularity: str = None
+    ) -> str:
+        """
+        根據 naming_strategy 生成報告檔名
+
+        Args:
+            eval_expt_name (str): 評估實驗名稱
+            granularity (str, optional): 粒度資訊
+
+        Returns:
+            str: 生成的檔名（不含副檔名）
+        """
+        from petsard.reporter.reporter_base import ExperimentConfig, NamingStrategy
+
+        # 檢查是否有 naming_strategy 配置
+        naming_strategy_str = self.config.get("naming_strategy", "traditional")
+
+        # 轉換為 NamingStrategy 枚舉
+        if naming_strategy_str == "compact":
+            naming_strategy = NamingStrategy.COMPACT
+        else:
+            naming_strategy = NamingStrategy.TRADITIONAL
+
+        if naming_strategy == NamingStrategy.TRADITIONAL:
+            # 傳統格式：petsard[Report]_eval_name_[granularity]
+            return f"{self.config['output']}[Report]_{eval_expt_name}"
+        else:
+            # COMPACT 格式：petsard.report.Ev.eval_name.G
+            try:
+                # 嘗試從 eval_expt_name 解析出實驗名稱和粒度
+                if "_[" in eval_expt_name and eval_expt_name.endswith("]"):
+                    exp_name, granularity_part = eval_expt_name.rsplit("_[", 1)
+                    parsed_granularity = granularity_part[:-1]  # 移除結尾的 ]
+                else:
+                    exp_name = eval_expt_name
+                    parsed_granularity = granularity
+
+                # 創建 ExperimentConfig 來生成 COMPACT 檔名
+                config = ExperimentConfig(
+                    module="Reporter",
+                    exp_name=exp_name,
+                    data=None,
+                    granularity=parsed_granularity,
+                    naming_strategy=naming_strategy,
+                )
+
+                # 使用 report_filename 屬性，但移除 .csv 副檔名
+                filename = config.report_filename
+                if filename.endswith(".csv"):
+                    filename = filename[:-4]
+
+                return filename
+
+            except Exception:
+                # 如果解析失敗，回退到傳統格式
+                return f"{self.config['output']}[Report]_{eval_expt_name}"
 
     def _setup_evaluation_parameters(self) -> tuple[str, str]:
         """

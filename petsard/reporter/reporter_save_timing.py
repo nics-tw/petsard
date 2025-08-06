@@ -5,7 +5,7 @@
 
 import pandas as pd
 
-from petsard.reporter.base_reporter import BaseReporter
+from petsard.reporter.reporter_base import BaseReporter
 
 
 class ReporterSaveTiming(BaseReporter):

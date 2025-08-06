@@ -6,7 +6,7 @@
 from typing import Any
 
 from petsard.exceptions import ConfigError
-from petsard.reporter.base_reporter import (
+from petsard.reporter.reporter_base import (
     BaseReporter,
     RegexPatterns,
     convert_full_expt_tuple_to_name,

@@ -5,8 +5,12 @@ import pandas as pd
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
-from petsard.reporter.base_reporter import convert_full_expt_tuple_to_name
 from petsard.reporter.reporter import Reporter
+from petsard.reporter.reporter_base import (
+    ExperimentConfig,
+    NamingStrategy,
+    convert_full_expt_tuple_to_name,
+)
 from petsard.reporter.reporter_save_data import ReporterSaveData
 from petsard.reporter.reporter_save_report import (
     ReporterSaveReport,
@@ -1224,3 +1228,496 @@ class TestReporterSaveTiming:
         # ReporterSaveTiming 現在直接返回 DataFrame
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
+
+
+class TestExperimentConfig:
+    """測試 ExperimentConfig 類別"""
+
+    def test_traditional_naming_exactly_same(self):
+        """測試傳統命名完全與現在一樣"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        # 基本配置
+        config = ExperimentConfig(
+            module="Synthesizer",
+            exp_name="exp1",
+            data=df,
+            naming_strategy=NamingStrategy.TRADITIONAL,
+        )
+
+        assert config.traditional_tuple == ("Synthesizer", "exp1")
+        assert config.traditional_name == "Synthesizer-exp1"
+        assert config.filename == "petsard_Synthesizer-exp1.csv"
+
+        # 帶粒度的配置
+        config_with_granularity = ExperimentConfig(
+            module="Evaluator",
+            exp_name="eval1",
+            data=df,
+            granularity="global",
+            naming_strategy=NamingStrategy.TRADITIONAL,
+        )
+
+        assert config_with_granularity.traditional_tuple == (
+            "Evaluator",
+            "eval1_[global]",
+        )
+        assert config_with_granularity.traditional_name == "Evaluator-eval1_[global]"
+        assert (
+            config_with_granularity.filename == "petsard_Evaluator-eval1_[global].csv"
+        )
+        assert (
+            config_with_granularity.report_filename
+            == "petsard[Report]_Evaluator-eval1_[global].csv"
+        )
+
+    def test_compact_naming_clear_and_readable(self):
+        """測試簡潔命名清晰易讀"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        # 基本配置
+        config = ExperimentConfig(
+            module="Synthesizer",
+            exp_name="privacy_exp",
+            data=df,
+            naming_strategy=NamingStrategy.COMPACT,
+        )
+
+        assert config.compact_name == "Sy.privacy_exp"
+        assert config.filename == "petsard_Sy.privacy_exp.csv"
+
+        # 複雜配置
+        complex_config = ExperimentConfig(
+            module="Evaluator",
+            exp_name="cross_validation",
+            data=df,
+            granularity="global",
+            iteration=3,
+            parameters={"epsilon": 1.0, "method": "ctgan"},
+            naming_strategy=NamingStrategy.COMPACT,
+        )
+
+        compact_name = complex_config.compact_name
+        assert "Ev" in compact_name  # 模組簡寫
+        assert "cross_validation" in compact_name  # 實驗名稱
+        assert "i3" in compact_name  # 迭代次數
+        assert "G" in compact_name  # 粒度簡寫
+        # COMPACT 格式不包含參數編碼，只包含核心資訊
+
+        # 檔案名稱應該清晰可讀
+        filename = complex_config.filename
+        assert filename.startswith("petsard_")
+        assert filename.endswith(".csv")
+        # 用點號分隔，容易識別各部分
+        parts = filename.replace("petsard_", "").replace(".csv", "").split(".")
+        assert len(parts) >= 4  # 至少有模組、實驗名、迭代、粒度
+
+    def test_module_abbreviations(self):
+        """測試模組簡寫映射"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        modules_and_abbrev = [
+            ("Loader", "Ld"),
+            ("Splitter", "Sp"),
+            ("Processor", "Pr"),
+            ("Synthesizer", "Sy"),
+            ("Constrainer", "Cn"),
+            ("Evaluator", "Ev"),
+            ("Reporter", "Rp"),
+        ]
+
+        for module, expected_abbrev in modules_and_abbrev:
+            config = ExperimentConfig(
+                module=module,
+                exp_name="test",
+                data=df,
+                naming_strategy=NamingStrategy.COMPACT,
+            )
+            assert config.compact_name.startswith(expected_abbrev)
+
+    def test_granularity_abbreviations(self):
+        """測試粒度簡寫"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        granularities_and_abbrev = [
+            ("global", "G"),
+            ("columnwise", "C"),
+            ("pairwise", "P"),
+            ("details", "D"),
+            ("tree", "T"),
+        ]
+
+        for granularity, expected_abbrev in granularities_and_abbrev:
+            config = ExperimentConfig(
+                module="Evaluator",
+                exp_name="test",
+                data=df,
+                granularity=granularity,
+                naming_strategy=NamingStrategy.COMPACT,
+            )
+            assert expected_abbrev in config.compact_name
+
+    def test_parameter_encoding(self):
+        """測試簡化的 COMPACT 格式（不包含參數編碼）"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        config = ExperimentConfig(
+            module="Synthesizer",
+            exp_name="test",
+            data=df,
+            parameters={
+                "epsilon": 0.1,
+                "delta": 1e-5,
+                "method": "differential_privacy",
+                "extra_param": "should_be_truncated",
+            },
+            naming_strategy=NamingStrategy.COMPACT,
+        )
+
+        compact_name = config.compact_name
+        assert "Sy" in compact_name  # module abbreviation
+        assert "test" in compact_name  # experiment name
+        # COMPACT 格式不再包含參數編碼
+        assert "e0.1" not in compact_name
+        assert "d1e-05" not in compact_name
+        assert "diff" not in compact_name
+
+    def test_from_traditional_tuple_conversion(self):
+        """測試從傳統 tuple 轉換"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        # 基本 tuple
+        config1 = ExperimentConfig.from_traditional_tuple(
+            ("Synthesizer", "exp1"), df, NamingStrategy.COMPACT
+        )
+        assert config1.module == "Synthesizer"
+        assert config1.exp_name == "exp1"
+        assert config1.granularity is None
+        assert config1.naming_strategy == NamingStrategy.COMPACT
+
+        # 帶粒度的 tuple
+        config2 = ExperimentConfig.from_traditional_tuple(
+            ("Evaluator", "eval1_[global]"), df, NamingStrategy.COMPACT
+        )
+        assert config2.module == "Evaluator"
+        assert config2.exp_name == "eval1"
+        assert config2.granularity == "global"
+
+    def test_backward_compatibility(self):
+        """測試向後相容性"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        # 從傳統格式創建，然後轉回傳統格式
+        original_tuple = ("Evaluator", "privacy_eval_[columnwise]")
+        config = ExperimentConfig.from_traditional_tuple(
+            original_tuple, df, NamingStrategy.TRADITIONAL
+        )
+
+        # 轉回傳統格式應該完全一樣
+        assert config.traditional_tuple == original_tuple
+
+    def test_iteration_support_for_multiple_executions(self):
+        """測試多次執行的迭代支援"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        # 模擬多次 processor 執行
+        base_config = ExperimentConfig(
+            module="Processor",
+            exp_name="data_pipeline",
+            data=df,
+            naming_strategy=NamingStrategy.COMPACT,
+        )
+
+        # 第一次執行
+        config1 = base_config.with_iteration(1).with_parameters(step="normalize")
+        assert "i1" in config1.compact_name
+        # COMPACT 格式不包含參數編碼
+        assert "Pr" in config1.compact_name
+        assert "data_pipeline" in config1.compact_name
+
+        # 第二次執行
+        config2 = base_config.with_iteration(2).with_parameters(step="encode")
+        assert "i2" in config2.compact_name
+        # COMPACT 格式不包含參數編碼
+        assert "Pr" in config2.compact_name
+        assert "data_pipeline" in config2.compact_name
+
+        # 檔案名稱應該不同
+        assert config1.filename != config2.filename
+
+    def test_filename_readability(self):
+        """測試檔案名稱可讀性"""
+        df = pd.DataFrame({"a": [1, 2]})
+
+        config = ExperimentConfig(
+            module="Synthesizer",
+            exp_name="privacy_synthesis",
+            data=df,
+            iteration=2,
+            granularity="global",
+            parameters={"epsilon": 1.0, "method": "ctgan"},
+            naming_strategy=NamingStrategy.COMPACT,
+        )
+
+        filename = config.filename
+
+        # 檔案名稱應該：
+        # 1. 以 petsard_ 開頭
+        assert filename.startswith("petsard_")
+
+        # 2. 以 .csv 結尾
+        assert filename.endswith(".csv")
+
+        # 3. 用點號分隔各部分，容易識別
+        name_part = filename.replace("petsard_", "").replace(".csv", "")
+        parts = name_part.split(".")
+
+        # 4. 包含所有重要資訊
+        assert any("Sy" in part for part in parts)  # 模組
+        assert any("privacy_synthesis" in part for part in parts)  # 實驗名
+        assert any("i2" in part for part in parts)  # 迭代
+        assert any("G" in part for part in parts)  # 粒度
+        # COMPACT 格式不包含參數編碼
+
+        # 5. 長度合理（不超過 100 字符）
+        assert len(filename) < 100
+
+    def test_real_world_examples(self):
+        """測試真實世界的使用範例"""
+        df = pd.DataFrame({"score": [0.85]})
+
+        examples = [
+            # 基本合成實驗
+            {
+                "config": ExperimentConfig(
+                    module="Synthesizer",
+                    exp_name="baseline",
+                    data=df,
+                    naming_strategy=NamingStrategy.COMPACT,
+                ),
+                "expected_pattern": "petsard_Sy.baseline.csv",
+            },
+            # 隱私合成實驗
+            {
+                "config": ExperimentConfig(
+                    module="Synthesizer",
+                    exp_name="dp_synthesis",
+                    data=df,
+                    parameters={"epsilon": 1.0, "method": "ctgan"},
+                    naming_strategy=NamingStrategy.COMPACT,
+                ),
+                "expected_contains": ["Sy", "dp_synthesis"],
+            },
+            # 多輪評估
+            {
+                "config": ExperimentConfig(
+                    module="Evaluator",
+                    exp_name="cross_val",
+                    data=df,
+                    granularity="global",
+                    iteration=3,
+                    naming_strategy=NamingStrategy.COMPACT,
+                ),
+                "expected_contains": ["Ev", "cross_val", "i3", "G"],
+            },
+            # 多階段處理
+            {
+                "config": ExperimentConfig(
+                    module="Processor",
+                    exp_name="preprocessing",
+                    data=df,
+                    iteration=1,
+                    parameters={"method": "standard_scaler"},
+                    naming_strategy=NamingStrategy.COMPACT,
+                ),
+                "expected_contains": ["Pr", "preprocessing", "i1"],
+            },
+        ]
+
+        for example in examples:
+            config = example["config"]
+            filename = config.filename
+
+            if "expected_pattern" in example:
+                assert filename == example["expected_pattern"]
+
+            if "expected_contains" in example:
+                for expected in example["expected_contains"]:
+                    assert expected in filename, (
+                        f"'{expected}' not found in '{filename}'"
+                    )
+
+            # 所有檔案名稱都應該清晰可讀
+            assert len(filename) < 80  # 合理長度
+            assert filename.count(".") >= 2  # 至少有模組.實驗名.csv
+
+
+class TestReporterNamingStrategy:
+    """測試 Reporter 的 naming_strategy 功能"""
+
+    def test_naming_strategy_initialization(self):
+        """測試 naming_strategy 參數的初始化"""
+        # 預設應該是 traditional
+        config = {"method": "save_report", "granularity": "global"}
+        reporter = ReporterSaveReport(config)
+        assert reporter.config["naming_strategy"] == "traditional"
+
+        # 明確設定 traditional
+        config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "traditional",
+        }
+        reporter = ReporterSaveReport(config)
+        assert reporter.config["naming_strategy"] == "traditional"
+
+        # 設定 compact
+        config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "compact",
+        }
+        reporter = ReporterSaveReport(config)
+        assert reporter.config["naming_strategy"] == "compact"
+
+        # 無效值應該回退到 traditional
+        config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "invalid",
+        }
+        reporter = ReporterSaveReport(config)
+        assert reporter.config["naming_strategy"] == "traditional"
+
+    def test_generate_report_filename_traditional(self):
+        """測試傳統命名策略的檔名生成"""
+        config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "traditional",
+            "output": "petsard",
+        }
+        reporter = ReporterSaveReport(config)
+
+        # 測試基本檔名生成
+        filename = reporter._generate_report_filename("[global]", "global")
+        assert filename == "petsard[Report]_[global]"
+
+        # 測試帶評估名稱的檔名
+        filename = reporter._generate_report_filename("demo-quality_[global]", "global")
+        assert filename == "petsard[Report]_demo-quality_[global]"
+
+    def test_generate_report_filename_compact(self):
+        """測試簡潔命名策略的檔名生成"""
+        config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "compact",
+            "output": "petsard",
+        }
+        reporter = ReporterSaveReport(config)
+
+        # 測試基本檔名生成
+        filename = reporter._generate_report_filename("[global]", "global")
+        assert filename.startswith("petsard.report.Rp")
+        assert "G" in filename  # 應該包含粒度簡寫
+
+        # 測試帶評估名稱的檔名
+        filename = reporter._generate_report_filename("demo-quality_[global]", "global")
+        assert filename.startswith("petsard.report.Rp")
+        assert "demo-quality" in filename
+        assert "G" in filename
+
+    def test_naming_strategy_filename_differences(self):
+        """測試不同命名策略產生不同的檔名"""
+        # Traditional 配置
+        traditional_config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "traditional",
+            "output": "petsard",
+        }
+        traditional_reporter = ReporterSaveReport(traditional_config)
+
+        # Compact 配置
+        compact_config = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "compact",
+            "output": "petsard",
+        }
+        compact_reporter = ReporterSaveReport(compact_config)
+
+        # 生成檔名
+        eval_name = "demo-quality_[global]"
+        traditional_filename = traditional_reporter._generate_report_filename(
+            eval_name, "global"
+        )
+        compact_filename = compact_reporter._generate_report_filename(
+            eval_name, "global"
+        )
+
+        # 檔名應該不同
+        assert traditional_filename != compact_filename
+
+        # Traditional 格式檢查
+        assert "[Report]_" in traditional_filename
+
+        # Compact 格式檢查
+        assert ".report." in compact_filename
+        assert "Rp" in compact_filename
+
+    def test_naming_strategy_with_different_granularities(self):
+        """測試不同粒度的命名策略"""
+        granularities = ["global", "columnwise", "pairwise", "details", "tree"]
+
+        for granularity in granularities:
+            # Traditional
+            traditional_config = {
+                "method": "save_report",
+                "granularity": granularity,
+                "naming_strategy": "traditional",
+                "output": "petsard",
+            }
+            traditional_reporter = ReporterSaveReport(traditional_config)
+            traditional_filename = traditional_reporter._generate_report_filename(
+                f"test_[{granularity}]", granularity
+            )
+            assert "[Report]_" in traditional_filename
+            assert granularity in traditional_filename
+
+            # Compact
+            compact_config = {
+                "method": "save_report",
+                "granularity": granularity,
+                "naming_strategy": "compact",
+                "output": "petsard",
+            }
+            compact_reporter = ReporterSaveReport(compact_config)
+            compact_filename = compact_reporter._generate_report_filename(
+                f"test_[{granularity}]", granularity
+            )
+            assert ".report." in compact_filename
+            assert "Rp" in compact_filename
+
+    def test_naming_strategy_backward_compatibility(self):
+        """測試命名策略的向後相容性"""
+        # 不設定 naming_strategy 應該預設為 traditional
+        config = {"method": "save_report", "granularity": "global"}
+        reporter = ReporterSaveReport(config)
+
+        filename = reporter._generate_report_filename("[global]", "global")
+        assert filename == "petsard[Report]_[global]"
+
+        # 這應該與明確設定 traditional 的結果相同
+        config_explicit = {
+            "method": "save_report",
+            "granularity": "global",
+            "naming_strategy": "traditional",
+        }
+        reporter_explicit = ReporterSaveReport(config_explicit)
+        filename_explicit = reporter_explicit._generate_report_filename(
+            "[global]", "global"
+        )
+
+        assert filename == filename_explicit

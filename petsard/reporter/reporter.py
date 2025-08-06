@@ -1,5 +1,5 @@
 from petsard.exceptions import UnsupportedMethodError
-from petsard.reporter.base_reporter import ReporterMethod
+from petsard.reporter.reporter_base import ReporterMethod
 from petsard.reporter.reporter_save_data import ReporterSaveData
 from petsard.reporter.reporter_save_report import ReporterSaveReport
 from petsard.reporter.reporter_save_timing import ReporterSaveTiming
@@ -9,7 +9,9 @@ class ReporterMap:
     """
     Mapping of Reporter.
 
-    Note: This class is deprecated. Use ReporterMethod enum directly instead.
+    .. deprecated:: 1.x
+        This class is deprecated and will be removed in v2.0.
+        Use ReporterMethod enum directly instead.
     """
 
     SAVE_DATA: int = ReporterMethod.SAVE_DATA
