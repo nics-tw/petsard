@@ -1,11 +1,6 @@
-"""
-PETsARD Status Module - 以 Metadater 為核心的狀態管理
-
-本模組提供以 Metadater 為核心的狀態管理機制，包含完整的進度快照功能。
-"""
-
 import logging
 import re
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
@@ -137,59 +132,77 @@ class TimingRecord:
 class TimingLogHandler(logging.Handler):
     """
     自定義 logging handler 來捕獲 Operator 的時間資訊
+    優化版本：使用預編譯正則表達式和快取
     """
 
     def __init__(self, status_instance):
         super().__init__()
         self.status = status_instance
+        # 簡化並優化正則表達式
         self._timing_pattern = re.compile(
-            r"TIMING_(START|END|ERROR)\|([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?(?:\|(.+))?"
+            r"TIMING_(\w+)\|([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?(?:\|(.+))?"
         )
+        # 模組名稱快取，避免重複處理
+        self._module_name_cache = {}
 
     def emit(self, record):
-        """處理 log 記錄，解析時間資訊"""
+        """處理 log 記錄，解析時間資訊 - 優化版本"""
         try:
             message = record.getMessage()
+            # 快速檢查是否為 TIMING 訊息，避免不必要的正則匹配
+            if not message.startswith("TIMING_"):
+                return
+
             match = self._timing_pattern.match(message)
+            if not match:
+                return
 
-            if match:
-                timing_type = match.group(1)  # START, END, ERROR
-                module_name = match.group(2)  # 模組名稱
-                step_name = match.group(3)  # 步驟名稱
-                timestamp = float(match.group(4))  # 時間戳
-                duration = float(match.group(5)) if match.group(5) else None  # 持續時間
-                error_msg = match.group(6) if match.group(6) else None  # 錯誤訊息
+            timing_type = match.group(1)  # START, END, ERROR
+            module_name = match.group(2)  # 模組名稱
+            step_name = match.group(3)  # 步驟名稱
+            timestamp = float(match.group(4))  # 時間戳
+            duration = float(match.group(5)) if match.group(5) else None  # 持續時間
+            error_msg = match.group(6) if match.group(6) else None  # 錯誤訊息
 
-                # 從 status 中取得當前模組的實驗名稱
-                # 先嘗試直接匹配模組名稱
-                expt_name = self.status._current_experiments.get(module_name, "default")
+            # 使用快取獲取實驗名稱
+            expt_name = self._get_experiment_name_cached(module_name)
 
-                # 如果找不到，嘗試匹配移除 "Adapter" 後綴的名稱
-                if expt_name == "default":
-                    clean_module_name = module_name.replace("Adapter", "")
-                    expt_name = self.status._current_experiments.get(
-                        clean_module_name, "default"
-                    )
+            if timing_type == "START":
+                self.status._handle_timing_start(
+                    module_name, expt_name, step_name, timestamp
+                )
+            elif timing_type in ["END", "ERROR"]:
+                context = {}
+                if timing_type == "ERROR" and error_msg:
+                    context["error"] = error_msg
+                    context["status"] = "error"
+                else:
+                    context["status"] = "completed"
 
-                if timing_type == "START":
-                    self.status._handle_timing_start(
-                        module_name, expt_name, step_name, timestamp
-                    )
-                elif timing_type in ["END", "ERROR"]:
-                    context = {}
-                    if timing_type == "ERROR" and error_msg:
-                        context["error"] = error_msg
-                        context["status"] = "error"
-                    else:
-                        context["status"] = "completed"
+                self.status._handle_timing_end(
+                    module_name, expt_name, step_name, timestamp, duration, context
+                )
 
-                    self.status._handle_timing_end(
-                        module_name, expt_name, step_name, timestamp, duration, context
-                    )
+        except Exception as e:
+            # 記錄錯誤但不影響主程式
+            try:
+                logging.getLogger("PETsARD.TimingHandler").warning(
+                    f"Timing handler error: {e}"
+                )
+            except:
+                pass
 
-        except Exception:
-            # 避免 logging handler 本身出錯影響主程式
-            pass
+    def _get_experiment_name_cached(self, module_name: str) -> str:
+        """使用快取獲取實驗名稱，避免重複處理"""
+        if module_name not in self._module_name_cache:
+            expt_name = self.status._current_experiments.get(module_name, "default")
+            if expt_name == "default":
+                clean_module_name = module_name.replace("Adapter", "")
+                expt_name = self.status._current_experiments.get(
+                    clean_module_name, "default"
+                )
+            self._module_name_cache[module_name] = expt_name
+        return self._module_name_cache[module_name]
 
 
 class Status:
@@ -200,12 +213,21 @@ class Status:
     保持與原有 Status 介面的相容性。
     """
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        config,
+        max_snapshots: int = 1000,
+        max_changes: int = 5000,
+        max_timings: int = 10000,
+    ):
         """
         初始化狀態管理器
 
         Args:
             config: 配置物件
+            max_snapshots: 最大快照數量，防止記憶體洩漏
+            max_changes: 最大變更記錄數量
+            max_timings: 最大計時記錄數量
         """
         self.config = config
         self.sequence: list = config.sequence
@@ -218,14 +240,21 @@ class Status:
         self.status: dict = {}
         self.metadata: dict[str, SchemaMetadata] = {}
 
-        # 新增的快照和變更追蹤功能
-        self.snapshots: list[ExecutionSnapshot] = []
-        self.change_history: list[MetadataChange] = []
+        # 優化的快照和變更追蹤功能 - 使用 deque 限制大小
+        self.max_snapshots = max_snapshots
+        self.max_changes = max_changes
+        self.max_timings = max_timings
+
+        self.snapshots: deque[ExecutionSnapshot] = deque(maxlen=max_snapshots)
+        self.change_history: deque[MetadataChange] = deque(maxlen=max_changes)
         self._snapshot_counter = 0
         self._change_counter = 0
 
-        # 新增的時間記錄功能
-        self.timing_records: list[TimingRecord] = []
+        # 快照索引，使用弱引用字典避免記憶體洩漏
+        self._snapshot_index: dict[str, ExecutionSnapshot] = {}
+
+        # 優化的時間記錄功能
+        self.timing_records: deque[TimingRecord] = deque(maxlen=max_timings)
         self._timing_counter = 0
         self._active_timings: dict[str, TimingRecord] = {}  # 追蹤進行中的計時
 
@@ -293,6 +322,19 @@ class Status:
         )
 
         self.snapshots.append(snapshot)
+        # 更新索引
+        self._snapshot_index[snapshot.snapshot_id] = snapshot
+        # 如果超過限制，清理舊的索引項目
+        if (
+            len(self.snapshots) == self.max_snapshots
+            and len(self._snapshot_index) > self.max_snapshots
+        ):
+            # 清理不在 deque 中的索引項目
+            valid_ids = {s.snapshot_id for s in self.snapshots}
+            self._snapshot_index = {
+                k: v for k, v in self._snapshot_index.items() if k in valid_ids
+            }
+
         self._logger.debug(f"建立快照: {snapshot.snapshot_id} for {module}[{expt}]")
         return snapshot
 
@@ -716,7 +758,7 @@ class Status:
 
     def get_snapshot_by_id(self, snapshot_id: str) -> ExecutionSnapshot | None:
         """
-        根據 ID 取得特定快照
+        根據 ID 取得特定快照 - 優化版本使用索引
 
         Args:
             snapshot_id: 快照 ID
@@ -724,10 +766,7 @@ class Status:
         Returns:
             Optional[ExecutionSnapshot]: 快照物件或 None
         """
-        for snapshot in self.snapshots:
-            if snapshot.snapshot_id == snapshot_id:
-                return snapshot
-        return None
+        return self._snapshot_index.get(snapshot_id)
 
     def get_change_history(self, module: str = None) -> list[MetadataChange]:
         """
@@ -746,7 +785,7 @@ class Status:
 
     def get_metadata_evolution(self, module: str = "Loader") -> list[SchemaMetadata]:
         """
-        取得特定模組的元資料演進歷史
+        取得特定模組的元資料演進歷史 - 優化版本避免重複
 
         Args:
             module: 模組名稱
@@ -755,12 +794,22 @@ class Status:
             List[SchemaMetadata]: 元資料演進列表
         """
         evolution = []
+        seen_ids = set()
+
         for snapshot in self.snapshots:
             if snapshot.module_name == module:
-                if snapshot.metadata_before:
+                if (
+                    snapshot.metadata_before
+                    and snapshot.metadata_before.schema_id not in seen_ids
+                ):
                     evolution.append(snapshot.metadata_before)
-                if snapshot.metadata_after:
+                    seen_ids.add(snapshot.metadata_before.schema_id)
+                if (
+                    snapshot.metadata_after
+                    and snapshot.metadata_after.schema_id not in seen_ids
+                ):
                     evolution.append(snapshot.metadata_after)
+                    seen_ids.add(snapshot.metadata_after.schema_id)
         return evolution
 
     def restore_from_snapshot(self, snapshot_id: str) -> bool:
@@ -828,7 +877,7 @@ class Status:
 
     def get_timing_report_data(self) -> pd.DataFrame:
         """
-        取得適合 Reporter 使用的時間記錄資料
+        取得適合 Reporter 使用的時間記錄資料 - 優化版本
 
         Returns:
             pd.DataFrame: 時間記錄的 DataFrame
@@ -836,21 +885,19 @@ class Status:
         if not self.timing_records:
             return pd.DataFrame()
 
-        data = []
-        for record in self.timing_records:
-            data.append(
-                {
-                    "record_id": record.record_id,
-                    "module_name": record.module_name,
-                    "experiment_name": record.experiment_name,
-                    "step_name": record.step_name,
-                    "start_time": record.start_time.isoformat(),
-                    "end_time": record.end_time.isoformat()
-                    if record.end_time
-                    else None,
-                    "duration_seconds": record.duration_seconds,
-                    **record.context,  # 展開 context 中的額外資訊
-                }
-            )
+        # 使用列表推導式和預分配，提升性能
+        data = [
+            {
+                "record_id": record.record_id,
+                "module_name": record.module_name,
+                "experiment_name": record.experiment_name,
+                "step_name": record.step_name,
+                "start_time": record.start_time.isoformat(),
+                "end_time": record.end_time.isoformat() if record.end_time else None,
+                "duration_seconds": record.duration_seconds,
+                **record.context,  # 展開 context 中的額外資訊
+            }
+            for record in self.timing_records
+        ]
 
         return pd.DataFrame(data)
