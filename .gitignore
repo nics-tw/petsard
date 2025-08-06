@@ -42,6 +42,11 @@ dist/
 
 # 測試相關 Testing related
 .pytest_cache/
+.coverage*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
 
 # 快取與暫存檔案 Cache and temporary files
 .ruff_cache/

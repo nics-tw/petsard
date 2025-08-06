@@ -930,45 +930,88 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 
 > tests/reporter/test_reporter.py
 
-
-> - 所有原始功能都已保留，具有完全向後相容性
-> - 增強 `_safe_merge` 方法中的合併邏輯，正確處理 columnwise 和 pairwise 資料合併
-
-測試主要 Reporter 功能：
+測試具有**函式化設計架構**和**命名策略支援**的主要 Reporter 功能：
 
 - `test_method`：測試 Reporter 使用不同方法的初始化：
   - 'save_data' 方法使用 ReporterSaveData
   - 'save_report' 方法使用 ReporterSaveReport
+  - 'save_timing' 方法使用 ReporterSaveTiming
   - 無效方法拋出 UnsupportedMethodError
 - `test_method_save_data`：測試 save_data 方法驗證：
   - 未提供 source 時拋出 ConfigError
 - `test_method_save_report`：測試 save_report 方法驗證：
   - 僅使用 granularity 的有效初始化
   - 缺少必要參數時拋出 ConfigError
+- `test_method_save_timing`：測試 save_timing 方法驗證：
+  - 使用可選參數的有效初始化
+  - 正確處理 time_unit 和模組過濾
+
+#### `TestReporterNamingStrategy`
+
+測試命名策略功能（6 個測試）：
+
+- `test_naming_strategy_parameter_validation`：測試 naming_strategy 參數驗證：
+  - 接受有效值（'traditional'、'compact'）
+  - 無效命名策略值拋出 ConfigError
+- `test_traditional_naming_strategy`：測試傳統命名策略：
+  - 維持與現有檔名格式的向後相容性
+  - 產生含傳統方括號標記的檔案
+- `test_compact_naming_strategy`：測試簡潔命名策略：
+  - 產生簡化的檔名格式
+  - 移除冗餘的方括號和標記
+- `test_naming_strategy_with_different_methods`：測試不同 Reporter 方法的命名策略：
+  - save_data 方法使用兩種策略
+  - save_report 方法使用兩種策略
+  - save_timing 方法（跨策略不變）
+- `test_naming_strategy_integration`：測試命名策略與 Reporter 工作流程的整合：
+  - 端到端檔名生成
+  - 透過 Reporter 架構的適當參數傳遞
+- `test_naming_strategy_default_behavior`：測試預設命名策略行為：
+  - 未指定 naming_strategy 時使用傳統策略
+  - 維持向後相容性
 
 #### `ReporterSaveData`
 
-測試資料儲存功能：
+測試具有函式化設計的資料儲存功能：
 
 - `test_source`：測試 source 參數驗證：
   - 接受字串和字串列表
   - 無效類型（浮點數、混合列表、元組）拋出 ConfigError
+- `test_functional_create_and_report`：測試函式化「拋出再拋回」模式：
+  - `create()` 處理資料但不儲存在實例變數中
+  - `report()` 接收處理後的資料並產生輸出檔案
+  - 呼叫間不維護內部狀態
 
 #### `ReporterSaveReport`
 
-測試報告生成功能：
+測試具有**多粒度支援**的報告生成功能：
 
 - `test_granularity`：測試 granularity 參數驗證：
-  - 有效值：'global'、'columnwise'、'pairwise'
+  - **單一粒度**：'global'、'columnwise'、'pairwise'、'details'、'tree'
+  - **多重粒度**：['global', 'columnwise']、['details', 'tree']
   - 缺少或無效 granularity 拋出 ConfigError
-  - 非字串類型拋出 ConfigError
+  - 非字串/非列表類型拋出 ConfigError
+- `test_multi_granularity_support`：測試多粒度功能：
+  - 在單一操作中處理多個粒度
+  - 為每個粒度產生個別報告
+  - 正確處理粒度特定的資料結構
+- `test_new_granularity_types`：測試新粒度類型（v2.0+）：
+  - 'details'：詳細分解與額外指標
+  - 'tree'：階層樹狀結構分析
 - `test_eval`：測試 eval 參數驗證：
   - 接受字串、字串列表或 None
   - 無效類型拋出 ConfigError
-- `test_create`：測試所有粒度的報告建立：
+- `test_create`：測試所有粒度的函式化報告建立：
   - Global 粒度報告生成
   - Columnwise 粒度報告生成
   - Pairwise 粒度報告生成
+  - Details 粒度報告生成
+  - Tree 粒度報告生成
+  - 多粒度處理
+- `test_functional_design_pattern`：測試函式化「拋出再拋回」模式：
+  - `create()` 回傳處理後的資料但不內部儲存
+  - `report()` 接受處理後的資料並產生檔案
+  - 透過無狀態設計進行記憶體優化
 - `test_process_report_data`：測試資料處理功能：
   - 使用評估名稱前綴重命名欄位
   - 不同粒度的索引處理
@@ -979,6 +1022,18 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
   - 正確處理包括 'column'、'column1'、'column2' 的共同欄位
   - 合併結果中的正確行順序
 
+#### `ReporterSaveTiming`
+
+測試時間資訊報告功能：
+
+- `test_timing_data_processing`：測試時間資料處理：
+  - 時間單位轉換（秒、分鐘、小時、天）
+  - 模組過濾功能
+  - 時間詮釋資料提取
+- `test_functional_timing_workflow`：測試函式化時間工作流程：
+  - 處理時間資料但不內部儲存
+  - 產生適當格式的時間報告
+
 #### `Reporter Utils`
 
 測試工具函數：
@@ -986,6 +1041,10 @@ python -c "from tests.loader.test_loader import run_stress_demo; run_stress_demo
 - `test_convert_full_expt_tuple_to_name`：測試實驗元組到名稱的轉換
 - `test_convert_full_expt_name_to_tuple`：測試實驗名稱到元組的轉換
 - `test_convert_eval_expt_name_to_tuple`：測試評估實驗名稱解析
+
+> **函式化設計架構**：Reporter 已完全重構為使用函式化「拋出再拋回」設計模式以進行記憶體優化。`create()` 方法處理資料但不將其儲存在實例變數中（`self.result`、`self._processed_data`），而 `report()` 接收處理後的資料並產生輸出檔案。這種無狀態方法顯著減少記憶體消耗，同時保持完全向後相容性。
+
+> **多粒度支援**：Reporter 現在支援單一粒度（`str`）和多粒度（`list[str]`）配置，允許使用者在單一操作中處理多個粒度。新的粒度類型 'details' 和 'tree' 已與傳統的 'global'、'columnwise' 和 'pairwise' 選項一起添加。
 
 ## 系統組件
 

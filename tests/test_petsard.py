@@ -545,6 +545,249 @@ InvalidModule:
             # In v2.0.0, this will return success/failed status codes
             executor.run()
 
+    def test_multi_granularity_reporter_workflow(self, temp_output_dir):
+        """Test workflow with multi-granularity reporter configuration."""
+        config_content = f"""---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  multi_granularity_report:
+    method: 'save_report'
+    granularity: ['global', 'columnwise']
+    output_dir: '{temp_output_dir}'
+...
+"""
+
+        config_path = os.path.join(
+            temp_output_dir, "test_multi_granularity_config.yaml"
+        )
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+        executor = Executor(config_path)
+        executor.run()
+
+        # Check execution completion
+        assert executor.is_execution_completed(), (
+            "Execution should be completed after run()"
+        )
+
+        # Get results
+        result = executor.get_result()
+        assert result is not None
+
+        # Verify timing results exist
+        timing_result = executor.get_timing()
+        assert timing_result is not None
+        assert isinstance(timing_result, pd.DataFrame)
+
+    def test_new_granularity_types_workflow(self, temp_output_dir):
+        """Test workflow with new granularity types (details, tree)."""
+        config_content = f"""---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  new_granularity_report:
+    method: 'save_report'
+    granularity: ['details', 'tree']
+    output_dir: '{temp_output_dir}'
+...
+"""
+
+        config_path = os.path.join(temp_output_dir, "test_new_granularity_config.yaml")
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+        executor = Executor(config_path)
+        executor.run()
+
+        # Check execution completion
+        assert executor.is_execution_completed(), (
+            "Execution should be completed after run()"
+        )
+
+        # Get results
+        result = executor.get_result()
+        assert result is not None
+
+    def test_save_timing_reporter_workflow(self, temp_output_dir):
+        """Test workflow with save_timing reporter."""
+        config_content = f"""---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Reporter:
+  timing_report:
+    method: 'save_timing'
+    time_unit: 'minutes'
+    module: ['Loader', 'Synthesizer']
+    output_dir: '{temp_output_dir}'
+...
+"""
+
+        config_path = os.path.join(temp_output_dir, "test_timing_reporter_config.yaml")
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+        executor = Executor(config_path)
+        executor.run()
+
+        # Check execution completion
+        assert executor.is_execution_completed(), (
+            "Execution should be completed after run()"
+        )
+
+        # Get results
+        result = executor.get_result()
+        assert result is not None
+
+        # Verify timing results exist
+        timing_result = executor.get_timing()
+        assert timing_result is not None
+        assert isinstance(timing_result, pd.DataFrame)
+
+    def test_mixed_granularity_reporter_workflow(self, temp_output_dir):
+        """Test workflow with mixed granularity types (old and new)."""
+        config_content = f"""---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Splitter:
+  demo:
+    num_samples: 1
+    train_split_ratio: 0.8
+Preprocessor:
+  demo:
+    method: 'default'
+Synthesizer:
+  demo:
+    method: 'default'
+Postprocessor:
+  demo:
+    method: 'default'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  mixed_granularity_report:
+    method: 'save_report'
+    granularity: ['global', 'columnwise', 'details', 'tree']
+    output_dir: '{temp_output_dir}'
+...
+"""
+
+        config_path = os.path.join(
+            temp_output_dir, "test_mixed_granularity_config.yaml"
+        )
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+        executor = Executor(config_path)
+        executor.run()
+
+        # Check execution completion
+        assert executor.is_execution_completed(), (
+            "Execution should be completed after run()"
+        )
+
+        # Get results
+        result = executor.get_result()
+        assert result is not None
+
+    @pytest.mark.parametrize(
+        "granularity_config,expected_success",
+        [
+            ("global", True),  # Single granularity (backward compatibility)
+            (["global", "columnwise"], True),  # Multiple traditional granularities
+            (["details", "tree"], True),  # New granularity types
+            (["global", "details"], True),  # Mixed old and new
+            (["invalid_granularity"], False),  # Invalid granularity
+        ],
+    )
+    def test_reporter_granularity_validation(
+        self, temp_output_dir, granularity_config, expected_success
+    ):
+        """Test reporter granularity configuration validation."""
+        # Convert granularity_config to YAML format
+        if isinstance(granularity_config, list):
+            granularity_yaml = str(granularity_config)
+        else:
+            granularity_yaml = f"'{granularity_config}'"
+
+        config_content = f"""---
+Loader:
+  data:
+    filepath: 'benchmark://adult-income'
+Evaluator:
+  demo-quality:
+    method: 'sdmetrics-qualityreport'
+Reporter:
+  test_granularity:
+    method: 'save_report'
+    granularity: {granularity_yaml}
+    output_dir: '{temp_output_dir}'
+...
+"""
+
+        config_path = os.path.join(
+            temp_output_dir, "test_granularity_validation_config.yaml"
+        )
+        with open(config_path, "w") as f:
+            f.write(config_content)
+
+        if expected_success:
+            executor = Executor(config_path)
+            executor.run()
+            assert executor.is_execution_completed()
+        else:
+            # Should raise an error for invalid granularity
+            with pytest.raises((ValueError, KeyError, AttributeError)):
+                executor = Executor(config_path)
+                executor.run()
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

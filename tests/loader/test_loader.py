@@ -1,6 +1,7 @@
 import gc
 import logging
 import os
+import resource
 import tempfile
 import time
 from pathlib import Path
@@ -9,7 +10,6 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
-import psutil
 import pytest
 
 from petsard.exceptions import ConfigError, UnsupportedMethodError
@@ -937,13 +937,19 @@ class MemoryMonitor:
     """記憶體使用監控器"""
 
     def __init__(self):
-        self.process = psutil.Process()
         self.initial_memory = self.get_memory_usage()
         self.peak_memory = self.initial_memory
 
     def get_memory_usage(self) -> float:
         """取得當前記憶體使用量 (MB)"""
-        return self.process.memory_info().rss / 1024 / 1024
+        try:
+            # 使用 resource 模組獲取記憶體使用量 (Unix/Linux/macOS)
+            # Use resource module to get memory usage (Unix/Linux/macOS)
+            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+        except (AttributeError, OSError):
+            # Windows 或其他系統的備用方案
+            # Fallback for Windows or other systems
+            return 0.0
 
     def record(self, label: str = ""):
         """記錄當前記憶體使用量"""

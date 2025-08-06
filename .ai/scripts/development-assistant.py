@@ -59,7 +59,14 @@ class DevelopmentAssistant:
         try:
             # 在 CI 環境中使用不同的比較基準
             if os.getenv("GITHUB_ACTIONS"):
-                base_ref = base_ref or "origin/main"
+                # 在 GitHub Actions 中，使用 GITHUB_BASE_REF 作為比較基準
+                github_base_ref = os.getenv("GITHUB_BASE_REF")
+                if github_base_ref:
+                    base_ref = f"origin/{github_base_ref}"
+                else:
+                    # 如果沒有 GITHUB_BASE_REF，回退到 main
+                    base_ref = base_ref or "origin/main"
+
                 cmd = [
                     "git",
                     "diff",
@@ -384,6 +391,7 @@ def main():
         # 報告模式：生成 Markdown 報告
         report = assistant.generate_ci_report(docs_to_check, args.pr_number)
         print(report)
+        return 0  # 報告模式總是成功
 
     elif args.mode == "compliance":
         # 合規性檢查模式
