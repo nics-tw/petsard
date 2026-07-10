@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.10.2-rc.5 (2026-07-10)
+
+### Chores
+
+- **ci.deps**: Bump the actions-dependencies group with 4 updates
+  ([#1022](https://github.com/nics-dp/petsard/pull/1022),
+  [`391db57`](https://github.com/nics-dp/petsard/commit/391db57acc7eba9d7a17df3317081f078bde777d))
+
+
 ## v1.10.2-rc.4 (2026-07-10)
 
 ### Bug Fixes
