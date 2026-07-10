@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.10.2-rc.4 (2026-07-10)
+
+### Bug Fixes
+
+- **deps**: Bump soupsieve to 2.8.4 to fix CVE-2026-49476/49477
+  ([#1023](https://github.com/nics-dp/petsard/pull/1023),
+  [`06109dd`](https://github.com/nics-dp/petsard/commit/06109dd14f0576ffcd4b1c2eb62538bbbe56915d))
+
+
 ## v1.10.2-rc.3 (2026-07-03)
 
 ### Chores
